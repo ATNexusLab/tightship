@@ -1,9 +1,9 @@
 # #1 — Build the Claude Code plugin from the canonical content
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `content/`, `harnesses/claude-code/`, `xtask/`
-> **Epic:** —
+> **Epic:** #1
 > **Requirements:** NFR-MNT-01, NFR-FLEX-06, NFR-SEC-01, NFR-SEC-02, BR-02, BR-03, FR-SKL-03
 > **Sprint:** 1
 
@@ -114,7 +114,7 @@ blocks included.
 | `[plugin]` | `name` | `"tightship"` |
 | `[plugin]` | `description` | `"Skills, a command per step of the development loop, and a read-only verifier"` |
 | `[plugin]` | `author` | `"ATNexusLab"` |
-| `[plugin]` | `repository` | `"https://github.com/ATNexusLab/workflow"` |
+| `[plugin]` | `repository` | `"https://github.com/ATNexusLab/tightship"` |
 | `[references]` | `skill` | `"{plugin}:{name}"` |
 | `[references]` | `command` | `"/{plugin}:{name}"` |
 | `[references]` | `agent` | `"{plugin}:{name}"` |
@@ -164,7 +164,7 @@ replaced as `[references]` and `[capabilities]` say.
   "version": "0.1.0",
   "description": "Skills, a command per step of the development loop, and a read-only verifier",
   "author": { "name": "ATNexusLab" },
-  "repository": "https://github.com/ATNexusLab/workflow"
+  "repository": "https://github.com/ATNexusLab/tightship"
 }
 ```
 
@@ -621,8 +621,8 @@ ADR for file formats now points at the epics that define them: options in #3, no
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Build a canonical piece into the Claude Code plugin | Cargo workspace (`Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, `.cargo/config.toml`), `xtask/` (content reading, front matter, tokens, references, neutrality, Claude Code rendering, tests over fixtures), `harnesses/claude-code/harness.toml`, `.gitignore`, `content/skills/grilling/SKILL.md`, `AGENTS.md` (stack, gates, commands), about 18 files | Scenarios 2, 3 and 5 verified on `grilling`; 4 and 6 to 17 verified by tests over fixtures | — |
-| 2 | Scan for identity, secrets, and vault notes | `xtask/` (identity scan as the last step of `build`, the `scan` command, tests), `AGENTS.md` (the `scan` gate), GitHub secret scanning and push protection turned on after the maintainer approves, about 6 files | Scenarios 18 to 24 verified | 1 |
-| 3 | Migrate the 22 baseline pieces | `content/skills/` (12 more `SKILL.md` and 4 supporting files), `content/commands/` (8 files), `content/agents/adversarial-verifier.md`, `harness.toml` capabilities, about 27 files. Skills and commands cite each other, so neither half builds alone; the review reads the comparison with the baseline of scenario 25 | Scenarios 1, 4 and 25 verified on the 22 pieces | 2 |
+| # | Title | Scope | Acceptance criterion | Depends on | Issue |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Build a canonical piece into the Claude Code plugin | Cargo workspace (`Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, `.cargo/config.toml`), `xtask/` (content reading, front matter, tokens, references, neutrality, Claude Code rendering, tests over fixtures), `harnesses/claude-code/harness.toml`, `.gitignore`, `content/skills/grilling/SKILL.md`, `AGENTS.md` (stack, gates, commands), about 18 files | Scenarios 2, 3 and 5 verified on `grilling`; 4 and 6 to 17 verified by tests over fixtures | — | #9 |
+| 2 | Scan for identity, secrets, and vault notes | `xtask/` (identity scan as the last step of `build`, the `scan` command, tests), `AGENTS.md` (the `scan` gate), GitHub secret scanning and push protection turned on after the maintainer approves, about 6 files | Scenarios 18 to 24 verified | 1 | #10 |
+| 3 | Migrate the 22 baseline pieces | `content/skills/` (12 more `SKILL.md` and 4 supporting files), `content/commands/` (8 files), `content/agents/adversarial-verifier.md`, `harness.toml` capabilities, about 27 files. Skills and commands cite each other, so neither half builds alone; the review reads the comparison with the baseline of scenario 25 | Scenarios 1, 4 and 25 verified on the 22 pieces | 2 | #11 |
