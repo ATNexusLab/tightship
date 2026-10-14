@@ -3,6 +3,7 @@
 How the product is edited.
 
 <a id="nfr-mnt-01"></a>
+
 ## NFR-MNT-01 — One authored copy per piece
 
 The system shall have exactly one authored copy of each workflow piece; every harness's version of it is
@@ -18,5 +19,6 @@ generated from that copy.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **NFR-MNT-01.1** — Changing one piece's text means editing 1 file, and every harness's plugin built
   afterward carries the change.

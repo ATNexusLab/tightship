@@ -2,7 +2,10 @@
 
 The always-on working contract: how it reaches every session, how it is turned off, and what it carries.
 
+![Use cases: contract](../diagrams/use-cases-contract.drawio.svg)
+
 <a id="fr-ctr-01"></a>
+
 ## FR-CTR-01 — Contract in every session
 
 > As an adopter, I want the contract in every session, so that the agent works the same way in every
@@ -21,12 +24,14 @@ contract is enabled.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-CTR-01.1** — Given the contract is enabled, when a session starts, then the agent's context holds
   the contract's text from its first rule to its last.
 - **FR-CTR-01.2** — Given the contract is enabled, when the session's context is compacted, then the
   agent's context still holds the whole contract afterward.
 
 <a id="fr-ctr-02"></a>
+
 ## FR-CTR-02 — Contract can be turned off
 
 > As an adopter who keeps my own rules, I want to turn the contract off, so that I keep the skills and
@@ -45,12 +50,14 @@ disabled.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-CTR-02.1** — Given the contract is disabled, when a session starts, then the agent's context holds
   no rule of the contract.
 - **FR-CTR-02.2** — Given the contract is disabled, when the adopter invokes a command, then the command
   runs.
 
 <a id="fr-ctr-03"></a>
+
 ## FR-CTR-03 — Contract matches the enabled options
 
 > As an adopter who left memory or the status line off, I want a contract that never mentions them, so
@@ -68,12 +75,14 @@ The system shall leave out of the contract every rule that depends on a disabled
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-CTR-03.1** — Given the contract is enabled and memory is disabled, when a session starts, then the
   contract in the agent's context holds no rule that reads or writes the vault.
 - **FR-CTR-03.2** — Given the contract and memory are both enabled, when a session starts, then the
   contract in the agent's context holds every memory rule of the baseline.
 
 <a id="fr-ctr-04"></a>
+
 ## FR-CTR-04 — Every baseline rule is carried over
 
 > As the maintainer, I want every rule of my current contract in the plugin, so that moving to the plugin
@@ -92,10 +101,12 @@ name the maintainer's machine or personal settings.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-CTR-04.1** — Given the baseline contract, when each of its rules is looked up in the shipped
   contract, then each one is found or is listed in the spec of M1 as personal, with its reason.
 
 <a id="fr-ctr-05"></a>
+
 ## FR-CTR-05 — Behavior without the contract is documented
 
 > As an adopter deciding whether to turn the contract off, I want to know what changes, so that I decide
@@ -114,5 +125,6 @@ disabled.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-CTR-05.1** — Given the install guide, when the adopter reads its section on the contract, then it
   names every skill and command that refers to a contract rule and what each does without it.

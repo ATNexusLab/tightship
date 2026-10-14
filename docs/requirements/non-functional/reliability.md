@@ -3,6 +3,7 @@
 What a failure of the plugin may and may not do to the session.
 
 <a id="nfr-rel-01"></a>
+
 ## NFR-REL-01 — A plugin failure never blocks the session
 
 The system shall let the session continue when any of its hooks or scripts fails.
@@ -17,5 +18,6 @@ The system shall let the session continue when any of its hooks or scripts fails
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **NFR-REL-01.1** — With the vault missing, unreadable, or malformed, 100% of sessions start and accept
   prompts.

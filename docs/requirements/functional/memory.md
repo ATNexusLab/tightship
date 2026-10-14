@@ -3,7 +3,10 @@
 The optional memory layer: a vault of curated notes, what reaches the session from it, and how notes and
 handoffs are written.
 
+![Use cases: memory](../diagrams/use-cases-memory.drawio.svg)
+
 <a id="fr-mem-01"></a>
+
 ## FR-MEM-01 — Memory context at session start
 
 > As an adopter, I want the notes that matter to this project at the start of each session, so that the
@@ -22,6 +25,7 @@ and of `all`, and the project's handoff when one exists.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-MEM-01.1** — Given memory is enabled and the vault holds a pinned note in the project's scope, when
   a session starts in that project, then the agent's context lists that note.
 - **FR-MEM-01.2** — Given memory is enabled and the project has a handoff, when a session starts, then
@@ -30,6 +34,7 @@ and of `all`, and the project's handoff when one exists.
   starts, then the agent's context does not list it.
 
 <a id="fr-mem-02"></a>
+
 ## FR-MEM-02 — Checkpoint reminder
 
 > As an adopter, I want the agent reminded to record what it learned, so that a fact worth keeping is not
@@ -48,12 +53,14 @@ session's context is compacted.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-MEM-02.1** — Given memory is enabled, when the adopter sends the number of prompts the M1 spec
   sets as the interval, then the agent receives a checkpoint.
 - **FR-MEM-02.2** — Given memory is enabled, when the session's context is compacted, then the agent
   receives a checkpoint first.
 
 <a id="fr-mem-03"></a>
+
 ## FR-MEM-03 — Search the notes
 
 > As an adopter, I want the agent to search the vault, so that it finds a note it was not shown at
@@ -72,12 +79,14 @@ stating why it matters.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-MEM-03.1** — Given a note whose title holds a term, when the agent searches for that term, then the
   note is in the result with its path and its reason line.
 - **FR-MEM-03.2** — Given matches in the project's scope and in `all`, when the agent searches, then the
   project's matches come first.
 
 <a id="fr-mem-04"></a>
+
 ## FR-MEM-04 — Write a note in one step
 
 > As an adopter, I want the agent to write a note in one step, so that recording a fact costs no more
@@ -96,10 +105,12 @@ in one invocation.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-MEM-04.1** — Given memory is enabled, when the agent writes a note in one invocation, then the
   vault holds the note in its scope's folder with a new identifier and the fields given.
 
 <a id="fr-mem-05"></a>
+
 ## FR-MEM-05 — Lint the vault
 
 > As an adopter, I want the vault checked against its rules, so that a malformed note is found before it
@@ -117,12 +128,14 @@ The system shall report every note that breaks the vault's rules, with the rule 
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-MEM-05.1** — Given a note without a required field, when the vault is linted, then the report
   names that note and the missing field, and the lint exits with failure.
 - **FR-MEM-05.2** — Given a vault where every note follows the rules, when it is linted, then it exits
   with success.
 
 <a id="fr-mem-06"></a>
+
 ## FR-MEM-06 — Release a handoff
 
 > As an adopter stopping work midway, I want the session's state released as a handoff, so that the next
@@ -141,12 +154,14 @@ what is done, the next step, the open decisions, and the repository's state.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-MEM-06.1** — Given memory is enabled, when the adopter releases a handoff, then the vault holds
   exactly one handoff for the project's scope, with the five parts of its body.
 - **FR-MEM-06.2** — Given a handoff is released, when it finishes, then the project's repository has no
   new commit, push, stash, or checkout made by it.
 
 <a id="fr-mem-07"></a>
+
 ## FR-MEM-07 — Claim a handoff
 
 > As an adopter resuming work, I want to claim the waiting handoff, so that I continue from where the
@@ -164,6 +179,7 @@ The system shall move the project's handoff from the vault into the session.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-MEM-07.1** — Given a handoff exists for the project, when the adopter claims it, then the agent
   shows its next step and its open decisions, and the vault no longer holds it.
 - **FR-MEM-07.2** — Given the handoff names a commit the repository does not have, when the adopter claims
@@ -172,6 +188,7 @@ The system shall move the project's handoff from the vault into the session.
   says so and changes nothing.
 
 <a id="fr-mem-08"></a>
+
 ## FR-MEM-08 — Create a vault from the template
 
 > As an adopter starting with memory, I want a vault created from the template, so that I begin with its
@@ -190,12 +207,14 @@ adopter chose.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-MEM-08.1** — Given no vault at the chosen location, when the adopter creates one, then the location
   holds a git repository with the template's rules and no note.
 - **FR-MEM-08.2** — Given a vault already at the chosen location, when the adopter creates one, then
   nothing in it changes and the adopter is told.
 
 <a id="fr-mem-09"></a>
+
 ## FR-MEM-09 — Vault location is the adopter's choice
 
 > As an adopter, I want to choose where the vault lives, so that it fits my machine's layout.
@@ -212,10 +231,12 @@ The system shall read and write the vault at the location the adopter chose.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-MEM-09.1** — Given the adopter chose a location other than the baseline's default, when any memory
   function runs, then it reads and writes only at that location.
 
 <a id="fr-mem-10"></a>
+
 ## FR-MEM-10 — Memory can be turned off
 
 > As an adopter without a vault, I want memory off, so that nothing in a session expects one.
@@ -232,6 +253,7 @@ The system shall run no memory function while memory is disabled.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-MEM-10.1** — Given memory is disabled, when a session starts and the adopter sends prompts, then
   the agent's context receives no memory context and no checkpoint.
 - **FR-MEM-10.2** — Given memory is disabled, when the adopter invokes the handoff command, then the agent

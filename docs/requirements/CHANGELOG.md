@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.1 — 2026-10-14
+
+Editorial. No requirement changes meaning.
+
+**Changed**
+
+- Every functional area file embeds its use case diagram from `diagrams/`.
+- A blank line now precedes each heading and list, so lists render as lists on the local docs site.
+
 ## 1.0.0 — 2026-10-14
 
 Kickoff. First version of the SRS, from the elicitation and analysis held with the maintainer on

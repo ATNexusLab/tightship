@@ -3,6 +3,7 @@
 How the product coexists with itself across harnesses.
 
 <a id="nfr-comp-01"></a>
+
 ## NFR-COMP-01 — One vault across harnesses
 
 The system shall use one vault, in one format, from every supported harness on the same machine.
@@ -17,5 +18,6 @@ The system shall use one vault, in one format, from every supported harness on t
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **NFR-COMP-01.1** — A note or handoff written from one supported harness is found by search and shown
   at session start from each of the others, with 0 conversion steps.

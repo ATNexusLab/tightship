@@ -1,0 +1,15 @@
+[project]
+site_name = "Workflow — internal docs"
+docs_dir = "docs"
+extra_css = ["stylesheets/docs-theme.css", "stylesheets/image-viewer.css"]
+extra_javascript = [{ path = "javascripts/image-viewer.js", type = "module" }]
+
+[[project.theme.palette]]
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"

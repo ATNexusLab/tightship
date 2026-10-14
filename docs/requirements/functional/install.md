@@ -2,7 +2,10 @@
 
 How the plugin is installed, configured, updated, removed, and how the pre-plugin install moves to it.
 
+![Use cases: installation](../diagrams/use-cases-install.drawio.svg)
+
 <a id="fr-ins-01"></a>
+
 ## FR-INS-01 — Install through the harness's plugin mechanism
 
 > As an adopter, I want to install the workflow the way my harness installs any plugin, so that I need no
@@ -20,11 +23,13 @@ The system shall be installable from this repository with the harness's own plug
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-INS-01.1** — Given a machine without the workflow, when the adopter runs the harness's plugin
   commands the install guide lists, then the plugin is installed and its skills and commands are
   available.
 
 <a id="fr-ins-02"></a>
+
 ## FR-INS-02 — Companions are installed with the plugin
 
 > As an adopter, I want the companion plugins installed with the workflow, so that I never run it without
@@ -43,12 +48,14 @@ whose plugin mechanism allows it.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-INS-02.1** — Given a harness whose plugin mechanism installs dependencies, when the adopter
   installs the plugin, then the three companions are installed too.
 - **FR-INS-02.2** — Given a harness whose plugin mechanism does not, when the adopter follows the install
   guide, then the guide installs the three companions before the plugin.
 
 <a id="fr-ins-03"></a>
+
 ## FR-INS-03 — Choose the options
 
 > As an adopter, I want to choose which options to turn on when I install, so that I get only the parts I
@@ -67,12 +74,14 @@ at installation.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-INS-03.1** — Given the adopter installs, when they choose a state for each option, then each
   option is in the chosen state in the next session.
 - **FR-INS-03.2** — Given the harness could not ask, when the plugin is installed, then each option is
   enabled.
 
 <a id="fr-ins-04"></a>
+
 ## FR-INS-04 — Change a choice after installation
 
 > As an adopter, I want to turn an option on or off later, so that I need not reinstall to change my mind.
@@ -89,10 +98,12 @@ The system shall let the adopter change the state of each option after installat
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-INS-04.1** — Given an option is enabled, when the adopter disables it, then the next session runs
   with it disabled.
 
 <a id="fr-ins-05"></a>
+
 ## FR-INS-05 — Update keeps the choices
 
 > As an adopter, I want an update to keep my options, so that updating never changes how I work.
@@ -109,10 +120,12 @@ The system shall keep the state of every option across an update of the plugin.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-INS-05.1** — Given the adopter changed an option from its default, when the plugin is updated to a
   new release, then that option keeps the adopter's state.
 
 <a id="fr-ins-06"></a>
+
 ## FR-INS-06 — Uninstall leaves nothing behind
 
 > As an adopter, I want the uninstall to remove everything the plugin added, so that my harness is as it
@@ -131,10 +144,12 @@ vault.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-INS-06.1** — Given the plugin was installed with every option on, when the adopter uninstalls it,
   then the harness's user directory holds nothing the plugin added and the vault is unchanged.
 
 <a id="fr-ins-07"></a>
+
 ## FR-INS-07 — Guided migration from the pre-plugin install
 
 > As the maintainer, I want to be guided from the pre-plugin install to the plugin, so that I move without
@@ -153,12 +168,14 @@ merged, keeping the personal settings and the vault.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-INS-07.1** — Given a machine with the baseline installed, when the adopter follows the migration
   and installs the plugin, then no skill, command, subagent, or hook loads twice in a session.
 - **FR-INS-07.2** — Given the same machine, when the migration ends, then every personal setting and every
   vault note it had before is unchanged.
 
 <a id="fr-ins-08"></a>
+
 ## FR-INS-08 — Install guide per harness
 
 > As an adopter, I want an install guide for my harness, so that I install, configure, update, and remove
@@ -177,5 +194,6 @@ options, update, uninstall, and migration.
 | Since | v1.0.0 |
 
 **Acceptance criteria**
+
 - **FR-INS-08.1** — Given a supported harness, when the adopter opens its guide, then it holds a section
   for each of the six subjects.

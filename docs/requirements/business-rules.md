@@ -3,6 +3,7 @@
 Policies that hold regardless of feature.
 
 <a id="br-01"></a>
+
 ## BR-01 — Harness order and milestones
 
 Harness plugins are released one at a time, in this order, one milestone each:
@@ -26,6 +27,7 @@ Work on a harness starts only after the previous harness's plugin is released.
 | Since | v1.0.0 |
 
 <a id="br-02"></a>
+
 ## BR-02 — One place to edit
 
 The workflow is edited only in this repository. Once the maintainer has migrated, a harness's user
@@ -41,6 +43,7 @@ directory holds only personal settings and what a plugin cannot carry.
 | Since | v1.0.0 |
 
 <a id="br-03"></a>
+
 ## BR-03 — English content
 
 Everything a harness plugin installs and every document and identifier in this repository is written in
@@ -56,6 +59,7 @@ English.
 | Since | v1.0.0 |
 
 <a id="br-04"></a>
+
 ## BR-04 — The companion plugins are required
 
 The workflow is used with ponytail, i-have-adhd, and humanizer installed. The plugin installs them with
@@ -71,6 +75,7 @@ itself where the harness allows it ([FR-INS-02](functional/install.md#fr-ins-02)
 | Since | v1.0.0 |
 
 <a id="br-05"></a>
+
 ## BR-05 — Companion plugins own their rules
 
 The workflow states no rule and ships no function that ponytail, i-have-adhd, or humanizer already
