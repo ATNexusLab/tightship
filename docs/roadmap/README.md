@@ -19,10 +19,10 @@ GitHub Milestone: [M1 — Claude Code](https://github.com/ATNexusLab/workflow/mi
 | Status line | [#7](https://github.com/ATNexusLab/workflow/issues/7) | FR-STL-01, FR-STL-02, FR-STL-03 |
 | Release M1 | [#8](https://github.com/ATNexusLab/workflow/issues/8) | FR-INS-07, FR-INS-08, FR-CTR-05, NFR-FLEX-01, NFR-FLEX-05, BR-01 |
 
-Epic #1's spec carries the M1 ADR, which settles the stack and the architecture
-([OQ-02](../requirements/open-questions.md#oq-02), [OQ-03](../requirements/open-questions.md#oq-03),
-[OQ-09](../requirements/open-questions.md#oq-09)). Options (#3) comes before Contract (#4) because
-turning the contract off needs the option mechanism.
+Epic #1's [spec](../specs/canonical-source-and-build/build-the-plugin.md) carries the M1 ADR,
+[ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md), which settles the stack and the
+architecture. Options (#3) comes before Contract (#4) because turning the contract off needs the option
+mechanism.
 
 ## Requirement coverage
 

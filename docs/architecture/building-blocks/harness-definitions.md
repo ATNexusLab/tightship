@@ -1,0 +1,21 @@
+# Harness definitions
+
+**Lives in:** `harnesses/<harness>/harness.toml` · **Milestone:** M1, epic #1 (Claude Code); one more per
+milestone after it
+
+The per-harness place of
+[ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.md): the only files that
+may name a harness. Each one holds:
+
+- The plugin's manifest values.
+- How the harness names each kind of piece, such as `/{plugin}:{name}` for a command.
+- The text of every capability token.
+- The tools a read-only subagent gets.
+- The denylist the neutrality check applies to the canonical content.
+
+**It never** holds a piece's text. A sentence that only one harness needs is a capability, and its text
+lives here.
+
+**To change it safely:** a capability added to the content needs an entry in every harness's file, or the
+build fails. Adding a harness adds a folder and a renderer, and leaves `content/` untouched
+([NFR-FLEX-07](../../requirements/non-functional/flexibility.md#nfr-flex-07)).

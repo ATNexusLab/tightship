@@ -1,0 +1,26 @@
+# Security
+
+The repository is public, and the plugin runs on machines that are not the maintainer's.
+
+## What never ships
+
+| What | Requirement | Held by |
+| --- | --- | --- |
+| The maintainer's name, email addresses, user names, and home paths | [NFR-SEC-01](../../requirements/non-functional/security.md#nfr-sec-01) | The identity scan, the last step of `cargo xtask build`, over every file of `dist/` |
+| Any secret, in any commit | [NFR-SEC-02](../../requirements/non-functional/security.md#nfr-sec-02) | gitleaks 8.30.1 over the whole history, in `cargo xtask scan` |
+| Any vault note | [NFR-SEC-02](../../requirements/non-functional/security.md#nfr-sec-02) | `cargo xtask scan`, over every tracked file |
+
+The identity scan reads its terms from git's configuration, the operating system, and `.identity-terms`, a
+file git ignores. The terms never enter the repository, and an error names the file and line without
+printing the term, so a CI log cannot leak it.
+
+## What the plugin may reach
+
+From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.md):
+
+- **Network:** only the git remote of the adopter's vault, when a handoff is pulled or pushed.
+- **Disk:** the adopter's vault; the harness's persistent plugin data folder, for the options' state; the
+  harness's settings file, for the status line only, after the adopter consents
+  ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02)).
+
+The build writes only to `dist/`.
