@@ -95,7 +95,8 @@ description = "Show the workflow's status line, after asking before it changes y
 
 Any other key, a missing key, a value out of its domain, or a repeated `name` fails the build (rule 3). A
 missing file or an empty one declares no option. The maintainer writes it by hand. It is canonical content:
-the neutrality check of epic #1 reads it like every other file of `content/`, so it names no harness.
+the neutrality and reference checks of epic #1 read it like every other file of `content/`, so it names
+no harness and refers to a piece or a capability only by token, which the build resolves.
 
 ### Response
 
@@ -213,7 +214,7 @@ service of this project behind either.
   with `OPTIONS_INVALID`.
 - A `name` outside its domain fails with `OPTION_NAME_INVALID`; a `title` or `description` out of its length
   fails with `OPTION_TEXT_INVALID`; a `name` already declared fails with `OPTION_NAME_TAKEN`.
-- Any of them leaves `dist/claude-code/` as it was, as every build error of epic #1 does.
+- Any of them leaves no `dist/claude-code/` behind, as every build error of epic #1 does.
 
 ### 4. An option never set is on
 
@@ -347,7 +348,7 @@ Given content/options.toml holds an [[options]] entry with name "memory" and no 
 When the maintainer runs `cargo xtask build`
 Then it exits 1
 And stderr holds "error: content/options.toml: missing field `title`"
-And dist/claude-code/ is as it was
+And dist/claude-code/ does not exist
 ```
 
 ### Scenario 9 — An option name out of its domain (exception)

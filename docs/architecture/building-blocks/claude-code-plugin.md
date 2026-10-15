@@ -1,6 +1,6 @@
 # Claude Code plugin
 
-**Lives in:** `dist/claude-code/`, generated and ignored by git · **Milestone:** M1, epics #1 and #2
+**Lives in:** `dist/claude-code/`, generated and ignored by git · **Milestone:** M1, epics #1, #2, and #3
 
 The `tightship` plugin as Claude Code loads it: `.claude-plugin/plugin.json`, one `skills/<name>/` per
 skill and per command, and `agents/<name>.md` for the subagent. Commands ship as skills, because Claude

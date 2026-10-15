@@ -1,6 +1,6 @@
 # Canonical content
 
-**Lives in:** `content/` · **Milestone:** M1, epic #1
+**Lives in:** `content/` · **Milestone:** M1, epics #1 and #3
 
 The only authored copy of every workflow piece
 ([NFR-MNT-01](../../requirements/non-functional/maintainability.md#nfr-mnt-01)): `skills/<name>/SKILL.md`
