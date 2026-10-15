@@ -5,6 +5,7 @@ mod git;
 mod harness;
 mod identity;
 mod neutrality;
+mod options;
 mod references;
 mod secrets;
 mod tokens;

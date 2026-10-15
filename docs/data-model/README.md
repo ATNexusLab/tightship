@@ -4,7 +4,7 @@ The product has no database. Its data is the adopter's vault, a git repository o
 of each option in the adopter's harness. The model below comes from the
 [memory](../requirements/functional/memory.md) and [installation](../requirements/functional/install.md)
 requirements. The logical and physical models and the storage are drawn by the epics that define the
-file formats: the options in #3, notes and handoffs in #5 and #6.
+file formats: the options in #3 ([options](options.md)), notes and handoffs in #5 and #6.
 
 ## Conceptual model
 
@@ -25,8 +25,10 @@ file formats: the options in #3, notes and handoffs in #5 and #6.
 - A new note gets a new identifier ([FR-MEM-04](../requirements/functional/memory.md#fr-mem-04)).
 - A new vault holds the template's rules and no note ([FR-MEM-08](../requirements/functional/memory.md#fr-mem-08)).
 - An option keeps its state across an update ([FR-INS-05](../requirements/functional/install.md#fr-ins-05)).
+- An option the adopter never set is on ([FR-INS-03](../requirements/functional/install.md#fr-ins-03)).
 - No note ever enters this repository ([NFR-SEC-02](../requirements/non-functional/security.md#nfr-sec-02)).
 
 ## Contents
 
 - [Access patterns](access-patterns.md)
+- [Options](options.md)

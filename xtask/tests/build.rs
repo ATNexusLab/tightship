@@ -296,11 +296,37 @@ fn json_at(repository: &Repository, path: &str) -> serde_json::Value {
 }
 
 #[test]
-fn the_manifest_and_the_catalog_list_the_companions() {
-    let repository = Repository::with(&[piece("content/commands/epic.md", "Open the epic.\n")]);
+fn the_manifest_lists_the_companions_and_the_options_and_the_catalog_allows_them() {
+    let repository = Repository::with(&[
+        piece("content/commands/epic.md", "Open the epic.\n"),
+        options(&[
+            ("status_line", "Show the status line"),
+            ("contract", "Load the rules"),
+            ("memory", "Keep notes out of {{capability:plan-mode}}"),
+        ]),
+    ]);
 
     assert_succeeds(&repository.run("build"));
     let manifest = json_at(&repository, "dist/claude-code/.claude-plugin/plugin.json");
+    let options = manifest["userConfig"]
+        .as_object()
+        .expect("userConfig is an object");
+    let names: Vec<&str> = options.keys().map(String::as_str).collect();
+    assert_eq!(names, ["status_line", "contract", "memory"]);
+    assert_eq!(
+        options["memory"],
+        serde_json::json!({
+            "type": "boolean",
+            "title": "An option",
+            "description": "Keep notes out of plan mode",
+            "default": true,
+        })
+    );
+    assert!(
+        options
+            .values()
+            .all(|option| option["type"] == "boolean" && option["default"] == true)
+    );
     assert_eq!(
         manifest["dependencies"],
         serde_json::json!([
@@ -347,7 +373,7 @@ fn a_companion_without_a_marketplace_fails_and_leaves_no_plugin() {
 }
 
 #[test]
-fn no_companion_leaves_out_the_dependencies_and_the_allowed_catalogs() {
+fn no_companion_and_no_option_leave_out_their_keys() {
     let repository = Repository::with(&[
         piece("content/commands/epic.md", "Open the epic.\n"),
         (
@@ -359,9 +385,88 @@ fn no_companion_leaves_out_the_dependencies_and_the_allowed_catalogs() {
     assert_succeeds(&repository.run("build"));
     let manifest = json_at(&repository, "dist/claude-code/.claude-plugin/plugin.json");
     assert!(manifest.get("dependencies").is_none());
+    assert!(manifest.get("userConfig").is_none());
     let catalog = json_at(
         &repository,
         "dist/claude-code/.claude-plugin/marketplace.json",
     );
     assert!(catalog.get("allowCrossMarketplaceDependenciesOn").is_none());
+}
+
+fn options(entries: &[(&str, &str)]) -> (&'static str, String) {
+    let text = entries
+        .iter()
+        .map(|(name, description)| {
+            format!("[[options]]\nname = \"{name}\"\ntitle = \"An option\"\ndescription = \"{description}\"\n")
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+    ("content/options.toml", text)
+}
+
+#[test]
+fn an_option_missing_a_key_fails_and_leaves_no_plugin() {
+    let repository = Repository::with(&[(
+        "content/options.toml",
+        "[[options]]\nname = \"memory\"\ndescription = \"Keep notes\"\n".to_owned(),
+    )]);
+    fs::create_dir_all(repository.path("dist/claude-code")).expect("a previous build");
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: content/options.toml: missing field `title`",
+    );
+    assert!(!repository.path("dist/claude-code").exists());
+}
+
+#[test]
+fn an_option_name_outside_its_domain_fails() {
+    let repository = Repository::with(&[options(&[("status-line", "Show the status line")])]);
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: content/options.toml: \"status-line\" is not an option name; use 1 to 64 lowercase letters, digits, and underscores, starting with a letter",
+    );
+}
+
+#[test]
+fn an_option_description_too_long_fails() {
+    let repository = Repository::with(&[options(&[("memory", &"a".repeat(121))])]);
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: content/options.toml: the description of \"memory\" must be 1 to 120 characters",
+    );
+}
+
+#[test]
+fn an_option_declared_twice_fails() {
+    let repository = Repository::with(&[options(&[
+        ("memory", "Keep notes"),
+        ("memory", "Keep notes again"),
+        ("memory", "Keep notes once more"),
+    ])]);
+    let line = "error: content/options.toml: the option \"memory\" is declared twice";
+
+    let output = repository.run("build");
+    assert_fails_with(&output, line);
+    assert_eq!(stderr_of(&output).matches(line).count(), 1);
+}
+
+#[test]
+fn an_option_naming_the_harness_or_a_missing_piece_fails() {
+    let repository = Repository::with(&[options(&[
+        ("memory", "Keep notes in ~/.claude"),
+        ("contract", "Load the rules before {{command:nope}}"),
+    ])]);
+
+    let output = repository.run("build");
+    assert_fails_with(
+        &output,
+        "error: content/options.toml:4: \"~/.claude\" belongs to claude-code; use a {{capability:…}} token defined in harnesses/claude-code/harness.toml",
+    );
+    assert_fails_with(
+        &output,
+        "error: content/options.toml:9: {{command:nope}} names no command in content/",
+    );
 }

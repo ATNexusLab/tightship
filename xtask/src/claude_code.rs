@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::content::{Content, Kind, Piece, SupportingBody};
 use crate::diagnostics::naming;
 use crate::harness::Harness;
+use crate::options::OptionsFile;
 use crate::tokens::{self, Form};
 
 pub fn render(root: &Path, harness: &Harness, content: &Content) -> io::Result<(PathBuf, usize)> {
@@ -15,7 +16,7 @@ pub fn render(root: &Path, harness: &Harness, content: &Content) -> io::Result<(
     let mut written = vec![
         (
             staging.join(".claude-plugin/plugin.json"),
-            manifest(root, harness)?.into_bytes(),
+            manifest(root, harness, content.options.as_ref())?.into_bytes(),
         ),
         (
             staging.join(".claude-plugin/marketplace.json"),
@@ -72,7 +73,7 @@ fn remove_if_present(folder: &Path) -> io::Result<()> {
     }
 }
 
-fn manifest(root: &Path, harness: &Harness) -> io::Result<String> {
+fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io::Result<String> {
     #[derive(Deserialize)]
     struct CargoManifest {
         workspace: Workspace,
@@ -98,11 +99,30 @@ fn manifest(root: &Path, harness: &Harness) -> io::Result<String> {
         repository: &'harness str,
         #[serde(skip_serializing_if = "Vec::is_empty")]
         dependencies: Vec<String>,
+        #[serde(
+            rename = "userConfig",
+            skip_serializing_if = "serde_json::Map::is_empty"
+        )]
+        user_config: serde_json::Map<String, serde_json::Value>,
     }
     let cargo_path = root.join("Cargo.toml");
     let cargo_text = fs::read_to_string(&cargo_path).map_err(naming(&cargo_path))?;
     let cargo: CargoManifest = toml::from_str(&cargo_text)
         .map_err(|error| io::Error::other(format!("Cargo.toml: {}", error.message())))?;
+    let mut user_config = serde_json::Map::new();
+    if let Some(file) = options {
+        for option in &file.declared {
+            user_config.insert(
+                option.name.clone(),
+                serde_json::json!({
+                    "type": "boolean",
+                    "title": resolve(&option.title, &file.path, harness)?,
+                    "description": resolve(&option.description, &file.path, harness)?,
+                    "default": true,
+                }),
+            );
+        }
+    }
     let plugin = &harness.plugin;
     let manifest = PluginManifest {
         name: &plugin.name,
@@ -117,6 +137,7 @@ fn manifest(root: &Path, harness: &Harness) -> io::Result<String> {
             .iter()
             .map(|companion| format!("{}@{}", companion.plugin, companion.marketplace))
             .collect(),
+        user_config,
     };
     Ok(serde_json::to_string_pretty(&manifest).map_err(io::Error::other)? + "\n")
 }

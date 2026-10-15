@@ -20,8 +20,12 @@ pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Dia
             SupportingBody::Markdown(text) => Some((supporting.path.as_str(), text.as_str(), 1)),
             SupportingBody::Copied(_) => None,
         });
+    let options = content
+        .options
+        .iter()
+        .map(|file| (file.path.as_str(), file.text.as_str(), 1));
     let forms = literal_forms(&pieces);
-    for (path, text, first_line) in bodies.chain(supporting) {
+    for (path, text, first_line) in bodies.chain(supporting).chain(options) {
         let report = |line: usize, message: String| {
             Diagnostic::at_line(path, first_line + line - 1, message)
         };

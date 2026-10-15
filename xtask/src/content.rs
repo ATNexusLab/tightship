@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 
 use crate::diagnostics::{Diagnostic, naming};
+use crate::options::{self, OptionsFile};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
@@ -61,6 +62,7 @@ pub struct Content {
     pub files: Vec<SourceFile>,
     pub pieces: Vec<Piece>,
     pub supporting: Vec<Supporting>,
+    pub options: Option<OptionsFile>,
 }
 
 pub fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Content> {
@@ -143,6 +145,12 @@ fn classify(
 ) {
     let segments: Vec<&str> = segments.iter().map(String::as_str).collect();
     let piece = match segments.as_slice() {
+        ["options.toml"] => {
+            if let Some(text) = utf8(path, bytes, diagnostics) {
+                content.options = Some(options::read(path, text, diagnostics));
+            }
+            None
+        }
         ["skills", skill, "SKILL.md"] => Some((Kind::Skill, (*skill).to_owned())),
         ["commands", file] if file.ends_with(".md") => {
             Some((Kind::Command, file.trim_end_matches(".md").to_owned()))
@@ -171,7 +179,7 @@ fn classify(
         _ => {
             diagnostics.push(Diagnostic::in_file(
                 path,
-                "not a piece; content/ holds skills/<name>/, commands/<name>.md and agents/<name>.md"
+                "not a piece; content/ holds skills/<name>/, commands/<name>.md, agents/<name>.md and options.toml"
                     .to_owned(),
             ));
             None
