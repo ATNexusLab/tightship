@@ -89,7 +89,8 @@ The system shall leave out of the contract every rule that depends on a disabled
 > loses nothing.
 
 The system shall ship a contract that holds every rule of the baseline contract, except the rules that
-name the maintainer's machine or personal settings.
+name the maintainer's machine or personal settings, and with the wording BR-05 requires where a companion
+already states the rule or no longer has the default the rule cites.
 
 | Attribute | Value |
 | --- | --- |
@@ -103,7 +104,8 @@ name the maintainer's machine or personal settings.
 **Acceptance criteria**
 
 - **FR-CTR-04.1** — Given the baseline contract, when each of its rules is looked up in the shipped
-  contract, then each one is found or is listed in the spec of M1 as personal, with its reason.
+  contract, then each one is found, or is listed in the spec of M1 as personal with its reason, or as
+  changed for BR-05 with the companion's text.
 
 <a id="fr-ctr-05"></a>
 

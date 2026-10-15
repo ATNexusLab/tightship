@@ -20,6 +20,6 @@ option the adopter never set reaches no piece
 | A skill or an agent | Nothing: it never reads an option | The literal `${user_config.<name>}` would reach it |
 
 A change reaches the hooks from the next session start. Each option's epic reads it this way: the contract
-in #4, memory in #5 and #6, the status line in #7.
+in #4, whose [hooks](contract.md) are the first to read one, memory in #5 and #6, the status line in #7.
 
 Every rule and error message: the [epic #3 spec](../../specs/options/choose-the-options.md).

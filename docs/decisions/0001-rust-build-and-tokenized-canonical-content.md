@@ -4,6 +4,8 @@
 - Date: 2026-10-14
 - Amended: 2026-10-14, by the [epic #3 spec](../specs/options/choose-the-options.md): the options' state
   is the harness's, not the plugin's
+- Amended: 2026-10-15, by the [epic #4 spec](../specs/contract/load-the-contract.md): a hook command line that
+  only prints a file the plugin ships is not a program
 
 ## Context
 
@@ -44,7 +46,10 @@ repository is one Cargo workspace:
 
 - `xtask/` — the build and the repository's scans, run as `cargo xtask build` and `cargo xtask scan`.
 - `tightship/` — the one binary the plugin ships, with one subcommand per function (hooks, memory, status
-  line). It starts with the first epic that needs a hook.
+  line). It starts with the first epic that needs a hook to run logic.
+
+A hook command line that only prints a file the plugin ships, such as each part of the contract, is not a
+program: it is one `sh` line, with the same prerequisite as the `sh` launcher.
 
 **Canonical content.** One Markdown file per piece under `content/`: `skills/<name>/SKILL.md` with its
 supporting files, `commands/<name>.md`, `agents/<name>.md`. Front matter is TOML between `+++` lines, with

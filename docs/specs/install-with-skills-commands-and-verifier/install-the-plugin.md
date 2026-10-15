@@ -273,7 +273,7 @@ And dist/claude-code/.claude-plugin/plugin.json lists the dependencies
   "ponytail@ponytail", "i-have-adhd@i-have-adhd", "humanizer@humanizer", in that order
 And dist/claude-code/.claude-plugin/marketplace.json is named "tightship", lists the plugin "tightship"
   with source "./", and allows exactly "ponytail", "i-have-adhd", "humanizer"
-And `claude plugin validate dist/claude-code` reports "Validation passed" with no warning
+And `claude plugin validate dist/claude-code/.claude-plugin/plugin.json` reports "Validation passed" with no warning
 ```
 
 ### Scenario 2 — Install with the companions (FR-INS-01.1, FR-INS-02.1, happy path)

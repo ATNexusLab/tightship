@@ -16,6 +16,7 @@ pub struct Harness {
     pub plugin: Plugin,
     pub references: References,
     pub access: Access,
+    pub contract: Option<ContractTable>,
     pub capabilities: BTreeMap<String, String>,
     pub neutrality: Neutrality,
     #[serde(default)]
@@ -29,6 +30,12 @@ pub struct Plugin {
     pub description: String,
     pub author: String,
     pub repository: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ContractTable {
+    pub limit: usize,
 }
 
 #[derive(Deserialize)]
@@ -105,7 +112,16 @@ pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Ve
         }
         let text = fs::read_to_string(&file).map_err(naming(&file))?;
         match toml::from_str::<Harness>(&text) {
-            Ok(harness) => harnesses.push(Harness { name, ..harness }),
+            Ok(harness) => {
+                let limit = harness.contract.as_ref().map(|table| table.limit);
+                if limit.is_some_and(|limit| !(1..=1_000_000).contains(&limit)) {
+                    diagnostics.push(Diagnostic::in_file(
+                        &path,
+                        "[contract] limit must be 1 to 1000000".to_owned(),
+                    ));
+                }
+                harnesses.push(Harness { name, ..harness });
+            }
             Err(error) => diagnostics.push(Diagnostic::in_file(&path, error.message().to_owned())),
         }
     }
