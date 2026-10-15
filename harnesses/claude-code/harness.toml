@@ -13,8 +13,17 @@ agent = "{plugin}:{name}"
 read-only = "Read, Grep, Glob, Bash"
 
 [capabilities]
+arguments = "$ARGUMENTS"
 plan-mode = "plan mode"
 plan-approval = "`ExitPlanMode`"
+explore-agent = "the **Explore** agent"
+general-agent = "`general-purpose` subagent"
+review-command = "`/code-review`"
+security-review-command = "`/security-review`"
+harness-instructions-file = "`CLAUDE.md`"
+area-instructions = "Claude Code loads an area's file when it works there"
+instruction-files-search = "`find . -name AGENTS.md -o -name CLAUDE.md -o -name CLAUDE.local.md`"
+instruction-files-migration = "A `CLAUDE.md` or `CLAUDE.local.md` in a directory, or above it, stops Claude Code from reading the `AGENTS.md` there, so each `CLAUDE.md`'s content moves into the `AGENTS.md` of the same directory and the `CLAUDE.md` is removed. A `CLAUDE.local.md` is personal and uncommitted: I ask whether its rules belong in the repo before touching it."
 
 [neutrality]
 names = ["Claude Code", "Claude", "Anthropic"]

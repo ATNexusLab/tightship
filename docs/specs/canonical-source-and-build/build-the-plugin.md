@@ -134,7 +134,7 @@ maintainer writes the file by hand.
 | `plan-mode` | `plan mode` | `grilling` |
 | `plan-approval` | `` `ExitPlanMode` `` | `grilling` |
 | `explore-agent` | `the **Explore** agent` | `bootstrap` |
-| `general-agent` | `` a `general-purpose` subagent `` | `pr-review` |
+| `general-agent` | `` `general-purpose` subagent `` | `audit` |
 | `review-command` | `` `/code-review` `` | `audit` |
 | `security-review-command` | `` `/security-review` `` | `audit` |
 | `harness-instructions-file` | `` `CLAUDE.md` `` | `bootstrap` |
@@ -277,14 +277,17 @@ repository can run them; only a push needs the maintainer's write access.
 ### 9. Content is migrated from the baseline
 
 - Each of the 22 pieces is the baseline's file with only these changes:
-  - YAML front matter rewritten as TOML, with `tools` replaced by `access = "read-only"`.
+  - YAML front matter rewritten as TOML, with `tools` replaced by `access = "read-only"`, and `name` added
+    to each command.
   - Every literal reference and harness term replaced by its token.
   - The memory item of `closeout` left out: its section `## 5. Memory`, the `- Memory:` line of its output
     block, and `memory` in its description.
-  - Lines past 110 columns rewrapped, outside tables.
-  - The formatting markdownlint requires: blank lines around headings, lists and tables, a space inside
-    table pipes, and `text` on a code block with no language.
+  - Lines past 110 columns rewrapped, outside tables and code blocks.
+  - The formatting markdownlint requires: blank lines around headings, lists, tables and code blocks, a
+    space inside table pipes, no trailing spaces, and `text` on a code block with no language.
   - `Cursor-based` in `api-design` lowercased to `cursor-based`.
+  - `general-purpose generator` in `security-audit` reworded to `general random generator`, since
+    `general-purpose` is a harness term.
 - The pieces stay in English ([BR-03](../../requirements/business-rules.md#br-03)), as the baseline writes
   them.
 - The 4 supporting files are `spec-writing/templates.md`, migrated like a body, and
