@@ -1,5 +1,7 @@
 # Without the contract
 
+English · [Português](without-the-contract.pt-BR.md)
+
 With the `contract` option off, the session no longer loads the workflow's rules. Every skill and command
 still loads and works. The ones below point to a rule of the contract instead of repeating it, so with the
 contract off that rule is not in the session. Each falls back to what your repository's `AGENTS.md`

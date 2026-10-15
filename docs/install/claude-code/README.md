@@ -1,5 +1,7 @@
 # Install tightship in Claude Code
 
+English · [Português](README.pt-BR.md)
+
 How to install, configure, update, and remove the tightship plugin in Claude Code, and how to move to it from
 the pre-plugin install.
 

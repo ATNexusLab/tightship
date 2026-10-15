@@ -1,5 +1,7 @@
 # The options
 
+English · [Português](options.pt-BR.md)
+
 Claude Code keeps tightship's options in your user settings. A new version keeps the values you set, and the
 uninstall deletes them.
 

@@ -1,5 +1,7 @@
 # Security policy
 
+English · [Português](SECURITY.pt-BR.md)
+
 ## Supported versions
 
 tightship is in pre-release. Only the latest published release gets security fixes.

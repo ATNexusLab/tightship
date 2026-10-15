@@ -1,5 +1,7 @@
 # Migration from the pre-plugin install
 
+English · [Português](migration.pt-BR.md)
+
 The pre-plugin install merged the workflow's files into `~/.claude`. With those files and the plugin both in
 place, every skill and command loads twice. These steps remove what the pre-plugin install merged, keep your
 own settings, skills, and commands, and keep your vault as it is.

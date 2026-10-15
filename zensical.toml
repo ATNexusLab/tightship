@@ -1,6 +1,7 @@
 [project]
 site_name = "tightship"
 docs_dir = "docs"
+not_in_nav = "*.pt-BR.md"
 extra_css = ["stylesheets/docs-theme.css", "stylesheets/image-viewer.css"]
 extra_javascript = [{ path = "javascripts/image-viewer.js", type = "module" }]
 

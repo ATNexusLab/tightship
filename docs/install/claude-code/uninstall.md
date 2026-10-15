@@ -1,5 +1,7 @@
 # Uninstall
 
+English · [Português](uninstall.pt-BR.md)
+
 ## 1. Put your status line back
 
 Skip this step if you never turned tightship's status line on.

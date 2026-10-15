@@ -1,5 +1,7 @@
 # Contributor Covenant 3.0 Code of Conduct
 
+English · [Português](CODE_OF_CONDUCT.pt-BR.md)
+
 ## Our Pledge
 
 We pledge to make our community welcoming, safe, and equitable for all.

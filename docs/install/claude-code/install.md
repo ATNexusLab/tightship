@@ -1,5 +1,7 @@
 # Installation
 
+English · [Português](install.pt-BR.md)
+
 tightship depends on three companion plugins, each listed in its own catalog. Add those three catalogs first,
 then tightship's, then install once:
 

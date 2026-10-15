@@ -1,5 +1,7 @@
 # The companions
 
+English · [Português](companions.pt-BR.md)
+
 tightship is used with three third-party plugins. It declares them as dependencies, so
 `claude plugin install tightship@tightship` installs them too, once their catalogs are added.
 

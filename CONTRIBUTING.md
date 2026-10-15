@@ -1,5 +1,7 @@
 # Contributing to tightship
 
+English · [Português](CONTRIBUTING.pt-BR.md)
+
 Bug reports, ideas, and pull requests are welcome. This page covers how a change moves from an issue to a
 merge, how to set up the repository, and the gates a pull request must pass.
 

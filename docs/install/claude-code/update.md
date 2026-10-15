@@ -1,5 +1,7 @@
 # Update
 
+English · [Português](update.pt-BR.md)
+
 Claude Code finds a new version through the catalog you added from the release URL. Your options keep their
 values across an update.
 
