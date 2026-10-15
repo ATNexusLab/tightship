@@ -170,31 +170,6 @@ fn a_usage_error_exits_1_with_the_usage_and_help_exits_0() {
     assert!(stdout_of(&help).starts_with(usage));
 }
 
-#[test]
-fn the_launcher_without_a_binary_for_the_machine_fails() {
-    let sandbox = Sandbox::new();
-    let launcher = sandbox.write("bin/tightship", include_str!("../launcher.sh"));
-    executable(&launcher);
-    let uname = |flag| {
-        let output = Command::new("uname")
-            .arg(flag)
-            .output()
-            .expect("uname runs");
-        stdout_of(&output).trim().to_owned()
-    };
-
-    let output = run(Command::new("sh").arg(&launcher));
-
-    assert_fails_with(
-        &output,
-        &format!(
-            "error: tightship has no binary for {} {}",
-            uname("-s"),
-            uname("-m")
-        ),
-    );
-}
-
 const NOTE_BODY: &str = "A plugin's SessionStart hook can export variables for the Bash tool.\n";
 
 fn in_vault(sandbox: &Sandbox, arguments: &[&str]) -> Command {

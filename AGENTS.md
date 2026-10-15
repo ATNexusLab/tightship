@@ -45,6 +45,11 @@ Rust for application code, for the build, and for every new script
 | Run | `claude --plugin-dir dist/claude-code` | Loads the built plugin in a session |
 | Run | `claude plugin marketplace add ./dist/claude-code`, then `claude plugin install tightship@tightship` | Installs the built plugin with its companions, once the catalogs `DietrichGebert/ponytail`, `ayghri/i-have-adhd`, and `blader/humanizer` are added |
 
+`.github/workflows/ci.yml` runs every gate on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git
+Bash) at each pull request into `develop` or `main`; markdownlint and the docs build run on Linux only. It
+writes `.identity-terms` from the repository secret `IDENTITY_TERMS`, so a change to the file is copied there
+with `gh secret set IDENTITY_TERMS < .identity-terms`.
+
 ## Architecture
 
 Decided in [ADR 0001](docs/decisions/0001-rust-build-and-tokenized-canonical-content.md).

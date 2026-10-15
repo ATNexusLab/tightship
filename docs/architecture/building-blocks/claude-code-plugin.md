@@ -24,6 +24,9 @@ state, since turning the option off is what puts the adopter's status line back.
 `statusLine` itself, so the binary writes it into the adopter's user settings after consent
 ([status line](../concepts/status-line.md), M1, #7).
 
+Every hook line that runs the binary, and the status line command, calls the launcher through `sh`, so an
+install that drops the executable bit still runs it (M1, #8).
+
 **It never** gets edited. Every change goes to the canonical content or the harness definition, then
 through the build.
 

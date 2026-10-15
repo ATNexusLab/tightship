@@ -1,6 +1,6 @@
 # Gate pipeline
 
-**Lives in:** `.github/workflows/ci.yml`, not built yet · **Technology:** GitHub Actions · **Milestone:** M1,
+**Lives in:** `.github/workflows/ci.yml` · **Technology:** GitHub Actions · **Milestone:** M1,
 epic #8
 
 Runs every gate of `AGENTS.md` on Linux, macOS, and Windows at each pull request into `develop` or `main`:
