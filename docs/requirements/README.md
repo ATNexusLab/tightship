@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 1.2.0 · **Date:** 2026-10-15 · [Changelog](CHANGELOG.md)
+**Version:** 1.4.0 · **Date:** 2026-10-15 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -72,6 +72,7 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-MEM-08](functional/memory.md#fr-mem-08) | Create a vault from the template | Must | approved | M1 |
 | [FR-MEM-09](functional/memory.md#fr-mem-09) | Vault location is the adopter's choice | Must | approved | M1 |
 | [FR-MEM-10](functional/memory.md#fr-mem-10) | Memory can be turned off | Must | approved | M1 |
+| [FR-MEM-11](functional/memory.md#fr-mem-11) | Sync the vault | Must | approved | M1 |
 | [FR-STL-01](functional/status-line.md#fr-stl-01) | Status line on opt-in | Must | approved | M1 |
 | [FR-STL-02](functional/status-line.md#fr-stl-02) | Consent before changing settings | Must | approved | M1 |
 | [FR-STL-03](functional/status-line.md#fr-stl-03) | Turning it off restores the previous setting | Should | approved | M1 |

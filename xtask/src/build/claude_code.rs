@@ -4,18 +4,20 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::content::{Content, Kind, Piece, SupportingBody};
-use crate::contract::Part;
+use super::binary::Binary;
+use super::content::{Content, Kind, Piece, SupportingBody};
+use super::contract::Part;
+use super::harness::Harness;
+use super::options::OptionsFile;
+use super::tokens;
 use crate::diagnostics::naming;
-use crate::harness::Harness;
-use crate::options::OptionsFile;
-use crate::tokens;
 
 pub fn render(
     root: &Path,
     harness: &Harness,
     content: &Content,
     parts: &[Part],
+    binary: &Binary,
 ) -> io::Result<(PathBuf, usize)> {
     let staging = root.join("dist").join(format!(".{}.tmp", harness.name));
     remove_if_present(&staging)?;
@@ -55,17 +57,26 @@ pub fn render(
         let file = staging.join("contract").join(&part.file);
         written.push((file, part.text.clone().into_bytes()));
     }
-    if !parts.is_empty() {
-        written.push((
-            staging.join("hooks/hooks.json"),
-            hooks(parts, content.options.as_ref())?.into_bytes(),
-        ));
+    if let Some(hooks) = hooks(parts, content.options.as_ref())? {
+        written.push((staging.join("hooks/hooks.json"), hooks.into_bytes()));
     }
+    let launcher = staging.join("bin/tightship");
+    written.push((
+        launcher.clone(),
+        include_bytes!("../../../tightship/launcher.sh").to_vec(),
+    ));
+    let file_name = binary.path.file_name().unwrap_or_default();
+    let machine_binary = staging.join("bin").join(binary.platform).join(file_name);
+    let bytes = fs::read(&binary.path).map_err(naming(&binary.path))?;
+    written.push((machine_binary.clone(), bytes));
     for (file, bytes) in &written {
         if let Some(folder) = file.parent() {
             fs::create_dir_all(folder).map_err(naming(folder))?;
         }
         fs::write(file, bytes).map_err(naming(file))?;
+    }
+    for file in [&launcher, &machine_binary] {
+        make_executable(file)?;
     }
     Ok((staging, written.len()))
 }
@@ -80,6 +91,15 @@ pub fn discard(root: &Path, harness_name: &str) -> io::Result<()> {
     let dist = root.join("dist");
     remove_if_present(&dist.join(format!(".{harness_name}.tmp")))?;
     remove_if_present(&dist.join(harness_name))
+}
+
+fn make_executable(file: &Path) -> io::Result<()> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(naming(file))?;
+    }
+    Ok(())
 }
 
 fn remove_if_present(folder: &Path) -> io::Result<()> {
@@ -128,15 +148,15 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
     let mut user_config = serde_json::Map::new();
     if let Some(file) = options {
         for option in &file.declared {
-            user_config.insert(
-                option.name.clone(),
-                serde_json::json!({
-                    "type": "boolean",
-                    "title": resolve(&option.title, &file.path, harness)?,
-                    "description": resolve(&option.description, &file.path, harness)?,
-                    "default": true,
-                }),
-            );
+            let mut setting = serde_json::json!({
+                "type": option.kind,
+                "title": resolve(&option.title, &file.path, harness)?,
+                "description": resolve(&option.description, &file.path, harness)?,
+            });
+            if !option.is_directory() {
+                setting["default"] = serde_json::Value::Bool(true);
+            }
+            user_config.insert(option.name.clone(), setting);
         }
     }
     let plugin = &harness.plugin;
@@ -158,13 +178,13 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
     Ok(serde_json::to_string_pretty(&manifest).map_err(io::Error::other)? + "\n")
 }
 
-fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<String> {
-    let declares_contract =
-        options.is_some_and(|file| file.declared.iter().any(|option| option.name == "contract"));
+fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<String>> {
+    let declares =
+        |name| options.is_some_and(|file| file.declared.iter().any(|option| option.name == name));
     let commands: Vec<serde_json::Value> = parts
         .iter()
         .map(|part| {
-            let contract_option = declares_contract.then_some("contract");
+            let contract_option = declares("contract").then_some("contract");
             let tests: String = contract_option
                 .into_iter()
                 .chain(part.gate.as_deref())
@@ -181,15 +201,56 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<String> {
             })
         })
         .collect();
-    let hooks = serde_json::json!({
-        "hooks": {
-            "SessionStart": [{
+    let mut session_start = Vec::new();
+    if !commands.is_empty() {
+        session_start.push(serde_json::json!({
+            "matcher": "startup|clear|compact",
+            "hooks": commands,
+        }));
+    }
+    let memory_hook = |variables: &str, subcommand: &str| {
+        serde_json::json!([{
+            "type": "command",
+            "command": format!(
+                "[ \"$CLAUDE_PLUGIN_OPTION_MEMORY\" = false ] || TIGHTSHIP_VAULT=\"$CLAUDE_PLUGIN_OPTION_VAULT_FOLDER\" {variables}\"${{CLAUDE_PLUGIN_ROOT}}/bin/tightship\" hook {subcommand}"
+            ),
+        }])
+    };
+    let memory = declares("memory");
+    if memory {
+        let env_file = "TIGHTSHIP_ENV_FILE=\"$CLAUDE_ENV_FILE\" ";
+        session_start.extend([
+            serde_json::json!({
                 "matcher": "startup|clear|compact",
-                "hooks": commands,
-            }],
-        },
-    });
-    Ok(serde_json::to_string_pretty(&hooks).map_err(io::Error::other)? + "\n")
+                "hooks": memory_hook(env_file, "start"),
+            }),
+            serde_json::json!({
+                "matcher": "resume|fork",
+                "hooks": memory_hook(env_file, "export"),
+            }),
+            serde_json::json!({
+                "matcher": "compact",
+                "hooks": memory_hook("", "checkpoint"),
+            }),
+        ]);
+    }
+    if session_start.is_empty() {
+        return Ok(None);
+    }
+    let mut events = serde_json::Map::new();
+    events.insert("SessionStart".to_owned(), session_start.into());
+    if memory {
+        events.insert(
+            "UserPromptSubmit".to_owned(),
+            serde_json::json!([{
+                "hooks": memory_hook("TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" ", "prompt"),
+            }]),
+        );
+    }
+    let hooks = serde_json::json!({ "hooks": events });
+    Ok(Some(
+        serde_json::to_string_pretty(&hooks).map_err(io::Error::other)? + "\n",
+    ))
 }
 
 fn catalog(harness: &Harness) -> io::Result<String> {

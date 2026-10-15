@@ -14,7 +14,7 @@ GitHub Milestone: [M1 — Claude Code](https://github.com/ATNexusLab/tightship/m
 | Install with skills, commands and verifier | [#2](https://github.com/ATNexusLab/tightship/issues/2) | FR-INS-01, FR-INS-02, FR-SKL-01, FR-SKL-02, FR-VER-01, FR-VER-02, BR-04 |
 | Options | [#3](https://github.com/ATNexusLab/tightship/issues/3) | FR-INS-03, FR-INS-04, FR-INS-05, FR-INS-06 |
 | Contract | [#4](https://github.com/ATNexusLab/tightship/issues/4) | FR-CTR-01, FR-CTR-02, FR-CTR-03, FR-CTR-04, BR-05 |
-| Memory | [#5](https://github.com/ATNexusLab/tightship/issues/5) | FR-MEM-01 to FR-MEM-05, FR-MEM-08 to FR-MEM-10, NFR-REL-01, NFR-PERF-01, NFR-PERF-02 |
+| Memory | [#5](https://github.com/ATNexusLab/tightship/issues/5) | FR-MEM-01 to FR-MEM-05, FR-MEM-08 to FR-MEM-11, NFR-REL-01, NFR-PERF-01, NFR-PERF-02 |
 | Handoff | [#6](https://github.com/ATNexusLab/tightship/issues/6) | FR-MEM-06, FR-MEM-07 |
 | Status line | [#7](https://github.com/ATNexusLab/tightship/issues/7) | FR-STL-01, FR-STL-02, FR-STL-03 |
 | Release M1 | [#8](https://github.com/ATNexusLab/tightship/issues/8) | FR-INS-07, FR-INS-08, FR-CTR-05, NFR-FLEX-01, NFR-FLEX-05, BR-01 |
@@ -51,6 +51,7 @@ Every approved requirement of M1 maps to exactly one epic. M2 to M4 are planned 
 | FR-MEM-08 | #5 | M1 |
 | FR-MEM-09 | #5 | M1 |
 | FR-MEM-10 | #5 | M1 |
+| FR-MEM-11 | #5 | M1 |
 | FR-STL-01 | #7 | M1 |
 | FR-STL-02 | #7 | M1 |
 | FR-STL-03 | #7 | M1 |

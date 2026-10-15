@@ -40,13 +40,13 @@ and of `all`, and the project's handoff when one exists.
 > As an adopter, I want the agent reminded to record what it learned, so that a fact worth keeping is not
 > lost when the session ends.
 
-The system shall place a checkpoint in the agent's context at a fixed prompt interval and before the
+The system shall place a checkpoint in the agent's context at a fixed prompt interval and right after the
 session's context is compacted.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | An agent busy with a task forgets to write to the vault unless reminded. |
-| Source | Maintainer, elicitation 2026-10-14; baseline |
+| Rationale | An agent busy with a task forgets to write to the vault unless reminded. No harness hook adds text to the context before a compaction, so the checkpoint comes in the context that follows it, as in the baseline. |
+| Source | Maintainer, elicitation 2026-10-14; baseline; change request [#22](https://github.com/ATNexusLab/tightship/issues/22) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
@@ -56,8 +56,8 @@ session's context is compacted.
 
 - **FR-MEM-02.1** — Given memory is enabled, when the adopter sends the number of prompts the M1 spec
   sets as the interval, then the agent receives a checkpoint.
-- **FR-MEM-02.2** — Given memory is enabled, when the session's context is compacted, then the agent
-  receives a checkpoint first.
+- **FR-MEM-02.2** — Given memory is enabled, when the session's context is compacted, then the context
+  that follows the compaction holds a checkpoint.
 
 <a id="fr-mem-03"></a>
 
@@ -258,3 +258,32 @@ The system shall run no memory function while memory is disabled.
   the agent's context receives no memory context and no checkpoint.
 - **FR-MEM-10.2** — Given memory is disabled, when the adopter invokes the handoff command, then the agent
   says memory is off and changes nothing.
+
+<a id="fr-mem-11"></a>
+
+## FR-MEM-11 — Sync the vault
+
+> As an adopter working on more than one machine, I want to sync the vault with one command, so that each
+> machine sees the notes the others wrote without my spelling out the git steps.
+
+The system shall, at the adopter's request, record the vault's local changes, take in the changes of the
+vault's git remote, and send the local changes to that remote.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Syncing takes a request in free text, and two machines that write before syncing give two notes the same id. |
+| Source | Maintainer, change request 2026-10-15 |
+| Priority | Must |
+| Status | approved |
+| Milestone | M1 |
+| Since | v1.4.0 |
+
+**Acceptance criteria**
+
+- **FR-MEM-11.1** — Given the vault and its remote each hold a note the other lacks, when the adopter syncs,
+  then both hold both notes.
+- **FR-MEM-11.2** — Given a note changed on both sides, when the adopter syncs and git cannot merge the two,
+  then the remote is unchanged, the vault holds both versions for the agent to resolve, and the agent is told
+  which notes conflict.
+- **FR-MEM-11.3** — Given a note written locally and a note from the remote have the same id, when the
+  adopter syncs, then the local note gets a new id and every link to it follows.

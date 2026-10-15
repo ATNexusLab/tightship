@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
-use crate::contract::{self, Contract};
+use super::contract::{self, Contract};
+use super::options::{self, OptionsFile};
 use crate::diagnostics::{Diagnostic, naming};
-use crate::options::{self, OptionsFile};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
@@ -65,6 +65,7 @@ pub struct Content {
     pub supporting: Vec<Supporting>,
     pub options: Option<OptionsFile>,
     pub contract: Option<Contract>,
+    pub vault_template: Option<String>,
 }
 
 pub fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Content> {
@@ -164,6 +165,10 @@ fn classify(
             None
         }
         ["contract.md"] => None,
+        ["vault-template", "AGENTS.md"] => {
+            content.vault_template = utf8(path, bytes, diagnostics);
+            None
+        }
         ["skills", skill, "SKILL.md"] => Some((Kind::Skill, (*skill).to_owned())),
         ["commands", file] if file.ends_with(".md") => {
             Some((Kind::Command, file.trim_end_matches(".md").to_owned()))
@@ -192,7 +197,7 @@ fn classify(
         _ => {
             diagnostics.push(Diagnostic::in_file(
                 path,
-                "not a piece; content/ holds skills/<name>/, commands/<name>.md, agents/<name>.md, options.toml and contract.md"
+                "not a piece; content/ holds skills/<name>/, commands/<name>.md, agents/<name>.md, options.toml, contract.md and vault-template/AGENTS.md"
                     .to_owned(),
             ));
             None

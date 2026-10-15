@@ -67,13 +67,31 @@ context, and fires the plugin's `SessionStart` hooks in parallel. Each prints on
 `contract/`, or nothing when the contract option or its own option is `false`, and Claude Code adds each
 print to the context as its own reminder ([contract](concepts/contract.md)).
 
+**Session start: memory** (M1, #5). With memory on, the same event runs `tightship hook start`. It reads the
+pinned notes of the project's scope and of `all`, and the project's handoff, from the vault folder the
+adopter set, and prints them within 9,000 characters. It also appends `export TIGHTSHIP_VAULT=…` to the
+session's environment file. A resumed or forked session gets only the export
+([memory](concepts/memory.md)).
+
+**A prompt: the checkpoint** (M1, #5). Each prompt runs `tightship hook prompt`, which counts the session's
+prompts in the plugin's data folder and prints the checkpoint on every 10th. A compaction prints it once more,
+from `SessionStart` on the source `compact`.
+
+**The agent reaches the vault** (M1, #5). The agent runs `tightship vault search`, `new`, or `lint` through
+its shell. The binary finds the vault in `TIGHTSHIP_VAULT`, which the session's environment file exported.
+
+**The adopter syncs the vault** (M1, #5). The command `sync` has the agent run `tightship vault sync`, which
+commits the vault's changes, rebases them on its git remote, renumbers colliding ids, and pushes. A conflict or
+a git failure stops it with exit 1 and the next step, and the agent resolves it and syncs again
+([memory](concepts/memory.md)).
+
 ## Deployment
 
 [Deployment](deployment.md): environments, packaging, and the adopter's prerequisites.
 
 ## Crosscutting concepts
 
-[Crosscutting concepts](concepts/README.md): tokens, options, the contract, and security.
+[Crosscutting concepts](concepts/README.md): tokens, options, the contract, memory, and security.
 
 ## Architecture decisions
 

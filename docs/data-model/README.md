@@ -4,7 +4,8 @@ The product has no database. Its data is the adopter's vault, a git repository o
 of each option in the adopter's harness. The model below comes from the
 [memory](../requirements/functional/memory.md) and [installation](../requirements/functional/install.md)
 requirements. The logical and physical models and the storage are drawn by the epics that define the
-file formats: the options in #3 ([options](options.md)), notes and handoffs in #5 and #6.
+file formats: the options in #3 ([options](options.md)), the vault and its notes in #5 ([vault](vault.md)), and
+the handoff's body in #6.
 
 ## Conceptual model
 
@@ -32,3 +33,4 @@ file formats: the options in #3 ([options](options.md)), notes and handoffs in #
 
 - [Access patterns](access-patterns.md)
 - [Options](options.md)
+- [Vault](vault.md)

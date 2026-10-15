@@ -29,8 +29,8 @@
 ## Constraints
 
 - The plugin connects only to the git remote of the adopter's vault, and writes only to the vault, the
-  harness's persistent plugin data folder, and the harness's settings file for the status line, with consent
-  ([ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)).
+  harness's persistent plugin data folder, the session's environment file, and the harness's settings file
+  for the status line, with consent ([ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)).
 - Each harness's plugin limits are read in its own documentation and checked against the installed version
   by that harness's spec.
 

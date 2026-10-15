@@ -1,7 +1,7 @@
 use std::ops::Range;
 
-use crate::content::{Kind, is_valid_name};
-use crate::harness::Harness;
+use super::content::{Kind, is_valid_name};
+use super::harness::Harness;
 
 pub enum Form<'text> {
     Piece(Kind, &'text str),

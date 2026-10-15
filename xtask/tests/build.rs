@@ -2,6 +2,7 @@ mod common;
 
 use std::fs;
 use std::path::Path;
+use std::process::Command;
 
 use common::{Repository, assert_fails_with, assert_succeeds, stderr_of};
 
@@ -111,11 +112,20 @@ fn a_literal_reference_fails() {
             "content/commands/sprint.md",
             &on_line(30, "Run `/spec` for each item."),
         ),
+        (
+            "content/vault-template/AGENTS.md",
+            "# Vault\n\nRun `/spec` first.\n".to_owned(),
+        ),
     ]);
 
+    let output = repository.run("build");
     assert_fails_with(
-        &repository.run("build"),
+        &output,
         "error: content/commands/sprint.md:30: \"/spec\" refers to the command \"spec\"; write {{command:spec}}",
+    );
+    assert_fails_with(
+        &output,
+        "error: content/vault-template/AGENTS.md:3: \"/spec\" refers to the command \"spec\"; write {{command:spec}}",
     );
 }
 
@@ -299,10 +309,15 @@ fn json_at(repository: &Repository, path: &str) -> serde_json::Value {
 fn the_manifest_lists_the_companions_and_the_options_and_the_catalog_allows_them() {
     let repository = Repository::with(&[
         piece("content/commands/epic.md", "Open the epic.\n"),
-        options(&[
-            ("status_line", "Show the status line"),
-            ("contract", "Load the rules"),
-            ("memory", "Keep notes out of {{capability:plan-mode}}"),
+        typed_options(&[
+            ("status_line", "boolean", "Show the status line"),
+            ("contract", "boolean", "Load the rules"),
+            (
+                "memory",
+                "boolean",
+                "Keep notes out of {{capability:plan-mode}}",
+            ),
+            ("vault_folder", "directory", "Your vault"),
         ]),
     ]);
 
@@ -312,7 +327,7 @@ fn the_manifest_lists_the_companions_and_the_options_and_the_catalog_allows_them
         .as_object()
         .expect("userConfig is an object");
     let names: Vec<&str> = options.keys().map(String::as_str).collect();
-    assert_eq!(names, ["status_line", "contract", "memory"]);
+    assert_eq!(names, ["status_line", "contract", "memory", "vault_folder"]);
     assert_eq!(
         options["memory"],
         serde_json::json!({
@@ -325,7 +340,16 @@ fn the_manifest_lists_the_companions_and_the_options_and_the_catalog_allows_them
     assert!(
         options
             .values()
+            .take(3)
             .all(|option| option["type"] == "boolean" && option["default"] == true)
+    );
+    assert_eq!(
+        options["vault_folder"],
+        serde_json::json!({
+            "type": "directory",
+            "title": "An option",
+            "description": "Your vault",
+        })
     );
     assert_eq!(
         manifest["dependencies"],
@@ -351,6 +375,25 @@ fn the_manifest_lists_the_companions_and_the_options_and_the_catalog_allows_them
     assert_eq!(
         catalog["allowCrossMarketplaceDependenciesOn"],
         serde_json::json!(["ponytail", "i-have-adhd", "humanizer"])
+    );
+}
+
+#[test]
+fn the_launcher_runs_the_binary_built_for_this_machine() {
+    let repository = Repository::with(&[piece("content/commands/epic.md", "Open the epic.\n")]);
+    let vault = repository.path("vault");
+    fs::create_dir(&vault).expect("a vault folder");
+
+    assert_succeeds(&repository.run("build"));
+    let output = Command::new(repository.path("dist/claude-code/bin/tightship"))
+        .args(["vault", "path"])
+        .env("TIGHTSHIP_VAULT", &vault)
+        .output()
+        .expect("the launcher runs");
+    assert_succeeds(&output);
+    assert_eq!(
+        String::from_utf8_lossy(&output.stdout),
+        format!("{}\n", vault.display())
     );
 }
 
@@ -394,10 +437,19 @@ fn no_companion_and_no_option_leave_out_their_keys() {
 }
 
 fn options(entries: &[(&str, &str)]) -> (&'static str, String) {
+    typed_options(
+        &entries
+            .iter()
+            .map(|(name, description)| (*name, "boolean", *description))
+            .collect::<Vec<_>>(),
+    )
+}
+
+fn typed_options(entries: &[(&str, &str, &str)]) -> (&'static str, String) {
     let text = entries
         .iter()
-        .map(|(name, description)| {
-            format!("[[options]]\nname = \"{name}\"\ntitle = \"An option\"\ndescription = \"{description}\"\n")
+        .map(|(name, kind, description)| {
+            format!("[[options]]\nname = \"{name}\"\ntitle = \"An option\"\ndescription = \"{description}\"\ntype = \"{kind}\"\n")
         })
         .collect::<Vec<String>>()
         .join("\n");
@@ -420,12 +472,20 @@ fn an_option_missing_a_key_fails_and_leaves_no_plugin() {
 }
 
 #[test]
-fn an_option_name_outside_its_domain_fails() {
-    let repository = Repository::with(&[options(&[("status-line", "Show the status line")])]);
+fn an_option_name_or_type_outside_its_domain_fails() {
+    let repository = Repository::with(&[typed_options(&[
+        ("status-line", "boolean", "Show the status line"),
+        ("vault_folder", "string", "Your vault"),
+    ])]);
 
+    let output = repository.run("build");
     assert_fails_with(
-        &repository.run("build"),
+        &output,
         "error: content/options.toml: \"status-line\" is not an option name; use 1 to 64 lowercase letters, digits, and underscores, starting with a letter",
+    );
+    assert_fails_with(
+        &output,
+        "error: content/options.toml: the type of \"vault_folder\" must be boolean or directory",
     );
 }
 
@@ -467,6 +527,6 @@ fn an_option_naming_the_harness_or_a_missing_piece_fails() {
     );
     assert_fails_with(
         &output,
-        "error: content/options.toml:9: {{command:nope}} names no command in content/",
+        "error: content/options.toml:10: {{command:nope}} names no command in content/",
     );
 }

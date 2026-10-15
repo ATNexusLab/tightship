@@ -6,6 +6,10 @@
   is the harness's, not the plugin's
 - Amended: 2026-10-15, by the [epic #4 spec](../specs/contract/load-the-contract.md): a hook command line that
   only prints a file the plugin ships is not a program
+- Amended: 2026-10-15, by the [epic #5 spec](../specs/memory/keep-the-vault.md): the plugin also writes in two
+  places the harness owns, its data folder and the session's environment file
+- Amended: 2026-10-15, by the [epic #5 spec](../specs/memory/keep-the-vault.md): the plugin also reaches the
+  vault's git remote when it syncs the vault ([FR-MEM-11](../requirements/functional/memory.md#fr-mem-11))
 
 ## Context
 
@@ -85,8 +89,8 @@ release only.
 **Adopter prerequisites.** Nothing on macOS and Linux. Git for Windows on Windows, so that hooks run under Git
 Bash. Git on every system when the memory option is on.
 
-**Reach.** The plugin connects to one network host: the git remote of the adopter's vault, when it pulls and
-pushes a handoff. It writes in two places only:
+**Reach.** The plugin connects to one network host: the git remote of the adopter's vault, when it syncs the
+vault or pulls and pushes a handoff. Outside what the harness owns, it writes in two places only:
 
 - The adopter's vault.
 - The harness's settings file, for the status line only, after the adopter consents
@@ -94,6 +98,12 @@ pushes a handoff. It writes in two places only:
 
 The options' state is kept by the harness, in its own user configuration, and reaches the plugin's hooks as
 environment variables.
+
+In two places the harness owns and deletes, the plugin also writes small state of its own:
+
+- The plugin's data folder, for the prompt count of the memory checkpoint, one file per session.
+- The session's environment file, for one `export` of the vault's folder, so the binary finds the vault when
+  the agent runs it.
 
 The build writes only to `dist/`.
 

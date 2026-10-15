@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.4.0 — 2026-10-15
+
+Syncing the vault across machines took a request in free text, and two machines that wrote before syncing gave
+two notes the same id. Change request [#23](https://github.com/ATNexusLab/tightship/issues/23), approved
+during the implementation of epic #5, which takes it into sprint 3.
+
+**Added**
+
+- FR-MEM-11 syncs the vault with its git remote at the adopter's request. FR-MEM-11.1 checks that notes from
+  both sides end on both, FR-MEM-11.2 that a conflict leaves the remote unchanged and is handed to the agent,
+  and FR-MEM-11.3 that a local note whose id the remote already took gets a new one.
+
+## 1.3.0 — 2026-10-15
+
+FR-MEM-02 asks for a checkpoint before a compaction. Claude Code can't add text to the context before a
+compaction, and the baseline never did: its checkpoint came right after. Change request
+[#22](https://github.com/ATNexusLab/tightship/issues/22), approved during the
+[spec of epic #5](../specs/memory/keep-the-vault.md).
+
+**Changed**
+
+- FR-MEM-02 places the compaction's checkpoint right after the compaction. FR-MEM-02.2 checks that the context
+  following the compaction holds a checkpoint.
+- Overview: the plugin also writes to the session's environment file, from the amendment of ADR 0001 in the
+  same spec.
+
 ## 1.2.0 — 2026-10-15
 
 The baseline contract quotes ponytail 4.9.0, and the plugin installs ponytail 5.2.0, whose comment marker,
