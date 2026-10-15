@@ -28,7 +28,11 @@ fn render(sandbox: &Sandbox, fixture: &str, columns: Option<&str>) -> Output {
         .join(format!("{fixture}.json"));
     let input = fs::read_to_string(file).expect("the fixture").replace(
         "/home/adopter/tightship",
-        &sandbox.path("tightship").display().to_string(),
+        &sandbox
+            .path("tightship")
+            .display()
+            .to_string()
+            .replace('\\', "\\\\"),
     );
     let mut command = sandbox.tightship(&["status-line", "render"]);
     command.env("TZ", "UTC");

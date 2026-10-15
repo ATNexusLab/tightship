@@ -17,7 +17,9 @@ impl Sandbox {
     }
 
     pub fn path(&self, relative: &str) -> PathBuf {
-        self.root.path().join(relative)
+        relative
+            .split('/')
+            .fold(self.root.path().to_path_buf(), |path, part| path.join(part))
     }
 
     pub fn write(&self, relative: &str, text: &str) -> PathBuf {
