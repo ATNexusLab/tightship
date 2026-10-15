@@ -283,3 +283,85 @@ fn a_missing_git_identity_fails() {
         "error: git config user.name or user.email is empty",
     );
 }
+
+fn harness_without_companions() -> &'static str {
+    include_str!("../../harnesses/claude-code/harness.toml")
+        .split_once("[[companions]]")
+        .map_or("", |(base, _)| base)
+}
+
+fn json_at(repository: &Repository, path: &str) -> serde_json::Value {
+    let text = fs::read_to_string(repository.path(path)).expect("a generated JSON file");
+    serde_json::from_str(&text).expect("valid JSON")
+}
+
+#[test]
+fn the_manifest_and_the_catalog_list_the_companions() {
+    let repository = Repository::with(&[piece("content/commands/epic.md", "Open the epic.\n")]);
+
+    assert_succeeds(&repository.run("build"));
+    let manifest = json_at(&repository, "dist/claude-code/.claude-plugin/plugin.json");
+    assert_eq!(
+        manifest["dependencies"],
+        serde_json::json!([
+            "ponytail@ponytail",
+            "i-have-adhd@i-have-adhd",
+            "humanizer@humanizer"
+        ])
+    );
+    let catalog = json_at(
+        &repository,
+        "dist/claude-code/.claude-plugin/marketplace.json",
+    );
+    assert_eq!(catalog["name"], "tightship");
+    assert_eq!(
+        catalog["plugins"],
+        serde_json::json!([{
+            "name": "tightship",
+            "source": "./",
+            "description": manifest["description"],
+        }])
+    );
+    assert_eq!(
+        catalog["allowCrossMarketplaceDependenciesOn"],
+        serde_json::json!(["ponytail", "i-have-adhd", "humanizer"])
+    );
+}
+
+#[test]
+fn a_companion_without_a_marketplace_fails_and_leaves_no_plugin() {
+    let repository = Repository::with(&[(
+        "harnesses/claude-code/harness.toml",
+        format!(
+            "{}[[companions]]\nplugin = \"ponytail\"\n",
+            harness_without_companions()
+        ),
+    )]);
+    fs::create_dir_all(repository.path("dist/claude-code")).expect("a previous build");
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: harnesses/claude-code/harness.toml: missing field `marketplace`",
+    );
+    assert!(!repository.path("dist/claude-code").exists());
+}
+
+#[test]
+fn no_companion_leaves_out_the_dependencies_and_the_allowed_catalogs() {
+    let repository = Repository::with(&[
+        piece("content/commands/epic.md", "Open the epic.\n"),
+        (
+            "harnesses/claude-code/harness.toml",
+            harness_without_companions().to_owned(),
+        ),
+    ]);
+
+    assert_succeeds(&repository.run("build"));
+    let manifest = json_at(&repository, "dist/claude-code/.claude-plugin/plugin.json");
+    assert!(manifest.get("dependencies").is_none());
+    let catalog = json_at(
+        &repository,
+        "dist/claude-code/.claude-plugin/marketplace.json",
+    );
+    assert!(catalog.get("allowCrossMarketplaceDependenciesOn").is_none());
+}

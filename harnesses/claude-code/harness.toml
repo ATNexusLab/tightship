@@ -52,3 +52,15 @@ tools = [
   "/security-review",
   "$ARGUMENTS",
 ]
+
+[[companions]]
+plugin = "ponytail"
+marketplace = "ponytail"
+
+[[companions]]
+plugin = "i-have-adhd"
+marketplace = "i-have-adhd"
+
+[[companions]]
+plugin = "humanizer"
+marketplace = "humanizer"
