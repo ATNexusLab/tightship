@@ -1,6 +1,6 @@
 # #4 — Load the contract into every session
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `content/`, `harnesses/claude-code/`, `xtask/`
 > **Epic:** #4
@@ -523,7 +523,7 @@ N/A — the contract holds no data of the adopter, and the options it reads keep
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Render the contract into session-start hooks | `xtask/src/contract.rs` (new: read, check, pack), `xtask/src/content.rs` (accept `contract.md`), `xtask/src/claude_code.rs` (`contract/`, `hooks/hooks.json`), `xtask/src/harness.rs` and `harnesses/claude-code/harness.toml` (`[contract] limit`), `xtask/src/main.rs`, `xtask/tests/build.rs` and its fixture in `xtask/tests/common/`, about 8 files | Scenarios 1 to 10 by tests, the hook lines of scenario 10 run under `sh` in the test | — |
-| 2 | Migrate the baseline's contract | `content/contract.md` (new), `harnesses/claude-code/harness.toml` (2 capabilities), about 2 files | Scenarios 11 to 16 and 19 in sessions of an isolated Claude Code configuration; 17 and 18 by a comparison with the baseline and the companions, read at review | 1 |
+| # | Title | Scope | Acceptance criterion | Depends on | Issue |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Render the contract into session-start hooks | `xtask/src/contract.rs` (new: read, check, pack), `xtask/src/content.rs` (accept `contract.md`), `xtask/src/claude_code.rs` (`contract/`, `hooks/hooks.json`), `xtask/src/harness.rs` and `harnesses/claude-code/harness.toml` (`[contract] limit`), `xtask/src/main.rs`, `xtask/tests/build.rs` and its fixture in `xtask/tests/common/`, about 8 files | Scenarios 1 to 10 by tests, the hook lines of scenario 10 run under `sh` in the test | — | #18 |
+| 2 | Migrate the baseline's contract | `content/contract.md` (new), `harnesses/claude-code/harness.toml` (2 capabilities), about 2 files | Scenarios 11 to 16 and 19 in sessions of an isolated Claude Code configuration; 17 and 18 by a comparison with the baseline and the companions, read at review | 1 | #19 |
