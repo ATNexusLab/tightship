@@ -60,7 +60,7 @@ Você precisa do Claude Code 2.1.295 ou posterior. No Windows, também do Git fo
 claude plugin marketplace add DietrichGebert/ponytail
 claude plugin marketplace add ayghri/i-have-adhd
 claude plugin marketplace add blader/humanizer
-claude plugin marketplace add https://github.com/ATNexusLab/tightship/releases/latest/download/marketplace.json
+claude plugin marketplace add ATNexusLab/tightship
 claude plugin install tightship@tightship
 ```
 

@@ -20,14 +20,15 @@ their word. The pipeline is in the [release spec](../specs/release-m1/release-th
    `.github/workflows/release.yml` builds the binary for the four platforms and publishes the pre-release
    `v<version>` with `tightship-claude-code.zip` and `marketplace.json`.
 4. **Run the [checklist](checklist.md)** on macOS, Linux, and Windows, each at Claude Code 2.1.295 or later,
-   installing from `https://github.com/ATNexusLab/tightship/releases/download/v<version>/marketplace.json`.
+   installing from the release's own `marketplace.json`, as the checklist's preparation says.
 5. **Promote it**, only when every row passes on all three:
 
    ```sh
    gh release edit v<version> --prerelease=false --latest
    ```
 
-   The install guide's catalog URL, `releases/latest/download/marketplace.json`, now serves this version.
+   The repository's catalog, `.claude-plugin/marketplace.json`, points at the latest release's zip, so
+   adopters now install and update to this version.
 6. **Close the milestone** the release completes, and mark it released in the
    [roadmap](../roadmap/README.md) with the version and the date.
 

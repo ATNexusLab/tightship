@@ -58,7 +58,7 @@ You need Claude Code 2.1.295 or later. On Windows, also Git for Windows: the hoo
 claude plugin marketplace add DietrichGebert/ponytail
 claude plugin marketplace add ayghri/i-have-adhd
 claude plugin marketplace add blader/humanizer
-claude plugin marketplace add https://github.com/ATNexusLab/tightship/releases/latest/download/marketplace.json
+claude plugin marketplace add ATNexusLab/tightship
 claude plugin install tightship@tightship
 ```
 
