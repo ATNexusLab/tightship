@@ -5,6 +5,7 @@ VS Code, or on the local site.
 
 | Doc | What it holds |
 | --- | --- |
+| [Install guide, Claude Code](install/claude-code/README.md) | Installing, configuring, updating, and removing the plugin, and moving to it from the pre-plugin install |
 | [Requirements](requirements/README.md) | The versioned SRS: every requirement with its ID, attributes, and acceptance criteria, and a use case diagram per area |
 | [Architecture](architecture/README.md) | The map of the system in arc42 sections, with C4 diagrams |
 | [Data model](data-model/README.md) | The vault and the options: entities, invariants, access patterns |

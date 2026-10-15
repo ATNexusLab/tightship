@@ -299,7 +299,11 @@ The steps of `migration.md`, in order:
 3. Delete what the baseline merged: the 13 skill folders the plugin ships, the 9 commands of `commands/`,
    `agents/adversarial-verifier.md`, `hooks/vault.py`, `hooks/test_vault.py`, `hooks/generate-settings.py`,
    `hooks/test_generate_settings.py`, `vault-template/`, `setup.py`, `settings.base.json`,
-   `export-workflow.py`, `SETUP.md`, `statusline-command.ts`, `package.json`, `bun.lock`, and `tsconfig.json`.
+   `export-workflow.py`, `SETUP.md`, `statusline-command.ts`, `package.json`, `bun.lock`, `tsconfig.json`,
+   `README.md`, `AGENTS.md`, `my-plugins.md`, `themes/`, and `.gitattributes`; what the baseline's pieces
+   left behind, `hooks/__pycache__/`, `.vault-checkpoint/`, and `node_modules/`; and `.gitignore`, or only its
+   baseline lines when the adopter keeps the folder under git. A `.bak` the baseline's setup left is renamed
+   back. `.i-have-adhd-always` stays: it is the i-have-adhd companion's switch.
 4. Delete from `CLAUDE.md` every line the baseline wrote, and the file when nothing is left.
 5. Delete from `settings.json` the three hooks that run `hooks/vault.py` and the `statusLine` that runs
    `statusline-command.ts`. Every other key stays as it is.
