@@ -40,13 +40,13 @@ and of `all`, and the project's handoff when one exists.
 > As an adopter, I want the agent reminded to record what it learned, so that a fact worth keeping is not
 > lost when the session ends.
 
-The system shall place a checkpoint in the agent's context at a fixed prompt interval and before the
+The system shall place a checkpoint in the agent's context at a fixed prompt interval and right after the
 session's context is compacted.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | An agent busy with a task forgets to write to the vault unless reminded. |
-| Source | Maintainer, elicitation 2026-10-14; baseline |
+| Rationale | An agent busy with a task forgets to write to the vault unless reminded. No harness hook adds text to the context before a compaction, so the checkpoint comes in the context that follows it, as in the baseline. |
+| Source | Maintainer, elicitation 2026-10-14; baseline; change request [#22](https://github.com/ATNexusLab/tightship/issues/22) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
@@ -56,8 +56,8 @@ session's context is compacted.
 
 - **FR-MEM-02.1** — Given memory is enabled, when the adopter sends the number of prompts the M1 spec
   sets as the interval, then the agent receives a checkpoint.
-- **FR-MEM-02.2** — Given memory is enabled, when the session's context is compacted, then the agent
-  receives a checkpoint first.
+- **FR-MEM-02.2** — Given memory is enabled, when the session's context is compacted, then the context
+  that follows the compaction holds a checkpoint.
 
 <a id="fr-mem-03"></a>
 

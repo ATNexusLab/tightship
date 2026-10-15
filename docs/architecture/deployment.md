@@ -21,7 +21,8 @@ The archive of a harness holds its generated plugin and the `tightship` binary f
 | Linux arm64 | Statically linked with musl |
 | Windows x64 | `.exe`; Windows arm64 runs it emulated |
 
-`bin/tightship` is a `sh` launcher that picks the binary for the machine. On macOS, the binary carries the
+`bin/tightship` is a `sh` launcher that picks the binary for the machine. Until epic #8, `cargo xtask build`
+compiles only the target of the machine that builds (M1, #5). On macOS, the binary carries the
 linker's ad-hoc signature only; epic #8 tests that it runs from an archive Claude Code downloaded.
 
 ## Installing

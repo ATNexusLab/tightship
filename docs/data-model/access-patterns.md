@@ -5,9 +5,9 @@ Every read and write the requirements call for. Volume: a vault of 1,000 notes
 
 | Operation | Reads / writes | Filter and order | When |
 | --- | --- | --- | --- |
-| Session start ([FR-MEM-01](../requirements/functional/memory.md#fr-mem-01)) | Reads pinned notes and the handoff | Pinned in the project's scope or `all`; the handoff of the project's scope | Every session start, within 500 ms at p95 |
-| Checkpoint ([FR-MEM-02](../requirements/functional/memory.md#fr-mem-02)) | Reads nothing | — | Every N prompts and before compaction, within 100 ms per prompt at p95 |
-| Search ([FR-MEM-03](../requirements/functional/memory.md#fr-mem-03)) | Reads notes | Terms in the note; the project's scope first, then `all` | On demand |
+| Session start ([FR-MEM-01](../requirements/functional/memory.md#fr-mem-01)) | Reads pinned notes and the handoff; appends one line to the session's environment file | Pinned in the project's scope or `all`, by `id`; the handoff of the project's scope | Every session start, `/clear`, and compaction, within 500 ms at p95 |
+| Checkpoint ([FR-MEM-02](../requirements/functional/memory.md#fr-mem-02)) | Reads and writes the session's prompt count in the plugin's data folder | By session | Every 10th prompt and after each compaction, within 100 ms per prompt at p95 |
+| Search ([FR-MEM-03](../requirements/functional/memory.md#fr-mem-03)) | Reads notes | Terms in the `why`, tags, and body; the project's scope first, then `all`, then the rest with `--everywhere`; 10 at most | On demand |
 | Write a note ([FR-MEM-04](../requirements/functional/memory.md#fr-mem-04)) | Writes one note | Into its scope's folder | On demand |
 | Lint ([FR-MEM-05](../requirements/functional/memory.md#fr-mem-05)) | Reads every note | All | On demand |
 | Release a handoff ([FR-MEM-06](../requirements/functional/memory.md#fr-mem-06)) | Replaces one handoff | The project's scope | On demand |

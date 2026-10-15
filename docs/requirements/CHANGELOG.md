@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.3.0 — 2026-10-15
+
+FR-MEM-02 asks for a checkpoint before a compaction. Claude Code can't add text to the context before a
+compaction, and the baseline never did: its checkpoint came right after. Change request
+[#22](https://github.com/ATNexusLab/tightship/issues/22), approved during the
+[spec of epic #5](../specs/memory/keep-the-vault.md).
+
+**Changed**
+
+- FR-MEM-02 places the compaction's checkpoint right after the compaction. FR-MEM-02.2 checks that the context
+  following the compaction holds a checkpoint.
+- Overview: the plugin also writes to the session's environment file, from the amendment of ADR 0001 in the
+  same spec.
+
 ## 1.2.0 — 2026-10-15
 
 The baseline contract quotes ponytail 4.9.0, and the plugin installs ponytail 5.2.0, whose comment marker,

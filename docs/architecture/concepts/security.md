@@ -20,7 +20,9 @@ From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.
 
 - **Network:** only the git remote of the adopter's vault, when a handoff is pulled or pushed.
 - **Disk:** the adopter's vault, and the harness's settings file, for the status line only, after the adopter
-  consents ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02)). The options' state is the
+  consents ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02)). In the harness's own
+  places, the plugin also writes the checkpoint's prompt counter in the plugin's data folder, and one `export`
+  line per session in the session's environment file ([memory](memory.md), M1, #5). The options' state is the
   harness's own: it keeps it in its user settings ([options](options.md), M1, #3).
 
 The build writes only to `dist/`.

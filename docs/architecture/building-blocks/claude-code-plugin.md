@@ -1,6 +1,6 @@
 # Claude Code plugin
 
-**Lives in:** `dist/claude-code/`, generated and ignored by git · **Milestone:** M1, epics #1 to #4
+**Lives in:** `dist/claude-code/`, generated and ignored by git · **Milestone:** M1, epics #1 to #5
 
 The `tightship` plugin as Claude Code loads it: `.claude-plugin/plugin.json`, one `skills/<name>/` per
 skill and per command, and `agents/<name>.md` for the subagent. Commands ship as skills, because Claude
@@ -14,6 +14,10 @@ boolean on by default (M1, #3).
 
 Its first hooks carry the [contract](../concepts/contract.md): `hooks/hooks.json` runs one `sh` line per file
 of `contract/` at `SessionStart`, each printing its part unless its options are off (M1, #4).
+
+Its `bin/` holds the [tightship binary](tightship-binary.md) and its launcher, and its memory hooks run it at
+`SessionStart` and on each prompt, unless the memory option is off (M1, #5). The manifest declares
+`vault_folder`, a `directory` setting with no default, next to the options.
 
 **It never** gets edited. Every change goes to the canonical content or the harness definition, then
 through the build.

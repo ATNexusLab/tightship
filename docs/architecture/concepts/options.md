@@ -19,6 +19,13 @@ option the adopter never set reaches no piece
 | A hook | The environment variable `CLAUDE_PLUGIN_OPTION_<NAME>`, `<NAME>` uppercased | Absent, so on |
 | A skill or an agent | Nothing: it never reads an option | The literal `${user_config.<name>}` would reach it |
 
+## The vault folder
+
+Next to the three options, `content/options.toml` declares `vault_folder`, a setting of type `directory` that
+belongs to the memory layer (M1, #5). Each entry names its `type`, `boolean` or `directory`. A `boolean`
+renders with the default `true`; a `directory` renders with no default, so a folder the adopter never set
+reaches the hooks as an absent variable, and memory then has no vault.
+
 A change reaches the hooks from the next session start. Each option's epic reads it this way: the contract
 in #4, whose [hooks](contract.md) are the first to read one, memory in #5 and #6, the status line in #7.
 
