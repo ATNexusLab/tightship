@@ -9,7 +9,7 @@ uninstall deletes them.
 | --- | --- | --- | --- |
 | `contract` | on/off | Loads the workflow's rules into every session. Off: see [without the contract](without-the-contract.md) | On |
 | `memory` | on/off | Keeps curated notes in your vault and hands session state to the next session | On |
-| `status_line` | on/off | Offers tightship's status line, and puts yours back when turned off | On |
+| `status_line` | on/off | Shows tightship's status line under the prompt, and puts yours back when turned off | On |
 | `vault_folder` | folder | Your memory vault, a git repository, as an absolute path. Memory needs it | No vault: memory has nothing to read or write |
 
 ## Set them as you install
@@ -47,9 +47,8 @@ when you ask about memory.
 
 ## The status line
 
-With `status_line` on, the first session asks you once whether to show tightship's status line. On yes, it
-replaces the `statusLine` of your user settings and keeps yours aside. On no, it does not ask again until you
-turn the option off and back on.
+With `status_line` on, tightship shows its status line under the prompt. It replaces the `statusLine` of
+your user settings and keeps yours aside.
 
 Turning `status_line` off puts your previous status line back at the next session start, or removes the key
 when you had none.

@@ -9,7 +9,7 @@ valores que você definiu, e a desinstalação os apaga.
 | --- | --- | --- | --- |
 | `contract` | ligada/desligada | Carrega as regras do workflow em toda sessão. Desligada: veja [sem o contrato](without-the-contract.pt-BR.md) | Ligada |
 | `memory` | ligada/desligada | Guarda notas curadas no seu vault e passa o estado da sessão para a próxima | Ligada |
-| `status_line` | ligada/desligada | Oferece a status line do tightship e devolve a sua quando desligada | Ligada |
+| `status_line` | ligada/desligada | Mostra a status line do tightship sob o prompt e devolve a sua quando desligada | Ligada |
 | `vault_folder` | pasta | O seu vault de memória, um repositório git, como caminho absoluto. A memória precisa dele | Sem vault: a memória não tem o que ler nem onde gravar |
 
 ## Defina ao instalar
@@ -49,9 +49,8 @@ você pergunta sobre memória.
 
 ## A status line
 
-Com `status_line` ligada, a primeira sessão pergunta uma vez se deve mostrar a status line do tightship. No
-sim, ela substitui o `statusLine` das suas configurações de usuário e guarda o seu de lado. No não, ela não
-pergunta de novo até você desligar e religar a opção.
+Com `status_line` ligada, o tightship mostra a sua status line sob o prompt. Ela substitui o `statusLine`
+das suas configurações de usuário e guarda a sua anterior de lado.
 
 Desligar `status_line` devolve a sua status line anterior no próximo início de sessão, ou remove a chave se
 você não tinha uma.

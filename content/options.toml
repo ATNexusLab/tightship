@@ -14,7 +14,7 @@ description = "Keep curated notes in your vault and hand session state to the ne
 name = "status_line"
 type = "boolean"
 title = "Status line"
-description = "Show the workflow's status line, after asking before it changes your settings"
+description = "Show the workflow's status line under the prompt"
 
 [[options]]
 name = "vault_folder"
