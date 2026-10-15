@@ -8,6 +8,14 @@ pub struct UserOption {
     pub name: String,
     pub title: String,
     pub description: String,
+    #[serde(rename = "type")]
+    pub kind: String,
+}
+
+impl UserOption {
+    pub fn is_directory(&self) -> bool {
+        self.kind == "directory"
+    }
 }
 
 pub struct OptionsFile {
@@ -48,6 +56,11 @@ pub fn read(path: &str, text: String, diagnostics: &mut Vec<Diagnostic>) -> Opti
         if !is_option_name(name) {
             problems.push(format!(
                 "\"{name}\" is not an option name; use 1 to 64 lowercase letters, digits, and underscores, starting with a letter"
+            ));
+        }
+        if !["boolean", "directory"].contains(&option.kind.as_str()) {
+            problems.push(format!(
+                "the type of \"{name}\" must be boolean or directory"
             ));
         }
         let texts = [

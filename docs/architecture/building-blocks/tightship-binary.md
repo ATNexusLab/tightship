@@ -1,6 +1,6 @@
 # tightship binary
 
-**Lives in:** `tightship/`, not built yet · **Technology:** Rust · **Milestone:** M1, from epic #5
+**Lives in:** `tightship/` · **Technology:** Rust · **Milestone:** M1, from epic #5
 
 The one program the plugin ships, with a subcommand per function. Epic #5 builds the first two:
 

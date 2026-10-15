@@ -528,6 +528,7 @@ behind it. Who may run it is whoever may run the Bash tool there.
   (FR-MEM-08.2).
 - Otherwise it creates the folder and its parents, `AGENTS.md`, and `notes/all/`, and runs `git init`
   (FR-MEM-08.1). The adopter commits and adds the remote.
+- A folder it cannot read or create fails with `INIT_UNWRITABLE`.
 - A `git init` that fails reports `INIT_GIT_FAILED` and leaves what it created.
 
 ### 11. A failure never blocks the session
@@ -608,6 +609,7 @@ subcommands exit 1 too, which Claude Code reports without blocking.
 | `NOTE_EXISTS` | `1` | Rule 8 | "`` <path relative to the vault> already exists ``" |
 | `INIT_NO_GIT` | `1` | Rule 10 | "`` git is not installed; a vault is a git repository, so nothing was created ``" |
 | `INIT_NOT_EMPTY` | `1` | Rule 10 | "`` <folder> already exists and is not an empty folder; nothing changed ``" |
+| `INIT_UNWRITABLE` | `1` | Rule 10 | "`` cannot write the vault at <folder>: <the system's message> ``" |
 | `INIT_GIT_FAILED` | `1` | Rule 10 | "`` git init failed in <folder>: <git's message> ``" |
 | `SYNC_UNFINISHED` | `1` | Rule 15 | "`` a rebase or merge is under way in <vault>; finish it with `git -C <vault> rebase --continue` or `git -C <vault> merge --continue`, then run `tightship vault sync` again ``" |
 | `SYNC_NO_UPSTREAM` | `1` | Rule 15 | "`` the vault's branch <branch> tracks no remote branch; run `git -C <vault> push -u <remote> <branch>` once, then run `tightship vault sync` again ``" |

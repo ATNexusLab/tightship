@@ -28,8 +28,17 @@ pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Dia
         .contract
         .iter()
         .map(|contract| (contract.path.as_str(), contract.text.as_str(), 1));
+    let vault_template = content
+        .vault_template
+        .iter()
+        .map(|text| ("content/vault-template/AGENTS.md", text.as_str(), 1));
     let forms = literal_forms(&pieces);
-    for (path, text, first_line) in bodies.chain(supporting).chain(options).chain(contract) {
+    let texts = bodies
+        .chain(supporting)
+        .chain(options)
+        .chain(contract)
+        .chain(vault_template);
+    for (path, text, first_line) in texts {
         let report = |line: usize, message: String| {
             Diagnostic::at_line(path, first_line + line - 1, message)
         };

@@ -20,7 +20,7 @@ fn options(names: &[&str]) -> (&'static str, String) {
     let text = names
         .iter()
         .map(|name| {
-            format!("[[options]]\nname = \"{name}\"\ntitle = \"An option\"\ndescription = \"An option\"\n")
+            format!("[[options]]\nname = \"{name}\"\ntitle = \"An option\"\ndescription = \"An option\"\ntype = \"boolean\"\n")
         })
         .collect::<Vec<String>>()
         .join("\n");

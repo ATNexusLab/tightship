@@ -10,6 +10,8 @@ Rust in one Cargo workspace, with the canonical content in Markdown and TOML
 
 - The `xtask` crate: the build, run as `cargo xtask build`, and the repository scan, run as `cargo xtask scan`.
   The toolchain is pinned in `rust-toolchain.toml`, and `rustup` installs it on the first `cargo` call.
+- The `tightship` crate: the binary the plugin ships, which `cargo xtask build` compiles for the machine that
+  builds into `dist/claude-code/bin/`.
 - gitleaks 8.30.1 on the `PATH`, for `cargo xtask scan`.
 - `.identity-terms` at the root of each clone that builds, ignored by git: one line per name, email address,
   user name, and handle of the maintainer.
@@ -37,8 +39,8 @@ Rust for application code, for the build, and for every new script
 | Type checking | `cargo check --workspace --all-targets` | Type-checks the Rust workspace |
 | Formatting | `cargo fmt --all --check` | rustfmt defaults |
 | Build | `uvx zensical==0.0.70 build` | Builds the docs site into `site/` |
-| Build | `cargo xtask build` | Builds the Claude Code plugin into `dist/claude-code/` |
-| Tests | `cargo test --workspace` | The build's and the scan's scenarios, over fixtures in a temporary folder; needs gitleaks 8.30.1 |
+| Build | `cargo xtask build` | Builds the Claude Code plugin, with the `tightship` binary for this machine, into `dist/claude-code/` |
+| Tests | `cargo test --workspace` | The build's, the scan's, and the binary's scenarios, over fixtures in a temporary folder; needs gitleaks 8.30.1 |
 | Run | `uvx zensical==0.0.70 serve --open` | Serves the docs at `http://localhost:8000` |
 | Run | `claude --plugin-dir dist/claude-code` | Loads the built plugin in a session |
 | Run | `claude plugin marketplace add ./dist/claude-code`, then `claude plugin install tightship@tightship` | Installs the built plugin with its companions, once the catalogs `DietrichGebert/ponytail`, `ayghri/i-have-adhd`, and `blader/humanizer` are added |

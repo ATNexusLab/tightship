@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
+use super::binary::Binary;
 use super::content::{Content, Kind, Piece, SupportingBody};
 use super::contract::Part;
 use super::harness::Harness;
@@ -16,6 +17,7 @@ pub fn render(
     harness: &Harness,
     content: &Content,
     parts: &[Part],
+    binary: &Binary,
 ) -> io::Result<(PathBuf, usize)> {
     let staging = root.join("dist").join(format!(".{}.tmp", harness.name));
     remove_if_present(&staging)?;
@@ -61,11 +63,23 @@ pub fn render(
             hooks(parts, content.options.as_ref())?.into_bytes(),
         ));
     }
+    let launcher = staging.join("bin/tightship");
+    written.push((
+        launcher.clone(),
+        include_bytes!("../../../tightship/launcher.sh").to_vec(),
+    ));
+    let file_name = binary.path.file_name().unwrap_or_default();
+    let machine_binary = staging.join("bin").join(binary.platform).join(file_name);
+    let bytes = fs::read(&binary.path).map_err(naming(&binary.path))?;
+    written.push((machine_binary.clone(), bytes));
     for (file, bytes) in &written {
         if let Some(folder) = file.parent() {
             fs::create_dir_all(folder).map_err(naming(folder))?;
         }
         fs::write(file, bytes).map_err(naming(file))?;
+    }
+    for file in [&launcher, &machine_binary] {
+        make_executable(file)?;
     }
     Ok((staging, written.len()))
 }
@@ -80,6 +94,15 @@ pub fn discard(root: &Path, harness_name: &str) -> io::Result<()> {
     let dist = root.join("dist");
     remove_if_present(&dist.join(format!(".{harness_name}.tmp")))?;
     remove_if_present(&dist.join(harness_name))
+}
+
+fn make_executable(file: &Path) -> io::Result<()> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(naming(file))?;
+    }
+    Ok(())
 }
 
 fn remove_if_present(folder: &Path) -> io::Result<()> {
@@ -128,15 +151,15 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
     let mut user_config = serde_json::Map::new();
     if let Some(file) = options {
         for option in &file.declared {
-            user_config.insert(
-                option.name.clone(),
-                serde_json::json!({
-                    "type": "boolean",
-                    "title": resolve(&option.title, &file.path, harness)?,
-                    "description": resolve(&option.description, &file.path, harness)?,
-                    "default": true,
-                }),
-            );
+            let mut setting = serde_json::json!({
+                "type": option.kind,
+                "title": resolve(&option.title, &file.path, harness)?,
+                "description": resolve(&option.description, &file.path, harness)?,
+            });
+            if !option.is_directory() {
+                setting["default"] = serde_json::Value::Bool(true);
+            }
+            user_config.insert(option.name.clone(), setting);
         }
     }
     let plugin = &harness.plugin;

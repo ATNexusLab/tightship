@@ -1,3 +1,4 @@
+mod binary;
 mod claude_code;
 mod content;
 mod contract;
@@ -51,10 +52,14 @@ fn build_plugin(root: &Path) -> Result<String, Failure> {
     };
     stop_on_errors(&mut diagnostics)?;
 
+    let platform = binary::platform()?;
+    println!("> Compiling tightship for {platform}");
+    let binary = binary::compile(platform)?;
+
     println!("> Rendering {HARNESS} into dist/{HARNESS}/");
     let harness =
         harness.ok_or_else(|| io::Error::other(format!("{harness_path} could not be read")))?;
-    let (staging, files) = claude_code::render(root, harness, &content, &parts)?;
+    let (staging, files) = claude_code::render(root, harness, &content, &parts, &binary)?;
 
     println!("> Scanning dist/{HARNESS}/ for identity terms");
     identity::check(root, &staging, &format!("dist/{HARNESS}"), &mut diagnostics)?;
