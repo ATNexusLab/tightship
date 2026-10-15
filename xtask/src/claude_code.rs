@@ -5,12 +5,18 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 use crate::content::{Content, Kind, Piece, SupportingBody};
+use crate::contract::Part;
 use crate::diagnostics::naming;
 use crate::harness::Harness;
 use crate::options::OptionsFile;
-use crate::tokens::{self, Form};
+use crate::tokens;
 
-pub fn render(root: &Path, harness: &Harness, content: &Content) -> io::Result<(PathBuf, usize)> {
+pub fn render(
+    root: &Path,
+    harness: &Harness,
+    content: &Content,
+    parts: &[Part],
+) -> io::Result<(PathBuf, usize)> {
     let staging = root.join("dist").join(format!(".{}.tmp", harness.name));
     remove_if_present(&staging)?;
     let mut written = vec![
@@ -44,6 +50,16 @@ pub fn render(root: &Path, harness: &Harness, content: &Content) -> io::Result<(
             .join(&supporting.skill)
             .join(&supporting.relative);
         written.push((file, bytes));
+    }
+    for part in parts {
+        let file = staging.join("contract").join(&part.file);
+        written.push((file, part.text.clone().into_bytes()));
+    }
+    if !parts.is_empty() {
+        written.push((
+            staging.join("hooks/hooks.json"),
+            hooks(parts, content.options.as_ref())?.into_bytes(),
+        ));
     }
     for (file, bytes) in &written {
         if let Some(folder) = file.parent() {
@@ -142,6 +158,40 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
     Ok(serde_json::to_string_pretty(&manifest).map_err(io::Error::other)? + "\n")
 }
 
+fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<String> {
+    let declares_contract =
+        options.is_some_and(|file| file.declared.iter().any(|option| option.name == "contract"));
+    let commands: Vec<serde_json::Value> = parts
+        .iter()
+        .map(|part| {
+            let contract_option = declares_contract.then_some("contract");
+            let tests: String = contract_option
+                .into_iter()
+                .chain(part.gate.as_deref())
+                .map(|option| {
+                    format!(
+                        "[ \"$CLAUDE_PLUGIN_OPTION_{}\" = false ] || ",
+                        option.to_uppercase()
+                    )
+                })
+                .collect();
+            serde_json::json!({
+                "type": "command",
+                "command": format!("{tests}cat \"${{CLAUDE_PLUGIN_ROOT}}/contract/{}\"", part.file),
+            })
+        })
+        .collect();
+    let hooks = serde_json::json!({
+        "hooks": {
+            "SessionStart": [{
+                "matcher": "startup|clear|compact",
+                "hooks": commands,
+            }],
+        },
+    });
+    Ok(serde_json::to_string_pretty(&hooks).map_err(io::Error::other)? + "\n")
+}
+
 fn catalog(harness: &Harness) -> io::Result<String> {
     #[derive(Serialize)]
     struct Owner<'harness> {
@@ -213,26 +263,9 @@ fn document(piece: &Piece, harness: &Harness) -> io::Result<String> {
 }
 
 fn resolve(text: &str, path: &str, harness: &Harness) -> io::Result<String> {
-    let mut unresolved = Vec::new();
-    let resolved = tokens::replace(text, |token| {
-        let replacement = match token.form {
-            Form::Piece(kind, name) => Some(
-                harness
-                    .references
-                    .template(kind)
-                    .replace("{plugin}", &harness.plugin.name)
-                    .replace("{name}", name),
-            ),
-            Form::Capability(name) => harness.capabilities.get(name).cloned(),
-            Form::UnknownKind(_) | Form::Malformed => None,
-        };
-        replacement.unwrap_or_else(|| {
-            unresolved.push(token.text.to_owned());
-            token.text.to_owned()
-        })
-    });
+    let (rendered, unresolved) = tokens::render(text, harness);
     if unresolved.is_empty() {
-        Ok(resolved)
+        Ok(rendered)
     } else {
         Err(io::Error::other(format!(
             "{path}: rendered with unresolved tokens {}",

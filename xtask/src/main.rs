@@ -1,5 +1,6 @@
 mod claude_code;
 mod content;
+mod contract;
 mod diagnostics;
 mod git;
 mod harness;
@@ -112,14 +113,20 @@ fn build_plugin(root: &Path) -> Result<String, Failure> {
     println!("> Checking references and harness neutrality");
     references::check(&content, &harnesses, &mut diagnostics);
     neutrality::check(&content, &harnesses, &mut diagnostics);
+    let harness = harnesses.iter().find(|harness| harness.name == HARNESS);
+    let parts = match (&content.contract, harness) {
+        (Some(contract), Some(harness)) => {
+            println!("> Packing the contract");
+            contract::pack(contract, harness, &mut diagnostics)
+        }
+        _ => Vec::new(),
+    };
     stop_on_errors(&mut diagnostics)?;
 
     println!("> Rendering {HARNESS} into dist/{HARNESS}/");
-    let harness = harnesses
-        .iter()
-        .find(|harness| harness.name == HARNESS)
-        .ok_or_else(|| io::Error::other(format!("{harness_path} could not be read")))?;
-    let (staging, files) = claude_code::render(root, harness, &content)?;
+    let harness =
+        harness.ok_or_else(|| io::Error::other(format!("{harness_path} could not be read")))?;
+    let (staging, files) = claude_code::render(root, harness, &content, &parts)?;
 
     println!("> Scanning dist/{HARNESS}/ for identity terms");
     identity::check(root, &staging, &format!("dist/{HARNESS}"), &mut diagnostics)?;

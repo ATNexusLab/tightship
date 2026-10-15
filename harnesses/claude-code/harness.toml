@@ -12,6 +12,9 @@ agent = "{plugin}:{name}"
 [access]
 read-only = "Read, Grep, Glob, Bash"
 
+[contract]
+limit = 10000
+
 [capabilities]
 arguments = "$ARGUMENTS"
 plan-mode = "plan mode"

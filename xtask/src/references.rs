@@ -24,8 +24,12 @@ pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Dia
         .options
         .iter()
         .map(|file| (file.path.as_str(), file.text.as_str(), 1));
+    let contract = content
+        .contract
+        .iter()
+        .map(|contract| (contract.path.as_str(), contract.text.as_str(), 1));
     let forms = literal_forms(&pieces);
-    for (path, text, first_line) in bodies.chain(supporting).chain(options) {
+    for (path, text, first_line) in bodies.chain(supporting).chain(options).chain(contract) {
         let report = |line: usize, message: String| {
             Diagnostic::at_line(path, first_line + line - 1, message)
         };

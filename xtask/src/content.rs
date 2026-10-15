@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
+use crate::contract::{self, Contract};
 use crate::diagnostics::{Diagnostic, naming};
 use crate::options::{self, OptionsFile};
 
@@ -63,6 +64,7 @@ pub struct Content {
     pub pieces: Vec<Piece>,
     pub supporting: Vec<Supporting>,
     pub options: Option<OptionsFile>,
+    pub contract: Option<Contract>,
 }
 
 pub fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Content> {
@@ -83,6 +85,16 @@ pub fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Conten
         let path = relative.join("/");
         classify(&mut content, &relative[1..], &path, &bytes, diagnostics);
         content.files.push(SourceFile { path, bytes });
+    }
+    let contract_file = content
+        .files
+        .iter()
+        .find(|file| file.path == "content/contract.md");
+    if let Some(file) = contract_file
+        && let Some(text) = utf8(&file.path, &file.bytes, diagnostics)
+    {
+        let contract = contract::read(&file.path, text, content.options.as_ref(), diagnostics);
+        content.contract = Some(contract);
     }
     for supporting in &content.supporting {
         let has_skill = content
@@ -151,6 +163,7 @@ fn classify(
             }
             None
         }
+        ["contract.md"] => None,
         ["skills", skill, "SKILL.md"] => Some((Kind::Skill, (*skill).to_owned())),
         ["commands", file] if file.ends_with(".md") => {
             Some((Kind::Command, file.trim_end_matches(".md").to_owned()))
@@ -179,7 +192,7 @@ fn classify(
         _ => {
             diagnostics.push(Diagnostic::in_file(
                 path,
-                "not a piece; content/ holds skills/<name>/, commands/<name>.md, agents/<name>.md and options.toml"
+                "not a piece; content/ holds skills/<name>/, commands/<name>.md, agents/<name>.md, options.toml and contract.md"
                     .to_owned(),
             ));
             None
@@ -237,7 +250,7 @@ fn parse_piece(
     }
 }
 
-fn split_front_matter(text: &str) -> Option<(&str, &str, usize)> {
+pub fn split_front_matter(text: &str) -> Option<(&str, &str, usize)> {
     let after_opening = text.strip_prefix("+++\n")?;
     let mut offset = 0;
     for (index, line) in after_opening.split_inclusive('\n').enumerate() {

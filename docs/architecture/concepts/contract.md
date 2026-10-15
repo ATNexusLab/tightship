@@ -16,7 +16,7 @@ characters. The contract is longer, so the build splits it:
    contract's title and its number, such as `(1/3)`, because hooks run in parallel and their text arrives in
    the order they finish.
 2. A section the front matter's `[gated]` table names goes to a file of its own option instead, such as
-   `contract/memory.md`.
+   `contract/memory.md`. That file is never split: over the limit, the build fails.
 3. Each file becomes one hook: an `sh` line that prints it unless the contract option, or the file's own
    option, is exactly `false`.
 

@@ -205,7 +205,9 @@ project behind either.
 - The preamble opens part 1. Each section not gated follows in file order, by the greedy packing of the
   Response.
 - A section that exceeds the limit on its own, with its part's title line, fails with
-  `CONTRACT_SECTION_TOO_LONG`.
+  `CONTRACT_SECTION_TOO_LONG`. The preamble is checked the same way, named "the preamble".
+- A gated file is never split: the sections of one option, with their title line, exceed the limit together
+  and fail with `CONTRACT_GATED_TOO_LONG`.
 
 ### 4. A gated section leaves with its option
 
@@ -279,6 +281,7 @@ Every message goes to stderr, prefixed by `error:` and a space, as in epic #1.
 | `CONTRACT_SECTION_UNKNOWN` | `1` | Rule 2 | "`content/contract.md: front matter: [gated] names the section "<heading>", which the file does not have`" |
 | `CONTRACT_OPTION_UNKNOWN` | `1` | Rule 2 | "`content/contract.md: front matter: the section "<heading>" is gated by "<option>", which content/options.toml does not declare`" |
 | `CONTRACT_SECTION_TOO_LONG` | `1` | Rule 3 | "`content/contract.md:<line>: the section "<heading>" renders to <count> characters with its title; claude-code takes at most <limit> per hook`" |
+| `CONTRACT_GATED_TOO_LONG` | `1` | Rule 3 | "`content/contract.md: the sections gated by "<option>" render to <count> characters with their title; claude-code takes at most <limit> per hook`" |
 | `CONTRACT_LIMIT_MISSING` | `1` | Rule 3 | "`harnesses/claude-code/harness.toml: content/contract.md exists, so [contract] limit is required`" |
 
 `<line>` is the line of the section's level-2 heading. `<count>` and `<limit>` are plain integers.
@@ -308,7 +311,7 @@ And part-1.md opens with "# <title> (1/1)" and holds the preamble, then A, B, an
 And memory.md opens with "# <title> (Memory)"
 And dist/claude-code/hooks/hooks.json holds one SessionStart group with matcher "startup|clear|compact"
   and two hooks, the second also testing CLAUDE_PLUGIN_OPTION_MEMORY
-And `claude plugin validate dist/claude-code` reports "Validation passed" with no warning
+And `claude plugin validate dist/claude-code/.claude-plugin/plugin.json` reports "Validation passed" with no warning
 ```
 
 ### Scenario 2 — Sections overflow into a second part (alternative)

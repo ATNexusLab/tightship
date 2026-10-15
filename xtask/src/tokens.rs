@@ -1,6 +1,7 @@
 use std::ops::Range;
 
 use crate::content::{Kind, is_valid_name};
+use crate::harness::Harness;
 
 pub enum Form<'text> {
     Piece(Kind, &'text str),
@@ -40,7 +41,10 @@ pub fn scan(text: &str) -> Vec<Token<'_>> {
     tokens
 }
 
-pub fn replace(text: &str, mut replacement: impl FnMut(&Token<'_>) -> String) -> String {
+pub fn replace<'text>(
+    text: &'text str,
+    mut replacement: impl FnMut(&Token<'text>) -> String,
+) -> String {
     let mut replaced = String::with_capacity(text.len());
     let mut copied_up_to = 0;
     for token in scan(text) {
@@ -50,6 +54,28 @@ pub fn replace(text: &str, mut replacement: impl FnMut(&Token<'_>) -> String) ->
     }
     replaced.push_str(&text[copied_up_to..]);
     replaced
+}
+
+pub fn render<'text>(text: &'text str, harness: &Harness) -> (String, Vec<&'text str>) {
+    let mut unresolved = Vec::new();
+    let rendered = replace(text, |token| {
+        let replacement = match token.form {
+            Form::Piece(kind, name) => Some(
+                harness
+                    .references
+                    .template(kind)
+                    .replace("{plugin}", &harness.plugin.name)
+                    .replace("{name}", name),
+            ),
+            Form::Capability(name) => harness.capabilities.get(name).cloned(),
+            Form::UnknownKind(_) | Form::Malformed => None,
+        };
+        replacement.unwrap_or_else(|| {
+            unresolved.push(token.text);
+            token.text.to_owned()
+        })
+    });
+    (rendered, unresolved)
 }
 
 fn classify(inner: &str) -> Form<'_> {
