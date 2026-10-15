@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.1.0 — 2026-10-14
+
+The verifier's method mutates a private copy of the repository and runs its tests there, which FR-VER-02
+forbade. Change request [#13](https://github.com/ATNexusLab/tightship/issues/13), approved during the spec of
+epic #2.
+
+**Added**
+
+- FR-VER-02.2: the repository's working tree is unchanged when the verifier returns.
+
+**Changed**
+
+- FR-VER-02 is renamed "Verifier changes only a private copy": the verifier gets no file-editing tool of the
+  harness and changes files only through its shell, in a private copy. FR-VER-02.1 says the harness refuses
+  its file-editing tool.
+- OQ-05 now asks about Cursor, Antigravity CLI, and Codex only. For Claude Code, the
+  [spec of epic #2](../specs/install-with-skills-commands-and-verifier/install-the-plugin.md) settles it: the
+  companions are dependencies of the plugin, each installed from its own catalog.
+
 ## 1.0.2 — 2026-10-14
 
 Editorial. No requirement changes meaning. The spec of epic #1 and [ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)

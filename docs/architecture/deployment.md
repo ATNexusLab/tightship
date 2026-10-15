@@ -24,6 +24,14 @@ The archive of a harness holds its generated plugin and the `tightship` binary f
 `bin/tightship` is a `sh` launcher that picks the binary for the machine. On macOS, the binary carries the
 linker's ad-hoc signature only; epic #8 tests that it runs from an archive Claude Code downloaded.
 
+## Installing
+
+The adopter adds the catalogs of ponytail (`DietrichGebert/ponytail`), i-have-adhd (`ayghri/i-have-adhd`),
+and humanizer (`blader/humanizer`), then the plugin's catalog, and runs `claude plugin install
+tightship@tightship`. Claude Code installs the three companions as the plugin's dependencies (M1, #2). Until
+epic #8 publishes a release, the plugin's catalog is the folder `dist/claude-code/`; after it, the catalog
+sits at the repository root with an `archive` source pointing at the release's zip.
+
 ## Adopter prerequisites
 
 Nothing on macOS and Linux. Git for Windows on Windows, because Claude Code runs hooks under Git Bash and
