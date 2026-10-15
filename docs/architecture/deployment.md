@@ -32,14 +32,16 @@ for the tag and its `sha256` (M1, #8).
 
 ## Installing
 
-The adopter adds the catalogs of ponytail (`DietrichGebert/ponytail`), i-have-adhd (`ayghri/i-have-adhd`), and
-humanizer (`blader/humanizer`), then the plugin's catalog, and runs `claude plugin install
-tightship@tightship`. Claude Code installs the three companions as the plugin's dependencies (M1, #2). Until
-epic #8 publishes a release, the plugin's catalog is the folder `dist/claude-code/`. From it, the catalog is
-an asset of each release, and the adopter adds the latest one from
-`https://github.com/ATNexusLab/tightship/releases/latest/download/marketplace.json`; an update arrives through
-the `version` of the new release's `plugin.json` (M1, #8). The install guide, `docs/install/claude-code/`,
-holds every step, the migration from the pre-plugin install included.
+The adopter adds the catalogs of ponytail (`DietrichGebert/ponytail`), i-have-adhd
+(`ayghri/i-have-adhd`), and humanizer (`blader/humanizer`), then the plugin's catalog, and runs `claude
+plugin install tightship@tightship`. Claude Code installs the three companions as the plugin's
+dependencies (M1, #2). Until epic #8 publishes a release, the plugin's catalog is the folder
+`dist/claude-code/`. From it, the adopter adds the catalog committed at the repository root,
+`.claude-plugin/marketplace.json`, with `claude plugin marketplace add ATNexusLab/tightship`. Its entry
+is an `archive` source at the latest release's zip, with no `sha256`, so an update arrives through the
+`version` of the promoted release's `plugin.json` and no release changes the file (M1, #8, #48). The
+install guide, `docs/install/claude-code/`, holds every step, the migration from the pre-plugin install
+included.
 
 The adopter chooses the [options](concepts/options.md) in the dialog of `/plugin install`, or with `--config
 <name>=false` on the shell's install, and changes them later with `/plugin configure` or `claude plugin

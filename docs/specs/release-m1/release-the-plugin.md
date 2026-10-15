@@ -33,13 +33,16 @@ Terms from the SRS, as used here:
 Confirmed by the maintainer on 2026-10-15, on Claude Code's marketplace and plugin-loading references and its
 changelog:
 
-1. **The catalog is an asset of each release, never a committed file.** Every release attaches
-   `tightship-claude-code.zip` and `marketplace.json`; the catalog's entry has an `archive` source with the
-   zip's URL for that tag and its `sha256`. The adopter adds the catalog from
-   `https://github.com/ATNexusLab/tightship/releases/latest/download/marketplace.json`, and Claude Code finds
-   an update through the `version` of `plugin.json`, which it reads before the entry's. No pipeline commits to
-   `main`. This amends decision 1 of the [epic #2 spec](../install-with-skills-commands-and-verifier/install-the-plugin.md),
-   which put the catalog at the repository root.
+1. **The adopter's catalog is committed at the repository root; each release also attaches its own.** Every
+   release attaches `tightship-claude-code.zip` and a `marketplace.json` whose `archive` entry names the zip's
+   URL for that tag and its `sha256`; the checklist installs the pre-release from it. The adopter adds
+   `.claude-plugin/marketplace.json` from the repository with `claude plugin marketplace add
+   ATNexusLab/tightship`. Its entry is an `archive` source at
+   `https://github.com/ATNexusLab/tightship/releases/latest/download/tightship-claude-code.zip`, with no
+   `sha256`, and Claude Code finds an update through the `version` of the zip's `plugin.json`, which it reads
+   before the entry's. The file is written once, and no pipeline commits to `main`. Amended by
+   [#48](https://github.com/ATNexusLab/tightship/issues/48): `claude plugin marketplace add` clones every
+   `https://github.com/` URL as a git repository, so a release asset's URL cannot be added.
 2. **A release starts from a tag `v<version>` pushed on `main`**, and publishes a pre-release. The maintainer
    installs it through its own catalog URL on the three systems, so the bytes tested are the bytes shipped and
    the macOS binary is tested from an archive Claude Code downloaded. The maintainer then promotes it to the
@@ -72,7 +75,7 @@ changelog:
 | `cargo xtask package <tag>` | Release pipeline | Yes | `dist/tightship-claude-code.zip` and `dist/marketplace.json`, from a `dist/claude-code/` holding the four binaries |
 | `git push origin v<version>`, on a commit of `main` | Maintainer, when releasing | No | `.github/workflows/release.yml` publishes the pre-release `v<version>` |
 | `gh release edit v<version> --prerelease=false --latest` | Maintainer, after the checklist | Yes | Promotes the pre-release; the catalog URL of the guide now serves it |
-| `claude plugin marketplace add https://github.com/ATNexusLab/tightship/releases/latest/download/marketplace.json` | Adopter | Yes | Adds the catalog `tightship` |
+| `claude plugin marketplace add ATNexusLab/tightship` | Adopter | Yes | Adds the catalog `tightship`, committed at the repository root |
 
 ### Request
 
@@ -328,8 +331,8 @@ vault's notes are never touched.
 ### 11. A release is promoted only after its checklist passes on the three systems
 
 - The maintainer runs `docs/release/checklist.md` on macOS, Linux, and Windows, each at Claude Code 2.1.295
-  or later,
-  installing from `https://github.com/ATNexusLab/tightship/releases/download/v<version>/marketplace.json`.
+  or later, installing from the release's own `marketplace.json`, placed at
+  `<folder>/.claude-plugin/marketplace.json` and added as a local folder.
 - Every row passes on every system, or the release is not promoted. A failing row is fixed in a new version,
   which goes through the whole checklist again.
 - On macOS, the checklist checks that the hook binary runs from the archive Claude Code downloaded, with only
@@ -539,7 +542,7 @@ Then without-the-contract.md has one row per piece listed, with the rule and wha
 ```gherkin
 Given every row of checklist.md passed on macOS, Linux, and Windows at Claude Code 2.1.295 or later
 When the maintainer runs `gh release edit v1.0.0 --prerelease=false --latest`
-Then the guide's catalog URL serves v1.0.0's marketplace.json
+Then the repository's catalog installs v1.0.0's zip
 And the milestone M1 is closed and the roadmap marks it released
 ```
 

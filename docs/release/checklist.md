@@ -7,13 +7,18 @@ A release is promoted only when every row passes on all three ([README](README.m
 ## Prepare each system
 
 1. Check that `claude --version` is 2.1.295 or later.
-2. Add the companions' three catalogs and the pre-release's own catalog, then install:
+2. Add the companions' three catalogs and the pre-release's own catalog, then install. The pre-release's
+   catalog goes in a folder of its own, at `.claude-plugin/marketplace.json`, since Claude Code clones every
+   `https://github.com/` URL as a git repository:
 
    ```sh
    claude plugin marketplace add DietrichGebert/ponytail
    claude plugin marketplace add ayghri/i-have-adhd
    claude plugin marketplace add blader/humanizer
-   claude plugin marketplace add https://github.com/ATNexusLab/tightship/releases/download/v<version>/marketplace.json
+   mkdir -p ~/.cache/tightship-catalog/.claude-plugin
+   curl -fsSL -o ~/.cache/tightship-catalog/.claude-plugin/marketplace.json \
+     https://github.com/ATNexusLab/tightship/releases/download/v<version>/marketplace.json
+   claude plugin marketplace add ~/.cache/tightship-catalog
    claude plugin install tightship@tightship
    ```
 
