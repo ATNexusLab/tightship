@@ -10,6 +10,7 @@ VS Code, or on the local site.
 | [Architecture](architecture/README.md) | The map of the system in arc42 sections, with C4 diagrams |
 | [Data model](data-model/README.md) | The vault and the options: entities, invariants, access patterns |
 | [Roadmap](roadmap/README.md) | The milestones, their epics, requirement coverage, and each sprint's plan |
+| [Release](release/README.md) | How a version reaches adopters, and the checklist it passes on macOS, Linux, and Windows |
 | [Specs](specs/README.md) | One closed spec per feature, grouped by epic |
 | [Decisions](decisions/README.md) | The architecture decision records |
 | [Design](design/README.md) | The brand, its voice and assets, and the tokens |

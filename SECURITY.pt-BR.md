@@ -4,7 +4,7 @@
 
 ## Versões com suporte
 
-O tightship está em pré-release. Só o release publicado mais recente recebe correções de segurança.
+Só o release publicado mais recente recebe correções de segurança.
 
 ## Reporte uma vulnerabilidade
 
