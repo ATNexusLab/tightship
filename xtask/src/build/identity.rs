@@ -3,9 +3,9 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
+use super::words::is_part_of_a_word;
 use crate::diagnostics::{Diagnostic, naming};
 use crate::git;
-use crate::words::is_part_of_a_word;
 
 pub fn check(
     root: &Path,

@@ -4,12 +4,12 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::content::{Content, Kind, Piece, SupportingBody};
-use crate::contract::Part;
+use super::content::{Content, Kind, Piece, SupportingBody};
+use super::contract::Part;
+use super::harness::Harness;
+use super::options::OptionsFile;
+use super::tokens;
 use crate::diagnostics::naming;
-use crate::harness::Harness;
-use crate::options::OptionsFile;
-use crate::tokens;
 
 pub fn render(
     root: &Path,

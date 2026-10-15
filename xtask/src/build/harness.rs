@@ -5,7 +5,7 @@ use std::path::Path;
 
 use serde::Deserialize;
 
-use crate::content::Kind;
+use super::content::Kind;
 use crate::diagnostics::{Diagnostic, naming};
 
 #[derive(Deserialize)]

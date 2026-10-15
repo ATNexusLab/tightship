@@ -1,8 +1,8 @@
-use crate::content::split_front_matter;
+use super::content::split_front_matter;
+use super::harness::Harness;
+use super::options::OptionsFile;
+use super::tokens;
 use crate::diagnostics::Diagnostic;
-use crate::harness::Harness;
-use crate::options::OptionsFile;
-use crate::tokens;
 
 pub struct Contract {
     pub path: String,

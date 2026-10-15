@@ -1,7 +1,7 @@
-use crate::content::{Content, Kind, SupportingBody};
+use super::content::{Content, Kind, SupportingBody};
+use super::harness::Harness;
+use super::tokens::{self, Form};
 use crate::diagnostics::Diagnostic;
-use crate::harness::Harness;
-use crate::tokens::{self, Form};
 
 pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Diagnostic>) {
     let pieces: Vec<(Kind, &str)> = content

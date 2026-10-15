@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
-use crate::contract::{self, Contract};
+use super::contract::{self, Contract};
+use super::options::{self, OptionsFile};
 use crate::diagnostics::{Diagnostic, naming};
-use crate::options::{self, OptionsFile};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {

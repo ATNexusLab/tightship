@@ -1,17 +1,7 @@
-mod claude_code;
-mod content;
-mod contract;
+mod build;
 mod diagnostics;
 mod git;
-mod harness;
-mod identity;
-mod neutrality;
-mod options;
-mod references;
-mod secrets;
-mod tokens;
-mod vault_notes;
-mod words;
+mod scan;
 
 use std::env;
 use std::fs;
@@ -19,10 +9,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use content::{Content, Kind};
 use diagnostics::Diagnostic;
-
-const HARNESS: &str = "claude-code";
 
 enum Failure {
     Checks(Vec<Diagnostic>),
@@ -38,8 +25,8 @@ impl From<io::Error> for Failure {
 fn main() -> ExitCode {
     let arguments: Vec<String> = env::args().skip(1).collect();
     let command: fn(&Path) -> Result<String, Failure> = match arguments.as_slice() {
-        [name] if name == "build" => build,
-        [name] if name == "scan" => scan,
+        [name] if name == "build" => build::run,
+        [name] if name == "scan" => scan::run,
         _ => {
             eprintln!("error: usage: cargo xtask build|scan");
             return ExitCode::FAILURE;
@@ -90,93 +77,10 @@ fn workspace_root() -> io::Result<PathBuf> {
     )))
 }
 
-fn build(root: &Path) -> Result<String, Failure> {
-    let built = build_plugin(root);
-    if built.is_err()
-        && let Err(error) = claude_code::discard(root, HARNESS)
-    {
-        eprintln!("error: {error}");
-    }
-    built
-}
-
-fn build_plugin(root: &Path) -> Result<String, Failure> {
-    println!("> Reading content/");
-    let mut diagnostics = Vec::new();
-    let content = content::read(root, &mut diagnostics)?;
-    let harnesses = harness::read_all(root, &mut diagnostics)?;
-    let harness_path = format!("harnesses/{HARNESS}/harness.toml");
-    if !root.join("harnesses").join(HARNESS).is_dir() {
-        diagnostics.push(Diagnostic::general(format!("{harness_path} is missing")));
-    }
-
-    println!("> Checking references and harness neutrality");
-    references::check(&content, &harnesses, &mut diagnostics);
-    neutrality::check(&content, &harnesses, &mut diagnostics);
-    let harness = harnesses.iter().find(|harness| harness.name == HARNESS);
-    let parts = match (&content.contract, harness) {
-        (Some(contract), Some(harness)) => {
-            println!("> Packing the contract");
-            contract::pack(contract, harness, &mut diagnostics)
-        }
-        _ => Vec::new(),
-    };
-    stop_on_errors(&mut diagnostics)?;
-
-    println!("> Rendering {HARNESS} into dist/{HARNESS}/");
-    let harness =
-        harness.ok_or_else(|| io::Error::other(format!("{harness_path} could not be read")))?;
-    let (staging, files) = claude_code::render(root, harness, &content, &parts)?;
-
-    println!("> Scanning dist/{HARNESS}/ for identity terms");
-    identity::check(root, &staging, &format!("dist/{HARNESS}"), &mut diagnostics)?;
-    stop_on_errors(&mut diagnostics)?;
-    claude_code::publish(root, &staging, HARNESS)?;
-    Ok(format!(
-        "{}\nTry it: claude --plugin-dir dist/{HARNESS}",
-        summary(&content, files)
-    ))
-}
-
-fn scan(root: &Path) -> Result<String, Failure> {
-    println!(
-        "> Scanning the git history for secrets (gitleaks {})",
-        secrets::GITLEAKS_VERSION
-    );
-    let mut diagnostics = Vec::new();
-    let commits = secrets::check(root, &mut diagnostics)?;
-    println!("> Looking for vault notes in the working tree");
-    vault_notes::check(root, &mut diagnostics)?;
-    stop_on_errors(&mut diagnostics)?;
-    Ok(format!("No secret in {commits} commits. No vault note."))
-}
-
 fn stop_on_errors(diagnostics: &mut Vec<Diagnostic>) -> Result<(), Failure> {
     if diagnostics.is_empty() {
         return Ok(());
     }
     diagnostics.sort();
     Err(Failure::Checks(std::mem::take(diagnostics)))
-}
-
-fn summary(content: &Content, files: usize) -> String {
-    let plural = |count: usize, noun: &str| {
-        if count == 1 {
-            format!("{count} {noun}")
-        } else {
-            format!("{count} {noun}s")
-        }
-    };
-    let count = |kind: Kind| {
-        let pieces = content.pieces.iter().filter(|piece| piece.kind == kind);
-        plural(pieces.count(), kind.noun())
-    };
-    format!(
-        "Built dist/{HARNESS}/: {} ({}, {}, {}), {}.",
-        plural(content.pieces.len(), "piece"),
-        count(Kind::Skill),
-        count(Kind::Command),
-        count(Kind::Agent),
-        plural(files, "file"),
-    )
 }

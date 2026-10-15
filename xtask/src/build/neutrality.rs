@@ -1,7 +1,7 @@
-use crate::content::Content;
+use super::content::Content;
+use super::harness::Harness;
+use super::words::is_part_of_a_word;
 use crate::diagnostics::Diagnostic;
-use crate::harness::Harness;
-use crate::words::is_part_of_a_word;
 
 pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Diagnostic>) {
     for file in &content.files {
