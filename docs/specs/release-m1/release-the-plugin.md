@@ -204,7 +204,7 @@ runs the binary.
 | `install.md` | Installation | The four `claude plugin marketplace add` lines, the companions' catalogs first, then `claude plugin install tightship@tightship` |
 | `companions.md` | The companions | What ponytail, i-have-adhd, and humanizer each bring, that the install adds them, and that uninstall removes only those it added |
 | `options.md` | The options | `contract`, `memory`, `status_line`, and `vault_folder`: what each turns on, the dialog, `--config <name>=<value>`, and `claude plugin configure` |
-| `update.md` | Update | `claude plugin marketplace update tightship`, then `claude plugin update tightship@tightship`; the options keep their values |
+| `update.md` | Update | Auto-update, off by default for a third-party catalog: `/plugin`, then **Marketplaces**, `tightship`, and **Enable auto-update**; the next session after an update loads it. By hand: `claude plugin marketplace update tightship`, then `claude plugin update tightship@tightship`. The options keep their values |
 | `uninstall.md` | Uninstall | Turn `status_line` off with `claude plugin configure` and open one session, which puts the previous status line back ([FR-INS-06.1](../../requirements/functional/install.md#fr-ins-06)); then `claude plugin uninstall tightship@tightship --prune -y`, then `claude plugin marketplace remove` for each catalog; the vault stays |
 | `migration.md` | Migration from the pre-plugin install | Rule 9's steps |
 | `without-the-contract.md` | The contract off | Rule 10's table |
