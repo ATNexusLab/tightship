@@ -3,6 +3,7 @@ name = "tightship"
 description = "Skills, a command per step of the development loop, and a read-only verifier"
 author = "ATNexusLab"
 repository = "https://github.com/ATNexusLab/tightship"
+license = "MIT"
 
 [references]
 skill = "{plugin}:{name}"

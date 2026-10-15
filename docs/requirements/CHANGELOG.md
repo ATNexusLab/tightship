@@ -1,5 +1,47 @@
 # Changelog
 
+## 1.7.0 — 2026-10-15
+
+The documents an adopter or a contributor reads first get a Brazilian Portuguese translation, decided by the
+maintainer on 2026-10-15. English stays the version that prevails.
+
+**Changed**
+
+- BR-03: the root `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and the install
+  guides also have a `<file>.pt-BR.md` translation, updated in the same change as the English.
+
+## 1.6.1 — 2026-10-15
+
+Editorial. No requirement changes meaning. The repository takes pull requests from outside contributors.
+Change request [#44](https://github.com/ATNexusLab/tightship/issues/44).
+
+**Changed**
+
+- Overview: the maintainer reviews and merges every change, and a Contributor row joins the stakeholders.
+
+## 1.6.0 — 2026-10-15
+
+FR-INS-06.1 could not hold once the status line is on: Claude Code lets no plugin set `statusLine`, runs no
+plugin code on uninstall, and deletes the plugin's data folder, which holds the adopter's previous status
+line. Change request [#31](https://github.com/ATNexusLab/tightship/issues/31).
+
+**Changed**
+
+- FR-INS-06 and FR-INS-06.1 hold for an uninstall that follows the install guide's steps, which turn
+  `status_line` off and open one session first.
+
+## 1.5.1 — 2026-10-15
+
+Editorial. The [spec of epic #8](../specs/release-m1/release-the-plugin.md) settles OQ-04 for Claude Code.
+
+**Changed**
+
+- NFR-FLEX-01 and NFR-FLEX-01.1 name Claude Code 2.1.295 as the minimum supported version, with the reason
+  in the Rationale.
+- OQ-04 asks only for the minimum versions of Cursor, Antigravity CLI, and Codex, and affects NFR-FLEX-02 to
+  NFR-FLEX-04.
+- Overview: the harness versions table states Claude Code's minimum version.
+
 ## 1.5.0 — 2026-10-15
 
 BR-05 could not be checked: it named no version of the companions, whose rules change between versions, and

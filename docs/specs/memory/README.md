@@ -1,6 +1,6 @@
 # Memory
 
-Epic [#5](https://github.com/ATNexusLab/tightship/issues/5), milestone M1, sprint 3.
+Epic [#5](https://github.com/ATNexusLab/tightship/issues/5), milestone M1, sprint 1.
 
 | Spec | Profile | Status |
 | --- | --- | --- |

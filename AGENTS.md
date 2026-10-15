@@ -8,7 +8,8 @@ one canonical source in this repository. What it must do: [the SRS](docs/require
 Rust in one Cargo workspace, with the canonical content in Markdown and TOML
 ([ADR 0001](docs/decisions/0001-rust-build-and-tokenized-canonical-content.md)):
 
-- The `xtask` crate: the build, run as `cargo xtask build`, and the repository scan, run as `cargo xtask scan`.
+- The `xtask` crate: the build, run as `cargo xtask build`, the release package, run as `cargo xtask package`,
+  and the repository scan, run as `cargo xtask scan`.
   The toolchain is pinned in `rust-toolchain.toml`, and `rustup` installs it on the first `cargo` call.
 - The `tightship` crate: the binary the plugin ships, which `cargo xtask build` compiles for the machine that
   builds into `dist/claude-code/bin/`.
@@ -17,6 +18,7 @@ Rust in one Cargo workspace, with the canonical content in Markdown and TOML
   user name, and handle of the maintainer.
 - Markdown, linted by `markdownlint-cli2`, configured in `.markdownlint-cli2.jsonc`.
 - Diagrams in draw.io, as `.drawio.svg`.
+- Brand assets as SVG written by hand, in `docs/design/brand/`; the wordmark's letters are outlines.
 - The local docs site on Zensical, configured in `zensical.toml`, run through `uvx`.
 
 ## Programming languages & scripts
@@ -40,10 +42,24 @@ Rust for application code, for the build, and for every new script
 | Formatting | `cargo fmt --all --check` | rustfmt defaults |
 | Build | `uvx zensical==0.0.70 build` | Builds the docs site into `site/` |
 | Build | `cargo xtask build` | Builds the Claude Code plugin, with the `tightship` binary for this machine, into `dist/claude-code/` |
-| Tests | `cargo test --workspace` | The build's, the scan's, and the binary's scenarios, over fixtures in a temporary folder; needs gitleaks 8.30.1 |
+| Tests | `cargo test --workspace` | The build's, the package's, the scan's, and the binary's scenarios, over fixtures in a temporary folder; needs gitleaks 8.30.1 |
 | Run | `uvx zensical==0.0.70 serve --open` | Serves the docs at `http://localhost:8000` |
 | Run | `claude --plugin-dir dist/claude-code` | Loads the built plugin in a session |
 | Run | `claude plugin marketplace add ./dist/claude-code`, then `claude plugin install tightship@tightship` | Installs the built plugin with its companions, once the catalogs `DietrichGebert/ponytail`, `ayghri/i-have-adhd`, and `blader/humanizer` are added |
+| Release | `cargo xtask build --binaries <folder>` | The plugin with the four prebuilt binaries of `<folder>`, as `macos/tightship`, `linux-x64/tightship`, `linux-arm64/tightship`, and `windows-x64/tightship.exe`, nothing compiled |
+| Release | `cargo xtask package <tag>` | Packs that plugin into `dist/tightship-claude-code.zip` and writes its catalog `dist/marketplace.json`; the tag is `v` and the built version |
+
+At each pull request into `develop` or `main`, `.github/workflows/` runs only the gates its files call for:
+`rust.yml` the Rust gates on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git Bash) when the
+workspace, `content/`, or `harnesses/` changes; `docs.yml` markdownlint and the docs build on Linux when
+Markdown or the docs site changes; `scan.yml` the scan on Linux every time. `rust.yml` writes `.identity-terms`
+from the repository secret `IDENTITY_TERMS`, so a change to the file is copied there with
+`gh secret set IDENTITY_TERMS < .identity-terms`. It clears `USER`: the build counts the system's user name as
+an identity term, and a runner's, `runner`, is a word the content uses.
+
+A tag `v<version>` pushed on `main` runs `release.yml`: it builds the binary for the four platforms, then
+`cargo xtask build --binaries binaries` and `cargo xtask package <tag>`, and publishes the zip and its catalog
+as a pre-release. It is the only workflow with `contents: write`, on its pack job.
 
 ## Architecture
 
@@ -68,7 +84,10 @@ The map: [docs/architecture/](docs/architecture/README.md).
 ## Language
 
 English throughout the repository: code, file names, docs, commits, branches, issues
-([BR-03](docs/requirements/business-rules.md#br-03)).
+([BR-03](docs/requirements/business-rules.md#br-03)). English prevails. The root `README.md`,
+`CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and every page of `docs/install/` also have a
+Brazilian Portuguese `<file>.pt-BR.md` next to them. A change to one of those English files updates its
+translation in the same commit.
 
 ## Gotchas
 

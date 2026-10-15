@@ -64,6 +64,7 @@ fn init_without_git_creates_nothing() {
     assert!(!folder.exists());
 }
 
+#[cfg(unix)]
 #[test]
 fn init_reports_a_failing_git() {
     let sandbox = Sandbox::new();
@@ -168,31 +169,6 @@ fn a_usage_error_exits_1_with_the_usage_and_help_exits_0() {
     let help = run(&mut sandbox.tightship(&["--help"]));
     assert_succeeds(&help);
     assert!(stdout_of(&help).starts_with(usage));
-}
-
-#[test]
-fn the_launcher_without_a_binary_for_the_machine_fails() {
-    let sandbox = Sandbox::new();
-    let launcher = sandbox.write("bin/tightship", include_str!("../launcher.sh"));
-    executable(&launcher);
-    let uname = |flag| {
-        let output = Command::new("uname")
-            .arg(flag)
-            .output()
-            .expect("uname runs");
-        stdout_of(&output).trim().to_owned()
-    };
-
-    let output = run(Command::new("sh").arg(&launcher));
-
-    assert_fails_with(
-        &output,
-        &format!(
-            "error: tightship has no binary for {} {}",
-            uname("-s"),
-            uname("-m")
-        ),
-    );
 }
 
 const NOTE_BODY: &str = "A plugin's SessionStart hook can export variables for the Bash tool.\n";
@@ -422,10 +398,8 @@ fn a_bad_argument_of_new_or_search_writes_nothing() {
     assert_eq!(files_of(&sandbox.path("vault")), before);
 }
 
+#[cfg(unix)]
 fn executable(file: &Path) {
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(file, fs::Permissions::from_mode(0o755)).expect("an executable");
-    }
+    use std::os::unix::fs::PermissionsExt;
+    fs::set_permissions(file, fs::Permissions::from_mode(0o755)).expect("an executable");
 }

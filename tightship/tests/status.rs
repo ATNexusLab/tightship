@@ -2,7 +2,6 @@
 mod common;
 
 use std::fs;
-use std::os::unix::fs::{PermissionsExt, symlink};
 use std::path::Path;
 use std::process::Output;
 
@@ -12,7 +11,7 @@ use unicode_width::UnicodeWidthStr;
 use common::{Sandbox, assert_fails_with, assert_succeeds, run, stderr_of, stdout_of, with_stdin};
 
 const ROOT: &str = "/plugins/0.1.0";
-const OURS: &str = "\"/plugins/0.1.0/bin/tightship\" status-line render";
+const OURS: &str = "sh \"/plugins/0.1.0/bin/tightship\" status-line render";
 const MINE: &str = r#"{"statusLine": {"type": "command", "command": "mine"}}"#;
 const ON: &str = "tightship's status line is on. Turn the plugin's status_line option off to bring back the one you had.";
 
@@ -29,7 +28,11 @@ fn render(sandbox: &Sandbox, fixture: &str, columns: Option<&str>) -> Output {
         .join(format!("{fixture}.json"));
     let input = fs::read_to_string(file).expect("the fixture").replace(
         "/home/adopter/tightship",
-        &sandbox.path("tightship").display().to_string(),
+        &sandbox
+            .path("tightship")
+            .display()
+            .to_string()
+            .replace('\\', "\\\\"),
     );
     let mut command = sandbox.tightship(&["status-line", "render"]);
     command.env("TZ", "UTC");
@@ -322,7 +325,7 @@ fn the_status_line_follows_the_plugin_folder() {
         settings(&sandbox),
         pretty(&json!({ "statusLine": {
             "type": "command",
-            "command": "\"/plugins/0.2.0/bin/tightship\" status-line render",
+            "command": "sh \"/plugins/0.2.0/bin/tightship\" status-line render",
             "padding": 1,
         } }))
     );
@@ -343,8 +346,11 @@ fn a_status_line_replaced_by_hand_counts_as_declined() {
     assert_eq!(record(&sandbox), Some(json!({ "state": "declined" })));
 }
 
+#[cfg(unix)]
 #[test]
 fn a_linked_settings_file_stays_a_link_with_its_permissions() {
+    use std::os::unix::fs::{PermissionsExt, symlink};
+
     let sandbox = Sandbox::new();
     let target = sandbox.write("elsewhere/settings.json", "{}");
     fs::set_permissions(&target, fs::Permissions::from_mode(0o600)).expect("the mode");
@@ -404,8 +410,11 @@ fn damaged_input_fails_and_changes_nothing() {
     );
 }
 
+#[cfg(unix)]
 #[test]
 fn files_that_cannot_be_written_fail_without_a_half_change() {
+    use std::os::unix::fs::PermissionsExt;
+
     let sandbox = Sandbox::new();
     let file = sandbox.write("config/settings.json", MINE);
     let lock = |relative: &str, mode| {

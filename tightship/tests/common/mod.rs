@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::Write;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
@@ -17,7 +17,9 @@ impl Sandbox {
     }
 
     pub fn path(&self, relative: &str) -> PathBuf {
-        self.root.path().join(relative)
+        relative
+            .split('/')
+            .fold(self.root.path().to_path_buf(), |path, part| path.join(part))
     }
 
     pub fn write(&self, relative: &str, text: &str) -> PathBuf {
@@ -90,12 +92,15 @@ pub fn with_stdin(command: &mut Command, input: &str) -> Output {
         .stderr(Stdio::piped())
         .spawn()
         .expect("the command starts");
-    child
+    let written = child
         .stdin
         .take()
         .expect("a stdin")
-        .write_all(input.as_bytes())
-        .expect("the input");
+        .write_all(input.as_bytes());
+    match written {
+        Err(error) if error.kind() == io::ErrorKind::BrokenPipe => {}
+        written => written.expect("the input"),
+    }
     child.wait_with_output().expect("the command ends")
 }
 

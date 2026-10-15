@@ -73,7 +73,7 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
     let memory_hook = |variables: &str, subcommand: &str| {
         serde_json::json!({
             "type": "command",
-            "command": format!("[ \"$CLAUDE_PLUGIN_OPTION_MEMORY\" = false ] || TIGHTSHIP_VAULT=\"$CLAUDE_PLUGIN_OPTION_VAULT_FOLDER\" {variables}\"${{CLAUDE_PLUGIN_ROOT}}/bin/tightship\" hook {subcommand}"),
+            "command": format!("[ \"$CLAUDE_PLUGIN_OPTION_MEMORY\" = false ] || TIGHTSHIP_VAULT=\"$CLAUDE_PLUGIN_OPTION_VAULT_FOLDER\" {variables}sh \"${{CLAUDE_PLUGIN_ROOT}}/bin/tightship\" hook {subcommand}"),
         })
     };
     assert_eq!(
@@ -105,7 +105,7 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
                     "matcher": "startup",
                     "hooks": [{
                         "type": "command",
-                        "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
+                        "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
                     }],
                 }],
                 "UserPromptSubmit": [{

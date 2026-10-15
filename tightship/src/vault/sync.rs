@@ -138,7 +138,8 @@ fn renumber(vault: &Path, renames: &[(&Note, String)]) -> Result<(), Failure> {
             .and_then(|rest| rest.strip_prefix('-'))
             .unwrap_or(&old_stem);
         let new_stem = format!("{new_id}-{slug}");
-        let new_path = note.path.with_file_name(format!("{new_stem}.md"));
+        let folder = note.path.parent().unwrap_or(Path::new(""));
+        let new_path = PathBuf::from(format!("{}/{new_stem}.md", folder.display()));
         let from = note.path.to_string_lossy();
         let to = new_path.to_string_lossy();
         step(vault, "mv", &["mv", &from, &to])?;

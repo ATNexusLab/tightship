@@ -3,6 +3,15 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use crate::diagnostics::Diagnostic;
+
+pub const PLATFORMS: [(&str, &str); 4] = [
+    ("macos", "tightship"),
+    ("linux-x64", "tightship"),
+    ("linux-arm64", "tightship"),
+    ("windows-x64", "tightship.exe"),
+];
+
 pub struct Binary {
     pub platform: &'static str,
     pub path: PathBuf,
@@ -46,4 +55,25 @@ pub fn compile(platform: &'static str) -> io::Result<Binary> {
         platform,
         path: target.join("release").join(file_name),
     })
+}
+
+pub fn check_prebuilt(folder: &Path, diagnostics: &mut Vec<Diagnostic>) {
+    for (platform, file_name) in PLATFORMS {
+        if !folder.join(platform).join(file_name).is_file() {
+            diagnostics.push(Diagnostic::general(format!(
+                "{}/{platform}/{file_name} is missing; --binaries needs macos, linux-x64, linux-arm64, and windows-x64",
+                folder.display()
+            )));
+        }
+    }
+}
+
+pub fn prebuilt(folder: &Path) -> Vec<Binary> {
+    PLATFORMS
+        .into_iter()
+        .map(|(platform, file_name)| Binary {
+            platform,
+            path: folder.join(platform).join(file_name),
+        })
+        .collect()
 }

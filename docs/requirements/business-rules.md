@@ -44,19 +44,21 @@ directory holds only personal settings and what a plugin cannot carry.
 
 <a id="br-03"></a>
 
-## BR-03 — English content
+## BR-03 — English content, with Portuguese translations
 
 Everything a harness plugin installs and every document and identifier in this repository is written in
-English.
+English, and the English version prevails. The root `README.md`, `CONTRIBUTING.md`, `SECURITY.md`,
+`CODE_OF_CONDUCT.md`, and the install guides also have a Brazilian Portuguese translation, named
+`<file>.pt-BR.md` next to the English and updated in the same change.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | The repository is public and open to any adopter. |
-| Source | Maintainer, elicitation 2026-10-14 |
+| Rationale | The repository is public and open to any adopter, and most of its first readers read Brazilian Portuguese. |
+| Source | Maintainer, elicitation 2026-10-14; translations decided 2026-10-15 |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
-| Since | v1.0.0 |
+| Since | v1.0.0, changed in v1.7.0 |
 
 <a id="br-04"></a>
 

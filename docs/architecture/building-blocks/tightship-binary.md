@@ -19,7 +19,9 @@ own, so it names no harness, and `COLUMNS`, the terminal's width, for the status
 `bin/tightship` is a `sh` launcher that runs `bin/<platform>/tightship` for the machine, among `macos`,
 `linux-x64`, `linux-arm64`, and `windows-x64`. The plugin's `bin/` is on the `PATH` of the agent's shell tool,
 so a piece calls `tightship` by name. Until epic #8, `cargo xtask build` compiles only the platform of the
-machine that builds.
+machine that builds. From epic #8, Windows on arm64 runs the `windows-x64` binary emulated, the hooks and the
+status line run the launcher through `sh`, and the launcher restores the executable bit of the binary and its
+own when an install dropped it.
 
 Inside, the code is split by domain, `vault/`, `hook/`, and `status/` (M1, #7), with a pure core and the I/O at
 the edges, and it depends on `clap`, `jiff`, `serde_json`, `deunicode`, and `unicode-width` (M1, #7)

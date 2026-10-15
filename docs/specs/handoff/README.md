@@ -1,6 +1,6 @@
 # Handoff
 
-Epic [#6](https://github.com/ATNexusLab/tightship/issues/6), milestone M1, sprint 4.
+Epic [#6](https://github.com/ATNexusLab/tightship/issues/6), milestone M1, sprint 1.
 
 | Spec | Profile | Status |
 | --- | --- | --- |

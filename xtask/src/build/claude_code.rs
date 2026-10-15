@@ -17,7 +17,7 @@ pub fn render(
     harness: &Harness,
     content: &Content,
     parts: &[Part],
-    binary: &Binary,
+    binaries: &[Binary],
 ) -> io::Result<(PathBuf, usize)> {
     let staging = root.join("dist").join(format!(".{}.tmp", harness.name));
     remove_if_present(&staging)?;
@@ -65,17 +65,22 @@ pub fn render(
         launcher.clone(),
         include_bytes!("../../../tightship/launcher.sh").to_vec(),
     ));
-    let file_name = binary.path.file_name().unwrap_or_default();
-    let machine_binary = staging.join("bin").join(binary.platform).join(file_name);
-    let bytes = fs::read(&binary.path).map_err(naming(&binary.path))?;
-    written.push((machine_binary.clone(), bytes));
+    let mut executables = vec![launcher];
+    for binary in binaries {
+        let file_name = binary.path.file_name().unwrap_or_default();
+        let copy = staging.join("bin").join(binary.platform).join(file_name);
+        let bytes = fs::read(&binary.path).map_err(naming(&binary.path))?;
+        written.push((copy.clone(), bytes));
+        executables.push(copy);
+    }
     for (file, bytes) in &written {
         if let Some(folder) = file.parent() {
             fs::create_dir_all(folder).map_err(naming(folder))?;
         }
         fs::write(file, bytes).map_err(naming(file))?;
     }
-    for file in [&launcher, &machine_binary] {
+    #[cfg(unix)]
+    for file in &executables {
         make_executable(file)?;
     }
     Ok((staging, written.len()))
@@ -93,13 +98,10 @@ pub fn discard(root: &Path, harness_name: &str) -> io::Result<()> {
     remove_if_present(&dist.join(harness_name))
 }
 
+#[cfg(unix)]
 fn make_executable(file: &Path) -> io::Result<()> {
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(naming(file))?;
-    }
-    Ok(())
+    use std::os::unix::fs::PermissionsExt;
+    fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(naming(file))
 }
 
 fn remove_if_present(folder: &Path) -> io::Result<()> {
@@ -133,6 +135,7 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
         description: &'harness str,
         author: Author<'harness>,
         repository: &'harness str,
+        license: &'harness str,
         #[serde(skip_serializing_if = "Vec::is_empty")]
         dependencies: Vec<String>,
         #[serde(
@@ -168,6 +171,7 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
             name: &plugin.author,
         },
         repository: &plugin.repository,
+        license: &plugin.license,
         dependencies: harness
             .companions
             .iter()
@@ -212,7 +216,7 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
         serde_json::json!([{
             "type": "command",
             "command": format!(
-                "[ \"$CLAUDE_PLUGIN_OPTION_MEMORY\" = false ] || TIGHTSHIP_VAULT=\"$CLAUDE_PLUGIN_OPTION_VAULT_FOLDER\" {variables}\"${{CLAUDE_PLUGIN_ROOT}}/bin/tightship\" hook {subcommand}"
+                "[ \"$CLAUDE_PLUGIN_OPTION_MEMORY\" = false ] || TIGHTSHIP_VAULT=\"$CLAUDE_PLUGIN_OPTION_VAULT_FOLDER\" {variables}sh \"${{CLAUDE_PLUGIN_ROOT}}/bin/tightship\" hook {subcommand}"
             ),
         }])
     };
@@ -239,7 +243,7 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
             "matcher": "startup",
             "hooks": [{
                 "type": "command",
-                "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
+                "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
             }],
         }));
     }

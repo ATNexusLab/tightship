@@ -2,7 +2,6 @@
 mod common;
 
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
@@ -309,8 +308,11 @@ fn claim_prints_every_handoff_latest_first_and_removes_them() {
     assert!(!newer.exists());
 }
 
+#[cfg(unix)]
 #[test]
 fn claim_reports_a_handoff_it_cannot_remove_after_printing_it() {
+    use std::os::unix::fs::PermissionsExt;
+
     let sandbox = Sandbox::new();
     let project = project(&sandbox);
     handoff(

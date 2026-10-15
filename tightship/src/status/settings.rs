@@ -68,7 +68,7 @@ pub fn is_ours(status_line: &Value) -> bool {
 }
 
 pub fn command_for(root: &Path) -> String {
-    format!("\"{}/bin/tightship\" status-line render", root.display())
+    format!("sh \"{}/bin/tightship\" status-line render", root.display())
 }
 
 pub fn read_settings(path: &Path) -> Result<Map<String, Value>, Failure> {
