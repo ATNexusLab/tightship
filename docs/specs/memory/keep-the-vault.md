@@ -5,13 +5,14 @@
 > **Module:** `tightship/`, `content/`, `harnesses/claude-code/`, `xtask/`
 > **Epic:** #5
 > **Requirements:** FR-MEM-01, FR-MEM-02, FR-MEM-03, FR-MEM-04, FR-MEM-05, FR-MEM-08, FR-MEM-09, FR-MEM-10,
-> NFR-REL-01, NFR-PERF-01, NFR-PERF-02
+> FR-MEM-11, NFR-REL-01, NFR-PERF-01, NFR-PERF-02
 > **Sprint:** 3
 
 The plugin ships its first program, the `tightship` binary. When the memory option is on and the adopter has
 set a vault folder, a session starts with the vault's pinned notes and the project's handoff. The agent gets
-a checkpoint every 10 prompts and after each compaction. It searches, writes, and lints notes with
-`tightship vault`, and `tightship vault init` creates a new vault from the template.
+a checkpoint every 10 prompts and after each compaction. It searches, writes, lints, and syncs notes with
+`tightship vault`, and `tightship vault init` creates a new vault from the template. The `sync` command runs the
+sync for the adopter and resolves whatever git leaves to the agent.
 
 Terms from the SRS, as used here:
 
@@ -62,8 +63,18 @@ probe with a throwaway plugin on Claude Code 2.1.299:
    places it under `bin/`, behind the `sh` launcher `bin/tightship`. Every other target arrives with epic #8.
 8. **A search lists the project's scope first**, as FR-MEM-03.2 requires. The baseline put first the notes that
    match the most terms.
-9. Three tasks: the binary, the folder, and `init`; then the session start and the checkpoints; then writing,
-   searching, and linting.
+9. Four tasks: the binary, the folder, and `init`; then the session start and the checkpoints; then writing,
+   searching, and linting; then syncing.
+10. **`tightship vault sync` and the command `sync` sync the vault**, by change request
+    [#23](https://github.com/ATNexusLab/tightship/issues/23), which adds FR-MEM-11 (SRS 1.4.0). Confirmed by the
+    maintainer on 2026-10-15. The binary records, fetches, rebases, renumbers colliding ids, and pushes on its
+    own. A conflict or a git failure is never aborted or resolved by the binary: it stops where git stopped,
+    exits 1, and names the next step, and the command has the agent resolve it and sync again. Nothing syncs
+    from a hook: a hook never uses the network. ADR 0001's reach is amended to add the sync.
+11. **The binary's modules and dependencies** are decided in
+    [ADR 0002](../../decisions/0002-tightship-binary-modules-and-dependencies.md): `vault/` and `hook/` by
+    domain, a pure core, `clap`, `jiff`, `serde_json`, and `deunicode`. `xtask/src/` is split into `build/`
+    and `scan/` by a commit that only moves files, ahead of task 1.
 
 ## Acceptance Criteria
 
@@ -81,6 +92,7 @@ probe with a throwaway plugin on Claude Code 2.1.299:
 | `tightship vault search [--everywhere] <term>...` | Agent | Yes | Lists the notes that match |
 | `tightship vault new …` | Agent | No | Writes one note |
 | `tightship vault lint` | Agent or adopter | Yes | Reports every note that breaks a rule |
+| `tightship vault sync` | Agent, through the command `sync` at the adopter's request | No: it commits and pushes | Records the vault's changes, takes in the remote's, renumbers colliding ids, and pushes |
 | `tightship --help`, or `tightship vault --help` | Agent | Yes | Prints the usage |
 
 ### Request
@@ -118,6 +130,7 @@ New. The rules a new vault starts with: the baseline's `vault-template/AGENTS.md
 | "`vault.py handoff release --title "..."` … `vault.py handoff claim` … In Claude Code, `/handoff release\|claim` writes the body and reads the repo; any other harness runs the two commands from the project's directory." | "The handoff command releases and claims it." Epic #6 builds that command. |
 | The front matter line `harness: claude-code` | Removed |
 | "id: mem-0042 # mem-NNNN" | "id: mem-0042 # mem- and at least four digits" |
+| The paragraph "**Pull before writing.** …", up to "fix any `[[wikilink]]` to the old stem." | "**Sync before writing.** `tightship vault new` takes the next id from the notes on disk, so a machine that has not synced can reuse an id another machine already pushed. `tightship vault sync` gives the local note a new id and fixes every `[[wikilink]]` to it." |
 | The Lint item "Sweep the harness scratch silos" | "Sweep each harness's own per-project memory" |
 
 It holds no token: the binary embeds it as written. The neutrality, identity, and literal-reference checks
@@ -151,6 +164,28 @@ EOF
 | --- | --- | --- | --- |
 | `<term>` | string, repeated | Yes | At least one term that is not blank |
 | `--everywhere` | flag | No | Also searches the scopes other than the project's and `all` |
+
+#### `tightship vault sync`
+
+No argument. It syncs the vault of rule 2.
+
+#### `content/commands/sync.md`
+
+New. A command with no argument, the name `sync`, and the description "Sync the memory vault with its git
+remote, and resolve what git hands back". Its body has the agent:
+
+1. Run `tightship vault sync`. On exit 0, tell the adopter its last line, and stop.
+2. On `SYNC_CONFLICT` or `SYNC_UNFINISHED`, open each conflicting note and keep the facts of both sides under
+   the vault's `AGENTS.md`. When the two sides state the same fact, it keeps one. Then it removes the markers,
+   runs `git -C <vault> add` on the note, runs `git -C <vault> rebase --continue`, runs `tightship vault lint`,
+   and goes back to step 1.
+3. On `SYNC_NO_UPSTREAM`, run the `git push -u` the message names once, then go back to step 1.
+4. On `SYNC_GIT_FAILED` or any other error, show the adopter git's message and what it needs from them, and
+   stop. Credentials, network, and git identity are the adopter's.
+5. Never force-push, reset, stash, or delete a note to make a conflict go away. When the same note conflicts
+   again on a second pass, stop and show it to the adopter.
+
+`<vault>` is what `tightship vault path` prints. The body names the binary's commands and no harness.
 
 #### `tightship vault init`
 
@@ -300,6 +335,22 @@ Created the vault at <absolute folder>. Commit it, push it to a private remote t
 and set this folder as the plugin's vault folder.
 ```
 
+#### What `tightship vault sync` prints
+
+```text
+> Recording local changes
+> Fetching the remote
+> Rebasing local commits on the remote
+> Renumbering colliding ids
+mem-0632 → mem-0640 notes/tightship/mem-0640-hooks-get-claude-env-file.md
+> Pushing
+synced: 2 pushed, 3 pulled
+```
+
+The renumbering line and the lines under it appear only when a note collides. `<n> pushed` counts the
+commits sent, the renumbering's included. `<m> pulled` counts the commits taken from the remote. A vault with
+no remote prints the first line, then `kept local — the vault has no git remote`.
+
 #### What `tightship vault path` prints
 
 Prints the vault's absolute folder and a newline.
@@ -314,6 +365,7 @@ Usage: tightship vault path
                            --title <title> --why <line> --source <user|session|repo>
                            [--tags <a,b>] [--pin] [--created <YYYY-MM-DD>] < body
        tightship vault lint
+       tightship vault sync
 ```
 
 #### `dist/claude-code/`
@@ -338,7 +390,7 @@ The memory hooks, written when `content/options.toml` declares `memory`. Each li
 With the baseline's contract and the memory option declared, the build's success output reads:
 
 ```text
-Built dist/claude-code/: 22 pieces (13 skills, 8 commands, 1 agent), 35 files.
+Built dist/claude-code/: 23 pieces (13 skills, 9 commands, 1 agent), 36 files.
 Try it: claude --plugin-dir dist/claude-code
 ```
 
@@ -445,8 +497,8 @@ behind it. Who may run it is whoever may run the Bash tool there.
   reported. Nothing is written then.
 - The note is written as the Response says, `notes/<scope>/` created when absent (FR-MEM-04.1). A file
   already at that path fails with `NOTE_EXISTS`.
-- Two machines that write without pulling can give two notes the same `id`. The lint reports it, and the
-  template tells the agent to pull before writing.
+- Two machines that write without syncing can give two notes the same `id`. `tightship vault sync` gives the
+  local one a new id (rule 15), and the lint reports one that landed through plain git.
 
 ### 9. The lint checks every note against the template's rules
 
@@ -499,12 +551,37 @@ behind it. Who may run it is whoever may run the Bash tool there.
 
 ### 14. Persistence and audit
 
-- **Files changed:** in the vault, the note `vault new` writes and the files `vault init` creates. In the
+- **Files changed:** in the vault, the note `vault new` writes, the files `vault init` creates, and the commits,
+  renames, and link edits of `vault sync`. In the
   plugin's data folder, `checkpoints/<session>`. In the session's environment file, one `export` line per
   session start or resume. The build writes `bin/` and `hooks/hooks.json` into `dist/claude-code/`.
 - **Audit:** N/A. The vault is a git repository: its history records every note.
-- **Events/integrations fired:** N/A. Nothing in this epic uses the network; pulling and pushing the vault is
-  the adopter's, and epic #6's for a handoff.
+- **Events/integrations fired:** only `tightship vault sync` uses the network, through the adopter's git, to the
+  vault's own remote. No hook does.
+
+### 15. Sync does on its own what git can do alone, and hands the rest to the agent
+
+- **When:** `tightship vault sync`, on the vault of rule 2.
+- Each step is announced on stdout by a line of `>`, a space, and the step's name, in this order:
+  1. A rebase or a merge already under way in the vault fails with `SYNC_UNFINISHED`, before anything else.
+  2. **Recording local changes:** when `git status --porcelain` lists anything, `git add -A`, then a commit
+     with the message `vault: sync`.
+  3. A vault with no remote prints `kept local — the vault has no git remote` and exits 0. A branch that tracks
+     no remote branch fails with `SYNC_NO_UPSTREAM`.
+  4. **Fetching the remote:** `git fetch`.
+  5. **Rebasing local commits on the remote:** the notes added by the commits of `@{upstream}..HEAD` are
+     remembered, then `git rebase @{upstream}`. A conflict leaves the rebase stopped where git stopped it and
+     fails with `SYNC_CONFLICT`, naming the paths of `git diff --name-only --diff-filter=U`. The remote is
+     unchanged (FR-MEM-11.2).
+  6. **Renumbering colliding ids**, only when a remembered note has the `id` of another note: each such note,
+     in path order, takes the next id above the vault's highest. `git mv` renames it to `<new id>-<slug>.md`,
+     its `id` line is rewritten, every `[[<old stem>]]` in the vault becomes `[[<new stem>]]`, and one commit
+     records them all with the message `vault: renumber colliding notes` (FR-MEM-11.3).
+  7. **Pushing:** `git push` (FR-MEM-11.1).
+- A git step that fails otherwise (git missing, the network, credentials, the git identity) fails with
+  `SYNC_GIT_FAILED`, naming the step, and leaves the vault as that step left it.
+- The binary never force-pushes, resets, stashes, or resolves a conflict. Running it again after the agent
+  finished the rebase goes on from step 1.
 
 ---
 
@@ -532,21 +609,27 @@ subcommands exit 1 too, which Claude Code reports without blocking.
 | `INIT_NO_GIT` | `1` | Rule 10 | "`` git is not installed; a vault is a git repository, so nothing was created ``" |
 | `INIT_NOT_EMPTY` | `1` | Rule 10 | "`` <folder> already exists and is not an empty folder; nothing changed ``" |
 | `INIT_GIT_FAILED` | `1` | Rule 10 | "`` git init failed in <folder>: <git's message> ``" |
+| `SYNC_UNFINISHED` | `1` | Rule 15 | "`` a rebase or merge is under way in <vault>; finish it with `git -C <vault> rebase --continue` or `git -C <vault> merge --continue`, then run `tightship vault sync` again ``" |
+| `SYNC_NO_UPSTREAM` | `1` | Rule 15 | "`` the vault's branch <branch> tracks no remote branch; run `git -C <vault> push -u <remote> <branch>` once, then run `tightship vault sync` again ``" |
+| `SYNC_CONFLICT` | `1` | Rule 15 | "`` these notes conflict with the remote: <path>, <path>; resolve each, run `git -C <vault> add` on it and `git -C <vault> rebase --continue`, then run `tightship vault sync` again ``" |
+| `SYNC_GIT_FAILED` | `1` | Rule 15 | "`` git <commit\|fetch\|rebase\|mv\|push> failed in <vault>: <git's message, or the system's when git is missing> ``" |
 | `DATA_UNWRITABLE` | `1` | Rule 5 | "`` cannot write the checkpoint counter <path>: <the system's message> ``" |
 | `USAGE` | `1` | An unknown subcommand, an unknown argument, a flag with no value, or a required flag missing | "`unknown subcommand <name>`", "`unknown argument <argument>`", "`<flag> needs a value`", or "`missing <flag>`", then a blank line and the usage |
 | `INTERNAL` | `1` | Rule 11, a panic | "`tightship stopped on an internal fault: <the panic's message>`" |
 | `LINT_FAILED` | `1` | Rule 9 | No stderr: the report on stdout is the message |
 | `OPTION_TYPE_UNKNOWN` | `1` | The build, `content/options.toml` | "`content/options.toml: the type of "<name>" must be boolean or directory`" |
 
-`<the system's message>` is the operating system's text for the error.
+`<the system's message>` is the operating system's text for the error. In `SYNC_NO_UPSTREAM`, `<remote>` is the
+first remote `git remote` lists.
 
 ## Side Effects
 
 - **Persistence:** a note is written whole by one write call. `vault init` writes into a folder it checked was
   absent or empty.
 - **Concurrency:** two `vault new` at once in one vault can pick the same `id`; the second write then finds no
-  file at its path, since slugs differ, and the lint reports the duplicate `id`. Two prompts of one session do
-  not run their hooks at once. Two sessions keep separate counters.
+  file at its path, since slugs differ, and the lint reports the duplicate `id`. Two machines that wrote the
+  same `id` are reconciled by the next `vault sync` of the machine that pushes last. Two prompts of one session
+  do not run their hooks at once. Two sessions keep separate counters.
 - **Transaction:** none across files. The build writes `bin/` with the rest of `dist/.claude-code.tmp/`, published
   by the same rename as in epic #1.
 
@@ -554,16 +637,16 @@ subcommands exit 1 too, which Claude Code reports without blocking.
 
 ## Acceptance Scenarios (Gherkin)
 
-Scenarios 1 to 22 and 29 to 31 run as tests over vaults created in a temporary folder, never over files
-tracked in this repository, which the scan of epic #1 would reject. Scenarios 23 to 28 run in sessions of an
-isolated Claude Code configuration.
+Scenarios 1 to 22 and 29 to 36 run as tests over vaults created in a temporary folder, never over files
+tracked in this repository, which the scan of epic #1 would reject. A sync's remote is a bare repository in the
+same folder. Scenarios 23 to 28 and 37 run in sessions of an isolated Claude Code configuration.
 
 ### Scenario 1 — Build the binary and the memory hooks (happy path)
 
 ```gherkin
 Given content/options.toml declares contract, memory, status_line, and vault_folder
 When the maintainer runs `cargo xtask build`
-Then it exits 0 and reports 35 files
+Then it exits 0 and reports 36 files
 And dist/claude-code/bin/tightship runs the binary built for this machine
 And plugin.json's userConfig holds vault_folder with "type": "directory" and no default
 And hooks/hooks.json holds the contract's group and the four memory hooks of the Response
@@ -878,6 +961,80 @@ When `tightship hook prompt` runs
 Then it exits 1 with "error: cannot write the checkpoint counter <path>: <the system's message>"
 ```
 
+### Scenario 32 — Sync two machines (FR-MEM-11.1, happy path)
+
+```gherkin
+Given a bare remote, and two clones of one vault, A and B
+And B pushed the note notes/all/mem-0002-b.md
+And A holds the note notes/all/mem-0003-a.md, not committed
+When the agent runs `tightship vault sync` in A
+Then it exits 0 and prints "synced: 1 pushed, 1 pulled"
+And A and the remote both hold mem-0002-b.md and mem-0003-a.md
+And A's last commit before the push is "vault: sync"
+```
+
+### Scenario 33 — A vault with no remote (alternative)
+
+```gherkin
+Given a vault with no remote and one note not committed
+When the agent runs `tightship vault sync`
+Then it exits 0 and prints "kept local — the vault has no git remote"
+And the note is committed with the message "vault: sync"
+```
+
+### Scenario 34 — A conflict is handed to the agent (FR-MEM-11.2, exception)
+
+```gherkin
+Given clones A and B where both changed the same line of notes/all/mem-0001-x.md, and B pushed
+When the agent runs `tightship vault sync` in A
+Then it exits 1 with "error: these notes conflict with the remote: notes/all/mem-0001-x.md; resolve each, run
+  `git -C <A> add` on it and `git -C <A> rebase --continue`, then run `tightship vault sync` again"
+And the remote's branch points at B's commit
+And A has a rebase under way, and mem-0001-x.md holds both sides
+When the agent runs `tightship vault sync` in A again
+Then it exits 1 with "error: a rebase or merge is under way in <A>; finish it with …"
+When the conflict is resolved, the note added, the rebase continued, and `tightship vault sync` runs in A
+Then it exits 0, and the remote holds A's resolution
+```
+
+### Scenario 35 — An id taken on both machines (FR-MEM-11.3)
+
+```gherkin
+Given clones A and B with mem-0631 as their highest id
+And B pushed notes/all/mem-0632-from-b.md
+And A committed notes/all/mem-0632-from-a.md and notes/all/mem-0633-links.md, whose body holds
+  "[[mem-0632-from-a]]"
+When the agent runs `tightship vault sync` in A
+Then it exits 0 and prints "mem-0632 → mem-0634 notes/all/mem-0634-from-a.md"
+And mem-0634-from-a.md has the line "id: mem-0634"
+And mem-0633-links.md holds "[[mem-0634-from-a]]"
+And `tightship vault lint` in A exits 0
+And the remote holds mem-0632-from-b.md and mem-0634-from-a.md
+```
+
+### Scenario 36 — No upstream, and a remote out of reach (exception)
+
+```gherkin
+Given a vault on branch main with the remote origin and no upstream
+When the agent runs `tightship vault sync`
+Then it exits 1 with "error: the vault's branch main tracks no remote branch; run `git -C <vault> push -u
+  origin main` once, then run `tightship vault sync` again"
+Given a vault whose remote's path no longer exists
+When the agent runs `tightship vault sync`
+Then it exits 1 with "error: git fetch failed in <vault>: <git's message>"
+And no subcommand exits with 2
+```
+
+### Scenario 37 — The command syncs and resolves a conflict (FR-MEM-11.1, FR-MEM-11.2)
+
+```gherkin
+Given the plugin is installed with memory on, and the vault is clone A of scenario 34
+When the adopter runs the command `sync`
+Then the agent runs `tightship vault sync`, resolves mem-0001-x.md keeping both sides' facts, continues the
+  rebase, and runs it again
+And the last run exits 0, and the agent tells the adopter "synced: 1 pushed, 0 pulled"
+```
+
 ---
 
 ## Architecture impact
@@ -892,17 +1049,22 @@ Applied to [docs/architecture/](../../architecture/README.md), marked M1, #5:
   - Build compiles the binary for the machine that builds, with home paths remapped, and writes the memory
     hooks.
   - Claude Code plugin gains `bin/` and its memory hooks on `SessionStart` and `UserPromptSubmit`.
-- **Runtime:** three new scenarios: "Session start: memory", "A prompt: the checkpoint", and "The agent
-  reaches the vault", through `TIGHTSHIP_VAULT` in the session's environment.
+- **Runtime:** four new scenarios: "Session start: memory", "A prompt: the checkpoint", "The agent
+  reaches the vault", through `TIGHTSHIP_VAULT` in the session's environment, and "The adopter syncs the
+  vault".
 - **Concepts:** a new page, memory, holds the vault folder, the scope, what the session start lists and its
-  cap, and the checkpoint. Options names the `directory` type and `vault_folder`. Security adds the plugin's
-  data folder and the session's environment file to what the plugin writes.
+  cap, the checkpoint, and the sync. Options names the `directory` type and `vault_folder`. Security adds the
+  plugin's data folder and the session's environment file to what the plugin writes, and the vault's remote to
+  what it connects to.
 - **Deployment:** the adopter's machine runs the binary from this epic, built for the maintainer's machine
   only until epic #8.
 - **Diagrams:** the containers diagram adds the vault template to canonical content, and `bin/` and the
   memory hooks to the Claude Code plugin. The tightship binary stays dashed until task 1 builds it.
 - **ADR 0001** is amended: the plugin also writes the counter of the checkpoint in the harness's plugin data
-  folder, and one line per session in the session's environment file.
+  folder, and one line per session in the session's environment file. A second amendment adds the vault's git
+  remote to the reach, for the sync.
+- **ADR 0002** records the binary's modules and dependencies, and the split of `xtask/src/` into `build/` and
+  `scan/`.
 
 ## Data model impact
 
@@ -913,13 +1075,16 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M1, #5:
 - Options gains `vault_folder`, a `directory` setting of the memory layer that Claude Code keeps like the
   others.
 - Access patterns: the checkpoint reads and writes the counter of its session in the plugin's data folder,
-  and arrives after the compaction instead of before.
+  and arrives after the compaction instead of before. A sync reads every note, and renames and edits the ones
+  it renumbers.
 - The conceptual model is unchanged.
 
 ## Out of Scope
 
-- **Releasing and claiming a handoff**, the handoff command, and pulling and pushing the vault: epic #6. This
-  epic only shows a handoff at session start.
+- **Releasing and claiming a handoff**, the handoff command, and pulling and pushing a handoff: epic #6, which
+  can reuse the sync's git steps. This epic only shows a handoff at session start.
+- **Syncing from a hook**, at session start or after `vault new`: a hook never uses the network, and the
+  session start's budget leaves no room for it.
 - **FR-MEM-10.2**, the handoff command with memory off: epic #6 verifies it, since it builds that command.
   This epic covers FR-MEM-10.1.
 - **The binary for every target**, and the release archive: epic #8. Until then, `dist/claude-code/` carries
@@ -935,8 +1100,12 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M1, #5:
 
 ## Task Breakdown
 
+`xtask/src/` is split into `build/` and `scan/` by its own commit ahead of task 1, moving files only, with the
+same tests passing ([ADR 0002](../../decisions/0002-tightship-binary-modules-and-dependencies.md)).
+
 | # | Title | Scope | Acceptance criterion | Depends on |
 | --- | --- | --- | --- | --- |
-| 1 | Ship the tightship binary with the vault folder and `vault init` | `Cargo.toml` (member), `tightship/Cargo.toml`, `tightship/src/main.rs`, `tightship/src/vault.rs` (folder, `path`), `tightship/src/init.rs`, `tightship/launcher.sh`, `tightship/tests/vault.rs`, `content/vault-template/AGENTS.md`, `content/options.toml`, `xtask/src/options.rs` (`type`), `xtask/src/content.rs` (`vault-template/`), `xtask/src/claude_code.rs` (`userConfig` types, `bin/`), `xtask/src/main.rs` (compile), `xtask/tests/build.rs` and `xtask/tests/common/mod.rs`, about 15 files | Scenarios 1 to 8 and 30 by tests | — |
-| 2 | Place the vault's notes and checkpoints in the session | `tightship/src/note.rs` (read a note), `tightship/src/scope.rs`, `tightship/src/start.rs` (memory context, export), `tightship/src/checkpoint.rs`, `tightship/src/main.rs`, `tightship/tests/hooks.rs`, `xtask/src/claude_code.rs` (memory hooks), `xtask/tests/build.rs`, about 8 files | Scenarios 9 to 18 and 31 by tests; 23 to 28 in sessions of an isolated Claude Code configuration, 28 measured on a vault of 1,000 generated notes | 1 |
-| 3 | Write, search, and lint notes | `tightship/src/new.rs`, `tightship/src/search.rs`, `tightship/src/lint.rs`, `tightship/src/note.rs` (write a note), `tightship/src/main.rs`, `tightship/tests/notes.rs`, about 6 files | Scenarios 19 to 22 and 29 by tests | 2 |
+| 1 | Ship the tightship binary with the vault folder and `vault init` | `Cargo.toml` (member), `tightship/Cargo.toml`, `tightship/launcher.sh`, `tightship/src/main.rs`, `tightship/src/failure.rs`, `tightship/src/git.rs`, `tightship/src/vault.rs` (folder), `tightship/src/vault/path.rs`, `tightship/src/vault/init.rs`, `tightship/tests/vault.rs`, `tightship/tests/common/mod.rs`, `content/vault-template/AGENTS.md`, `content/options.toml`, `xtask/src/build.rs` (compile), `xtask/src/build/options.rs` (`type`), `xtask/src/build/content.rs` (`vault-template/`), `xtask/src/build/claude_code.rs` (`userConfig` types, `bin/`), `xtask/tests/build.rs`, `xtask/tests/common/mod.rs`, about 19 files | Scenarios 1 to 8 and 30 by tests | — |
+| 2 | Place the vault's notes and checkpoints in the session | `tightship/src/vault/note.rs` (read a note), `tightship/src/project.rs`, `tightship/src/vault/context.rs`, `tightship/src/hook.rs`, `tightship/src/hook/start.rs`, `tightship/src/hook/export.rs`, `tightship/src/hook/checkpoint.rs`, `tightship/src/hook/prompt.rs`, `tightship/src/main.rs`, `tightship/tests/hook.rs`, `xtask/src/build/claude_code.rs` (memory hooks), `xtask/tests/build.rs`, about 12 files | Scenarios 9 to 18 and 31 by tests; 23 to 28 in sessions of an isolated Claude Code configuration, 28 measured on a vault of 1,000 generated notes | 1 |
+| 3 | Write, search, and lint notes | `tightship/src/vault/new.rs`, `tightship/src/vault/search.rs`, `tightship/src/vault/lint.rs`, `tightship/src/vault/note.rs` (write a note), `tightship/src/main.rs`, `tightship/tests/vault.rs`, about 6 files | Scenarios 19 to 22 and 29 by tests | 2 |
+| 4 | Sync the vault | `tightship/src/vault/sync.rs`, `tightship/src/git.rs`, `tightship/src/failure.rs`, `tightship/src/main.rs`, `tightship/tests/sync.rs`, `content/commands/sync.md`, `xtask/tests/build.rs` (the count of pieces), about 7 files | Scenarios 32 to 36 by tests; 37 in a session of an isolated Claude Code configuration | 3 |

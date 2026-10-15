@@ -258,3 +258,32 @@ The system shall run no memory function while memory is disabled.
   the agent's context receives no memory context and no checkpoint.
 - **FR-MEM-10.2** — Given memory is disabled, when the adopter invokes the handoff command, then the agent
   says memory is off and changes nothing.
+
+<a id="fr-mem-11"></a>
+
+## FR-MEM-11 — Sync the vault
+
+> As an adopter working on more than one machine, I want to sync the vault with one command, so that each
+> machine sees the notes the others wrote without my spelling out the git steps.
+
+The system shall, at the adopter's request, record the vault's local changes, take in the changes of the
+vault's git remote, and send the local changes to that remote.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Syncing takes a request in free text, and two machines that write before syncing give two notes the same id. |
+| Source | Maintainer, change request 2026-10-15 |
+| Priority | Must |
+| Status | approved |
+| Milestone | M1 |
+| Since | v1.4.0 |
+
+**Acceptance criteria**
+
+- **FR-MEM-11.1** — Given the vault and its remote each hold a note the other lacks, when the adopter syncs,
+  then both hold both notes.
+- **FR-MEM-11.2** — Given a note changed on both sides, when the adopter syncs and git cannot merge the two,
+  then the remote is unchanged, the vault holds both versions for the agent to resolve, and the agent is told
+  which notes conflict.
+- **FR-MEM-11.3** — Given a note written locally and a note from the remote have the same id, when the
+  adopter syncs, then the local note gets a new id and every link to it follows.

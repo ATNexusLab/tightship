@@ -8,6 +8,8 @@
   only prints a file the plugin ships is not a program
 - Amended: 2026-10-15, by the [epic #5 spec](../specs/memory/keep-the-vault.md): the plugin also writes in two
   places the harness owns, its data folder and the session's environment file
+- Amended: 2026-10-15, by the [epic #5 spec](../specs/memory/keep-the-vault.md): the plugin also reaches the
+  vault's git remote when it syncs the vault ([FR-MEM-11](../requirements/functional/memory.md#fr-mem-11))
 
 ## Context
 
@@ -87,8 +89,8 @@ release only.
 **Adopter prerequisites.** Nothing on macOS and Linux. Git for Windows on Windows, so that hooks run under Git
 Bash. Git on every system when the memory option is on.
 
-**Reach.** The plugin connects to one network host: the git remote of the adopter's vault, when it pulls and
-pushes a handoff. Outside what the harness owns, it writes in two places only:
+**Reach.** The plugin connects to one network host: the git remote of the adopter's vault, when it syncs the
+vault or pulls and pushes a handoff. Outside what the harness owns, it writes in two places only:
 
 - The adopter's vault.
 - The harness's settings file, for the status line only, after the adopter consents

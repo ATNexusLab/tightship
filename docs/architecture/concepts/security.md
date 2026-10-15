@@ -18,7 +18,8 @@ printing the term, so a CI log cannot leak it.
 
 From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.md):
 
-- **Network:** only the git remote of the adopter's vault, when a handoff is pulled or pushed.
+- **Network:** only the git remote of the adopter's vault, when the vault is synced
+  ([FR-MEM-11](../../requirements/functional/memory.md#fr-mem-11), M1, #5) or a handoff is pulled or pushed.
 - **Disk:** the adopter's vault, and the harness's settings file, for the status line only, after the adopter
   consents ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02)). In the harness's own
   places, the plugin also writes the checkpoint's prompt counter in the plugin's data folder, and one `export`

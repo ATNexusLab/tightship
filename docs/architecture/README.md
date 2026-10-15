@@ -80,6 +80,11 @@ from `SessionStart` on the source `compact`.
 **The agent reaches the vault** (M1, #5). The agent runs `tightship vault search`, `new`, or `lint` through
 its shell. The binary finds the vault in `TIGHTSHIP_VAULT`, which the session's environment file exported.
 
+**The adopter syncs the vault** (M1, #5). The command `sync` has the agent run `tightship vault sync`, which
+commits the vault's changes, rebases them on its git remote, renumbers colliding ids, and pushes. A conflict or
+a git failure stops it with exit 1 and the next step, and the agent resolves it and syncs again
+([memory](concepts/memory.md)).
+
 ## Deployment
 
 [Deployment](deployment.md): environments, packaging, and the adopter's prerequisites.

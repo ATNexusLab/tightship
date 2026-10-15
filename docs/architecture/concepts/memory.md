@@ -39,4 +39,12 @@ compaction ([FR-MEM-02](../../requirements/functional/memory.md#fr-mem-02)). No 
 a compaction, so the checkpoint comes right after it. The prompt count of each session is a file in the
 plugin's data folder, deleted after 7 days without a prompt.
 
+## The sync
+
+`tightship vault sync` records the vault's changes in a commit, rebases them on the vault's git remote, and
+pushes ([FR-MEM-11](../../requirements/functional/memory.md#fr-mem-11)). A note written on two machines with
+the same id is renumbered on the machine that syncs last, and every link to it follows. The binary never
+resolves a conflict: it leaves the rebase where git stopped it and names the next step, and the command `sync`
+has the agent resolve it and sync again. Nothing syncs from a hook, since no hook uses the network.
+
 Every rule and message: the [epic #5 spec](../../specs/memory/keep-the-vault.md).

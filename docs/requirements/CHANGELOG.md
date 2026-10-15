@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.0 — 2026-10-15
+
+Syncing the vault across machines took a request in free text, and two machines that wrote before syncing gave
+two notes the same id. Change request [#23](https://github.com/ATNexusLab/tightship/issues/23), approved
+during the implementation of epic #5, which takes it into sprint 3.
+
+**Added**
+
+- FR-MEM-11 syncs the vault with its git remote at the adopter's request. FR-MEM-11.1 checks that notes from
+  both sides end on both, FR-MEM-11.2 that a conflict leaves the remote unchanged and is handed to the agent,
+  and FR-MEM-11.3 that a local note whose id the remote already took gets a new one.
+
 ## 1.3.0 — 2026-10-15
 
 FR-MEM-02 asks for a checkpoint before a compaction. Claude Code can't add text to the context before a

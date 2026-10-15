@@ -10,6 +10,7 @@ Every read and write the requirements call for. Volume: a vault of 1,000 notes
 | Search ([FR-MEM-03](../requirements/functional/memory.md#fr-mem-03)) | Reads notes | Terms in the `why`, tags, and body; the project's scope first, then `all`, then the rest with `--everywhere`; 10 at most | On demand |
 | Write a note ([FR-MEM-04](../requirements/functional/memory.md#fr-mem-04)) | Writes one note | Into its scope's folder | On demand |
 | Lint ([FR-MEM-05](../requirements/functional/memory.md#fr-mem-05)) | Reads every note | All | On demand |
+| Sync ([FR-MEM-11](../requirements/functional/memory.md#fr-mem-11)) | Commits, rebases on the remote, renames and edits colliding notes, pushes | Notes added by unpushed commits whose `id` another note has | On demand |
 | Release a handoff ([FR-MEM-06](../requirements/functional/memory.md#fr-mem-06)) | Replaces one handoff | The project's scope | On demand |
 | Claim a handoff ([FR-MEM-07](../requirements/functional/memory.md#fr-mem-07)) | Reads and removes one handoff | The project's scope | On demand |
 | Read the options ([FR-INS-03](../requirements/functional/install.md#fr-ins-03)) | A hook reads its option's state from the environment Claude Code sets | By name; absent is on | Every session start |
