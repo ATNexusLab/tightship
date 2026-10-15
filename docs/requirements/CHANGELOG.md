@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.8.0 — 2026-10-15
+
+Two changes the maintainer approved in the planning of sprint 2. Cursor and Antigravity CLI are built in the
+same sprint, by change request [#56](https://github.com/ATNexusLab/tightship/issues/56). A vault location can
+name the home folder with `~`, by change request [#57](https://github.com/ATNexusLab/tightship/issues/57).
+
+**Added**
+
+- FR-MEM-09.2: a vault location that is `~` alone or starts with `~` and a path separator resolves under the
+  user's home folder, on macOS, Linux, and Windows.
+
+**Changed**
+
+- BR-01: work on a harness may run alongside work on the one before it. The releases keep their order.
+
 ## 1.7.0 — 2026-10-15
 
 The documents an adopter or a contributor reads first get a Brazilian Portuguese translation, decided by the
