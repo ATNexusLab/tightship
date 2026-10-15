@@ -1,6 +1,6 @@
 # #5 — Keep curated notes in the adopter's vault
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `tightship/`, `content/`, `harnesses/claude-code/`, `xtask/`
 > **Epic:** #5
@@ -1103,9 +1103,9 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M1, #5:
 `xtask/src/` is split into `build/` and `scan/` by its own commit ahead of task 1, moving files only, with the
 same tests passing ([ADR 0002](../../decisions/0002-tightship-binary-modules-and-dependencies.md)).
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Ship the tightship binary with the vault folder and `vault init` | `Cargo.toml` (member), `tightship/Cargo.toml`, `tightship/launcher.sh`, `tightship/src/main.rs`, `tightship/src/failure.rs`, `tightship/src/git.rs`, `tightship/src/vault.rs` (folder), `tightship/src/vault/path.rs`, `tightship/src/vault/init.rs`, `tightship/tests/vault.rs`, `tightship/tests/common/mod.rs`, `content/vault-template/AGENTS.md`, `content/options.toml`, `xtask/src/build.rs` (compile), `xtask/src/build/options.rs` (`type`), `xtask/src/build/content.rs` (`vault-template/`), `xtask/src/build/claude_code.rs` (`userConfig` types, `bin/`), `xtask/tests/build.rs`, `xtask/tests/common/mod.rs`, about 19 files | Scenarios 1 to 8 and 30 by tests | — |
-| 2 | Place the vault's notes and checkpoints in the session | `tightship/src/vault/note.rs` (read a note), `tightship/src/project.rs`, `tightship/src/vault/context.rs`, `tightship/src/hook.rs`, `tightship/src/hook/start.rs`, `tightship/src/hook/export.rs`, `tightship/src/hook/checkpoint.rs`, `tightship/src/hook/prompt.rs`, `tightship/src/main.rs`, `tightship/tests/hook.rs`, `xtask/src/build/claude_code.rs` (memory hooks), `xtask/tests/build.rs`, about 12 files | Scenarios 9 to 18 and 31 by tests; 23 to 28 in sessions of an isolated Claude Code configuration, 28 measured on a vault of 1,000 generated notes | 1 |
-| 3 | Write, search, and lint notes | `tightship/src/vault/new.rs`, `tightship/src/vault/search.rs`, `tightship/src/vault/lint.rs`, `tightship/src/vault/note.rs` (write a note), `tightship/src/main.rs`, `tightship/tests/vault.rs`, about 6 files | Scenarios 19 to 22 and 29 by tests | 2 |
-| 4 | Sync the vault | `tightship/src/vault/sync.rs`, `tightship/src/git.rs`, `tightship/src/failure.rs`, `tightship/src/main.rs`, `tightship/tests/sync.rs`, `content/commands/sync.md`, `xtask/tests/build.rs` (the count of pieces), about 7 files | Scenarios 32 to 36 by tests; 37 in a session of an isolated Claude Code configuration | 3 |
+| # | Issue | Title | Scope | Acceptance criterion | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| 1 | #24 | Ship the tightship binary with the vault folder and `vault init` | `Cargo.toml` (member), `tightship/Cargo.toml`, `tightship/launcher.sh`, `tightship/src/main.rs`, `tightship/src/failure.rs`, `tightship/src/git.rs`, `tightship/src/vault.rs` (folder), `tightship/src/vault/path.rs`, `tightship/src/vault/init.rs`, `tightship/tests/vault.rs`, `tightship/tests/common/mod.rs`, `content/vault-template/AGENTS.md`, `content/options.toml`, `xtask/src/build.rs` (compile), `xtask/src/build/options.rs` (`type`), `xtask/src/build/content.rs` (`vault-template/`), `xtask/src/build/claude_code.rs` (`userConfig` types, `bin/`), `xtask/tests/build.rs`, `xtask/tests/common/mod.rs`, about 19 files | Scenarios 1 to 8 and 30 by tests | — |
+| 2 | #25 | Place the vault's notes and checkpoints in the session | `tightship/src/vault/note.rs` (read a note), `tightship/src/project.rs`, `tightship/src/vault/context.rs`, `tightship/src/hook.rs`, `tightship/src/hook/start.rs`, `tightship/src/hook/export.rs`, `tightship/src/hook/checkpoint.rs`, `tightship/src/hook/prompt.rs`, `tightship/src/main.rs`, `tightship/tests/hook.rs`, `xtask/src/build/claude_code.rs` (memory hooks), `xtask/tests/build.rs`, about 12 files | Scenarios 9 to 18 and 31 by tests; 23 to 28 in sessions of an isolated Claude Code configuration, 28 measured on a vault of 1,000 generated notes | 1 |
+| 3 | #26 | Write, search, and lint notes | `tightship/src/vault/new.rs`, `tightship/src/vault/search.rs`, `tightship/src/vault/lint.rs`, `tightship/src/vault/note.rs` (write a note), `tightship/src/main.rs`, `tightship/tests/vault.rs`, about 6 files | Scenarios 19 to 22 and 29 by tests | 2 |
+| 4 | #27 | Sync the vault | `tightship/src/vault/sync.rs`, `tightship/src/git.rs`, `tightship/src/failure.rs`, `tightship/src/main.rs`, `tightship/tests/sync.rs`, `content/commands/sync.md`, `xtask/tests/build.rs` (the count of pieces), about 7 files | Scenarios 32 to 36 by tests; 37 in a session of an isolated Claude Code configuration | 3 |
