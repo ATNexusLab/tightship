@@ -1,6 +1,6 @@
 # #8 — Release the Claude Code plugin
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `.github/workflows/`, `xtask/`, `tightship/launcher.sh`, `docs/install/`, `docs/release/`
 > **Epic:** #8
@@ -598,9 +598,9 @@ N/A — this epic stores no data. The options and the vault keep the model epics
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Run the gates on macOS, Linux, and Windows at every pull request | `.github/workflows/ci.yml` (new), `tightship/launcher.sh` (Windows arm64, restored mode), `xtask/src/build/claude_code.rs` (hook lines through `sh`), `xtask/tests/build.rs`, `tightship/tests/launcher.rs` (new), `AGENTS.md` (the CI, the secret), plus each fix the three systems reveal in code of epics #1 to #5, about 7 files before those fixes | Scenarios 1, 2, 11 by the CI runs and tests; 21 by the build test without `.identity-terms`; 12 in an isolated Claude Code configuration | — |
-| 2 | Publish a pre-release from a tag | `xtask/src/main.rs` (usage), `xtask/src/build.rs` and `xtask/src/build/binary.rs` (`--binaries`), `xtask/src/package.rs` (new), `xtask/Cargo.toml` and `Cargo.lock` (`zip`, `sha2`), `xtask/tests/build.rs`, `xtask/tests/package.rs` (new), `.github/workflows/release.yml` (new), `LICENSE` (new), `harnesses/claude-code/harness.toml` and `xtask/src/build/claude_code.rs` (`license`), `AGENTS.md` (commands), about 13 files | Scenarios 3 to 8 and 20 by tests; 9 and 10 by a tag pushed on a fork of the repository | 1 |
-| 3 | Write the Claude Code install guide | `docs/install/claude-code/` (8 new pages), `README.md` at the root (new), `docs/README.md` (a row), about 10 files; starts once epics #6 and #7 are merged into `develop` | Scenarios 15 on the maintainer's machine, 16 and 17 read at review | 2 |
-| 4 | Run the release checklist on the three systems | `docs/release/README.md` and `docs/release/checklist.md` (new), `Cargo.toml` (`1.0.0`), `docs/roadmap/` (M1 released), about 5 files; the tag and the promotion happen only at the maintainer's word | Scenarios 13, 14, 18, and 19 on macOS, Linux, and Windows at Claude Code 2.1.295 | 3 |
+| # | Title | Scope | Acceptance criterion | Depends on | Issue |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Run the gates on macOS, Linux, and Windows at every pull request | `.github/workflows/ci.yml` (new), `tightship/launcher.sh` (Windows arm64, restored mode), `xtask/src/build/claude_code.rs` (hook lines through `sh`), `xtask/tests/build.rs`, `tightship/tests/launcher.rs` (new), `AGENTS.md` (the CI, the secret), plus each fix the three systems reveal in code of epics #1 to #5, about 7 files before those fixes | Scenarios 1, 2, 11 by the CI runs and tests; 21 by the build test without `.identity-terms`; 12 in an isolated Claude Code configuration | — | #36 |
+| 2 | Publish a pre-release from a tag | `xtask/src/main.rs` (usage), `xtask/src/build.rs` and `xtask/src/build/binary.rs` (`--binaries`), `xtask/src/package.rs` (new), `xtask/Cargo.toml` and `Cargo.lock` (`zip`, `sha2`), `xtask/tests/build.rs`, `xtask/tests/package.rs` (new), `.github/workflows/release.yml` (new), `LICENSE` (new), `harnesses/claude-code/harness.toml` and `xtask/src/build/claude_code.rs` (`license`), `AGENTS.md` (commands), about 13 files | Scenarios 3 to 8 and 20 by tests; 9 and 10 by a tag pushed on a fork of the repository | 1 | #37 |
+| 3 | Write the Claude Code install guide | `docs/install/claude-code/` (8 new pages), `README.md` at the root (new), `docs/README.md` (a row), about 10 files; starts once epics #6 and #7 are merged into `develop` | Scenarios 15 on the maintainer's machine, 16 and 17 read at review | 2 | #38 |
+| 4 | Run the release checklist on the three systems | `docs/release/README.md` and `docs/release/checklist.md` (new), `Cargo.toml` (`1.0.0`), `docs/roadmap/` (M1 released), about 5 files; the tag and the promotion happen only at the maintainer's word | Scenarios 13, 14, 18, and 19 on macOS, Linux, and Windows at Claude Code 2.1.295 | 3 | #39 |
