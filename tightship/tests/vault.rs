@@ -1,9 +1,10 @@
 mod common;
 
 use std::fs;
+use std::path::Path;
 use std::process::Command;
 
-use common::{Sandbox, assert_fails_with, assert_succeeds, executable, run, stderr_of, stdout_of};
+use common::{Sandbox, assert_fails_with, assert_succeeds, run, stderr_of, stdout_of};
 
 const TEMPLATE: &str = include_str!("../../content/vault-template/AGENTS.md");
 
@@ -183,4 +184,12 @@ fn the_launcher_without_a_binary_for_the_machine_fails() {
             uname("-m")
         ),
     );
+}
+
+fn executable(file: &Path) {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(file, fs::Permissions::from_mode(0o755)).expect("an executable");
+    }
 }

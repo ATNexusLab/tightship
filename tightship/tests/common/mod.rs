@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Command, Output};
 
 use tempfile::TempDir;
@@ -68,12 +68,4 @@ pub fn assert_succeeds(output: &Output) {
         "stderr: {}",
         stderr_of(output)
     );
-}
-
-pub fn executable(file: &Path) {
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(file, fs::Permissions::from_mode(0o755)).expect("an executable");
-    }
 }

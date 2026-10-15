@@ -1,4 +1,6 @@
+pub mod context;
 pub mod init;
+pub mod note;
 pub mod path;
 
 use std::env;

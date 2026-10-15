@@ -1,5 +1,7 @@
 mod failure;
 mod git;
+mod hook;
+mod project;
 mod vault;
 
 use std::panic;
@@ -32,6 +34,16 @@ struct Arguments {
 enum Area {
     #[command(subcommand)]
     Vault(VaultCommand),
+    #[command(subcommand)]
+    Hook(HookCommand),
+}
+
+#[derive(Subcommand)]
+enum HookCommand {
+    Start,
+    Export,
+    Checkpoint,
+    Prompt,
 }
 
 #[derive(Subcommand)]
@@ -60,6 +72,10 @@ fn main() -> ExitCode {
     let ran = match arguments.area {
         Area::Vault(VaultCommand::Path) => vault::path::run(),
         Area::Vault(VaultCommand::Init { folder }) => vault::init::run(&folder),
+        Area::Hook(HookCommand::Start) => hook::start::run(),
+        Area::Hook(HookCommand::Export) => hook::export::run(),
+        Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
+        Area::Hook(HookCommand::Prompt) => hook::prompt::run(),
     };
     match ran {
         Ok(()) => ExitCode::SUCCESS,

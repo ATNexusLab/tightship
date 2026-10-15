@@ -57,11 +57,8 @@ pub fn render(
         let file = staging.join("contract").join(&part.file);
         written.push((file, part.text.clone().into_bytes()));
     }
-    if !parts.is_empty() {
-        written.push((
-            staging.join("hooks/hooks.json"),
-            hooks(parts, content.options.as_ref())?.into_bytes(),
-        ));
+    if let Some(hooks) = hooks(parts, content.options.as_ref())? {
+        written.push((staging.join("hooks/hooks.json"), hooks.into_bytes()));
     }
     let launcher = staging.join("bin/tightship");
     written.push((
@@ -181,13 +178,13 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
     Ok(serde_json::to_string_pretty(&manifest).map_err(io::Error::other)? + "\n")
 }
 
-fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<String> {
-    let declares_contract =
-        options.is_some_and(|file| file.declared.iter().any(|option| option.name == "contract"));
+fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<String>> {
+    let declares =
+        |name| options.is_some_and(|file| file.declared.iter().any(|option| option.name == name));
     let commands: Vec<serde_json::Value> = parts
         .iter()
         .map(|part| {
-            let contract_option = declares_contract.then_some("contract");
+            let contract_option = declares("contract").then_some("contract");
             let tests: String = contract_option
                 .into_iter()
                 .chain(part.gate.as_deref())
@@ -204,15 +201,56 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<String> {
             })
         })
         .collect();
-    let hooks = serde_json::json!({
-        "hooks": {
-            "SessionStart": [{
+    let mut session_start = Vec::new();
+    if !commands.is_empty() {
+        session_start.push(serde_json::json!({
+            "matcher": "startup|clear|compact",
+            "hooks": commands,
+        }));
+    }
+    let memory_hook = |variables: &str, subcommand: &str| {
+        serde_json::json!([{
+            "type": "command",
+            "command": format!(
+                "[ \"$CLAUDE_PLUGIN_OPTION_MEMORY\" = false ] || TIGHTSHIP_VAULT=\"$CLAUDE_PLUGIN_OPTION_VAULT_FOLDER\" {variables}\"${{CLAUDE_PLUGIN_ROOT}}/bin/tightship\" hook {subcommand}"
+            ),
+        }])
+    };
+    let memory = declares("memory");
+    if memory {
+        let env_file = "TIGHTSHIP_ENV_FILE=\"$CLAUDE_ENV_FILE\" ";
+        session_start.extend([
+            serde_json::json!({
                 "matcher": "startup|clear|compact",
-                "hooks": commands,
-            }],
-        },
-    });
-    Ok(serde_json::to_string_pretty(&hooks).map_err(io::Error::other)? + "\n")
+                "hooks": memory_hook(env_file, "start"),
+            }),
+            serde_json::json!({
+                "matcher": "resume|fork",
+                "hooks": memory_hook(env_file, "export"),
+            }),
+            serde_json::json!({
+                "matcher": "compact",
+                "hooks": memory_hook("", "checkpoint"),
+            }),
+        ]);
+    }
+    if session_start.is_empty() {
+        return Ok(None);
+    }
+    let mut events = serde_json::Map::new();
+    events.insert("SessionStart".to_owned(), session_start.into());
+    if memory {
+        events.insert(
+            "UserPromptSubmit".to_owned(),
+            serde_json::json!([{
+                "hooks": memory_hook("TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" ", "prompt"),
+            }]),
+        );
+    }
+    let hooks = serde_json::json!({ "hooks": events });
+    Ok(Some(
+        serde_json::to_string_pretty(&hooks).map_err(io::Error::other)? + "\n",
+    ))
 }
 
 fn catalog(harness: &Harness) -> io::Result<String> {

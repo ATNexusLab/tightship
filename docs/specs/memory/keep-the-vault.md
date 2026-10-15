@@ -420,6 +420,8 @@ behind it. Who may run it is whoever may run the Bash tool there.
 - The value must be an absolute path to an existing folder. `hook start` and `hook export` write
   `export TIGHTSHIP_VAULT='<folder>'` to the end of `TIGHTSHIP_ENV_FILE` only when it is, each `'` in the
   folder written as `'\''`, and write nothing when `TIGHTSHIP_ENV_FILE` is absent.
+- An environment file the binary cannot write fails with `ENV_UNWRITABLE`, and `hook start` then prints no
+  memory context.
 - A `vault` subcommand without a usable value fails with `VAULT_NOT_SET`, `VAULT_NOT_ABSOLUTE`, or
   `VAULT_MISSING`.
 
@@ -615,6 +617,7 @@ subcommands exit 1 too, which Claude Code reports without blocking.
 | `SYNC_NO_UPSTREAM` | `1` | Rule 15 | "`` the vault's branch <branch> tracks no remote branch; run `git -C <vault> push -u <remote> <branch>` once, then run `tightship vault sync` again ``" |
 | `SYNC_CONFLICT` | `1` | Rule 15 | "`` these notes conflict with the remote: <path>, <path>; resolve each, run `git -C <vault> add` on it and `git -C <vault> rebase --continue`, then run `tightship vault sync` again ``" |
 | `SYNC_GIT_FAILED` | `1` | Rule 15 | "`` git <commit\|fetch\|rebase\|mv\|push> failed in <vault>: <git's message, or the system's when git is missing> ``" |
+| `ENV_UNWRITABLE` | `1` | Rule 2 | "`` cannot write the session's environment file <path>: <the system's message> ``" |
 | `DATA_UNWRITABLE` | `1` | Rule 5 | "`` cannot write the checkpoint counter <path>: <the system's message> ``" |
 | `USAGE` | `1` | An unknown subcommand, an unknown argument, a flag with no value, or a required flag missing | "`unknown subcommand <name>`", "`unknown argument <argument>`", "`<flag> needs a value`", or "`missing <flag>`", then a blank line and the usage |
 | `INTERNAL` | `1` | Rule 11, a panic | "`tightship stopped on an internal fault: <the panic's message>`" |

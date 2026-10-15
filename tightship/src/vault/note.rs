@@ -1,0 +1,104 @@
+use std::fs;
+use std::io;
+use std::path::{Path, PathBuf};
+
+use crate::failure::Failure;
+
+pub struct Note {
+    pub path: PathBuf,
+    pub fields: Vec<(String, String)>,
+    pub body: String,
+}
+
+impl Note {
+    pub fn field(&self, name: &str) -> &str {
+        self.fields
+            .iter()
+            .find(|(key, _)| key == name)
+            .map_or("", |(_, value)| value.as_str())
+    }
+
+    pub fn is_pinned(&self) -> bool {
+        self.field("pinned") == "true"
+    }
+
+    pub fn stem(&self) -> String {
+        self.path
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .into_owned()
+    }
+
+    pub fn age(&self) -> String {
+        let created = self.field("created");
+        let updated = self.field("updated");
+        if updated.is_empty() || updated == created {
+            created.to_owned()
+        } else {
+            format!("{created} → {updated}")
+        }
+    }
+
+    pub fn id_order(&self) -> (u64, &str) {
+        let id = self.field("id");
+        let number = id
+            .strip_prefix("mem-")
+            .and_then(|digits| digits.parse().ok())
+            .unwrap_or(u64::MAX);
+        (number, id)
+    }
+
+    fn parse(path: PathBuf, text: &str) -> Option<Self> {
+        let mut lines = text.split_inclusive('\n');
+        if lines.next()?.trim_end() != "---" {
+            return None;
+        }
+        let mut fields = Vec::new();
+        let mut consumed = text.find('\n')? + 1;
+        for line in lines {
+            consumed += line.len();
+            let line = line.trim_end();
+            if line == "---" {
+                let body = text[consumed..].trim().to_owned();
+                return Some(Self { path, fields, body });
+            }
+            if let Some((key, value)) = line.split_once(':') {
+                fields.push((key.trim().to_owned(), value.trim().to_owned()));
+            }
+        }
+        None
+    }
+}
+
+pub fn read_all(vault: &Path) -> Result<Vec<Note>, Failure> {
+    let mut files = Vec::new();
+    collect_markdown(vault, &vault.join("notes"), &mut files)?;
+    files.sort();
+    let mut notes = Vec::new();
+    for relative in files {
+        let text = fs::read_to_string(vault.join(&relative))
+            .map_err(|error| Failure::NoteUnreadable(relative.clone(), error))?;
+        notes.extend(Note::parse(relative, &text));
+    }
+    Ok(notes)
+}
+
+fn collect_markdown(vault: &Path, folder: &Path, files: &mut Vec<PathBuf>) -> Result<(), Failure> {
+    let unreadable = |error| Failure::VaultUnreadable(vault.to_path_buf(), error);
+    let entries = match fs::read_dir(folder) {
+        Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(()),
+        entries => entries.map_err(unreadable)?,
+    };
+    for entry in entries {
+        let entry = entry.map_err(unreadable)?;
+        let path = entry.path();
+        if entry.file_type().map_err(unreadable)?.is_dir() {
+            collect_markdown(vault, &path, files)?;
+        } else if path.extension().is_some_and(|extension| extension == "md") {
+            let relative = path.strip_prefix(vault).unwrap_or(&path).to_path_buf();
+            files.push(relative);
+        }
+    }
+    Ok(())
+}

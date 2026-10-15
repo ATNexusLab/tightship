@@ -7,6 +7,9 @@ pub enum Failure {
     VaultNotAbsolute(PathBuf),
     VaultMissing(PathBuf),
     VaultUnreadable(PathBuf, io::Error),
+    NoteUnreadable(PathBuf, io::Error),
+    EnvUnwritable(PathBuf, io::Error),
+    DataUnwritable(PathBuf, io::Error),
     InitNoGit,
     InitNotEmpty(PathBuf),
     InitUnwritable(PathBuf, io::Error),
@@ -35,6 +38,19 @@ impl fmt::Display for Failure {
                 formatter,
                 "cannot read the vault folder {}: {error}",
                 folder.display()
+            ),
+            Self::NoteUnreadable(path, error) => {
+                write!(formatter, "cannot read {}: {error}", path.display())
+            }
+            Self::EnvUnwritable(file, error) => write!(
+                formatter,
+                "cannot write the session's environment file {}: {error}",
+                file.display()
+            ),
+            Self::DataUnwritable(counter, error) => write!(
+                formatter,
+                "cannot write the checkpoint counter {}: {error}",
+                counter.display()
             ),
             Self::InitNoGit => write!(
                 formatter,

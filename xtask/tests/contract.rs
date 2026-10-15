@@ -70,6 +70,12 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
     let hooks: serde_json::Value =
         serde_json::from_str(&read(&repository, "dist/claude-code/hooks/hooks.json"))
             .expect("valid JSON");
+    let memory_hook = |variables: &str, subcommand: &str| {
+        serde_json::json!({
+            "type": "command",
+            "command": format!("[ \"$CLAUDE_PLUGIN_OPTION_MEMORY\" = false ] || TIGHTSHIP_VAULT=\"$CLAUDE_PLUGIN_OPTION_VAULT_FOLDER\" {variables}\"${{CLAUDE_PLUGIN_ROOT}}/bin/tightship\" hook {subcommand}"),
+        })
+    };
     assert_eq!(
         hooks,
         serde_json::json!({
@@ -86,6 +92,18 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
                             "command": "[ \"$CLAUDE_PLUGIN_OPTION_CONTRACT\" = false ] || [ \"$CLAUDE_PLUGIN_OPTION_MEMORY\" = false ] || cat \"${CLAUDE_PLUGIN_ROOT}/contract/memory.md\"",
                         },
                     ],
+                }, {
+                    "matcher": "startup|clear|compact",
+                    "hooks": [memory_hook("TIGHTSHIP_ENV_FILE=\"$CLAUDE_ENV_FILE\" ", "start")],
+                }, {
+                    "matcher": "resume|fork",
+                    "hooks": [memory_hook("TIGHTSHIP_ENV_FILE=\"$CLAUDE_ENV_FILE\" ", "export")],
+                }, {
+                    "matcher": "compact",
+                    "hooks": [memory_hook("", "checkpoint")],
+                }],
+                "UserPromptSubmit": [{
+                    "hooks": [memory_hook("TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" ", "prompt")],
                 }],
             },
         })
@@ -107,11 +125,18 @@ fn the_hooks_honor_the_options() {
     assert_eq!(commands.len(), 2);
     let part = read(&repository, "dist/claude-code/contract/part-1.md");
     let memory = read(&repository, "dist/claude-code/contract/memory.md");
+    fs::create_dir_all(repository.path("vault")).expect("a vault");
     let run = |command: &str, variables: &[(&str, &str)]| {
         let output = Command::new("sh")
             .arg("-c")
             .arg(command)
             .env("CLAUDE_PLUGIN_ROOT", repository.path("dist/claude-code"))
+            .env(
+                "CLAUDE_PLUGIN_OPTION_VAULT_FOLDER",
+                repository.path("vault"),
+            )
+            .env("CLAUDE_ENV_FILE", repository.path("env-file"))
+            .env("CLAUDE_PLUGIN_DATA", repository.path("data"))
             .env_remove("CLAUDE_PLUGIN_OPTION_CONTRACT")
             .env_remove("CLAUDE_PLUGIN_OPTION_MEMORY")
             .envs(variables.iter().copied())
@@ -129,6 +154,26 @@ fn the_hooks_honor_the_options() {
     let contract_off = [("CLAUDE_PLUGIN_OPTION_CONTRACT", "false")];
     assert_eq!(run(commands[0], &contract_off), "");
     assert_eq!(run(commands[1], &contract_off), "");
+
+    let memory_lines: Vec<&str> = hooks["hooks"]["SessionStart"]
+        .as_array()
+        .expect("the SessionStart groups")
+        .iter()
+        .chain(
+            hooks["hooks"]["UserPromptSubmit"]
+                .as_array()
+                .expect("the UserPromptSubmit groups"),
+        )
+        .skip(1)
+        .map(|group| group["hooks"][0]["command"].as_str().expect("a command"))
+        .collect();
+    assert_eq!(memory_lines.len(), 4);
+    for line in &memory_lines {
+        assert_eq!(run(line, &memory_off), "", "{line}");
+    }
+    assert!(!repository.path("env-file").exists());
+    assert!(!repository.path("data").exists());
+    assert!(run(memory_lines[0], &[]).starts_with("# Vault — curated cross-harness memory\n"));
 }
 
 #[test]
