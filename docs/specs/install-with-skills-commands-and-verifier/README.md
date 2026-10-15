@@ -4,4 +4,4 @@ Epic [#2](https://github.com/ATNexusLab/tightship/issues/2), milestone M1, sprin
 
 | Spec | Profile | Status |
 | --- | --- | --- |
-| [Install the plugin with its companions](install-the-plugin.md) | API | closed |
+| [Install the plugin with its companions](install-the-plugin.md) | API | published |

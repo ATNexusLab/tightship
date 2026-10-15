@@ -1,6 +1,6 @@
 # #2 — Install the plugin with its companions
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `harnesses/claude-code/`, `xtask/`
 > **Epic:** #2
@@ -414,6 +414,6 @@ harness's formats, described under Response.
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Install the plugin with its companions from the built catalog | `harnesses/claude-code/harness.toml` (`[[companions]]`), `xtask/src/harness.rs`, `xtask/src/claude_code.rs` (dependencies and catalog), `xtask/tests/build.rs` and its fixture in `xtask/tests/common/`, `AGENTS.md` (the install command), about 6 files | Scenarios 1, 11 and 12 by tests; 2 to 4 by an install in an isolated Claude Code configuration; 5 to 10 in a session | — |
+| # | Title | Scope | Acceptance criterion | Depends on | Issue |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Install the plugin with its companions from the built catalog | `harnesses/claude-code/harness.toml` (`[[companions]]`), `xtask/src/harness.rs`, `xtask/src/claude_code.rs` (dependencies and catalog), `xtask/tests/build.rs` and its fixture in `xtask/tests/common/`, `AGENTS.md` (the install command), about 6 files | Scenarios 1, 11 and 12 by tests; 2 to 4 by an install in an isolated Claude Code configuration; 5 to 10 in a session | — | #14 |
