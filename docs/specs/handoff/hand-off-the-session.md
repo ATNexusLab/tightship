@@ -1,6 +1,6 @@
 # #6 — Hand a session off through the vault
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `tightship/`, `content/`, `harnesses/claude-code/`, `xtask/`
 > **Epic:** #6
@@ -697,7 +697,7 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M1, #6:
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Release and claim the handoff in the binary | `tightship/src/vault/handoff.rs`, `tightship/src/vault.rs` (module), `tightship/src/vault/note.rs` (write a handoff), `tightship/src/vault/context.rs` (claim line), `tightship/src/failure.rs`, `tightship/src/main.rs` (subcommand, usage), `tightship/tests/handoff.rs`, `tightship/tests/hook.rs`, about 8 files | Scenarios 1 to 10 by tests | — |
-| 2 | Ship the handoff command, the option token, and the closeout's memory item | `content/commands/handoff.md`, `content/commands/closeout.md`, `content/contract.md`, `harnesses/claude-code/harness.toml`, `xtask/src/build/tokens.rs`, `xtask/src/build/references.rs`, `xtask/src/build/harness.rs`, `xtask/tests/build.rs`, `xtask/tests/contract.rs`, about 9 files | Scenarios 11 to 13 by tests; 14 to 20 in sessions of an isolated Claude Code configuration | 1 |
+| # | Issue | Title | Scope | Acceptance criterion | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| 1 | #32 | Release and claim the handoff in the binary | `tightship/src/vault/handoff.rs`, `tightship/src/vault.rs` (module), `tightship/src/vault/note.rs` (write a handoff), `tightship/src/vault/context.rs` (claim line), `tightship/src/failure.rs`, `tightship/src/main.rs` (subcommand, usage), `tightship/tests/handoff.rs`, `tightship/tests/hook.rs`, about 8 files | Scenarios 1 to 10 by tests | — |
+| 2 | #33 | Ship the handoff command, the option token, and the closeout's memory item | `content/commands/handoff.md`, `content/commands/closeout.md`, `content/contract.md`, `harnesses/claude-code/harness.toml`, `xtask/src/build/tokens.rs`, `xtask/src/build/references.rs`, `xtask/src/build/harness.rs`, `xtask/tests/build.rs`, `xtask/tests/contract.rs`, about 9 files | Scenarios 11 to 13 by tests; 14 to 20 in sessions of an isolated Claude Code configuration | 1 |
