@@ -15,12 +15,13 @@ Harness plugins are released one at a time, in this order, one milestone each:
 | M3 | Antigravity CLI |
 | M4 | Codex |
 
-Work on a harness starts only after the previous harness's plugin is released.
+Work on a harness may run alongside work on the harness before it, but its plugin is released only after
+that harness's plugin.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | Claude Code is where the workflow runs today, so it proves the canonical source first. Each later harness is resolved in its own turn. |
-| Source | Maintainer, elicitation 2026-10-14 |
+| Rationale | Claude Code is where the workflow runs today, so it proves the canonical source first. Each later harness is released in its own turn; building two side by side keeps the order of the releases, which is what an adopter sees. |
+| Source | Maintainer, elicitation 2026-10-14; parallel work by change request [#56](https://github.com/ATNexusLab/tightship/issues/56) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
