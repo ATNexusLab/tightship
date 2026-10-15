@@ -95,16 +95,17 @@ already states the rule or no longer has the default the rule cites.
 | Attribute | Value |
 | --- | --- |
 | Rationale | The plugin replaces the pre-plugin install, so a rule it drops is lost. |
-| Source | Maintainer, elicitation 2026-10-14 |
+| Source | Maintainer, elicitation 2026-10-14; changed by [#20](https://github.com/ATNexusLab/tightship/issues/20) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
-| Since | v1.0.0 |
+| Since | v1.0.0, changed in v1.2.0 |
 
 **Acceptance criteria**
 
 - **FR-CTR-04.1** — Given the baseline contract, when each of its rules is looked up in the shipped
-  contract, then each one is found, or is listed in the spec of M1 as personal with its reason, or as
+  contract, then each one is found, or is listed in the
+  [epic #4 spec](../../specs/contract/load-the-contract.md) as personal with its reason, or as
   changed for BR-05 with the companion's text.
 
 <a id="fr-ctr-05"></a>

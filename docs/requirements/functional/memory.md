@@ -50,12 +50,12 @@ session's context is compacted.
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
-| Since | v1.0.0 |
+| Since | v1.0.0, changed in v1.3.0 |
 
 **Acceptance criteria**
 
-- **FR-MEM-02.1** — Given memory is enabled, when the adopter sends the number of prompts the M1 spec
-  sets as the interval, then the agent receives a checkpoint.
+- **FR-MEM-02.1** — Given memory is enabled, when the adopter sends the number of prompts the
+  [epic #5 spec](../../specs/memory/keep-the-vault.md) sets as the interval, then the agent receives a checkpoint.
 - **FR-MEM-02.2** — Given memory is enabled, when the session's context is compacted, then the context
   that follows the compaction holds a checkpoint.
 
@@ -267,12 +267,13 @@ The system shall run no memory function while memory is disabled.
 > machine sees the notes the others wrote without my spelling out the git steps.
 
 The system shall, at the adopter's request, record the vault's local changes, take in the changes of the
-vault's git remote, and send the local changes to that remote.
+vault's git remote, give a new id to a local note whose id the remote already took, and send the local changes
+to that remote.
 
 | Attribute | Value |
 | --- | --- |
 | Rationale | Syncing takes a request in free text, and two machines that write before syncing give two notes the same id. |
-| Source | Maintainer, change request 2026-10-15 |
+| Source | Maintainer, change request [#23](https://github.com/ATNexusLab/tightship/issues/23) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |

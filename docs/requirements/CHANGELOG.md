@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.1 — 2026-10-15
+
+Editorial. No requirement changes meaning: the SRS now states what sprint 3 approved and shipped. Change
+request [#29](https://github.com/ATNexusLab/tightship/issues/29).
+
+**Changed**
+
+- FR-CTR-04 and FR-MEM-02 record the versions that changed them, and FR-CTR-04.1 and FR-MEM-02.1 cite the
+  epic #4 and epic #5 specs instead of "the spec of M1".
+- FR-MEM-11's statement gives a new id to a local note whose id the remote already took, as FR-MEM-11.3
+  checks. Its Source cites #23.
+- Glossary: Note and Vault folder.
+
 ## 1.4.0 — 2026-10-15
 
 Syncing the vault across machines took a request in free text, and two machines that wrote before syncing gave

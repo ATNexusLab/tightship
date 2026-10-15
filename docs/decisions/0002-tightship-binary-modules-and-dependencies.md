@@ -15,7 +15,7 @@ mixed together.
 The forces:
 
 - A hook adds at most 100 ms to a prompt at the 95th percentile
-  ([NFR-PERF-01](../requirements/non-functional/performance.md#nfr-perf-01)), and a hook that exits with 2
+  ([NFR-PERF-02](../requirements/non-functional/performance.md#nfr-perf-02)), and a hook that exits with 2
   blocks the prompt. The [epic #5 spec](../specs/memory/keep-the-vault.md) forbids exit code 2 everywhere.
 - The spec fixes every message, every exit code, and the usage text.
 - Every input and output of the binary has exactly one implementation: the file system, git run as a

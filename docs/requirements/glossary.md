@@ -11,6 +11,7 @@
 | Contract | The always-on text that tells the agent how to work in every session. |
 | Handoff | The one vault note per project that carries a session's state to the next session, on any machine or harness. |
 | Harness | An agent tool that runs a coding agent: Claude Code, Cursor, Antigravity CLI, or Codex. |
+| Note | One Markdown file under the vault's `notes/`, with front matter and an id unique in the vault. |
 | Option | A part of the plugin the adopter turns on or off: the contract, the memory layer, or the status line. |
 | Per-harness place | The folder of the repository where one harness's names, paths, and tools may appear: `harnesses/<harness>/`. |
 | Pinned note | A vault note marked to be listed at every session start. |
@@ -20,4 +21,5 @@
 | Status line | The line a harness shows under the prompt with the session's state. |
 | tightship | The plugin's name. Harnesses that namespace plugin pieces prefix each command with it, as in `/tightship:spec`. |
 | Vault | A git repository of curated notes shared across machines and harnesses. |
+| Vault folder | The setting where the adopter names the directory that holds the vault. |
 | Verifier | A read-only subagent that tries to refute a finding, a fix, or a claim that work is done. |

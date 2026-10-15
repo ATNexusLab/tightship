@@ -8,4 +8,4 @@ One folder per epic, one closed spec per feature, written by `/spec` before any 
 | [#2 Install with skills, commands and verifier](install-with-skills-commands-and-verifier/README.md) | [Install the plugin with its companions](install-with-skills-commands-and-verifier/install-the-plugin.md) | published |
 | [#3 Options](options/README.md) | [Choose, change, and keep the options](options/choose-the-options.md) | published |
 | [#4 Contract](contract/README.md) | [Load the contract into every session](contract/load-the-contract.md) | published |
-| [#5 Memory](memory/README.md) | [Keep curated notes in the adopter's vault](memory/keep-the-vault.md) | closed |
+| [#5 Memory](memory/README.md) | [Keep curated notes in the adopter's vault](memory/keep-the-vault.md) | published |

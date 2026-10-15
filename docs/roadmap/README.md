@@ -83,3 +83,4 @@ Every approved requirement of M1 maps to exactly one epic. M2 to M4 are planned 
 - [Sprint 1](sprints/sprint-01.md) — the canonical source builds the Claude Code plugin
 - [Sprint 2](sprints/sprint-02.md) — the adopter installs the plugin and chooses its options
 - [Sprint 3](sprints/sprint-03.md) — the contract in every session, and the memory layer
+- [Sprint 4](sprints/sprint-04.md) — handoff, status line, and the M1 release
