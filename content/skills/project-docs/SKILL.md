@@ -210,11 +210,12 @@ Done: #… · Carried over: #… → Sprint <N+1>, because <reason> · Back to b
   `/Applications/draw.io.app/Contents/MacOS/draw.io` on macOS, and `"C:\Program
   Files\draw.io\draw.io.exe"` on Windows. Without `--embed-diagram` the SVG can no longer be edited.
   Without `--svg-theme light` the SVG follows the reader's browser theme and turns black on a light page:
-  `grep -c light-dark <file>` is 0 and the root carries `color-scheme: light;`. Labels are plain text
-  (`html=0`) and the model has `background="#ffffff"`. No draw.io desktop on the machine → ask to install
-  it: `winget install JGraph.Draw` on Windows, `brew install --cask drawio` on macOS, and on Linux the
-  distribution's `drawio` package or the AppImage from `jgraph/drawio-desktop` releases. Never hand-write
-  the SVG half.
+  the root carries `color-scheme: light;`. draw.io 30 still writes `light-dark()` in every color, and that
+  root resolves each one to its light value, so the served site in dark is the check, never a grep. Labels
+  are plain text (`html=0`) and the model has `background="#ffffff"`. No draw.io desktop on the machine →
+  ask to install it: `winget install JGraph.Draw` on Windows, `brew install --cask drawio` on macOS, and on
+  Linux the distribution's `drawio` package or the AppImage from `jgraph/drawio-desktop` releases. Never
+  hand-write the SVG half.
 - **Architecture diagrams:** boxes labeled `<name>` + `[<technology>]` + a one-line responsibility; arrows
   labeled with what flows and the protocol. Built elements solid, later milestones dashed.
 - **Conceptual model in Chen notation** (the BR-Modelo look): entity = rectangle; weak entity = double
@@ -293,7 +294,8 @@ one.
   language of the docs.
 - **Both themes are verified.** On the served site, in light and in dark: the brand colors, every page's
   text and links, the logo, each diagram on its white card, and the viewer — click, zoom, drag, fit,
-  close.
+  close. A palette with no `media` ignores the system theme, so a browser forced dark still shows light:
+  switch with the site's own toggle and confirm `body[data-md-color-scheme]` is `slate`.
 - **`docs/README.md` is the home page.** A `docs/index.html` takes `/` from it and leaves the reader on
   a page with no sidebar and no search: it never exists.
 - **Every folder the home page links to has its own `README.md`.** A link to a folder without one is a
