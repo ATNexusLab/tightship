@@ -3,13 +3,13 @@
 [English](install.md) · Português
 
 O tightship depende de três plugins companheiros, cada um no seu próprio catálogo. Adicione esses três
-catálogos primeiro, depois o do tightship, e instale uma vez:
+catálogos primeiro, depois o do tightship, que é este repositório, e instale uma vez:
 
 ```sh
 claude plugin marketplace add DietrichGebert/ponytail
 claude plugin marketplace add ayghri/i-have-adhd
 claude plugin marketplace add blader/humanizer
-claude plugin marketplace add https://github.com/ATNexusLab/tightship/releases/latest/download/marketplace.json
+claude plugin marketplace add ATNexusLab/tightship
 claude plugin install tightship@tightship
 ```
 

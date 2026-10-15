@@ -3,13 +3,13 @@
 English · [Português](install.pt-BR.md)
 
 tightship depends on three companion plugins, each listed in its own catalog. Add those three catalogs first,
-then tightship's, then install once:
+then tightship's, which is this repository, then install once:
 
 ```sh
 claude plugin marketplace add DietrichGebert/ponytail
 claude plugin marketplace add ayghri/i-have-adhd
 claude plugin marketplace add blader/humanizer
-claude plugin marketplace add https://github.com/ATNexusLab/tightship/releases/latest/download/marketplace.json
+claude plugin marketplace add ATNexusLab/tightship
 claude plugin install tightship@tightship
 ```
 
