@@ -239,9 +239,10 @@ project behind either.
   - Every literal reference to a piece replaced by its token, such as `/requirements` by
     `{{command:requirements}}` and `` `testing-contract` `` by `{{skill:testing-contract}}`.
   - Every harness term replaced by a capability token. Reused: `area-instructions`, `explore-agent`,
-    `plan-mode`, `review-command`, `security-review-command`. New in `harness.toml`: `skill-tool`, rendered
-    "the Skill tool", and `instruction-files-precedence`, rendered "A `CLAUDE.md` or `CLAUDE.local.md` in a
-    directory, or any directory above it, stops Claude Code from reading the `AGENTS.md` there".
+    `harness-instructions-file`, `plan-mode`, `review-command`, `security-review-command`. New in
+    `harness.toml`: `skill-tool`, rendered "the Skill tool", and `instruction-files-precedence`, rendered "A
+    `CLAUDE.md` or `CLAUDE.local.md` in a directory, or any directory above it, stops Claude Code from reading
+    the `AGENTS.md` there".
   - The Git rule ends at "goes to the repo's `AGENTS.md`", and the Memory section gains "A reason worth
     keeping that belongs in no repo goes to the vault." The Closeout step of the dev loop reads "surface gates,
     docs, traceability, and security debt", since its memory item belongs to epic #5.
