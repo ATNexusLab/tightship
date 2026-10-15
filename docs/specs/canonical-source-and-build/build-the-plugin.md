@@ -280,6 +280,8 @@ repository can run them; only a push needs the maintainer's write access.
   - The memory item of `closeout` left out: its section `## 5. Memory`, the `- Memory:` line of its output
     block, and `memory` in its description.
   - Lines past 110 columns rewrapped, outside tables.
+  - The formatting markdownlint requires: blank lines around headings, lists and tables, a space inside
+    table pipes, and `text` on a code block with no language.
   - `Cursor-based` in `api-design` lowercased to `cursor-based`.
 - The pieces stay in English ([BR-03](../../requirements/business-rules.md#br-03)), as the baseline writes
   them.

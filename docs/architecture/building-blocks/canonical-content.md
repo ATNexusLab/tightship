@@ -9,7 +9,8 @@ matter between `+++` lines.
 
 **It never** names a harness, a harness path, or a harness tool
 ([NFR-FLEX-06](../../requirements/non-functional/flexibility.md#nfr-flex-06)), and never writes another piece's
-name literally. Both go through [tokens](../concepts/tokens.md).
+name literally. Both go through [tokens](../concepts/tokens.md). The build rejects a symbolic link in it, so
+no file from outside the repository ships. `.gitattributes` checks every file out with LF line endings.
 
 **To change it safely:** edit the one file, run `cargo xtask build`, and read the errors it lists. The
 front matter keys and every rule the build enforces are in the [epic #1 spec](../../specs/canonical-source-and-build/build-the-plugin.md).

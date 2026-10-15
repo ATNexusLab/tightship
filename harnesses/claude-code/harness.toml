@@ -1,0 +1,45 @@
+[plugin]
+name = "tightship"
+description = "Skills, a command per step of the development loop, and a read-only verifier"
+author = "ATNexusLab"
+repository = "https://github.com/ATNexusLab/tightship"
+
+[references]
+skill = "{plugin}:{name}"
+command = "/{plugin}:{name}"
+agent = "{plugin}:{name}"
+
+[access]
+read-only = "Read, Grep, Glob, Bash"
+
+[capabilities]
+plan-mode = "plan mode"
+plan-approval = "`ExitPlanMode`"
+
+[neutrality]
+names = ["Claude Code", "Claude", "Anthropic"]
+paths = [
+  ".claude/",
+  "~/.claude",
+  "CLAUDE.md",
+  "CLAUDE.local.md",
+  "CLAUDE_PLUGIN_ROOT",
+  "CLAUDE_PLUGIN_DATA",
+  "CLAUDE_PROJECT_DIR",
+]
+tools = [
+  "Skill tool",
+  "Agent tool",
+  "Task tool",
+  "AskUserQuestion",
+  "ExitPlanMode",
+  "EnterPlanMode",
+  "TodoWrite",
+  "WebFetch",
+  "WebSearch",
+  "Explore",
+  "general-purpose",
+  "/code-review",
+  "/security-review",
+  "$ARGUMENTS",
+]

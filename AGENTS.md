@@ -6,9 +6,10 @@ one canonical source in this repository. What it must do: [the SRS](docs/require
 ## Stack
 
 Rust in one Cargo workspace, with the canonical content in Markdown and TOML
-([ADR 0001](docs/decisions/0001-rust-build-and-tokenized-canonical-content.md)).
-The code arrives with the first task of epic #1; until then the repository holds only docs:
+([ADR 0001](docs/decisions/0001-rust-build-and-tokenized-canonical-content.md)):
 
+- The `xtask` crate: the build, run as `cargo xtask build`. The toolchain is pinned in
+  `rust-toolchain.toml`, and `rustup` installs it on the first `cargo` call.
 - Markdown, linted by `markdownlint-cli2`, configured in `.markdownlint-cli2.jsonc`.
 - Diagrams in draw.io, as `.drawio.svg`.
 - The local docs site on Zensical, configured in `zensical.toml`, run through `uvx`.
@@ -27,12 +28,15 @@ Rust for application code, for the build, and for every new script
 
 | Gate | Command | Status |
 | --- | --- | --- |
-| Static analysis | `npx markdownlint-cli2@0.23.3` | Runs on every `.md` |
-| Type checking | n/a | Arrives with the Rust workspace, epic #1 |
-| Formatting | n/a | Arrives with the Rust workspace, epic #1 |
+| Static analysis | `npx markdownlint-cli2@0.23.3` | Runs on every `.md` git does not ignore |
+| Static analysis | `cargo clippy --workspace --all-targets -- -D warnings` | Lints the Rust workspace |
+| Type checking | `cargo check --workspace --all-targets` | Type-checks the Rust workspace |
+| Formatting | `cargo fmt --all --check` | rustfmt defaults |
 | Build | `uvx zensical==0.0.70 build` | Builds the docs site into `site/` |
-| Tests | n/a | Arrives with the Rust workspace, epic #1 |
+| Build | `cargo xtask build` | Builds the Claude Code plugin into `dist/claude-code/` |
+| Tests | `cargo test --workspace` | The build's scenarios, over fixtures in a temporary folder |
 | Run | `uvx zensical==0.0.70 serve --open` | Serves the docs at `http://localhost:8000` |
+| Run | `claude --plugin-dir dist/claude-code` | Loads the built plugin in a session |
 
 ## Architecture
 
