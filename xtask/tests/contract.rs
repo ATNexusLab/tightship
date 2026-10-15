@@ -37,7 +37,7 @@ fn built_with_memory_gated() -> Repository {
             "[gated]\nMemory = \"memory\"\n",
             "# Working Contract\n\nThe preamble.\n\n## A\n\nRule A.\n\n## Memory\n\nUse the notes.\n\n## B\n\nRule B.\n\n### B.1\n\nA detail.\n\n## C\n\n```sh\n## not a heading\n```\n",
         ),
-        options(&["contract", "memory"]),
+        options(&["contract", "memory", "status_line"]),
     ]);
     assert_succeeds(&repository.run("build"));
     repository
@@ -101,6 +101,12 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
                 }, {
                     "matcher": "compact",
                     "hooks": [memory_hook("", "checkpoint")],
+                }, {
+                    "matcher": "startup",
+                    "hooks": [{
+                        "type": "command",
+                        "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
+                    }],
                 }],
                 "UserPromptSubmit": [{
                     "hooks": [memory_hook("TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" ", "prompt")],
@@ -159,6 +165,7 @@ fn the_hooks_honor_the_options() {
         .as_array()
         .expect("the SessionStart groups")
         .iter()
+        .take(4)
         .chain(
             hooks["hooks"]["UserPromptSubmit"]
                 .as_array()

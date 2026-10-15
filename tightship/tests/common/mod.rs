@@ -35,6 +35,9 @@ impl Sandbox {
             .env_remove("TIGHTSHIP_VAULT")
             .env_remove("TIGHTSHIP_ENV_FILE")
             .env_remove("TIGHTSHIP_DATA")
+            .env_remove("TIGHTSHIP_STATUS_LINE")
+            .env_remove("TIGHTSHIP_SETTINGS")
+            .env_remove("TIGHTSHIP_ROOT")
             .env("GIT_CONFIG_GLOBAL", self.write(".gitconfig", ""))
             .env("GIT_CONFIG_NOSYSTEM", "1");
         command

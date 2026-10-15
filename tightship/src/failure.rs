@@ -36,6 +36,12 @@ pub enum Failure {
     SyncConflict(PathBuf, Vec<String>),
     SyncGitFailed(PathBuf, &'static str, String),
     StatusInputInvalid(String),
+    StatusLineNotSet(&'static str),
+    SettingsUnreadable(PathBuf, io::Error),
+    SettingsInvalid(PathBuf),
+    SettingsUnwritable(PathBuf, io::Error),
+    StatusRecordInvalid(PathBuf),
+    StatusRecordUnwritable(PathBuf, io::Error),
     Usage(String),
 }
 
@@ -153,6 +159,35 @@ impl fmt::Display for Failure {
             Self::StatusInputInvalid(message) => write!(
                 formatter,
                 "the status line input is not a JSON object: {message}"
+            ),
+            Self::StatusLineNotSet(variable) => write!(
+                formatter,
+                "{variable} is not set; run the exact command the session start printed"
+            ),
+            Self::SettingsUnreadable(path, error) => write!(
+                formatter,
+                "cannot read the settings file {}: {error}",
+                path.display()
+            ),
+            Self::SettingsInvalid(path) => write!(
+                formatter,
+                "the settings file {} is not a JSON object; nothing changed",
+                path.display()
+            ),
+            Self::SettingsUnwritable(path, error) => write!(
+                formatter,
+                "cannot write the settings file {}: {error}; nothing changed",
+                path.display()
+            ),
+            Self::StatusRecordInvalid(path) => write!(
+                formatter,
+                "the status line record {} is damaged; delete it and start a new session",
+                path.display()
+            ),
+            Self::StatusRecordUnwritable(path, error) => write!(
+                formatter,
+                "cannot write the status line record {}: {error}",
+                path.display()
             ),
             Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", crate::USAGE),
         }

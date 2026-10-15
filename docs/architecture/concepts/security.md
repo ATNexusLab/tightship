@@ -26,6 +26,8 @@ From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.
   M1, #7). In the harness's own places, the plugin also writes, in the plugin's data folder, the checkpoint's
   prompt counter ([memory](memory.md), M1, #5) and `status-line.json` (M1, #7), and one `export` line per
   session in the session's environment file (M1, #5). The options' state is the harness's own: it keeps it in
-  its user settings ([options](options.md), M1, #3).
+  its user settings ([options](options.md), M1, #3). The user settings can hold secrets in their `env`, so
+  a rewrite keeps the file's permissions, and the temporary file beside it is readable only by the adopter
+  (M1, #7).
 
 The build writes only to `dist/`.
