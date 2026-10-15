@@ -65,7 +65,7 @@ changelog:
 
 | Command or trigger | Who | Idempotent | Effect |
 | --- | --- | --- | --- |
-| Pull request into `develop` or `main`, opened or pushed | Maintainer | Yes | `.github/workflows/ci.yml` runs every gate on the three systems |
+| Pull request into `develop` or `main`, opened or pushed | Maintainer | Yes | `.github/workflows/rust.yml`, `docs.yml`, and `scan.yml` run the gates the pull request's files call for |
 | `cargo xtask build` | Maintainer | Yes | Unchanged: the plugin with the binary of the machine that builds |
 | `cargo xtask build --binaries <folder>` | Release pipeline | Yes | The plugin with the four prebuilt binaries of `<folder>`, nothing compiled |
 | `cargo xtask package <tag>` | Release pipeline | Yes | `dist/tightship-claude-code.zip` and `dist/marketplace.json`, from a `dist/claude-code/` holding the four binaries |
@@ -93,16 +93,16 @@ copied to `dist/claude-code/bin/<platform>/`, with mode `0755` where the system 
 It reads `dist/claude-code/`, which must hold the four platform folders under `bin/`, and the
 `[plugin] repository` of `harnesses/claude-code/harness.toml`.
 
-#### `.github/workflows/ci.yml`
+#### The gate workflows, `.github/workflows/`
 
-| Key | Value |
-| --- | --- |
-| Trigger | `pull_request` into `develop` or `main` |
-| Systems | `ubuntu-latest`, `macos-latest`, `windows-latest`; on Windows, steps run in Git Bash |
-| On each system | `cargo clippy --workspace --all-targets -- -D warnings`, `cargo check --workspace --all-targets`, `cargo fmt --all --check`, `cargo xtask build`, `cargo test --workspace`, `cargo xtask scan` |
-| On Linux only | `npx markdownlint-cli2@0.23.3` and `uvx zensical==0.0.70 build`, whose result is the same on every system |
-| Before the gates | gitleaks 8.30.1 installed from its release; `git config user.name` and `user.email` set to the Actions bot; `.identity-terms` written from the repository secret `IDENTITY_TERMS`; the whole history and every branch fetched |
-| Permissions | `contents: read` |
+Each runs on a `pull_request` into `develop` or `main`, with `contents: read`. A workflow runs only when the
+pull request, compared with its base, touches one of its paths.
+
+| Workflow | Paths | Systems | Steps |
+| --- | --- | --- | --- |
+| `rust.yml` | `xtask/`, `tightship/`, `content/`, `harnesses/`, `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, itself | `ubuntu-latest`, `macos-latest`, `windows-latest`; on Windows, steps run in Git Bash | gitleaks 8.30.1 from its release, for the scan's tests; `git config user.name` and `user.email` set to the Actions bot; `.identity-terms` from the repository secret `IDENTITY_TERMS`, written only when the secret is set; `USER` cleared, since the runner's user name, `runner`, is a word the content uses; then `cargo clippy --workspace --all-targets -- -D warnings`, `cargo check --workspace --all-targets`, `cargo fmt --all --check`, `cargo xtask build`, `cargo test --workspace --no-fail-fast` |
+| `docs.yml` | Every `.md`, `docs/`, `zensical.toml`, `.markdownlint-cli2.jsonc`, itself | `ubuntu-latest` | `npx markdownlint-cli2@0.23.3`, `uvx zensical==0.0.70 build` |
+| `scan.yml` | Any, since a secret can enter through any file | `ubuntu-latest` | gitleaks 8.30.1, the whole history and every branch fetched, `cargo xtask scan` |
 
 #### `.github/workflows/release.yml`
 
@@ -240,8 +240,9 @@ Windows.
 ### 2. The gates hold on the three systems
 
 - **When:** a pull request into `develop` or `main` is opened or gets a push.
-- `ci.yml` runs every gate of `AGENTS.md` on Linux, macOS, and Windows. A gate that exits non-zero fails its
-  job, and the pull request shows a failed check.
+- `rust.yml` runs the Rust gates of `AGENTS.md` on Linux, macOS, and Windows when the pull request touches the
+  Rust workspace or the content it builds; `docs.yml` and `scan.yml` run the rest on Linux. A gate that exits
+  non-zero fails its job, and the pull request shows a failed check.
 - The merge waits for the three green jobs, by convention, as the branch rules of `AGENTS.md` are.
 
 ### 3. The pipeline builds from prebuilt binaries
@@ -367,16 +368,16 @@ Each message is printed on stderr after the prefix `error:`, as every xtask erro
 
 ```gherkin
 Given a pull request into develop whose gates pass on the maintainer's machine
-When GitHub runs ci.yml
-Then the jobs on ubuntu-latest, macos-latest, and windows-latest each succeed
-And each job ran cargo test --workspace, cargo xtask build, and cargo xtask scan
+When GitHub runs rust.yml and scan.yml
+Then the jobs of rust.yml on ubuntu-latest, macos-latest, and windows-latest each succeed
+And each job ran cargo xtask build and cargo test --workspace, and scan.yml ran cargo xtask scan
 ```
 
 ### Scenario 2 — A gate fails on one system (exception)
 
 ```gherkin
 Given a pull request with a test that fails only on Windows
-When GitHub runs ci.yml
+When GitHub runs rust.yml
 Then the windows-latest job fails at the step cargo test --workspace
 And the pull request shows a failed check
 ```
@@ -555,7 +556,7 @@ And the built plugin.json holds "license": "MIT"
 
 ```gherkin
 Given a pull request from a fork, which GitHub runs without the secret IDENTITY_TERMS
-When GitHub runs ci.yml
+When GitHub runs rust.yml
 Then each job fails at cargo xtask build with "error: .identity-terms is missing; create it with one line per
   name, email address, user name, and handle of the maintainer"
 ```
@@ -568,8 +569,8 @@ Applied to [docs/architecture/](../../architecture/README.md), marked M1, #8:
 
 - **Building blocks:**
   - Release pipeline: built at a tag, publishing a pre-release with the zip and the catalog.
-  - A new block, the gate pipeline, `.github/workflows/ci.yml`: every gate on the three systems at each pull
-    request.
+  - A new block, the gate pipeline, `.github/workflows/rust.yml`, `docs.yml`, and `scan.yml`: the gates each
+    pull request's files call for, the Rust ones on the three systems.
   - Build: the `--binaries` mode and the `package` command.
   - `tightship` binary: the launcher's Windows arm64 row and its restored executable bit.
 - **Deployment:** the catalog is a release asset at a fixed URL; the adopter's prerequisite Claude Code 2.1.295;
@@ -600,7 +601,7 @@ N/A — this epic stores no data. The options and the vault keep the model epics
 
 | # | Title | Scope | Acceptance criterion | Depends on | Issue |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Run the gates on macOS, Linux, and Windows at every pull request | `.github/workflows/ci.yml` (new), `tightship/launcher.sh` (Windows arm64, restored mode), `xtask/src/build/claude_code.rs` (hook lines through `sh`), `xtask/tests/build.rs`, `tightship/tests/launcher.rs` (new), `AGENTS.md` (the CI, the secret), plus each fix the three systems reveal in code of epics #1 to #5, about 7 files before those fixes | Scenarios 1, 2, 11 by the CI runs and tests; 21 by the build test without `.identity-terms`; 12 in an isolated Claude Code configuration | — | #36 |
+| 1 | Run the gates on macOS, Linux, and Windows at every pull request | `.github/workflows/rust.yml`, `docs.yml`, and `scan.yml` (new), `tightship/launcher.sh` (Windows arm64, restored mode), `xtask/src/build/claude_code.rs` (hook lines through `sh`), `xtask/tests/build.rs`, `tightship/tests/launcher.rs` (new), `AGENTS.md` (the CI, the secret), plus each fix the three systems reveal in code of epics #1 to #5, about 7 files before those fixes | Scenarios 1, 2, 11 by the CI runs and tests; 21 by the build test without `.identity-terms`; 12 in an isolated Claude Code configuration | — | #36 |
 | 2 | Publish a pre-release from a tag | `xtask/src/main.rs` (usage), `xtask/src/build.rs` and `xtask/src/build/binary.rs` (`--binaries`), `xtask/src/package.rs` (new), `xtask/Cargo.toml` and `Cargo.lock` (`zip`, `sha2`), `xtask/tests/build.rs`, `xtask/tests/package.rs` (new), `.github/workflows/release.yml` (new), `LICENSE` (new), `harnesses/claude-code/harness.toml` and `xtask/src/build/claude_code.rs` (`license`), `AGENTS.md` (commands), about 13 files | Scenarios 3 to 8 and 20 by tests; 9 and 10 by a tag pushed on a fork of the repository | 1 | #37 |
 | 3 | Write the Claude Code install guide | `docs/install/claude-code/` (8 new pages), `README.md` at the root (new), `docs/README.md` (a row), about 10 files; starts once epics #6 and #7 are merged into `develop` | Scenarios 15 on the maintainer's machine, 16 and 17 read at review | 2 | #38 |
 | 4 | Run the release checklist on the three systems | `docs/release/README.md` and `docs/release/checklist.md` (new), `Cargo.toml` (`1.0.0`), `docs/roadmap/` (M1 released), about 5 files; the tag and the promotion happen only at the maintainer's word | Scenarios 13, 14, 18, and 19 on macOS, Linux, and Windows at Claude Code 2.1.295 | 3 | #39 |

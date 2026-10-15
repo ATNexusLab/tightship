@@ -1,8 +1,17 @@
-name: CI
+name: Rust
 
 on:
   pull_request:
     branches: [develop, main]
+    paths:
+      - xtask/**
+      - tightship/**
+      - content/**
+      - harnesses/**
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
+      - .github/workflows/rust.yml
 
 permissions:
   contents: read
@@ -22,8 +31,6 @@ jobs:
     steps:
       - name: actions/checkout v7.0.1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          fetch-depth: 0
 
       - name: Install gitleaks 8.30.1
         run: |
@@ -66,18 +73,3 @@ jobs:
 
       - name: cargo test
         run: cargo test --workspace --no-fail-fast
-
-      - name: cargo xtask scan
-        run: cargo xtask scan
-
-      - name: markdownlint
-        if: runner.os == 'Linux'
-        run: npx markdownlint-cli2@0.23.3
-
-      - name: astral-sh/setup-uv v10.3.0
-        if: runner.os == 'Linux'
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
-
-      - name: zensical build
-        if: runner.os == 'Linux'
-        run: uvx zensical==0.0.70 build

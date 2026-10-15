@@ -45,11 +45,13 @@ Rust for application code, for the build, and for every new script
 | Run | `claude --plugin-dir dist/claude-code` | Loads the built plugin in a session |
 | Run | `claude plugin marketplace add ./dist/claude-code`, then `claude plugin install tightship@tightship` | Installs the built plugin with its companions, once the catalogs `DietrichGebert/ponytail`, `ayghri/i-have-adhd`, and `blader/humanizer` are added |
 
-`.github/workflows/ci.yml` runs every gate on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git
-Bash) at each pull request into `develop` or `main`; markdownlint and the docs build run on Linux only. It
-writes `.identity-terms` from the repository secret `IDENTITY_TERMS`, so a change to the file is copied there
-with `gh secret set IDENTITY_TERMS < .identity-terms`. The job clears `USER`: the build counts the system's user
-name as an identity term, and a runner's, `runner`, is a word the content uses.
+At each pull request into `develop` or `main`, `.github/workflows/` runs only the gates its files call for:
+`rust.yml` the Rust gates on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git Bash) when the
+workspace, `content/`, or `harnesses/` changes; `docs.yml` markdownlint and the docs build on Linux when
+Markdown or the docs site changes; `scan.yml` the scan on Linux every time. `rust.yml` writes `.identity-terms`
+from the repository secret `IDENTITY_TERMS`, so a change to the file is copied there with
+`gh secret set IDENTITY_TERMS < .identity-terms`. It clears `USER`: the build counts the system's user name as
+an identity term, and a runner's, `runner`, is a word the content uses.
 
 ## Architecture
 
