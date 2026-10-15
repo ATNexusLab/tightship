@@ -8,7 +8,8 @@ The per-harness place of
 may name a harness. Each one holds:
 
 - The plugin's manifest values.
-- How the harness names each kind of piece, such as `/{plugin}:{name}` for a command.
+- How the harness names each kind of piece, such as `/{plugin}:{name}` for a command, and how it renders an
+  option for a piece, `${user_config.{name}}` in Claude Code (M1, #6).
 - The text of every capability token.
 - The tools a read-only subagent gets.
 - The companion plugins the plugin depends on, each with the catalog that lists it (M1, #2).

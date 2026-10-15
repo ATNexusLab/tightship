@@ -17,7 +17,7 @@ option the adopter never set reaches no piece
 | Where | Reads | Never set |
 | --- | --- | --- |
 | A hook | The environment variable `CLAUDE_PLUGIN_OPTION_<NAME>`, `<NAME>` uppercased | Absent, so on |
-| A skill or an agent | Nothing: it never reads an option | The literal `${user_config.<name>}` would reach it |
+| A skill, a command, or an agent | The token `{{option:<name>}}`, rendered `${user_config.<name>}` (M1, #6) | The literal `${user_config.<name>}`, which is not `false`, so on |
 
 ## The vault folder
 
@@ -27,6 +27,7 @@ renders with the default `true`; a `directory` renders with no default, so a fol
 reaches the hooks as an absent variable, and memory then has no vault.
 
 A change reaches the hooks from the next session start. Each option's epic reads it this way: the contract
-in #4, whose [hooks](contract.md) are the first to read one, memory in #5 and #6, the status line in #7.
+in #4, whose [hooks](contract.md) are the first to read one, memory in #5 and #6, the status line in #7. The
+handoff command (#6) is the first piece to read one, to say memory is off.
 
 Every rule and error message: the [epic #3 spec](../../specs/options/choose-the-options.md).

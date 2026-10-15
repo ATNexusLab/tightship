@@ -1,6 +1,7 @@
 # Vault
 
-**Milestone:** M1, epic #5 · **Spec:** [keep the vault](../specs/memory/keep-the-vault.md)
+**Milestone:** M1, epics #5 and #6 · **Spec:** [keep the vault](../specs/memory/keep-the-vault.md),
+[hand off the session](../specs/handoff/hand-off-the-session.md)
 
 The [Vault](README.md#conceptual-model), [Note](README.md#conceptual-model), and
 [Scope](README.md#conceptual-model) entities as files. The vault is the adopter's git repository, in the
@@ -26,7 +27,7 @@ characters. Front matter, one `key: value` per line, a list as `[a, b]`:
 | Field | Type | Required | Domain | Written by |
 | --- | --- | --- | --- | --- |
 | `id` | string | Yes | `mem-` and four or more digits, unique in the vault | `tightship vault new`, the highest number plus one |
-| `type` | string | Yes | `preference`, `decision`, `gotcha`, `project`, or `handoff` | The agent; `handoff` only through epic #6 |
+| `type` | string | Yes | `preference`, `decision`, `gotcha`, `project`, or `handoff` | The agent; `handoff` only through `tightship vault handoff release` (#6) |
 | `project` | string | Yes | The scope; equal to the note's folder | The agent |
 | `why` | string | Yes | At least 5 words: what not knowing the note would cost | The agent |
 | `tags` | list of strings | No | Free words, searched like the body | The agent |
@@ -37,6 +38,24 @@ characters. Front matter, one `key: value` per line, a list as `[a, b]`:
 | `updated` | date | Yes | `YYYY-MM-DD`, when the fact was last revised | `tightship vault new`, today |
 
 The body opens with `# <title>`. A `[[<stem>]]` in it links another note by its file name without `.md`.
+
+## A handoff
+
+A note of type `handoff`, written only by `tightship vault handoff release` (M1, #6). Its front matter is `id`,
+`type: handoff`, `project`, `source: session`, `created`, and `updated`, and its `why` is always "without it the
+next session, on another machine or harness, starts blind on work already in flight". Its body opens with
+`# <title>`, then holds five parts, each label at the start of a line:
+
+| Label | Holds |
+| --- | --- |
+| `**Goal:**` | What the work is for, with the issue or plan it follows |
+| `**Done:**` | What is finished and verified |
+| `**Next step:**` | The one action the next session starts with |
+| `**Open decisions:**` | What waits for the adopter, or `none` |
+| `**Repo state:**` | The branch, clean or the dirty files, and each unpushed commit as `<short hash> <subject>` |
+
+A release removes the scope's other handoffs. Two machines that release before syncing leave two until the
+next claim, which prints and removes both.
 
 ## Outside the vault
 
