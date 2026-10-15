@@ -29,7 +29,7 @@ pub fn run() -> Result<(), Failure> {
     };
     let notes = note::read_all(&folder)?;
     let scope = project::scope(&folder)?;
-    let memory_context = context::render(&folder, &scope, &notes);
+    let (memory_context, _) = context::render(&folder, &scope, &notes);
     super::export_vault(&folder)?;
     print!("{memory_context}");
     Ok(())

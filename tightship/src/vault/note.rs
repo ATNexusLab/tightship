@@ -71,10 +71,67 @@ impl Note {
     }
 }
 
+pub struct NewNote<'arguments> {
+    pub scope: &'arguments str,
+    pub kind: &'arguments str,
+    pub title: &'arguments str,
+    pub why: &'arguments str,
+    pub tags: Vec<&'arguments str>,
+    pub pinned: bool,
+    pub source: &'arguments str,
+    pub created: String,
+    pub updated: String,
+    pub body: &'arguments str,
+}
+
+impl NewNote<'_> {
+    pub fn text(&self, id: &str) -> String {
+        let tags = if self.tags.is_empty() {
+            String::new()
+        } else {
+            format!("[{}]", self.tags.join(", "))
+        };
+        let pinned = if self.pinned { "true" } else { "" };
+        let fields = [
+            ("id", id),
+            ("type", self.kind),
+            ("project", self.scope),
+            ("why", self.why),
+            ("tags", &tags),
+            ("pinned", pinned),
+            ("source", self.source),
+            ("created", &self.created),
+            ("updated", &self.updated),
+        ];
+        let mut text = String::from("---\n");
+        for (key, value) in fields.iter().filter(|(_, value)| !value.is_empty()) {
+            text += &format!("{key}: {value}\n");
+        }
+        text + &format!("---\n\n# {}\n\n{}\n", self.title, self.body)
+    }
+}
+
+pub fn slug(title: &str) -> String {
+    let folded = deunicode::deunicode(title).to_lowercase();
+    let words: Vec<&str> = folded
+        .split(|character: char| !character.is_ascii_alphanumeric())
+        .filter(|word| !word.is_empty())
+        .collect();
+    words.join("-").chars().take(60).collect()
+}
+
+pub fn next_id(notes: &[Note]) -> String {
+    let highest = notes
+        .iter()
+        .map(|note| note.id_order().0)
+        .filter(|number| *number != u64::MAX)
+        .max()
+        .unwrap_or(0);
+    format!("mem-{:04}", highest + 1)
+}
+
 pub fn read_all(vault: &Path) -> Result<Vec<Note>, Failure> {
-    let mut files = Vec::new();
-    collect_markdown(vault, &vault.join("notes"), &mut files)?;
-    files.sort();
+    let files = markdown_files(vault, &vault.join("notes"))?;
     let mut notes = Vec::new();
     for relative in files {
         let text = fs::read_to_string(vault.join(&relative))
@@ -82,6 +139,13 @@ pub fn read_all(vault: &Path) -> Result<Vec<Note>, Failure> {
         notes.extend(Note::parse(relative, &text));
     }
     Ok(notes)
+}
+
+pub fn markdown_files(vault: &Path, folder: &Path) -> Result<Vec<PathBuf>, Failure> {
+    let mut files = Vec::new();
+    collect_markdown(vault, folder, &mut files)?;
+    files.sort();
+    Ok(files)
 }
 
 fn collect_markdown(vault: &Path, folder: &Path, files: &mut Vec<PathBuf>) -> Result<(), Failure> {
@@ -94,6 +158,9 @@ fn collect_markdown(vault: &Path, folder: &Path, files: &mut Vec<PathBuf>) -> Re
         let entry = entry.map_err(unreadable)?;
         let path = entry.path();
         if entry.file_type().map_err(unreadable)?.is_dir() {
+            if entry.file_name() == ".git" {
+                continue;
+            }
             collect_markdown(vault, &path, files)?;
         } else if path.extension().is_some_and(|extension| extension == "md") {
             let relative = path.strip_prefix(vault).unwrap_or(&path).to_path_buf();

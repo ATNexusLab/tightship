@@ -1,6 +1,7 @@
 use std::fs;
+use std::io::Write;
 use std::path::PathBuf;
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 
 use tempfile::TempDir;
 
@@ -68,4 +69,29 @@ pub fn assert_succeeds(output: &Output) {
         "stderr: {}",
         stderr_of(output)
     );
+}
+
+pub fn note(sandbox: &Sandbox, scope: &str, id: &str, extra: &str, body: &str) -> PathBuf {
+    sandbox.write(
+        &format!("vault/notes/{scope}/{id}-a-note.md"),
+        &format!(
+            "---\nid: {id}\ntype: gotcha\nproject: {scope}\nwhy: the {id} why costs real time\n{extra}source: session\ncreated: 2026-10-01\nupdated: 2026-10-01\n---\n\n# A note\n\n{body}\n"
+        ),
+    )
+}
+
+pub fn with_stdin(command: &mut Command, input: &str) -> Output {
+    let mut child = command
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("the command starts");
+    child
+        .stdin
+        .take()
+        .expect("a stdin")
+        .write_all(input.as_bytes())
+        .expect("the input");
+    child.wait_with_output().expect("the command ends")
 }

@@ -1,7 +1,10 @@
 pub mod context;
 pub mod init;
+pub mod lint;
+pub mod new;
 pub mod note;
 pub mod path;
+pub mod search;
 
 use std::env;
 use std::fs;

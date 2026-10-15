@@ -53,6 +53,14 @@ enum VaultCommand {
         #[arg(value_name = "folder")]
         folder: PathBuf,
     },
+    Search {
+        #[arg(long)]
+        everywhere: bool,
+        #[arg(value_name = "term", required = true)]
+        terms: Vec<String>,
+    },
+    New(vault::new::Arguments),
+    Lint,
 }
 
 fn main() -> ExitCode {
@@ -72,6 +80,11 @@ fn main() -> ExitCode {
     let ran = match arguments.area {
         Area::Vault(VaultCommand::Path) => vault::path::run(),
         Area::Vault(VaultCommand::Init { folder }) => vault::init::run(&folder),
+        Area::Vault(VaultCommand::Search { everywhere, terms }) => {
+            vault::search::run(&terms, everywhere)
+        }
+        Area::Vault(VaultCommand::New(arguments)) => vault::new::run(&arguments),
+        Area::Vault(VaultCommand::Lint) => vault::lint::run(),
         Area::Hook(HookCommand::Start) => hook::start::run(),
         Area::Hook(HookCommand::Export) => hook::export::run(),
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
@@ -84,10 +97,17 @@ fn main() -> ExitCode {
 }
 
 fn usage_problem(error: &clap::Error) -> String {
-    let context = |kind| match error.get(kind) {
-        Some(ContextValue::String(text)) => text.clone(),
-        Some(ContextValue::Strings(texts)) => texts.join(", "),
-        _ => String::new(),
+    let context = |kind| {
+        let texts = match error.get(kind) {
+            Some(ContextValue::String(text)) => vec![text.as_str()],
+            Some(ContextValue::Strings(texts)) => texts.iter().map(String::as_str).collect(),
+            _ => Vec::new(),
+        };
+        let names: Vec<&str> = texts
+            .iter()
+            .filter_map(|text| text.split_whitespace().next())
+            .collect();
+        names.join(", ")
     };
     match error.kind() {
         ErrorKind::InvalidSubcommand => {
@@ -98,6 +118,9 @@ fn usage_problem(error: &clap::Error) -> String {
         }
         ErrorKind::UnknownArgument => {
             format!("unknown argument {}", context(ContextKind::InvalidArg))
+        }
+        ErrorKind::InvalidValue => {
+            format!("{} needs a value", context(ContextKind::InvalidArg))
         }
         ErrorKind::MissingRequiredArgument => {
             format!("missing {}", context(ContextKind::InvalidArg))
@@ -110,6 +133,8 @@ fn usage_problem(error: &clap::Error) -> String {
 }
 
 fn report(failure: &Failure) -> ExitCode {
-    eprintln!("error: {failure}");
+    if !matches!(failure, Failure::LintFailed) {
+        eprintln!("error: {failure}");
+    }
     ExitCode::FAILURE
 }

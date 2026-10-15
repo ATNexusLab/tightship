@@ -6,7 +6,7 @@ use super::note::Note;
 const CAP: usize = 9000;
 const BRACKETS_RESERVE: usize = 200;
 
-pub fn render(vault: &Path, scope: &str, notes: &[Note]) -> String {
+pub fn render(vault: &Path, scope: &str, notes: &[Note]) -> (String, usize) {
     let vault = vault.display();
     let length = |text: &str| text.encode_utf16().count();
     let in_reach = |note: &&Note| [scope, "all"].contains(&note.field("project"));
@@ -121,5 +121,5 @@ pub fn render(vault: &Path, scope: &str, notes: &[Note]) -> String {
         text += "\n\n";
         text += &brackets.join("\n");
     }
-    text + "\n"
+    (text + "\n", cut)
 }

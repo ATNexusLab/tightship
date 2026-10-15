@@ -140,12 +140,12 @@ of epic #1 read it like every other file of `content/`.
 
 | Argument | Type | Required | Validation |
 | --- | --- | --- | --- |
-| `--scope` | string | Yes | 1 to 100 characters, with no `/`, no `\`, and no leading `.` |
+| `--scope` | string | Yes | 1 to 100 characters, with no `/`, no `\`, no leading `.`, and no control character: one folder name |
 | `--type` | string | Yes | `preference`, `decision`, `gotcha`, or `project` |
-| `--title` | string | Yes | 1 to 120 characters |
-| `--why` | string | Yes | At least 5 words, split on whitespace |
+| `--title` | string | Yes | 1 to 120 characters, once each run of whitespace, line breaks included, is one space |
+| `--why` | string | Yes | At least 5 words, split on whitespace; written as one line, each run of whitespace one space |
 | `--source` | string | Yes | `user`, `session`, or `repo` |
-| `--tags` | string | No | Comma-separated; each tag trimmed, empty ones dropped |
+| `--tags` | string | No | Comma-separated; each tag made one line like `--why`, empty ones dropped |
 | `--pin` | flag | No | Marks the note pinned |
 | `--created` | string | No | A date `YYYY-MM-DD`; today when absent |
 | Body | stdin | Yes | Not empty after trimming; never read from a terminal |
@@ -609,6 +609,7 @@ subcommands exit 1 too, which Claude Code reports without blocking.
 | `NOTE_CREATED_INVALID` | `1` | Rule 8 | "`` --created must be a date as YYYY-MM-DD ``" |
 | `NOTE_BODY_MISSING` | `1` | Rule 8 | "`` the note's body must arrive on stdin ``" |
 | `NOTE_EXISTS` | `1` | Rule 8 | "`` <path relative to the vault> already exists ``" |
+| `NOTE_UNWRITABLE` | `1` | Rule 8 | "`` cannot write <path relative to the vault>: <the system's message> ``" |
 | `INIT_NO_GIT` | `1` | Rule 10 | "`` git is not installed; a vault is a git repository, so nothing was created ``" |
 | `INIT_NOT_EMPTY` | `1` | Rule 10 | "`` <folder> already exists and is not an empty folder; nothing changed ``" |
 | `INIT_UNWRITABLE` | `1` | Rule 10 | "`` cannot write the vault at <folder>: <the system's message> ``" |
