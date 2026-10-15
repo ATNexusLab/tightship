@@ -148,7 +148,7 @@ Siga a [instalação](install.pt-BR.md) e passe a pasta do seu vault, do passo 2
 claude plugin install tightship@tightship --config vault_folder=/absolute/path/to/your/vault
 ```
 
-A primeira sessão pergunta se deve mostrar a status line do tightship. Responda sim para tê-la de volta.
+O primeiro início de sessão mostra a status line do tightship automaticamente.
 
 ## 7. Confira
 

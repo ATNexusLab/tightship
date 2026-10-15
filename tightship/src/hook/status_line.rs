@@ -1,5 +1,4 @@
 use std::env;
-use std::path::Path;
 
 use serde_json::Value;
 
@@ -43,21 +42,19 @@ pub fn run() -> Result<(), Failure> {
         return Ok(());
     }
     match record {
-        None => println!("{}", offer(&settings_path, &data, &root)),
+        None => {
+            settings::write_record(&data, &Record::On(user_settings.get("statusLine").cloned()))?;
+            user_settings.insert(
+                "statusLine".to_owned(),
+                serde_json::json!({ "type": "command", "command": settings::command_for(&root) }),
+            );
+            if let Err(failure) = settings::write_settings(&settings_path, &user_settings) {
+                settings::remove_record(&data)?;
+                return Err(failure);
+            }
+        }
         Some(Record::Declined) => {}
         Some(Record::On(_)) => settings::write_record(&data, &Record::Declined)?,
     }
     Ok(())
-}
-
-fn offer(settings_path: &Path, data: &Path, root: &Path) -> String {
-    let settings_path = super::quoted(settings_path);
-    let data = super::quoted(data);
-    let root = super::quoted(root);
-    format!(
-        "tightship can show its status line in this session. In your first reply, ask the adopter, word for word:
-\"tightship can show its status line under the prompt. It replaces the status line in your user settings, and turning the plugin's status_line option off brings yours back. Turn it on?\"
-On yes, run: TIGHTSHIP_SETTINGS={settings_path} TIGHTSHIP_DATA={data} TIGHTSHIP_ROOT={root} tightship status-line enable
-On no, run: TIGHTSHIP_DATA={data} tightship status-line decline"
-    )
 }
