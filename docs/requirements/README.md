@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 1.0.2 · **Date:** 2026-10-14 · [Changelog](CHANGELOG.md)
+**Version:** 1.1.0 · **Date:** 2026-10-14 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -61,7 +61,7 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-SKL-02](functional/skills.md#fr-skl-02) | Commands invocable | Must | approved | M1 |
 | [FR-SKL-03](functional/skills.md#fr-skl-03) | References resolve | Must | approved | M1 |
 | [FR-VER-01](functional/verifier.md#fr-ver-01) | Verifier can be dispatched | Must | approved | M1 |
-| [FR-VER-02](functional/verifier.md#fr-ver-02) | Verifier is read-only | Must | approved | M1 |
+| [FR-VER-02](functional/verifier.md#fr-ver-02) | Verifier changes only a private copy | Must | approved | M1 |
 | [FR-MEM-01](functional/memory.md#fr-mem-01) | Memory context at session start | Must | approved | M1 |
 | [FR-MEM-02](functional/memory.md#fr-mem-02) | Checkpoint reminder | Must | approved | M1 |
 | [FR-MEM-03](functional/memory.md#fr-mem-03) | Search the notes | Must | approved | M1 |

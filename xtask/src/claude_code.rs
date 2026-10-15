@@ -12,10 +12,16 @@ use crate::tokens::{self, Form};
 pub fn render(root: &Path, harness: &Harness, content: &Content) -> io::Result<(PathBuf, usize)> {
     let staging = root.join("dist").join(format!(".{}.tmp", harness.name));
     remove_if_present(&staging)?;
-    let mut written = vec![(
-        staging.join(".claude-plugin/plugin.json"),
-        manifest(root, harness)?.into_bytes(),
-    )];
+    let mut written = vec![
+        (
+            staging.join(".claude-plugin/plugin.json"),
+            manifest(root, harness)?.into_bytes(),
+        ),
+        (
+            staging.join(".claude-plugin/marketplace.json"),
+            catalog(harness)?.into_bytes(),
+        ),
+    ];
     for piece in &content.pieces {
         let file = match piece.kind {
             Kind::Agent => staging.join("agents").join(format!("{}.md", piece.name)),
@@ -90,6 +96,8 @@ fn manifest(root: &Path, harness: &Harness) -> io::Result<String> {
         description: &'harness str,
         author: Author<'harness>,
         repository: &'harness str,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        dependencies: Vec<String>,
     }
     let cargo_path = root.join("Cargo.toml");
     let cargo_text = fs::read_to_string(&cargo_path).map_err(naming(&cargo_path))?;
@@ -104,8 +112,57 @@ fn manifest(root: &Path, harness: &Harness) -> io::Result<String> {
             name: &plugin.author,
         },
         repository: &plugin.repository,
+        dependencies: harness
+            .companions
+            .iter()
+            .map(|companion| format!("{}@{}", companion.plugin, companion.marketplace))
+            .collect(),
     };
     Ok(serde_json::to_string_pretty(&manifest).map_err(io::Error::other)? + "\n")
+}
+
+fn catalog(harness: &Harness) -> io::Result<String> {
+    #[derive(Serialize)]
+    struct Owner<'harness> {
+        name: &'harness str,
+    }
+    #[derive(Serialize)]
+    struct Entry<'harness> {
+        name: &'harness str,
+        source: &'static str,
+        description: &'harness str,
+    }
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Catalog<'harness> {
+        name: &'harness str,
+        owner: Owner<'harness>,
+        description: &'harness str,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        allow_cross_marketplace_dependencies_on: Vec<&'harness str>,
+        plugins: [Entry<'harness>; 1],
+    }
+    let plugin = &harness.plugin;
+    let mut marketplaces = Vec::new();
+    for companion in &harness.companions {
+        if !marketplaces.contains(&companion.marketplace.as_str()) {
+            marketplaces.push(companion.marketplace.as_str());
+        }
+    }
+    let catalog = Catalog {
+        name: &plugin.name,
+        owner: Owner {
+            name: &plugin.author,
+        },
+        description: &plugin.description,
+        allow_cross_marketplace_dependencies_on: marketplaces,
+        plugins: [Entry {
+            name: &plugin.name,
+            source: "./",
+            description: &plugin.description,
+        }],
+    };
+    Ok(serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n")
 }
 
 fn document(piece: &Piece, harness: &Harness) -> io::Result<String> {

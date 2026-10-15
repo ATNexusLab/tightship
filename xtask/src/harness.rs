@@ -18,6 +18,8 @@ pub struct Harness {
     pub access: Access,
     pub capabilities: BTreeMap<String, String>,
     pub neutrality: Neutrality,
+    #[serde(default)]
+    pub companions: Vec<Companion>,
 }
 
 #[derive(Deserialize)]
@@ -27,6 +29,13 @@ pub struct Plugin {
     pub description: String,
     pub author: String,
     pub repository: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Companion {
+    pub plugin: String,
+    pub marketplace: String,
 }
 
 #[derive(Deserialize)]

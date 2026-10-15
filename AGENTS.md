@@ -41,6 +41,7 @@ Rust for application code, for the build, and for every new script
 | Tests | `cargo test --workspace` | The build's and the scan's scenarios, over fixtures in a temporary folder; needs gitleaks 8.30.1 |
 | Run | `uvx zensical==0.0.70 serve --open` | Serves the docs at `http://localhost:8000` |
 | Run | `claude --plugin-dir dist/claude-code` | Loads the built plugin in a session |
+| Run | `claude plugin marketplace add ./dist/claude-code`, then `claude plugin install tightship@tightship` | Installs the built plugin with its companions, once the catalogs `DietrichGebert/ponytail`, `ayghri/i-have-adhd`, and `blader/humanizer` are added |
 
 ## Architecture
 

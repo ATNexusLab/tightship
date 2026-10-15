@@ -11,6 +11,7 @@ may name a harness. Each one holds:
 - How the harness names each kind of piece, such as `/{plugin}:{name}` for a command.
 - The text of every capability token.
 - The tools a read-only subagent gets.
+- The companion plugins the plugin depends on, each with the catalog that lists it (M1, #2).
 - The denylist the neutrality check applies to the canonical content.
 
 **It never** holds a piece's text. A sentence that only one harness needs is a capability, and its text
