@@ -395,6 +395,7 @@ fn the_manifest_lists_the_companions_and_the_options_and_the_catalog_allows_them
             "description": "Your vault",
         })
     );
+    assert_eq!(manifest["license"], "MIT");
     assert_eq!(
         manifest["dependencies"],
         serde_json::json!([

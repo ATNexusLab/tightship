@@ -30,6 +30,7 @@ pub struct Plugin {
     pub description: String,
     pub author: String,
     pub repository: String,
+    pub license: String,
 }
 
 #[derive(Deserialize)]

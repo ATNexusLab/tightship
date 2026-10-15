@@ -1,4 +1,4 @@
-mod binary;
+pub mod binary;
 mod claude_code;
 mod content;
 mod contract;
@@ -19,8 +19,8 @@ use content::{Content, Kind};
 
 const HARNESS: &str = "claude-code";
 
-pub fn run(root: &Path) -> Result<String, Failure> {
-    let built = build_plugin(root);
+pub fn run(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure> {
+    let built = build_plugin(root, prebuilt);
     if built.is_err()
         && let Err(error) = claude_code::discard(root, HARNESS)
     {
@@ -29,9 +29,14 @@ pub fn run(root: &Path) -> Result<String, Failure> {
     built
 }
 
-fn build_plugin(root: &Path) -> Result<String, Failure> {
-    println!("> Reading content/");
+fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure> {
     let mut diagnostics = Vec::new();
+    if let Some(folder) = prebuilt {
+        println!("> Checking the binaries in {}", folder.display());
+        binary::check_prebuilt(folder, &mut diagnostics);
+        stop_on_errors(&mut diagnostics)?;
+    }
+    println!("> Reading content/");
     let content = content::read(root, &mut diagnostics)?;
     let harnesses = harness::read_all(root, &mut diagnostics)?;
     let harness_path = format!("harnesses/{HARNESS}/harness.toml");
@@ -52,14 +57,22 @@ fn build_plugin(root: &Path) -> Result<String, Failure> {
     };
     stop_on_errors(&mut diagnostics)?;
 
-    let platform = binary::platform()?;
-    println!("> Compiling tightship for {platform}");
-    let binary = binary::compile(platform)?;
+    let binaries = match prebuilt {
+        Some(folder) => {
+            println!("> Copying the four binaries from {}", folder.display());
+            binary::prebuilt(folder)
+        }
+        None => {
+            let platform = binary::platform()?;
+            println!("> Compiling tightship for {platform}");
+            vec![binary::compile(platform)?]
+        }
+    };
 
     println!("> Rendering {HARNESS} into dist/{HARNESS}/");
     let harness =
         harness.ok_or_else(|| io::Error::other(format!("{harness_path} could not be read")))?;
-    let (staging, files) = claude_code::render(root, harness, &content, &parts, &binary)?;
+    let (staging, files) = claude_code::render(root, harness, &content, &parts, &binaries)?;
 
     println!("> Scanning dist/{HARNESS}/ for identity terms");
     identity::check(root, &staging, &format!("dist/{HARNESS}"), &mut diagnostics)?;

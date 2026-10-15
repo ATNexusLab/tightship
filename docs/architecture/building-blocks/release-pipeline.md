@@ -1,6 +1,6 @@
 # Release pipeline
 
-**Lives in:** `.github/workflows/release.yml`, not built yet · **Technology:** GitHub Actions ·
+**Lives in:** `.github/workflows/release.yml` · **Technology:** GitHub Actions ·
 **Milestone:** M1, epic #8
 
 Runs when the maintainer pushes a tag `v<version>` on `main`. It builds the `tightship` binary on macOS, Linux,

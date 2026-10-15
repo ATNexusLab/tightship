@@ -17,7 +17,7 @@ pub fn render(
     harness: &Harness,
     content: &Content,
     parts: &[Part],
-    binary: &Binary,
+    binaries: &[Binary],
 ) -> io::Result<(PathBuf, usize)> {
     let staging = root.join("dist").join(format!(".{}.tmp", harness.name));
     remove_if_present(&staging)?;
@@ -65,10 +65,14 @@ pub fn render(
         launcher.clone(),
         include_bytes!("../../../tightship/launcher.sh").to_vec(),
     ));
-    let file_name = binary.path.file_name().unwrap_or_default();
-    let machine_binary = staging.join("bin").join(binary.platform).join(file_name);
-    let bytes = fs::read(&binary.path).map_err(naming(&binary.path))?;
-    written.push((machine_binary.clone(), bytes));
+    let mut executables = vec![launcher];
+    for binary in binaries {
+        let file_name = binary.path.file_name().unwrap_or_default();
+        let copy = staging.join("bin").join(binary.platform).join(file_name);
+        let bytes = fs::read(&binary.path).map_err(naming(&binary.path))?;
+        written.push((copy.clone(), bytes));
+        executables.push(copy);
+    }
     for (file, bytes) in &written {
         if let Some(folder) = file.parent() {
             fs::create_dir_all(folder).map_err(naming(folder))?;
@@ -76,7 +80,7 @@ pub fn render(
         fs::write(file, bytes).map_err(naming(file))?;
     }
     #[cfg(unix)]
-    for file in [&launcher, &machine_binary] {
+    for file in &executables {
         make_executable(file)?;
     }
     Ok((staging, written.len()))
@@ -131,6 +135,7 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
         description: &'harness str,
         author: Author<'harness>,
         repository: &'harness str,
+        license: &'harness str,
         #[serde(skip_serializing_if = "Vec::is_empty")]
         dependencies: Vec<String>,
         #[serde(
@@ -166,6 +171,7 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
             name: &plugin.author,
         },
         repository: &plugin.repository,
+        license: &plugin.license,
         dependencies: harness
             .companions
             .iter()

@@ -88,10 +88,11 @@ copied to `dist/claude-code/bin/<platform>/`, with mode `0755` where the system 
 
 | Argument | Type | Required | Validation |
 | --- | --- | --- | --- |
-| `<tag>` | string | Yes | Exactly `v` followed by the workspace's `version` in `Cargo.toml` |
+| `<tag>` | string | Yes | Exactly `v` followed by the `version` of the built `plugin.json`, the workspace's at build time |
 
-It reads `dist/claude-code/`, which must hold the four platform folders under `bin/`, and the
-`[plugin] repository` of `harnesses/claude-code/harness.toml`.
+It reads only `dist/claude-code/`, which must hold the four platform folders under `bin/`: the `version` and
+`repository` of its `plugin.json`, and its local catalog, whose entry gets the `archive` source. The tag is
+checked against the bytes it packs.
 
 #### The gate workflows, `.github/workflows/`
 
@@ -167,7 +168,7 @@ Unix mode `0755`, every other file `0644`, whatever system packs it.
 Output:
 
 ```text
-Packed dist/tightship-claude-code.zip (39 files) and dist/marketplace.json for v1.0.0.
+Packed dist/tightship-claude-code.zip (41 files) and dist/marketplace.json for v1.0.0.
 sha256: <64 lowercase hex digits>
 ```
 
