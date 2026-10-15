@@ -1,10 +1,15 @@
 mod claude_code;
 mod content;
 mod diagnostics;
+mod git;
 mod harness;
+mod identity;
 mod neutrality;
 mod references;
+mod secrets;
 mod tokens;
+mod vault_notes;
+mod words;
 
 use std::env;
 use std::fs;
@@ -30,10 +35,14 @@ impl From<io::Error> for Failure {
 
 fn main() -> ExitCode {
     let arguments: Vec<String> = env::args().skip(1).collect();
-    if arguments != ["build"] {
-        eprintln!("error: usage: cargo xtask build");
-        return ExitCode::FAILURE;
-    }
+    let command: fn(&Path) -> Result<String, Failure> = match arguments.as_slice() {
+        [name] if name == "build" => build,
+        [name] if name == "scan" => scan,
+        _ => {
+            eprintln!("error: usage: cargo xtask build|scan");
+            return ExitCode::FAILURE;
+        }
+    };
     let root = match workspace_root() {
         Ok(root) => root,
         Err(error) => {
@@ -41,24 +50,19 @@ fn main() -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
-    match build(&root) {
-        Ok(summary) => {
-            println!("{summary}");
-            println!("Try it: claude --plugin-dir dist/{HARNESS}");
+    match command(&root) {
+        Ok(result) => {
+            println!("{result}");
             ExitCode::SUCCESS
         }
-        Err(failure) => {
-            match failure {
-                Failure::Checks(diagnostics) => {
-                    for diagnostic in diagnostics {
-                        eprintln!("error: {diagnostic}");
-                    }
-                }
-                Failure::Io(error) => eprintln!("error: {error}"),
+        Err(Failure::Checks(diagnostics)) => {
+            for diagnostic in diagnostics {
+                eprintln!("error: {diagnostic}");
             }
-            if let Err(error) = claude_code::discard(&root, HARNESS) {
-                eprintln!("error: {error}");
-            }
+            ExitCode::FAILURE
+        }
+        Err(Failure::Io(error)) => {
+            eprintln!("error: {error}");
             ExitCode::FAILURE
         }
     }
@@ -85,6 +89,16 @@ fn workspace_root() -> io::Result<PathBuf> {
 }
 
 fn build(root: &Path) -> Result<String, Failure> {
+    let built = build_plugin(root);
+    if built.is_err()
+        && let Err(error) = claude_code::discard(root, HARNESS)
+    {
+        eprintln!("error: {error}");
+    }
+    built
+}
+
+fn build_plugin(root: &Path) -> Result<String, Failure> {
     println!("> Reading content/");
     let mut diagnostics = Vec::new();
     let content = content::read(root, &mut diagnostics)?;
@@ -97,18 +111,44 @@ fn build(root: &Path) -> Result<String, Failure> {
     println!("> Checking references and harness neutrality");
     references::check(&content, &harnesses, &mut diagnostics);
     neutrality::check(&content, &harnesses, &mut diagnostics);
-    if !diagnostics.is_empty() {
-        diagnostics.sort();
-        return Err(Failure::Checks(diagnostics));
-    }
+    stop_on_errors(&mut diagnostics)?;
 
     println!("> Rendering {HARNESS} into dist/{HARNESS}/");
     let harness = harnesses
         .iter()
         .find(|harness| harness.name == HARNESS)
         .ok_or_else(|| io::Error::other(format!("{harness_path} could not be read")))?;
-    let files = claude_code::render(root, harness, &content)?;
-    Ok(summary(&content, files))
+    let (staging, files) = claude_code::render(root, harness, &content)?;
+
+    println!("> Scanning dist/{HARNESS}/ for identity terms");
+    identity::check(root, &staging, &format!("dist/{HARNESS}"), &mut diagnostics)?;
+    stop_on_errors(&mut diagnostics)?;
+    claude_code::publish(root, &staging, HARNESS)?;
+    Ok(format!(
+        "{}\nTry it: claude --plugin-dir dist/{HARNESS}",
+        summary(&content, files)
+    ))
+}
+
+fn scan(root: &Path) -> Result<String, Failure> {
+    println!(
+        "> Scanning the git history for secrets (gitleaks {})",
+        secrets::GITLEAKS_VERSION
+    );
+    let mut diagnostics = Vec::new();
+    let commits = secrets::check(root, &mut diagnostics)?;
+    println!("> Looking for vault notes in the working tree");
+    vault_notes::check(root, &mut diagnostics)?;
+    stop_on_errors(&mut diagnostics)?;
+    Ok(format!("No secret in {commits} commits. No vault note."))
+}
+
+fn stop_on_errors(diagnostics: &mut Vec<Diagnostic>) -> Result<(), Failure> {
+    if diagnostics.is_empty() {
+        return Ok(());
+    }
+    diagnostics.sort();
+    Err(Failure::Checks(std::mem::take(diagnostics)))
 }
 
 fn summary(content: &Content, files: usize) -> String {

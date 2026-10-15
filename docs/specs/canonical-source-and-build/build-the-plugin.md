@@ -259,6 +259,8 @@ repository can run them; only a push needs the maintainer's write access.
   written with `/` and with `\`, and every non-blank line of `.identity-terms`.
 - Matching ignores case. A term that starts and ends with a letter or digit matches only as a whole word.
 - A match fails with `IDENTITY_FOUND`, which names the file and line and never prints the term.
+- A file or folder whose name holds a term fails with `IDENTITY_FOUND` on the folder that holds it, so the
+  name is never printed either.
 - A missing `.identity-terms` fails with `IDENTITY_TERMS_MISSING`. An empty `user.name` or `user.email` fails
   with `GIT_IDENTITY_MISSING`.
 
@@ -329,6 +331,7 @@ Every message goes to stderr, prefixed by `error:` and a space. `<path>` is rela
 | `IDENTITY_TERMS_MISSING` | `1` | Rule 7 | "`.identity-terms is missing; create it with one line per name, email address, user name, and handle of the maintainer`" |
 | `GIT_IDENTITY_MISSING` | `1` | Rule 7 | "`git config user.name or user.email is empty`" |
 | `IDENTITY_FOUND` | `1` | Rule 7 | "`<path>:<line>: holds an identity term of the maintainer`" |
+| `IDENTITY_FOUND` | `1` | Rule 7 | "`<folder>: holds a file or folder named with an identity term of the maintainer`" |
 | `GITLEAKS_MISSING` | `1` | Rule 8 | "`gitleaks is not on the PATH; install 8.30.1 from https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1`" |
 | `GITLEAKS_VERSION` | `1` | Rule 8 | "`gitleaks <found> found; 8.30.1 is required`" |
 | `SECRET_FOUND` | `1` | Rule 8 | "`gitleaks found <count> secrets in the history; its redacted report is above`" |

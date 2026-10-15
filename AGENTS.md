@@ -8,8 +8,11 @@ one canonical source in this repository. What it must do: [the SRS](docs/require
 Rust in one Cargo workspace, with the canonical content in Markdown and TOML
 ([ADR 0001](docs/decisions/0001-rust-build-and-tokenized-canonical-content.md)):
 
-- The `xtask` crate: the build, run as `cargo xtask build`. The toolchain is pinned in
-  `rust-toolchain.toml`, and `rustup` installs it on the first `cargo` call.
+- The `xtask` crate: the build, run as `cargo xtask build`, and the repository scan, run as `cargo xtask scan`.
+  The toolchain is pinned in `rust-toolchain.toml`, and `rustup` installs it on the first `cargo` call.
+- gitleaks 8.30.1 on the `PATH`, for `cargo xtask scan`.
+- `.identity-terms` at the root of each clone that builds, ignored by git: one line per name, email address,
+  user name, and handle of the maintainer.
 - Markdown, linted by `markdownlint-cli2`, configured in `.markdownlint-cli2.jsonc`.
 - Diagrams in draw.io, as `.drawio.svg`.
 - The local docs site on Zensical, configured in `zensical.toml`, run through `uvx`.
@@ -30,11 +33,12 @@ Rust for application code, for the build, and for every new script
 | --- | --- | --- |
 | Static analysis | `npx markdownlint-cli2@0.23.3` | Runs on every `.md` git does not ignore |
 | Static analysis | `cargo clippy --workspace --all-targets -- -D warnings` | Lints the Rust workspace |
+| Static analysis | `cargo xtask scan` | gitleaks over every commit of every branch, and no tracked vault note |
 | Type checking | `cargo check --workspace --all-targets` | Type-checks the Rust workspace |
 | Formatting | `cargo fmt --all --check` | rustfmt defaults |
 | Build | `uvx zensical==0.0.70 build` | Builds the docs site into `site/` |
 | Build | `cargo xtask build` | Builds the Claude Code plugin into `dist/claude-code/` |
-| Tests | `cargo test --workspace` | The build's scenarios, over fixtures in a temporary folder |
+| Tests | `cargo test --workspace` | The build's and the scan's scenarios, over fixtures in a temporary folder; needs gitleaks 8.30.1 |
 | Run | `uvx zensical==0.0.70 serve --open` | Serves the docs at `http://localhost:8000` |
 | Run | `claude --plugin-dir dist/claude-code` | Loads the built plugin in a session |
 

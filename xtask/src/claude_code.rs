@@ -1,6 +1,6 @@
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +9,7 @@ use crate::diagnostics::naming;
 use crate::harness::Harness;
 use crate::tokens::{self, Form};
 
-pub fn render(root: &Path, harness: &Harness, content: &Content) -> io::Result<usize> {
+pub fn render(root: &Path, harness: &Harness, content: &Content) -> io::Result<(PathBuf, usize)> {
     let staging = root.join("dist").join(format!(".{}.tmp", harness.name));
     remove_if_present(&staging)?;
     let mut written = vec![(
@@ -44,10 +44,13 @@ pub fn render(root: &Path, harness: &Harness, content: &Content) -> io::Result<u
         }
         fs::write(file, bytes).map_err(naming(file))?;
     }
-    let target = root.join("dist").join(&harness.name);
+    Ok((staging, written.len()))
+}
+
+pub fn publish(root: &Path, staging: &Path, harness_name: &str) -> io::Result<()> {
+    let target = root.join("dist").join(harness_name);
     remove_if_present(&target)?;
-    fs::rename(&staging, &target).map_err(naming(&target))?;
-    Ok(written.len())
+    fs::rename(staging, &target).map_err(naming(&target))
 }
 
 pub fn discard(root: &Path, harness_name: &str) -> io::Result<()> {

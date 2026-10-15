@@ -1,6 +1,7 @@
 use crate::content::Content;
 use crate::diagnostics::Diagnostic;
 use crate::harness::Harness;
+use crate::words::is_part_of_a_word;
 
 pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Diagnostic>) {
     for file in &content.files {
@@ -38,16 +39,4 @@ fn terms_found<'harness>(line: &str, harness: &'harness Harness) -> Vec<&'harnes
         })
         .map(|(_, _, term)| *term)
         .collect()
-}
-
-fn is_part_of_a_word(line: &str, start: usize, term: &str) -> bool {
-    let is_word_character = |character: char| character.is_alphanumeric() || character == '_';
-    let whole_word_only =
-        term.starts_with(char::is_alphanumeric) && term.ends_with(char::is_alphanumeric);
-    if !whole_word_only {
-        return false;
-    }
-    let before = line[..start].chars().next_back();
-    let after = line[start + term.len()..].chars().next();
-    before.is_some_and(is_word_character) || after.is_some_and(is_word_character)
 }
