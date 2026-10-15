@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.5.0 — 2026-10-15
+
+BR-05 could not be checked: it named no version of the companions, whose rules change between versions, and
+it had no acceptance criterion. Change request [#30](https://github.com/ATNexusLab/tightship/issues/30).
+
+**Added**
+
+- BR-05.1 compares each rule of the shipped contract and pieces with the companions at the versions the
+  plugin's manifest declares.
+
+**Changed**
+
+- BR-05 holds against the version of each companion the plugin installs.
+
 ## 1.4.1 — 2026-10-15
 
 Editorial. No requirement changes meaning: the SRS now states what sprint 3 approved and shipped. Change

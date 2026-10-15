@@ -78,14 +78,19 @@ itself where the harness allows it ([FR-INS-02](functional/install.md#fr-ins-02)
 
 ## BR-05 — Companion plugins own their rules
 
-The workflow states no rule and ships no function that ponytail, i-have-adhd, or humanizer already
-provides.
+The workflow states no rule and ships no function that ponytail, i-have-adhd, or humanizer provides at the
+version the plugin installs.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | A rule kept in two products diverges. |
-| Source | Maintainer, elicitation 2026-10-14 |
+| Rationale | A rule kept in two products diverges. A companion's rules change between versions, so the comparison holds only against the version the plugin installs. |
+| Source | Maintainer, elicitation 2026-10-14; change request [#30](https://github.com/ATNexusLab/tightship/issues/30) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
-| Since | v1.0.0 |
+| Since | v1.0.0, changed in v1.5.0 |
+
+**Acceptance criteria**
+
+- **BR-05.1** — Given the shipped contract and pieces, when each rule is compared with the companions at the
+  versions the plugin's manifest declares, then no rule restates one a companion states.
