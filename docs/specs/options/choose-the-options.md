@@ -1,9 +1,9 @@
 # #3 — Choose, change, and keep the options
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `content/`, `xtask/`
-> **Epic:** —
+> **Epic:** #3
 > **Requirements:** FR-INS-03, FR-INS-04, FR-INS-05, FR-INS-06
 > **Sprint:** 2
 
@@ -433,6 +433,6 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M1, #3:
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Declare the options and let the harness keep them | `content/options.toml` (new), `xtask/src/options.rs` (new: read and check), `xtask/src/content.rs` (accept the file), `xtask/src/claude_code.rs` (`userConfig`), `xtask/src/main.rs`, `xtask/tests/build.rs` and its fixture in `xtask/tests/common/`, about 7 files; built on epic #2's #14, which writes `dependencies` | Scenarios 1 and 8 to 13 by tests; 2, 3, 5 to 7 by an install in an isolated Claude Code configuration, the hook of scenario 5 being a throwaway one in a copy of `dist/claude-code/`; 4 in a session | — |
+| # | Title | Scope | Acceptance criterion | Depends on | Issue |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Declare the options and let the harness keep them | `content/options.toml` (new), `xtask/src/options.rs` (new: read and check), `xtask/src/content.rs` (accept the file), `xtask/src/claude_code.rs` (`userConfig`), `xtask/src/main.rs`, `xtask/tests/build.rs` and its fixture in `xtask/tests/common/`, about 7 files; built on epic #2's #14, which writes `dependencies` | Scenarios 1 and 8 to 13 by tests; 2, 3, 5 to 7 by an install in an isolated Claude Code configuration, the hook of scenario 5 being a throwaway one in a copy of `dist/claude-code/`; 4 in a session | — | #15 |
