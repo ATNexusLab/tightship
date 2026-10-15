@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7.0 — 2026-10-15
+
+The documents an adopter or a contributor reads first get a Brazilian Portuguese translation, decided by the
+maintainer on 2026-10-15. English stays the version that prevails.
+
+**Changed**
+
+- BR-03: the root `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and the install
+  guides also have a `<file>.pt-BR.md` translation, updated in the same change as the English.
+
 ## 1.6.1 — 2026-10-15
 
 Editorial. No requirement changes meaning. The repository takes pull requests from outside contributors.

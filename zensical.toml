@@ -5,15 +5,20 @@ extra_css = ["stylesheets/docs-theme.css", "stylesheets/image-viewer.css"]
 extra_javascript = [{ path = "javascripts/image-viewer.js", type = "module" }]
 
 [project.theme]
-logo = "assets/logo.svg"
-favicon = "assets/logo.svg"
+logo = "design/brand/logo.svg"
+favicon = "design/brand/logo.svg"
+font.text = "Barlow"
 
 [[project.theme.palette]]
 scheme = "default"
+primary = "custom"
+accent = "custom"
 toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
 
 [[project.theme.palette]]
 scheme = "slate"
+primary = "custom"
+accent = "custom"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"

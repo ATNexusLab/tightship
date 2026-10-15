@@ -1,6 +1,6 @@
-# Workflow documentation
+# tightship documentation
 
-The internal docs of the workflow plugin. Every folder opens on its own `README.md`, on GitHub, in
+The docs of the tightship plugin. Every folder opens on its own `README.md`, on GitHub, in
 VS Code, or on the local site.
 
 | Doc | What it holds |
@@ -12,8 +12,7 @@ VS Code, or on the local site.
 | [Roadmap](roadmap/README.md) | The milestones, their epics, requirement coverage, and each sprint's plan |
 | [Specs](specs/README.md) | One closed spec per feature, grouped by epic |
 | [Decisions](decisions/README.md) | The architecture decision records |
-
-The product has no interface, so there is no design doc.
+| [Design](design/README.md) | The brand, its voice and assets, and the tokens |
 
 ## Local site
 

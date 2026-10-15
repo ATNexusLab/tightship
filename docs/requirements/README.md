@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 1.6.1 · **Date:** 2026-10-15 · [Changelog](CHANGELOG.md)
+**Version:** 1.7.0 · **Date:** 2026-10-15 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -100,6 +100,6 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [NFR-PERF-02](non-functional/performance.md#nfr-perf-02) | Per-prompt overhead | Should | approved | M1 |
 | [BR-01](business-rules.md#br-01) | Harness order and milestones | Must | approved | M1 |
 | [BR-02](business-rules.md#br-02) | One place to edit | Must | approved | M1 |
-| [BR-03](business-rules.md#br-03) | English content | Must | approved | M1 |
+| [BR-03](business-rules.md#br-03) | English content, with Portuguese translations | Must | approved | M1 |
 | [BR-04](business-rules.md#br-04) | The companion plugins are required | Must | approved | M1 |
 | [BR-05](business-rules.md#br-05) | Companion plugins own their rules | Must | approved | M1 |

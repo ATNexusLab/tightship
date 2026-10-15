@@ -18,6 +18,7 @@ Rust in one Cargo workspace, with the canonical content in Markdown and TOML
   user name, and handle of the maintainer.
 - Markdown, linted by `markdownlint-cli2`, configured in `.markdownlint-cli2.jsonc`.
 - Diagrams in draw.io, as `.drawio.svg`.
+- Brand assets as SVG written by hand, in `docs/design/brand/`; the wordmark's letters are outlines.
 - The local docs site on Zensical, configured in `zensical.toml`, run through `uvx`.
 
 ## Programming languages & scripts
@@ -83,7 +84,10 @@ The map: [docs/architecture/](docs/architecture/README.md).
 ## Language
 
 English throughout the repository: code, file names, docs, commits, branches, issues
-([BR-03](docs/requirements/business-rules.md#br-03)).
+([BR-03](docs/requirements/business-rules.md#br-03)). English prevails. The root `README.md`,
+`CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and every page of `docs/install/` also have a
+Brazilian Portuguese `<file>.pt-BR.md` next to them. A change to one of those English files updates its
+translation in the same commit.
 
 ## Gotchas
 
