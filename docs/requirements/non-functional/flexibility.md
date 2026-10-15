@@ -111,7 +111,8 @@ The system shall run with the same behavior on macOS, Linux, and Windows without
 ## NFR-FLEX-06 — Harness-neutral canonical content
 
 The system shall keep every name of a harness, its paths, and its tools out of the canonical content,
-except in the places the M1 ADR sets apart for each harness.
+except in the per-harness places [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.md)
+sets apart.
 
 | Attribute | Value |
 | --- | --- |

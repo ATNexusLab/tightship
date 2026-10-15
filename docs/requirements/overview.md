@@ -22,13 +22,17 @@
   | Codex | 0.162.1 | M4 |
 
   The minimum supported version of each harness is [OQ-04](open-questions.md#oq-04).
-- **Adopter prerequisites:** not decided. They follow from the stack ([OQ-02](open-questions.md#oq-02)).
-  The vault is a git repository, so the memory option needs git.
+- **Adopter prerequisites:** nothing on macOS and Linux; Git for Windows on Windows, so that the plugin's
+  hooks run under Git Bash. The vault is a git repository, so the memory option needs git on every system
+  ([ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)).
 
 ## Constraints
 
-None verified yet. Each harness's plugin limits are read in its own documentation and checked against
-the installed version by that harness's spec.
+- The plugin connects only to the git remote of the adopter's vault, and writes only to the vault, the
+  harness's persistent plugin data folder, and the harness's settings file for the status line, with consent
+  ([ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)).
+- Each harness's plugin limits are read in its own documentation and checked against the installed version
+  by that harness's spec.
 
 ## Assumptions and dependencies
 

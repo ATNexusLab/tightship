@@ -3,8 +3,8 @@
 The product has no database. Its data is the adopter's vault, a git repository of notes, and the state
 of each option in the adopter's harness. The model below comes from the
 [memory](../requirements/functional/memory.md) and [installation](../requirements/functional/install.md)
-requirements. The logical and physical models and the storage are pending the M1 ADR, which decides the
-file formats ([OQ-02](../requirements/open-questions.md#oq-02)).
+requirements. The logical and physical models and the storage are drawn by the epics that define the
+file formats: the options in #3, notes and handoffs in #5 and #6.
 
 ## Conceptual model
 

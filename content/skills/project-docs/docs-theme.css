@@ -1,0 +1,22 @@
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: <primary>;
+  --md-primary-fg-color--light: <primary light>;
+  --md-primary-fg-color--dark: <primary dark>;
+  --md-primary-bg-color: <text on primary>;
+  --md-accent-fg-color: <accent>;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: <primary in dark>;
+  --md-primary-fg-color--light: <primary light in dark>;
+  --md-primary-fg-color--dark: <primary dark in dark>;
+  --md-primary-bg-color: <text on primary in dark>;
+  --md-accent-fg-color: <accent in dark>;
+}
+
+[data-md-color-scheme="slate"] .md-content img[src$=".drawio.svg"] {
+  padding: 12px;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 8px;
+  background: #ffffff;
+}

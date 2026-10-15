@@ -1,11 +1,8 @@
 # Architecture
 
-The map of the system, in the sections of arc42, with C4 diagrams. The structure inside the plugin is
-not decided yet: the M1 ADR settles it, together with the stack
-([OQ-02](../requirements/open-questions.md#oq-02)), the plugin's network and disk reach
-([OQ-03](../requirements/open-questions.md#oq-03)), and how canonical content names a harness capability
-([OQ-09](../requirements/open-questions.md#oq-09)). Until then, this page holds only what the
-requirements already fix.
+The map of the system, in the sections of arc42, with C4 diagrams. The structure follows
+[ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md). Everything not built yet
+is drawn dashed, with the milestone and epic that builds it.
 
 ## Introduction and goals
 
@@ -48,15 +45,37 @@ Out of scope: [the SRS's list](../requirements/README.md#scope).
 
 ## Solution strategy
 
-Pending the M1 ADR.
+From [ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md):
 
-## Building blocks, runtime, deployment, and crosscutting concepts
+- **One authored copy, many plugins.** Every piece is one Markdown file under `content/`; a build renders
+  it into each harness's plugin under `dist/`, which is never committed.
+- **Harness-neutral content.** A piece refers to another piece, or to a harness capability, through a
+  [token](concepts/tokens.md). Harness names, paths, and tools live only in `harnesses/<harness>/`.
+- **Rust throughout.** The build is a Cargo `xtask`; the plugin ships one compiled binary, `tightship`, so an
+  adopter installs no runtime.
+- **The plugin installs as a release archive** that carries the binary for every target and a `sh` launcher
+  that picks one.
 
-Pending the M1 ADR. Each gets its own file here once the plugin's structure is decided.
+## Building blocks
+
+[Building blocks](building-blocks/README.md), with the C4 container diagram.
+
+## Runtime
+
+No scenario yet: the first one that crosses blocks on the adopter's machine is the session start of
+epic #5.
+
+## Deployment
+
+[Deployment](deployment.md): environments, packaging, and the adopter's prerequisites.
+
+## Crosscutting concepts
+
+[Crosscutting concepts](concepts/README.md): tokens and security.
 
 ## Architecture decisions
 
-None yet. ADRs land in `docs/decisions/` through `/spec`.
+[Decisions](../decisions/README.md).
 
 ## Quality requirements
 

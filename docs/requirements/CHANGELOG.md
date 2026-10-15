@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.2 — 2026-10-14
+
+Editorial. No requirement changes meaning. The spec of epic #1 and [ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)
+settle four open questions.
+
+**Changed**
+
+- Overview: the adopter prerequisites and the plugin's network and disk reach are stated, from ADR 0001.
+- NFR-FLEX-06 names the per-harness places ADR 0001 sets apart.
+- Glossary: adds `tightship` and per-harness place.
+
+**Removed**
+
+- OQ-01, the plugin's name: `tightship`.
+- OQ-02, the stack: Rust, with tokenized Markdown as the canonical content.
+- OQ-03, the plugin's network and disk reach.
+- OQ-09, how canonical content names a harness capability: a capability token and the per-harness places.
+
 ## 1.0.1 — 2026-10-14
 
 Editorial. No requirement changes meaning.

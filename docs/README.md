@@ -8,9 +8,11 @@ VS Code, or on the local site.
 | [Requirements](requirements/README.md) | The versioned SRS: every requirement with its ID, attributes, and acceptance criteria, and a use case diagram per area |
 | [Architecture](architecture/README.md) | The map of the system in arc42 sections, with C4 diagrams |
 | [Data model](data-model/README.md) | The vault and the options: entities, invariants, access patterns |
+| [Roadmap](roadmap/README.md) | The milestones, their epics, requirement coverage, and each sprint's plan |
+| [Specs](specs/README.md) | One closed spec per feature, grouped by epic |
+| [Decisions](decisions/README.md) | The architecture decision records |
 
-The roadmap (`roadmap/`), feature specs (`specs/`), and ADRs (`decisions/`) are added by `/sprint` and
-`/spec` as the work reaches them. The product has no interface, so there is no design doc.
+The product has no interface, so there is no design doc.
 
 ## Local site
 
