@@ -80,6 +80,15 @@ from `SessionStart` on the source `compact`.
 **The agent reaches the vault** (M1, #5). The agent runs `tightship vault search`, `new`, or `lint` through
 its shell. The binary finds the vault in `TIGHTSHIP_VAULT`, which the session's environment file exported.
 
+**The adopter releases a handoff** (M1, #6). The command `handoff release` has the agent read the project's
+repository, write the handoff's body, run `tightship vault handoff release`, which writes it and removes the
+scope's earlier ones, and run `tightship vault sync` to push it. The project's repository is only read
+([memory](concepts/memory.md)).
+
+**The adopter claims a handoff** (M1, #6). The command `handoff claim` has the agent sync the vault, run
+`tightship vault handoff claim`, which prints and removes the scope's handoffs, sync again, and compare each
+handoff with the repository after a `git fetch`. It shows the next step and the open decisions, and waits.
+
 **The adopter syncs the vault** (M1, #5). The command `sync` has the agent run `tightship vault sync`, which
 commits the vault's changes, rebases them on its git remote, renumbers colliding ids, and pushes. A conflict or
 a git failure stops it with exit 1 and the next step, and the agent resolves it and syncs again

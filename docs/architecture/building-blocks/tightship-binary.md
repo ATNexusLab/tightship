@@ -1,6 +1,6 @@
 # tightship binary
 
-**Lives in:** `tightship/` · **Technology:** Rust · **Milestone:** M1, from epic #5
+**Lives in:** `tightship/` · **Technology:** Rust · **Milestone:** M1, from epic #5; epic #6 adds the handoff
 
 The one program the plugin ships, with a subcommand per function. Epic #5 builds the first two:
 
@@ -8,6 +8,7 @@ The one program the plugin ships, with a subcommand per function. Epic #5 builds
 | --- | --- | --- |
 | `tightship hook start\|export\|checkpoint\|prompt` | The plugin's hooks | Puts the [memory](../concepts/memory.md) context and the checkpoints in the session, and exports the vault's folder to it |
 | `tightship vault path\|init\|search\|new\|lint\|sync` | The agent, through its shell | Reads, writes, lints, and syncs the adopter's vault, and creates one from the template |
+| `tightship vault handoff release\|claim` | The agent, through the command `handoff` (M1, #6) | Writes the project's handoff, or prints and removes it; never runs git |
 
 The status line arrives with epic #7. The binary reads only `TIGHTSHIP_*` variables, which the hook lines of
 each harness set from that harness's own, so it names no harness.
@@ -26,4 +27,5 @@ hook. It writes only where [security](../concepts/security.md) lists, and never 
 which a hook blocks a prompt. A failure never blocks the session ([NFR-REL-01](../../requirements/non-functional/reliability.md#nfr-rel-01)).
 
 **To change it safely:** every rule, message, and exit code is in the
-[epic #5 spec](../../specs/memory/keep-the-vault.md), and the tests in `tightship/` lock them.
+[epic #5 spec](../../specs/memory/keep-the-vault.md) and the
+[epic #6 spec](../../specs/handoff/hand-off-the-session.md), and the tests in `tightship/` lock them.

@@ -10,6 +10,8 @@
   places the harness owns, its data folder and the session's environment file
 - Amended: 2026-10-15, by the [epic #5 spec](../specs/memory/keep-the-vault.md): the plugin also reaches the
   vault's git remote when it syncs the vault ([FR-MEM-11](../requirements/functional/memory.md#fr-mem-11))
+- Amended: 2026-10-15, by the [epic #6 spec](../specs/handoff/hand-off-the-session.md): a piece reads an
+  option through the token kind `option`, which each harness renders as its own value of the option
 
 ## Context
 
@@ -57,7 +59,7 @@ program: it is one `sh` line, with the same prerequisite as the `sh` launcher.
 
 **Canonical content.** One Markdown file per piece under `content/`: `skills/<name>/SKILL.md` with its
 supporting files, `commands/<name>.md`, `agents/<name>.md`. Front matter is TOML between `+++` lines, with
-harness-neutral keys only. A reference to another piece, or to a harness capability, is a token:
+harness-neutral keys only. A reference to another piece, to a harness capability, or to an option is a token:
 
 | Token | Names |
 | --- | --- |
@@ -65,6 +67,7 @@ harness-neutral keys only. A reference to another piece, or to a harness capabil
 | `{{command:<name>}}` | A command in `content/commands/` |
 | `{{agent:<name>}}` | A subagent in `content/agents/` |
 | `{{capability:<name>}}` | A harness capability, such as plan mode |
+| `{{option:<name>}}` | The value of a boolean option of `content/options.toml`, in a skill, a command, or an agent (M1, #6) |
 
 A new kind of token is added by the epic that adds a new kind of piece.
 

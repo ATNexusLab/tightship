@@ -297,6 +297,8 @@ vault search`, never by bulk-loading.
   states what it gave — what the notes say, or "vault: nothing on this".
 - A reason worth keeping that belongs in no repo goes to the vault.
 - The harness's per-project `memory/` folder is session state only. Project docs belong in the repo.
+- **`{{command:closeout}}` also covers memory:** it checks that nothing durable from the session went
+  unwritten.
 - **A note tagged `to-repo` in the current scope is a debt.** When I work in that repo, its content goes
   where its `**Moves to:**` line says, in that work's commit, and the note is deleted.
 - **A project you cite as a reference serves that session only.** It never becomes a note, a doc, or a

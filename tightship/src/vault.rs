@@ -1,4 +1,5 @@
 pub mod context;
+pub mod handoff;
 pub mod init;
 pub mod lint;
 pub mod new;

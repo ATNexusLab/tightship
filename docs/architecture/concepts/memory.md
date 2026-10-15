@@ -1,6 +1,6 @@
 # Memory
 
-**Milestone:** M1, epic #5
+**Milestone:** M1, epics #5 and #6
 
 The memory layer is an option ([FR-MEM-10](../../requirements/functional/memory.md#fr-mem-10)). With it on, a
 session works with the adopter's vault, a git repository of curated notes in the folder the adopter set
@@ -47,4 +47,16 @@ the same id is renumbered on the machine that syncs last, and every link to it f
 resolves a conflict: it leaves the rebase where git stopped it and names the next step, and the command `sync`
 has the agent resolve it and sync again. Nothing syncs from a hook, since no hook uses the network.
 
-Every rule and message: the [epic #5 spec](../../specs/memory/keep-the-vault.md).
+## The handoff
+
+The one note per scope that carries a session's state to the next session, on any machine
+([FR-MEM-06](../../requirements/functional/memory.md#fr-mem-06),
+[FR-MEM-07](../../requirements/functional/memory.md#fr-mem-07), M1, #6). The command `handoff release` has the
+agent write its five parts, the goal, what is done, the next step, the open decisions, and the repository's
+state; `tightship vault handoff release` writes it and removes the scope's earlier ones, and the sync pushes it.
+The command `handoff claim` syncs, has `tightship vault handoff claim` print and remove every handoff of the
+scope, syncs again, and has the agent name what the repository lacks. The project's repository is only read.
+With memory off, the command says so and runs nothing; it reads the option through `{{option:memory}}`.
+
+Every rule and message: the [epic #5 spec](../../specs/memory/keep-the-vault.md) and the
+[epic #6 spec](../../specs/handoff/hand-off-the-session.md).

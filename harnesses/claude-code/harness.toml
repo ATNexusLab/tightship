@@ -8,6 +8,7 @@ repository = "https://github.com/ATNexusLab/tightship"
 skill = "{plugin}:{name}"
 command = "/{plugin}:{name}"
 agent = "{plugin}:{name}"
+option = "${user_config.{name}}"
 
 [access]
 read-only = "Read, Grep, Glob, Bash"
@@ -40,6 +41,7 @@ paths = [
   "CLAUDE_PLUGIN_ROOT",
   "CLAUDE_PLUGIN_DATA",
   "CLAUDE_PROJECT_DIR",
+  "${user_config",
 ]
 tools = [
   "Skill tool",

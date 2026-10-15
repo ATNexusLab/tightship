@@ -1,6 +1,6 @@
 +++
 name = "closeout"
-description = "Check what the delivery gate does not — surfaces, docs, traceability, security debt — before the commit"
+description = "Check what the delivery gate does not — surfaces, docs, traceability, security debt, memory — before the commit"
 argument-hint = "[optional scope note]"
 +++
 
@@ -88,6 +88,19 @@ reported with the issue that already owns it — often the next delivery, named 
 none. A new issue waits for my word, and every one opened is reported. Nothing security-related is
 dropped silently.
 
+## 5. Memory
+
+Only with a vault: when `tightship vault path` fails, this item is `n/a — no vault`. Facts are written to the
+vault as they appear, not swept up here. What this step checks is that nothing durable from this session
+went unwritten:
+
+- Walk the session for the four things that qualify — a rule the user stated · a decision plus its why
+  that outlives the task · a trap that cost real time and will recur · a project fact that lives in no
+  repo. Anything found gets written now with `tightship vault new`, per the gate in the vault's `AGENTS.md`.
+- Anything durable that landed in the harness's own per-project memory is a write that went to the wrong
+  place: move it into the vault and delete it there.
+- Derivable from the repo, its history, or its docs → it does not go in.
+
 ## Output
 
 ```text
@@ -97,6 +110,7 @@ Closeout:
 - Docs:          [updated at <path> / n/a]
 - Traceability:  [issue #n · branch · PR → integration branch · Status/Sprint ok]
 - Security-debt: [none / issues #… / filed #…]
+- Memory:        [promoted <note> / nothing durable / n/a — no vault]
 ```
 
 Do not hand the delivery over for the commit until this block is produced with no failing item.

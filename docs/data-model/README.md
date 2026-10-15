@@ -5,7 +5,7 @@ of each option in the adopter's harness. The model below comes from the
 [memory](../requirements/functional/memory.md) and [installation](../requirements/functional/install.md)
 requirements. The logical and physical models and the storage are drawn by the epics that define the
 file formats: the options in #3 ([options](options.md)), the vault and its notes in #5 ([vault](vault.md)), and
-the handoff's body in #6.
+the handoff's body in #6 ([vault](vault.md#a-handoff)).
 
 ## Conceptual model
 
@@ -21,7 +21,7 @@ the handoff's body in #6.
 
 ## Invariants
 
-- A scope holds at most one handoff ([FR-MEM-06](../requirements/functional/memory.md#fr-mem-06)).
+- Releasing a handoff removes the scope's others ([FR-MEM-06](../requirements/functional/memory.md#fr-mem-06)).
 - Claiming a handoff removes it from the vault ([FR-MEM-07](../requirements/functional/memory.md#fr-mem-07)).
 - A new note gets a new identifier ([FR-MEM-04](../requirements/functional/memory.md#fr-mem-04)).
 - A new vault holds the template's rules and no note ([FR-MEM-08](../requirements/functional/memory.md#fr-mem-08)).

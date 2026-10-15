@@ -9,3 +9,4 @@ One folder per epic, one closed spec per feature, written by `/spec` before any 
 | [#3 Options](options/README.md) | [Choose, change, and keep the options](options/choose-the-options.md) | published |
 | [#4 Contract](contract/README.md) | [Load the contract into every session](contract/load-the-contract.md) | published |
 | [#5 Memory](memory/README.md) | [Keep curated notes in the adopter's vault](memory/keep-the-vault.md) | published |
+| [#6 Handoff](handoff/README.md) | [Hand a session off through the vault](handoff/hand-off-the-session.md) | published |

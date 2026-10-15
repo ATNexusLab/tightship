@@ -51,6 +51,7 @@ pub struct References {
     skill: String,
     command: String,
     agent: String,
+    option: String,
 }
 
 impl References {
@@ -60,6 +61,10 @@ impl References {
             Kind::Command => &self.command,
             Kind::Agent => &self.agent,
         }
+    }
+
+    pub fn option(&self, name: &str) -> String {
+        self.option.replace("{name}", name)
     }
 }
 
