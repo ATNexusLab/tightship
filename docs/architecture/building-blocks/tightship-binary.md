@@ -13,8 +13,8 @@ The one program the plugin ships, with a subcommand per function. Epic #5 builds
 | `tightship status-line enable\|decline` | The agent, on the adopter's answer | Writes the workflow's status line into the user settings, or records the no (M1, #7) |
 | `tightship status-line render` | Claude Code, as the status line | Prints the baseline's two rows for the session's JSON (M1, #7) |
 
-The binary reads only `TIGHTSHIP_*` variables, which the hook lines of
-each harness set from that harness's own, so it names no harness.
+The binary reads only `TIGHTSHIP_*` variables, which the hook lines of each harness set from that harness's
+own, so it names no harness, and `COLUMNS`, the terminal's width, for the status line (M1, #7).
 
 `bin/tightship` is a `sh` launcher that runs `bin/<platform>/tightship` for the machine, among `macos`,
 `linux-x64`, `linux-arm64`, and `windows-x64`. The plugin's `bin/` is on the `PATH` of the agent's shell tool,

@@ -1,0 +1,11 @@
+{
+  "workspace": { "current_dir": "/home/adopter/tightship", "repo": { "owner": "ATNexusLab", "name": "tightship" } },
+  "pr": { "number": 31, "review_state": "approved" },
+  "model": { "display_name": "Claude Opus 5.5 (1M context)" },
+  "effort": { "level": "medium" },
+  "context_window": { "used_percentage": 11.4, "total_input_tokens": 109000, "context_window_size": 1000000 },
+  "rate_limits": {
+    "five_hour": { "used_percentage": 4, "resets_at": 1792086600 },
+    "seven_day": { "used_percentage": 66, "resets_at": 1792249200 }
+  }
+}

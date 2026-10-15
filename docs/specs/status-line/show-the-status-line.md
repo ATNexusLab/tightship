@@ -208,7 +208,7 @@ On no, run: TIGHTSHIP_DATA=<data> tightship status-line decline
 
 #### Usage
 
-The usage text gains three lines, after `tightship vault sync`:
+The usage text gains three lines, at its end, after the handoff's:
 
 ```text
        tightship status-line render
@@ -343,7 +343,7 @@ Every message goes to stderr, prefixed by `error:` and a space, and exits 1.
 | `SETTINGS_UNWRITABLE` | `1` | Rule 11 | "`` cannot write the settings file <path>: <the system's message>; nothing changed ``" |
 | `STATUS_RECORD_INVALID` | `1` | A `status-line.json` that is not valid JSON or breaks its table | "`` the status line record <path> is damaged; delete it and start a new session ``" |
 | `STATUS_RECORD_UNWRITABLE` | `1` | Rules 3, 4, 5, 7 | "`` cannot write the status line record <path>: <the system's message> ``" |
-| `STATUS_INPUT_INVALID` | `1` | `render`'s stdin is not a JSON object | "`` the status line input is not a JSON object: <the parser's message> ``" |
+| `STATUS_INPUT_INVALID` | `1` | `render`'s stdin is not a JSON object | "`` the status line input is not a JSON object: <the parser's message> ``", the message being `expected an object` for JSON of another type |
 
 A settings file that does not exist is not `SETTINGS_UNREADABLE`: it reads as an empty object.
 

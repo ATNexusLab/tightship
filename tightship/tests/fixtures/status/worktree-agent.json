@@ -1,0 +1,9 @@
+{
+  "workspace": { "current_dir": "/home/adopter/tightship" },
+  "pr": { "number": 7 },
+  "worktree": { "name": "fix-login" },
+  "agent": { "name": "reviewer" },
+  "model": { "display_name": "Claude Haiku 5.5" },
+  "effort": { "level": "low" },
+  "rate_limits": { "five_hour": { "used_percentage": 21 } }
+}

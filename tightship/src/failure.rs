@@ -35,6 +35,7 @@ pub enum Failure {
     },
     SyncConflict(PathBuf, Vec<String>),
     SyncGitFailed(PathBuf, &'static str, String),
+    StatusInputInvalid(String),
     Usage(String),
 }
 
@@ -148,6 +149,10 @@ impl fmt::Display for Failure {
                 formatter,
                 "git {step} failed in {}: {message}",
                 vault.display()
+            ),
+            Self::StatusInputInvalid(message) => write!(
+                formatter,
+                "the status line input is not a JSON object: {message}"
             ),
             Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", crate::USAGE),
         }
