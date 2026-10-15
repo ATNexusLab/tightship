@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            folder: macos
+            targets: aarch64-apple-darwin x86_64-apple-darwin
+            file: tightship
+          - os: ubuntu-latest
+            folder: linux-x64
+            targets: x86_64-unknown-linux-musl
+            file: tightship
+          - os: ubuntu-24.04-arm
+            folder: linux-arm64
+            targets: aarch64-unknown-linux-musl
+            file: tightship
+          - os: windows-latest
+            folder: windows-x64
+            targets: x86_64-pc-windows-msvc
+            file: tightship.exe
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Build ${{ matrix.folder }}/${{ matrix.file }}
+        env:
+          FOLDER: ${{ matrix.folder }}
+          FILE: ${{ matrix.file }}
+          TARGETS: ${{ matrix.targets }}
+        run: |
+          home="$HOME"
+          workspace="$GITHUB_WORKSPACE"
+          if [ "$RUNNER_OS" = Windows ]; then
+            home="$USERPROFILE"
+          fi
+          printf -v CARGO_ENCODED_RUSTFLAGS -- '--remap-path-prefix=%s=~\x1f--remap-path-prefix=%s=.' "$home" "$workspace"
+          export CARGO_ENCODED_RUSTFLAGS
+          built=()
+          for target in $TARGETS; do
+            rustup target add "$target"
+            cargo build --release --locked --package tightship --target "$target"
+            built+=("target/$target/release/$FILE")
+          done
+          mkdir -p "binaries/$FOLDER"
+          if [ "${#built[@]}" -gt 1 ]; then
+            lipo -create -output "binaries/$FOLDER/$FILE" "${built[@]}"
+          else
+            cp "${built[0]}" "binaries/$FOLDER/$FILE"
+          fi
+
+      - name: actions/upload-artifact v7.0.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: ${{ matrix.folder }}
+          path: binaries/${{ matrix.folder }}/${{ matrix.file }}
+          if-no-files-found: error
+
+  pack:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      USER: ""
+    steps:
+      - name: actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: actions/download-artifact v8.0.2
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          path: binaries
+
+      - name: Set the git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Write .identity-terms
+        env:
+          IDENTITY_TERMS: ${{ secrets.IDENTITY_TERMS }}
+        run: |
+          [ -z "$IDENTITY_TERMS" ] || printf '%s\n' "$IDENTITY_TERMS" > .identity-terms
+
+      - name: cargo xtask build --binaries
+        run: cargo xtask build --binaries binaries
+
+      - name: cargo xtask package
+        run: cargo xtask package "$GITHUB_REF_NAME"
+
+      - name: gh release create
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --verify-tag --prerelease \
+            --title "tightship $GITHUB_REF_NAME" --generate-notes \
+            dist/tightship-claude-code.zip dist/marketplace.json

@@ -1,0 +1,10 @@
+{
+  "config": {
+    "MD013": { "line_length": 110, "tables": false, "code_blocks": false },
+    "MD041": { "front_matter_title": "^\\s*name\\s*=" },
+    "MD033": { "allowed_elements": ["a"] },
+    "MD036": false
+  },
+  "globs": ["**/*.md"],
+  "gitignore": true
+}

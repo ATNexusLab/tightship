@@ -1,0 +1,23 @@
+[[options]]
+name = "contract"
+type = "boolean"
+title = "Contract"
+description = "Load the workflow's rules into every session"
+
+[[options]]
+name = "memory"
+type = "boolean"
+title = "Memory"
+description = "Keep curated notes in your vault and hand session state to the next session"
+
+[[options]]
+name = "status_line"
+type = "boolean"
+title = "Status line"
+description = "Show the workflow's status line, after asking before it changes your settings"
+
+[[options]]
+name = "vault_folder"
+type = "directory"
+title = "Vault folder"
+description = "Your memory vault, a git repository; memory needs it, and tightship vault init creates one"

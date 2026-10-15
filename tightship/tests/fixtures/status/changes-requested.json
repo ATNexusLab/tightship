@@ -1,0 +1,7 @@
+{
+  "workspace": { "current_dir": "/home/adopter/tightship", "repo": { "owner": "ATNexusLab", "name": "tightship" } },
+  "pr": { "number": 42, "review_state": "changes_requested" },
+  "model": { "display_name": "Claude Sonnet 5.5" },
+  "effort": { "level": "high" },
+  "context_window": { "used_percentage": 52, "total_input_tokens": 104000, "context_window_size": 200000 }
+}
