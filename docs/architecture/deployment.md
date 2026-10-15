@@ -32,6 +32,12 @@ tightship@tightship`. Claude Code installs the three companions as the plugin's 
 epic #8 publishes a release, the plugin's catalog is the folder `dist/claude-code/`; after it, the catalog
 sits at the repository root with an `archive` source pointing at the release's zip.
 
+The adopter chooses the [options](concepts/options.md) in the dialog of `/plugin install`, or with `--config
+<name>=false` on the shell's install, and changes them later with `/plugin configure` or `claude plugin
+configure`. An update keeps them. `claude plugin uninstall tightship@tightship --prune -y` deletes them, the
+plugin's data folder, and the companions it installed; the adopter then removes the four catalogs with `claude
+plugin marketplace remove` (M1, #3).
+
 ## Adopter prerequisites
 
 Nothing on macOS and Linux. Git for Windows on Windows, because Claude Code runs hooks under Git Bash and

@@ -12,5 +12,5 @@ Every read and write the requirements call for. Volume: a vault of 1,000 notes
 | Lint ([FR-MEM-05](../requirements/functional/memory.md#fr-mem-05)) | Reads every note | All | On demand |
 | Release a handoff ([FR-MEM-06](../requirements/functional/memory.md#fr-mem-06)) | Replaces one handoff | The project's scope | On demand |
 | Claim a handoff ([FR-MEM-07](../requirements/functional/memory.md#fr-mem-07)) | Reads and removes one handoff | The project's scope | On demand |
-| Read the options ([FR-INS-03](../requirements/functional/install.md#fr-ins-03)) | Reads each option's state | All three | Every session start |
-| Change an option ([FR-INS-04](../requirements/functional/install.md#fr-ins-04)) | Writes one option's state | By name | On demand |
+| Read the options ([FR-INS-03](../requirements/functional/install.md#fr-ins-03)) | A hook reads its option's state from the environment Claude Code sets | By name; absent is on | Every session start |
+| Change an option ([FR-INS-04](../requirements/functional/install.md#fr-ins-04)) | Claude Code writes one option's state in the user settings | By name | On demand |

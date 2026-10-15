@@ -2,6 +2,8 @@
 
 - Status: accepted
 - Date: 2026-10-14
+- Amended: 2026-10-14, by the [epic #3 spec](../specs/options/choose-the-options.md): the options' state
+  is the harness's, not the plugin's
 
 ## Context
 
@@ -79,12 +81,14 @@ release only.
 Bash. Git on every system when the memory option is on.
 
 **Reach.** The plugin connects to one network host: the git remote of the adopter's vault, when it pulls and
-pushes a handoff. It writes in three places only:
+pushes a handoff. It writes in two places only:
 
 - The adopter's vault.
-- The harness's persistent plugin data folder, which holds the options' state.
 - The harness's settings file, for the status line only, after the adopter consents
   ([FR-STL-02](../requirements/functional/status-line.md#fr-stl-02)).
+
+The options' state is kept by the harness, in its own user configuration, and reaches the plugin's hooks as
+environment variables.
 
 The build writes only to `dist/`.
 

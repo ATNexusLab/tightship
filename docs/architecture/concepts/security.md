@@ -19,8 +19,8 @@ printing the term, so a CI log cannot leak it.
 From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.md):
 
 - **Network:** only the git remote of the adopter's vault, when a handoff is pulled or pushed.
-- **Disk:** the adopter's vault; the harness's persistent plugin data folder, for the options' state; the
-  harness's settings file, for the status line only, after the adopter consents
-  ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02)).
+- **Disk:** the adopter's vault, and the harness's settings file, for the status line only, after the adopter
+  consents ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02)). The options' state is the
+  harness's own: it keeps it in its user settings ([options](options.md), M1, #3).
 
 The build writes only to `dist/`.
