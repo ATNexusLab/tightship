@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 mod common;
 
 use std::fs::{self, File};
@@ -102,7 +103,7 @@ fn start_shows_the_handoff_apart_from_the_pinned_notes() {
     let stdout = stdout_of(&output);
     assert!(
         stdout.contains(
-            "\n\n## Handoff — tightship · mem-0005 · 2026-10-01 → 2026-10-14\n\n# Handoff\n\nStep 3 of 5.\n"
+            "\n\n## Handoff — tightship · mem-0005 · 2026-10-01 → 2026-10-14\n\nClaim it with the handoff command once you pick the work up.\n\n# Handoff\n\nStep 3 of 5.\n"
         ),
         "{stdout}"
     );

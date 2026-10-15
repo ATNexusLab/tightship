@@ -24,6 +24,8 @@ pub enum Failure {
     NoteBodyMissing,
     NoteExists(PathBuf),
     NoteUnwritable(PathBuf, io::Error),
+    HandoffBodyIncomplete(Vec<&'static str>),
+    HandoffUnremovable(PathBuf, io::Error),
     LintFailed,
     SyncUnfinished(PathBuf),
     SyncNoUpstream {
@@ -112,6 +114,14 @@ impl fmt::Display for Failure {
             Self::NoteExists(path) => write!(formatter, "{} already exists", path.display()),
             Self::NoteUnwritable(path, error) => {
                 write!(formatter, "cannot write {}: {error}", path.display())
+            }
+            Self::HandoffBodyIncomplete(missing) => write!(
+                formatter,
+                "the handoff's body has no {}; each of **Goal:**, **Done:**, **Next step:**, **Open decisions:**, and **Repo state:** starts a line of it",
+                missing.join(", ")
+            ),
+            Self::HandoffUnremovable(path, error) => {
+                write!(formatter, "cannot remove {}: {error}", path.display())
             }
             Self::LintFailed => write!(formatter, "the lint found problems in the vault"),
             Self::SyncUnfinished(vault) => write!(

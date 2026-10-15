@@ -21,7 +21,9 @@ Usage: tightship vault path
                            --title <title> --why <line> --source <user|session|repo>
                            [--tags <a,b>] [--pin] [--created <YYYY-MM-DD>] < body
        tightship vault lint
-       tightship vault sync";
+       tightship vault sync
+       tightship vault handoff release --title <title> < body
+       tightship vault handoff claim";
 
 #[derive(Parser)]
 #[command(name = "tightship")]
@@ -62,6 +64,8 @@ enum VaultCommand {
     New(vault::new::Arguments),
     Lint,
     Sync,
+    #[command(subcommand)]
+    Handoff(vault::handoff::Command),
 }
 
 fn main() -> ExitCode {
@@ -87,6 +91,7 @@ fn main() -> ExitCode {
         Area::Vault(VaultCommand::New(arguments)) => vault::new::run(&arguments),
         Area::Vault(VaultCommand::Lint) => vault::lint::run(),
         Area::Vault(VaultCommand::Sync) => vault::sync::run(),
+        Area::Vault(VaultCommand::Handoff(command)) => vault::handoff::run(&command),
         Area::Hook(HookCommand::Start) => hook::start::run(),
         Area::Hook(HookCommand::Export) => hook::export::run(),
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),

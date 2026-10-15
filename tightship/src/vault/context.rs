@@ -19,14 +19,7 @@ pub fn render(vault: &Path, scope: &str, notes: &[Note]) -> (String, usize) {
          Write with `tightship vault new --help`."
     );
 
-    let handoff = notes
-        .iter()
-        .filter(in_reach)
-        .filter(|note| note.field("type") == "handoff" && note.field("project") == scope)
-        .max_by(|first, second| {
-            (first.field("updated"), first.id_order())
-                .cmp(&(second.field("updated"), second.id_order()))
-        });
+    let handoff = super::handoff::in_scope(notes, scope).into_iter().next();
     let mut pinned: Vec<&Note> = notes
         .iter()
         .filter(in_reach)
@@ -72,7 +65,7 @@ pub fn render(vault: &Path, scope: &str, notes: &[Note]) -> (String, usize) {
 
     if let Some(handoff) = handoff {
         let heading = format!(
-            "\n\n## Handoff — {scope} · {} · {}\n\n",
+            "\n\n## Handoff — {scope} · {} · {}\n\nClaim it with the handoff command once you pick the work up.\n\n",
             handoff.field("id"),
             handoff.age()
         );

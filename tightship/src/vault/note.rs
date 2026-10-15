@@ -1,5 +1,5 @@
-use std::fs;
-use std::io;
+use std::fs::{self, OpenOptions};
+use std::io::{self, IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
@@ -109,6 +109,60 @@ impl NewNote<'_> {
         }
         text + &format!("---\n\n# {}\n\n{}\n", self.title, self.body)
     }
+}
+
+pub fn one_line(text: &str) -> String {
+    text.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+pub fn title(raw: &str) -> Result<String, Failure> {
+    let title = one_line(raw);
+    if !(1..=120).contains(&title.chars().count()) {
+        return Err(Failure::NoteTitleInvalid);
+    }
+    Ok(title)
+}
+
+pub fn read_body() -> Result<String, Failure> {
+    let mut body = String::new();
+    let stdin = io::stdin();
+    if !stdin.is_terminal() {
+        stdin
+            .lock()
+            .read_to_string(&mut body)
+            .map_err(|_| Failure::NoteBodyMissing)?;
+    }
+    let body = body.trim();
+    if body.is_empty() {
+        return Err(Failure::NoteBodyMissing);
+    }
+    Ok(body.to_owned())
+}
+
+pub fn write(vault: &Path, note: &NewNote) -> Result<PathBuf, Failure> {
+    let id = next_id(&read_all(vault)?);
+    let slug = slug(note.title);
+    let file_name = if slug.is_empty() {
+        format!("{id}.md")
+    } else {
+        format!("{id}-{slug}.md")
+    };
+    let relative = PathBuf::from("notes").join(note.scope).join(file_name);
+    let unwritable = |error| Failure::NoteUnwritable(relative.clone(), error);
+    fs::create_dir_all(vault.join("notes").join(note.scope)).map_err(unwritable)?;
+    let mut file = match OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(vault.join(&relative))
+    {
+        Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {
+            return Err(Failure::NoteExists(relative));
+        }
+        opened => opened.map_err(unwritable)?,
+    };
+    file.write_all(note.text(&id).as_bytes())
+        .map_err(unwritable)?;
+    Ok(relative)
 }
 
 pub fn slug(title: &str) -> String {

@@ -3,34 +3,11 @@ mod common;
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::Output;
 
-use common::{Sandbox, assert_fails_with, assert_succeeds, run, stderr_of, stdout_of};
-
-const IDENTITY: [(&str, &str); 4] = [
-    ("GIT_AUTHOR_NAME", "Ada Vault"),
-    ("GIT_AUTHOR_EMAIL", "ada@example.test"),
-    ("GIT_COMMITTER_NAME", "Ada Vault"),
-    ("GIT_COMMITTER_EMAIL", "ada@example.test"),
-];
-
-fn git(sandbox: &Sandbox, folder: &Path, arguments: &[&str]) -> String {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(folder)
-        .args(arguments)
-        .env("GIT_CONFIG_GLOBAL", sandbox.write(".gitconfig", ""))
-        .env("GIT_CONFIG_NOSYSTEM", "1")
-        .envs(IDENTITY)
-        .output()
-        .expect("git runs");
-    assert!(
-        output.status.success(),
-        "git {arguments:?}: {}",
-        stderr_of(&output)
-    );
-    stdout_of(&output).trim().to_owned()
-}
+use common::{
+    IDENTITY, Sandbox, assert_fails_with, assert_succeeds, commit, git, run, stderr_of, stdout_of,
+};
 
 fn sync(sandbox: &Sandbox, vault: &Path) -> Output {
     run(sandbox
@@ -51,11 +28,6 @@ fn write_note(sandbox: &Sandbox, clone: &str, stem: &str, body: &str) -> PathBuf
         &format!("{clone}/notes/all/{stem}.md"),
         &note_text(id, body),
     )
-}
-
-fn commit(sandbox: &Sandbox, clone: &Path, message: &str) {
-    git(sandbox, clone, &["add", "-A"]);
-    git(sandbox, clone, &["commit", "--quiet", "-m", message]);
 }
 
 fn machines(sandbox: &Sandbox, first: &str) -> (PathBuf, PathBuf, PathBuf) {
