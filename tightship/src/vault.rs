@@ -5,6 +5,7 @@ pub mod new;
 pub mod note;
 pub mod path;
 pub mod search;
+pub mod sync;
 
 use std::env;
 use std::fs;

@@ -61,6 +61,7 @@ enum VaultCommand {
     },
     New(vault::new::Arguments),
     Lint,
+    Sync,
 }
 
 fn main() -> ExitCode {
@@ -85,6 +86,7 @@ fn main() -> ExitCode {
         }
         Area::Vault(VaultCommand::New(arguments)) => vault::new::run(&arguments),
         Area::Vault(VaultCommand::Lint) => vault::lint::run(),
+        Area::Vault(VaultCommand::Sync) => vault::sync::run(),
         Area::Hook(HookCommand::Start) => hook::start::run(),
         Area::Hook(HookCommand::Export) => hook::export::run(),
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),

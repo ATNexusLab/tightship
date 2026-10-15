@@ -25,6 +25,14 @@ pub enum Failure {
     NoteExists(PathBuf),
     NoteUnwritable(PathBuf, io::Error),
     LintFailed,
+    SyncUnfinished(PathBuf),
+    SyncNoUpstream {
+        vault: PathBuf,
+        branch: String,
+        remote: String,
+    },
+    SyncConflict(PathBuf, Vec<String>),
+    SyncGitFailed(PathBuf, &'static str, String),
     Usage(String),
 }
 
@@ -106,6 +114,31 @@ impl fmt::Display for Failure {
                 write!(formatter, "cannot write {}: {error}", path.display())
             }
             Self::LintFailed => write!(formatter, "the lint found problems in the vault"),
+            Self::SyncUnfinished(vault) => write!(
+                formatter,
+                "a rebase or merge is under way in {vault}; finish it with `git -C {vault} rebase --continue` or `git -C {vault} merge --continue`, then run `tightship vault sync` again",
+                vault = vault.display()
+            ),
+            Self::SyncNoUpstream {
+                vault,
+                branch,
+                remote,
+            } => write!(
+                formatter,
+                "the vault's branch {branch} tracks no remote branch; run `git -C {vault} push -u {remote} {branch}` once, then run `tightship vault sync` again",
+                vault = vault.display()
+            ),
+            Self::SyncConflict(vault, paths) => write!(
+                formatter,
+                "these notes conflict with the remote: {paths}; resolve each, run `git -C {vault} add` on it and `git -C {vault} rebase --continue`, then run `tightship vault sync` again",
+                paths = paths.join(", "),
+                vault = vault.display()
+            ),
+            Self::SyncGitFailed(vault, step, message) => write!(
+                formatter,
+                "git {step} failed in {}: {message}",
+                vault.display()
+            ),
             Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", crate::USAGE),
         }
     }

@@ -120,14 +120,17 @@ pub fn slug(title: &str) -> String {
     words.join("-").chars().take(60).collect()
 }
 
-pub fn next_id(notes: &[Note]) -> String {
-    let highest = notes
+pub fn highest_id(notes: &[Note]) -> u64 {
+    notes
         .iter()
         .map(|note| note.id_order().0)
         .filter(|number| *number != u64::MAX)
         .max()
-        .unwrap_or(0);
-    format!("mem-{:04}", highest + 1)
+        .unwrap_or(0)
+}
+
+pub fn next_id(notes: &[Note]) -> String {
+    format!("mem-{:04}", highest_id(notes) + 1)
 }
 
 pub fn read_all(vault: &Path) -> Result<Vec<Note>, Failure> {

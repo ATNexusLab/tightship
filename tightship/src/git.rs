@@ -12,6 +12,7 @@ pub fn run(folder: &Path, arguments: &[&str]) -> Result<String, String> {
         .arg("-C")
         .arg(folder)
         .args(arguments)
+        .env("GIT_TERMINAL_PROMPT", "0")
         .output()
         .map_err(|error| error.to_string())?;
     if !output.status.success() {
