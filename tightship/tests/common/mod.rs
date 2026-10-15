@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::Write;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
@@ -92,12 +92,15 @@ pub fn with_stdin(command: &mut Command, input: &str) -> Output {
         .stderr(Stdio::piped())
         .spawn()
         .expect("the command starts");
-    child
+    let written = child
         .stdin
         .take()
         .expect("a stdin")
-        .write_all(input.as_bytes())
-        .expect("the input");
+        .write_all(input.as_bytes());
+    match written {
+        Err(error) if error.kind() == io::ErrorKind::BrokenPipe => {}
+        written => written.expect("the input"),
+    }
     child.wait_with_output().expect("the command ends")
 }
 
