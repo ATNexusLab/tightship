@@ -1,6 +1,6 @@
 # Contract
 
-Epic [#4](https://github.com/ATNexusLab/tightship/issues/4), milestone M1, sprint 3.
+Epic [#4](https://github.com/ATNexusLab/tightship/issues/4), milestone M1, sprint 1.
 
 | Spec | Profile | Status |
 | --- | --- | --- |

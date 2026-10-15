@@ -1,6 +1,6 @@
 # Release M1
 
-Epic [#8](https://github.com/ATNexusLab/tightship/issues/8), milestone M1, sprint 4.
+Epic [#8](https://github.com/ATNexusLab/tightship/issues/8), milestone M1, sprint 1.
 
 | Spec | Profile | Status |
 | --- | --- | --- |
