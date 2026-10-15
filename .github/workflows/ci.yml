@@ -65,7 +65,7 @@ jobs:
         run: cargo xtask build
 
       - name: cargo test
-        run: cargo test --workspace
+        run: cargo test --workspace --no-fail-fast
 
       - name: cargo xtask scan
         run: cargo xtask scan

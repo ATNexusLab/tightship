@@ -1,3 +1,4 @@
+use std::ffi::OsString;
 use std::fs::{self, OpenOptions};
 use std::io::{self, IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
@@ -147,7 +148,7 @@ pub fn write(vault: &Path, note: &NewNote) -> Result<PathBuf, Failure> {
     } else {
         format!("{id}-{slug}.md")
     };
-    let relative = PathBuf::from("notes").join(note.scope).join(file_name);
+    let relative = PathBuf::from(format!("notes/{}/{file_name}", note.scope));
     let unwritable = |error| Failure::NoteUnwritable(relative.clone(), error);
     fs::create_dir_all(vault.join("notes").join(note.scope)).map_err(unwritable)?;
     let mut file = match OpenOptions::new()
@@ -220,8 +221,14 @@ fn collect_markdown(vault: &Path, folder: &Path, files: &mut Vec<PathBuf>) -> Re
             }
             collect_markdown(vault, &path, files)?;
         } else if path.extension().is_some_and(|extension| extension == "md") {
-            let relative = path.strip_prefix(vault).unwrap_or(&path).to_path_buf();
-            files.push(relative);
+            let mut relative = OsString::new();
+            for (index, part) in path.strip_prefix(vault).unwrap_or(&path).iter().enumerate() {
+                if index > 0 {
+                    relative.push("/");
+                }
+                relative.push(part);
+            }
+            files.push(PathBuf::from(relative));
         }
     }
     Ok(())
