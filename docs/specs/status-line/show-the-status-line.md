@@ -1,6 +1,6 @@
 # #7 — Show the workflow's status line, with the adopter's consent
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `tightship/`, `xtask/`
 > **Epic:** #7
@@ -632,7 +632,7 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M1, #7:
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Render the baseline's status line | `tightship/src/status.rs` and `tightship/src/status/render.rs` (new), `tightship/src/main.rs` (subcommand, usage), `tightship/src/failure.rs` (`STATUS_INPUT_INVALID`), `tightship/Cargo.toml` (`unicode-width`), `tightship/tests/status.rs` and its stdin fixtures (new), about 8 files | Scenarios 2 and 4 to 7 by tests; 3 by running both scripts in a scratch folder | — |
-| 2 | Ask, turn on, and put back the status line | `tightship/src/status/settings.rs` and `tightship/src/hook/status_line.rs` (new), `tightship/src/hook.rs`, `tightship/src/main.rs`, `tightship/src/failure.rs`, `tightship/Cargo.toml` (`preserve_order`), `xtask/src/build/claude_code.rs` (the hook), `xtask/tests/` (hooks.json), `tightship/tests/status.rs`, about 9 files | Scenarios 1 and 8 to 21 by tests; 22 in a session on an isolated configuration; 23 measured | 1 |
+| # | Title | Scope | Acceptance criterion | Depends on | Issue |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Render the baseline's status line | `tightship/src/status.rs` and `tightship/src/status/render.rs` (new), `tightship/src/main.rs` (subcommand, usage), `tightship/src/failure.rs` (`STATUS_INPUT_INVALID`), `tightship/Cargo.toml` (`unicode-width`), `tightship/tests/status.rs` and its stdin fixtures (new), about 8 files | Scenarios 2 and 4 to 7 by tests; 3 by running both scripts in a scratch folder | — | #34 |
+| 2 | Ask, turn on, and put back the status line | `tightship/src/status/settings.rs` and `tightship/src/hook/status_line.rs` (new), `tightship/src/hook.rs`, `tightship/src/main.rs`, `tightship/src/failure.rs`, `tightship/Cargo.toml` (`preserve_order`), `xtask/src/build/claude_code.rs` (the hook), `xtask/tests/` (hooks.json), `tightship/tests/status.rs`, about 9 files | Scenarios 1 and 8 to 21 by tests; 22 in a session on an isolated configuration; 23 measured | 1 | #35 |
