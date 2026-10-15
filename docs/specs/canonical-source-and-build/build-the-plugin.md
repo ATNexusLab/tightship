@@ -365,7 +365,7 @@ When the maintainer runs `cargo xtask build`
 Then it exits 0 and prints the success output
 And dist/claude-code/ holds .claude-plugin/plugin.json named "tightship"
 And dist/claude-code/skills/ holds 21 folders and dist/claude-code/agents/ holds 1 file
-And `claude plugin validate dist/claude-code` reports "Validation passed"
+And `claude plugin validate dist/claude-code/.claude-plugin/plugin.json` reports "Validation passed"
 ```
 
 ### Scenario 2 — One edit reaches the plugin (NFR-MNT-01.1)

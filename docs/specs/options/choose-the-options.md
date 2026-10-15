@@ -281,7 +281,7 @@ When the maintainer runs `cargo xtask build`
 Then it exits 0 and reports 28 files
 And dist/claude-code/.claude-plugin/plugin.json holds "userConfig" with contract, memory, and status_line,
   in that order, each with type "boolean" and default true
-And `claude plugin validate dist/claude-code` reports "Validation passed" with no warning
+And `claude plugin validate dist/claude-code/.claude-plugin/plugin.json` reports "Validation passed" with no warning
 ```
 
 ### Scenario 2 — Choose the options at install (FR-INS-03.1, happy path)
