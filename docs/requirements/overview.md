@@ -4,7 +4,8 @@
 
 | Role | Who | Interest |
 | --- | --- | --- |
-| Maintainer | The author of the workflow and the only editor of this repository | Edits each piece once, in this repository, and uses the same workflow in all four harnesses |
+| Maintainer | The author of the workflow, who reviews and merges every change to this repository | Edits each piece once, in this repository, and uses the same workflow in all four harnesses |
+| Contributor | Anyone who opens an issue or a pull request on this repository | Proposes changes through `CONTRIBUTING.md` and runs the gates locally; the maintainer merges them |
 | Adopter | Anyone who installs the plugin from this public repository, the maintainer included | Installs with the harness's own mechanism, chooses the options, and gets nothing of the maintainer's identity or data |
 | Harness vendors | Anthropic, Cursor, Google, OpenAI | Define the plugin formats and limits the product must follow; not consulted |
 | Companion maintainers | The authors of ponytail, i-have-adhd, and humanizer | Own the rules their plugins carry; not consulted |

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.1 — 2026-10-15
+
+Editorial. No requirement changes meaning. The repository takes pull requests from outside contributors.
+Change request [#44](https://github.com/ATNexusLab/tightship/issues/44).
+
+**Changed**
+
+- Overview: the maintainer reviews and merges every change, and a Contributor row joins the stakeholders.
+
 ## 1.6.0 — 2026-10-15
 
 FR-INS-06.1 could not hold once the status line is on: Claude Code lets no plugin set `statusLine`, runs no

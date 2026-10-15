@@ -1,0 +1,61 @@
+name: Bug report
+description: Something in the plugin, the build, or the docs does not work as described
+labels: [fix]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead. Paste error text as text.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Install tightship with every option on
+        2. Open a new session
+        3. Run /closeout
+    validations:
+      required: true
+  - type: input
+    id: tightship-version
+    attributes:
+      label: tightship version
+      description: Shown by `claude plugin list`, or the commit you built from
+    validations:
+      required: true
+  - type: dropdown
+    id: harness
+    attributes:
+      label: Harness
+      options:
+        - Claude Code
+        - Cursor
+        - Antigravity CLI
+        - Codex
+    validations:
+      required: true
+  - type: input
+    id: harness-version
+    attributes:
+      label: Harness version
+      placeholder: claude --version
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options turned on
+      description: contract, memory, status_line, and whether a vault folder is set
