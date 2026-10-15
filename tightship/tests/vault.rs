@@ -64,6 +64,7 @@ fn init_without_git_creates_nothing() {
     assert!(!folder.exists());
 }
 
+#[cfg(unix)]
 #[test]
 fn init_reports_a_failing_git() {
     let sandbox = Sandbox::new();
@@ -397,10 +398,8 @@ fn a_bad_argument_of_new_or_search_writes_nothing() {
     assert_eq!(files_of(&sandbox.path("vault")), before);
 }
 
+#[cfg(unix)]
 fn executable(file: &Path) {
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(file, fs::Permissions::from_mode(0o755)).expect("an executable");
-    }
+    use std::os::unix::fs::PermissionsExt;
+    fs::set_permissions(file, fs::Permissions::from_mode(0o755)).expect("an executable");
 }

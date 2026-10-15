@@ -48,7 +48,8 @@ Rust for application code, for the build, and for every new script
 `.github/workflows/ci.yml` runs every gate on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git
 Bash) at each pull request into `develop` or `main`; markdownlint and the docs build run on Linux only. It
 writes `.identity-terms` from the repository secret `IDENTITY_TERMS`, so a change to the file is copied there
-with `gh secret set IDENTITY_TERMS < .identity-terms`.
+with `gh secret set IDENTITY_TERMS < .identity-terms`. The job clears `USER`: the build counts the system's user
+name as an identity term, and a runner's, `runner`, is a word the content uses.
 
 ## Architecture
 

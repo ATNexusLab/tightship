@@ -14,6 +14,7 @@ const BINARIES: [&str; 4] = [
 ];
 
 fn script(sandbox: &Sandbox, relative: &str, text: &str) {
+    #[cfg_attr(not(unix), allow(unused_variables))]
     let file = sandbox.write(relative, text);
     #[cfg(unix)]
     {

@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{Duration, SystemTime};
 
-use common::{Sandbox, assert_fails_with, assert_succeeds, note, run, stdout_of, with_stdin};
+use common::{Sandbox, assert_succeeds, note, run, stdout_of, with_stdin};
 
 fn project(sandbox: &Sandbox, name: &str) -> PathBuf {
     let folder = sandbox.path(name);
@@ -295,6 +295,8 @@ fn checkpoint_prints_the_checkpoint_only_with_a_vault() {
 #[test]
 fn an_unreadable_vault_or_note_or_data_folder_fails_with_exit_1() {
     use std::os::unix::fs::PermissionsExt;
+
+    use common::assert_fails_with;
 
     let sandbox = Sandbox::new();
     let unreadable = fs::Permissions::from_mode(0o000);

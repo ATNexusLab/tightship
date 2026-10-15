@@ -11,7 +11,8 @@ hooks do. It is the automated half of
 other.
 
 It installs gitleaks 8.30.1, fetches every branch with the whole history, and writes `.identity-terms` from the
-repository secret `IDENTITY_TERMS`, so a pull request from a fork stops at the identity scan.
+repository secret `IDENTITY_TERMS`, so a pull request from a fork stops at the identity scan. It clears `USER`,
+since the runner's user name, `runner`, is no identity of the maintainer and is a word the content uses.
 
 **It never** writes to the repository: its token has `contents: read`.
 

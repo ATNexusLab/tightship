@@ -75,6 +75,7 @@ pub fn render(
         }
         fs::write(file, bytes).map_err(naming(file))?;
     }
+    #[cfg(unix)]
     for file in [&launcher, &machine_binary] {
         make_executable(file)?;
     }
@@ -93,13 +94,10 @@ pub fn discard(root: &Path, harness_name: &str) -> io::Result<()> {
     remove_if_present(&dist.join(harness_name))
 }
 
+#[cfg(unix)]
 fn make_executable(file: &Path) -> io::Result<()> {
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(naming(file))?;
-    }
-    Ok(())
+    use std::os::unix::fs::PermissionsExt;
+    fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(naming(file))
 }
 
 fn remove_if_present(folder: &Path) -> io::Result<()> {

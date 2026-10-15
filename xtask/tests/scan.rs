@@ -1,9 +1,6 @@
 mod common;
 
-use std::env;
-
 use common::{Repository, assert_fails_with, assert_succeeds, stderr_of};
-use tempfile::TempDir;
 
 fn committed(files: &[(&str, String)]) -> Repository {
     let repository = Repository::with(files);
@@ -13,7 +10,9 @@ fn committed(files: &[(&str, String)]) -> Repository {
 }
 
 #[cfg(unix)]
-fn tools_with_git_only() -> TempDir {
+fn tools_with_git_only() -> tempfile::TempDir {
+    use std::env;
+
     let path = env::var_os("PATH").expect("a PATH");
     let git = env::split_paths(&path)
         .map(|folder| folder.join("git"))
