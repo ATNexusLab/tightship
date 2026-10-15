@@ -62,8 +62,10 @@ From [ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)
 
 ## Runtime
 
-No scenario yet: the first one that crosses blocks on the adopter's machine is the session start of
-epic #5.
+**Session start: the contract** (M1, #4). Claude Code starts a session, runs `/clear`, or compacts the
+context, and fires the plugin's `SessionStart` hooks in parallel. Each prints one part of the contract from
+`contract/`, or nothing when the contract option or its own option is `false`, and Claude Code adds each
+print to the context as its own reminder ([contract](concepts/contract.md)).
 
 ## Deployment
 
@@ -71,7 +73,7 @@ epic #5.
 
 ## Crosscutting concepts
 
-[Crosscutting concepts](concepts/README.md): tokens and security.
+[Crosscutting concepts](concepts/README.md): tokens, options, the contract, and security.
 
 ## Architecture decisions
 

@@ -13,6 +13,7 @@ may name a harness. Each one holds:
 - The tools a read-only subagent gets.
 - The companion plugins the plugin depends on, each with the catalog that lists it (M1, #2).
 - The denylist the neutrality check applies to the canonical content.
+- `[contract] limit`: the most characters one hook may put in the context (M1, #4).
 
 **It never** holds a piece's text. A sentence that only one harness needs is a capability, and its text
 lives here.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.1 — 2026-10-15
+
+Editorial. No requirement changes meaning. The spec of epic #4 settles OQ-06 for Claude Code.
+
+**Changed**
+
+- OQ-06 now asks about Cursor, Antigravity CLI, and Codex only. For Claude Code, the
+  [spec of epic #4](../specs/contract/load-the-contract.md) settles it: the contract reaches the session
+  through `SessionStart` hooks, one per part of at most 10,000 characters, fired again after each compaction.
+
 ## 1.1.0 — 2026-10-14
 
 The verifier's method mutates a private copy of the repository and runs its tests there, which FR-VER-02
