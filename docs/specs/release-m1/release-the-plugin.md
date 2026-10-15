@@ -51,7 +51,8 @@ changelog:
    follows by hand. The list of what to remove comes from the baseline commit. No program migrates.
 5. **The minimum Claude Code version is 2.1.295.** The `archive` source needs 2.1.224, and only from 2.1.295
    does the vault variable a `SessionStart` hook exports reach the Bash tool after an in-app `/resume` or
-   `/branch`. The release checklist runs at exactly that version. This settles OQ-04 for Claude Code.
+   `/branch`. The release checklist runs on the Claude Code each system has installed, at that version or
+   later. This settles OQ-04 for Claude Code.
 6. **The guide lives in `docs/install/claude-code/`**, one small file per subject with a `README.md` index,
    and a new `README.md` at the repository root points to it. The license is MIT. The first release is
    `1.0.0`.
@@ -278,8 +279,8 @@ Windows.
 ### 7. The minimum Claude Code version
 
 - The guide and the root `README.md` state "Claude Code 2.1.295 or later".
-- The release checklist runs at exactly 2.1.295, installed with `claude install 2.1.295`, with auto-update
-  off through `DISABLE_AUTOUPDATER=1`.
+- The release checklist runs on the Claude Code the maintainer has installed on each system, at 2.1.295 or
+  later, in the maintainer's own configuration.
 - A version below it is not supported. Nothing in the plugin checks the version, because a plugin manifest
   has no field for it.
 
@@ -326,7 +327,8 @@ vault's notes are never touched.
 
 ### 11. A release is promoted only after its checklist passes on the three systems
 
-- The maintainer runs `docs/release/checklist.md` on macOS, Linux, and Windows, each at Claude Code 2.1.295,
+- The maintainer runs `docs/release/checklist.md` on macOS, Linux, and Windows, each at Claude Code 2.1.295
+  or later,
   installing from `https://github.com/ATNexusLab/tightship/releases/download/v<version>/marketplace.json`.
 - Every row passes on every system, or the release is not promoted. A failing row is fixed in a new version,
   which goes through the whole checklist again.
@@ -485,7 +487,7 @@ And the agent's `tightship vault path` prints the vault folder
 ### Scenario 13 — Install from the release on each system (FR-INS-01.1, NFR-FLEX-01.1, NFR-FLEX-05.1)
 
 ```gherkin
-Given a machine on macOS, Linux, or Windows with Claude Code 2.1.295 and no plugin
+Given a machine on macOS, Linux, or Windows with Claude Code 2.1.295 or later and no plugin
 And the companions' three catalogs added
 When the adopter adds the catalog of the pre-release v1.0.0 and runs `claude plugin install tightship@tightship`
 Then `claude plugin list` shows tightship@tightship at 1.0.0 and the three companions
@@ -535,7 +537,7 @@ Then without-the-contract.md has one row per piece listed, with the rule and wha
 ### Scenario 18 — The checklist passes and the release is promoted (NFR-FLEX-01.1, NFR-FLEX-05.1, BR-01)
 
 ```gherkin
-Given every row of checklist.md passed on macOS, Linux, and Windows at Claude Code 2.1.295
+Given every row of checklist.md passed on macOS, Linux, and Windows at Claude Code 2.1.295 or later
 When the maintainer runs `gh release edit v1.0.0 --prerelease=false --latest`
 Then the guide's catalog URL serves v1.0.0's marketplace.json
 And the milestone M1 is closed and the roadmap marks it released
@@ -609,4 +611,4 @@ N/A — this epic stores no data. The options and the vault keep the model epics
 | 1 | Run the gates on macOS, Linux, and Windows at every pull request | `.github/workflows/rust.yml`, `docs.yml`, and `scan.yml` (new), `tightship/launcher.sh` (Windows arm64, restored mode), `xtask/src/build/claude_code.rs` (hook lines through `sh`), `xtask/tests/build.rs`, `tightship/tests/launcher.rs` (new), `AGENTS.md` (the CI, the secret), plus each fix the three systems reveal in code of epics #1 to #5, about 7 files before those fixes | Scenarios 1, 2, 11 by the CI runs and tests; 21 by the build test without `.identity-terms`; 12 in an isolated Claude Code configuration | — | #36 |
 | 2 | Publish a pre-release from a tag | `xtask/src/main.rs` (usage), `xtask/src/build.rs` and `xtask/src/build/binary.rs` (`--binaries`), `xtask/src/package.rs` (new), `xtask/Cargo.toml` and `Cargo.lock` (`zip`, `sha2`), `xtask/tests/build.rs`, `xtask/tests/package.rs` (new), `.github/workflows/release.yml` (new), `LICENSE` (new), `harnesses/claude-code/harness.toml` and `xtask/src/build/claude_code.rs` (`license`), `AGENTS.md` (commands), about 13 files | Scenarios 3 to 8 and 20 by tests; 9 and 10 by a tag pushed on a fork of the repository | 1 | #37 |
 | 3 | Write the Claude Code install guide | `docs/install/claude-code/` (8 new pages), `README.md` at the root (new), `docs/README.md` (a row), about 10 files; starts once epics #6 and #7 are merged into `develop` | Scenarios 15 on the maintainer's machine, 16 and 17 read at review | 2 | #38 |
-| 4 | Run the release checklist on the three systems | `docs/release/README.md` and `docs/release/checklist.md` (new), `Cargo.toml` (`1.0.0`), `docs/roadmap/` (M1 released), about 5 files; the tag and the promotion happen only at the maintainer's word | Scenarios 13, 14, 18, and 19 on macOS, Linux, and Windows at Claude Code 2.1.295 | 3 | #39 |
+| 4 | Run the release checklist on the three systems | `docs/release/README.md` and `docs/release/checklist.md` (new), `Cargo.toml` (`1.0.0`), `docs/roadmap/` (M1 released), about 5 files; the tag and the promotion happen only at the maintainer's word | Scenarios 13, 14, 18, and 19 on macOS, Linux, and Windows at Claude Code 2.1.295 or later | 3 | #39 |

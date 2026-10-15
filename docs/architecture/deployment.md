@@ -57,8 +57,9 @@ memory option is on.
 
 ## Delivery
 
-The gates in `AGENTS.md` run on the maintainer's machine, and on the three systems at each pull request in the
-[gate pipeline](building-blocks/gate-pipeline.md) (M1, #8). A release is cut from `main` by a tag the
-maintainer pushes when they decide to release; the [release pipeline](building-blocks/release-pipeline.md)
-publishes it as a pre-release, and the maintainer promotes it after the release checklist passes on macOS,
-Linux, and Windows at Claude Code 2.1.295 (M1, #8).
+The gates in `AGENTS.md` run on the maintainer's machine, and on the three systems at each pull request
+in the [gate pipeline](building-blocks/gate-pipeline.md) (M1, #8). A release is cut from `main` by a tag
+the maintainer pushes when they decide to release; the [release
+pipeline](building-blocks/release-pipeline.md) publishes it as a pre-release, and the maintainer promotes
+it after the [release checklist](../release/checklist.md) passes on macOS, Linux, and Windows at Claude
+Code 2.1.295 or later (M1, #8).

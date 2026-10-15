@@ -6,7 +6,7 @@
 [![Rust](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/rust.yml?style=flat-square&label=rust)](https://github.com/ATNexusLab/tightship/actions/workflows/rust.yml)
 [![Scan](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/scan.yml?style=flat-square&label=scan)](https://github.com/ATNexusLab/tightship/actions/workflows/scan.yml)
 [![Claude Code 2.1.295+](https://img.shields.io/badge/Claude%20Code-2.1.295%2B-FF5A1F?style=flat-square)](docs/install/claude-code/README.pt-BR.md)
-[![Status: pre-release](https://img.shields.io/badge/status-pre--release-121212?style=flat-square)](docs/roadmap/README.md)
+[![Release](https://img.shields.io/github/v/release/ATNexusLab/tightship?include_prereleases&style=flat-square&label=release&color=121212)](https://github.com/ATNexusLab/tightship/releases)
 
 **Um workflow para agentes de código com IA, do requisito ao release.**
 
@@ -14,10 +14,6 @@ O tightship carrega um processo de engenharia completo no seu agente de código.
 e uma spec. Os gates precisam voltar verdes, e um verificador precisa falhar ao tentar refutar a alegação de
 pronto. Só então a mudança é entregue. Ele se instala como plugin nativo e guarda memória entre sessões e
 máquinas.
-
-> [!NOTE]
-> Pré-release. O marco M1, o plugin para Claude Code, está sendo finalizado. Ainda não há release estável.
-> Veja o [roadmap](docs/roadmap/README.md).
 
 ## Por quê
 
@@ -75,7 +71,7 @@ cobre opções, atualizações, desinstalação e a migração da instalação a
 
 | Harness | Status | Marco |
 | --- | --- | --- |
-| Claude Code | Em andamento | M1 |
+| Claude Code | Disponível | M1 |
 | Cursor | Planejado | M2 |
 | Antigravity CLI | Planejado | M3 |
 | Codex | Planejado | M4 |

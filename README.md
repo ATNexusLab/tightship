@@ -6,17 +6,13 @@ English · [Português](README.pt-BR.md)
 [![Rust](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/rust.yml?style=flat-square&label=rust)](https://github.com/ATNexusLab/tightship/actions/workflows/rust.yml)
 [![Scan](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/scan.yml?style=flat-square&label=scan)](https://github.com/ATNexusLab/tightship/actions/workflows/scan.yml)
 [![Claude Code 2.1.295+](https://img.shields.io/badge/Claude%20Code-2.1.295%2B-FF5A1F?style=flat-square)](docs/install/claude-code/README.md)
-[![Status: pre-release](https://img.shields.io/badge/status-pre--release-121212?style=flat-square)](docs/roadmap/README.md)
+[![Release](https://img.shields.io/github/v/release/ATNexusLab/tightship?include_prereleases&style=flat-square&label=release&color=121212)](https://github.com/ATNexusLab/tightship/releases)
 
 **A workflow for AI coding agents, from requirement to release.**
 
 tightship loads a full engineering process into your coding agent. Every change gets an issue and a spec.
 Gates must come back green, and a verifier has to fail to disprove the claim of done. Only then does the
 change ship. It installs as a native plugin and keeps memory across sessions and machines.
-
-> [!NOTE]
-> Pre-release. Milestone M1, the Claude Code plugin, is being finished. No stable release yet. See the
-> [roadmap](docs/roadmap/README.md).
 
 ## Why
 
@@ -73,7 +69,7 @@ covers options, updates, uninstalling, and moving from the pre-plugin install.
 
 | Harness | Status | Milestone |
 | --- | --- | --- |
-| Claude Code | In progress | M1 |
+| Claude Code | Available | M1 |
 | Cursor | Planned | M2 |
 | Antigravity CLI | Planned | M3 |
 | Codex | Planned | M4 |
