@@ -182,21 +182,8 @@ fn record(sandbox: &Sandbox) -> Option<serde_json::Value> {
         .map(|text| serde_json::from_str(&text).expect("a JSON record"))
 }
 
-fn offer(sandbox: &Sandbox) -> String {
-    let quoted = |relative: &str| format!("'{}'", sandbox.path(relative).display());
-    format!(
-        "tightship can show its status line in this session. In your first reply, ask the adopter, word for word:\n\
-         \"tightship can show its status line under the prompt. It replaces the status line in your user settings, and turning the plugin's status_line option off brings yours back. Turn it on?\"\n\
-         On yes, run: TIGHTSHIP_SETTINGS={} TIGHTSHIP_DATA={} TIGHTSHIP_ROOT='{ROOT}' tightship status-line enable\n\
-         On no, run: TIGHTSHIP_DATA={} tightship status-line decline\n",
-        quoted("config/settings.json"),
-        quoted("data"),
-        quoted("data"),
-    )
-}
-
 #[test]
-fn the_session_start_offers_the_status_line() {
+fn the_session_start_activates_the_status_line() {
     let sandbox = Sandbox::new();
     sandbox.write("config/settings.json", MINE);
     fs::create_dir_all(sandbox.path("data")).expect("the data folder");
@@ -204,9 +191,15 @@ fn the_session_start_offers_the_status_line() {
     let output = hook(&sandbox, None);
 
     assert_succeeds(&output);
-    assert_eq!(stdout_of(&output), offer(&sandbox));
-    assert_eq!(settings(&sandbox), MINE);
-    assert_eq!(record(&sandbox), None);
+    assert_eq!(stdout_of(&output), "");
+    assert_eq!(
+        settings(&sandbox),
+        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
+    );
+    assert_eq!(
+        record(&sandbox),
+        Some(json!({ "state": "on", "previous": { "type": "command", "command": "mine" } }))
+    );
 }
 
 #[test]
@@ -300,12 +293,19 @@ fn no_is_kept_until_the_option_is_turned_off_and_on() {
     assert_eq!(stdout_of(&hook(&sandbox, None)), "");
 
     let off = hook(&sandbox, Some("false"));
-    let on = hook(&sandbox, None);
-
     assert_eq!(stdout_of(&off), "");
     assert_eq!(record(&sandbox), None);
-    assert_eq!(stdout_of(&on), offer(&sandbox));
-    assert_eq!(settings(&sandbox), MINE);
+
+    let on = hook(&sandbox, None);
+    assert_eq!(stdout_of(&on), "");
+    assert_eq!(
+        settings(&sandbox),
+        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
+    );
+    assert_eq!(
+        record(&sandbox),
+        Some(json!({ "state": "on", "previous": { "type": "command", "command": "mine" } }))
+    );
 }
 
 #[test]
