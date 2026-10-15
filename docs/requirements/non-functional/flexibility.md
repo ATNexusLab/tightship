@@ -7,12 +7,11 @@ any one harness.
 
 ## NFR-FLEX-01 — Claude Code is supported
 
-The system shall pass every M1 acceptance criterion in Claude Code, from the minimum version
-[OQ-04](../open-questions.md#oq-04) sets.
+The system shall pass every M1 acceptance criterion in Claude Code, from version 2.1.295.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | Claude Code is the first harness ([BR-01](../business-rules.md#br-01)). |
+| Rationale | Claude Code is the first harness ([BR-01](../business-rules.md#br-01)). 2.1.295 is the first version whose `SessionStart` hooks' exported variables reach the Bash tool after an in-app `/resume` or `/branch` ([epic #8 spec](../../specs/release-m1/release-the-plugin.md)). |
 | Source | Maintainer, elicitation 2026-10-14 |
 | Priority | Must |
 | Status | approved |
@@ -21,8 +20,7 @@ The system shall pass every M1 acceptance criterion in Claude Code, from the min
 
 **Acceptance criteria**
 
-- **NFR-FLEX-01.1** — 100% of the functional acceptance criteria pass in Claude Code at its minimum
-  supported version.
+- **NFR-FLEX-01.1** — 100% of the functional acceptance criteria pass in Claude Code 2.1.295.
 
 <a id="nfr-flex-02"></a>
 

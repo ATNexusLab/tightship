@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.1 — 2026-10-15
+
+Editorial. The [spec of epic #8](../specs/release-m1/release-the-plugin.md) settles OQ-04 for Claude Code.
+
+**Changed**
+
+- NFR-FLEX-01 and NFR-FLEX-01.1 name Claude Code 2.1.295 as the minimum supported version, with the reason
+  in the Rationale.
+- OQ-04 asks only for the minimum versions of Cursor, Antigravity CLI, and Codex, and affects NFR-FLEX-02 to
+  NFR-FLEX-04.
+- Overview: the harness versions table states Claude Code's minimum version.
+
 ## 1.5.0 — 2026-10-15
 
 BR-05 could not be checked: it named no version of the companions, whose rules change between versions, and

@@ -21,7 +21,9 @@
   | Antigravity CLI | not installed | M3 |
   | Codex | 0.162.1 | M4 |
 
-  The minimum supported version of each harness is [OQ-04](open-questions.md#oq-04).
+  The minimum supported version is 2.1.295 for Claude Code
+  ([NFR-FLEX-01](non-functional/flexibility.md#nfr-flex-01)); for the other harnesses it is
+  [OQ-04](open-questions.md#oq-04).
 - **Adopter prerequisites:** nothing on macOS and Linux; Git for Windows on Windows, so that the plugin's
   hooks run under Git Bash. The vault is a git repository, so the memory option needs git on every system
   ([ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)).

@@ -1,13 +1,15 @@
 # Build
 
-**Lives in:** `xtask/` · **Technology:** Rust, run as `cargo xtask` · **Milestone:** M1, epics #1, #4, #5,
-and #6
+**Lives in:** `xtask/` · **Technology:** Rust, run as `cargo xtask` ·
+**Milestone:** M1, epics #1, #4, #5, #6, and #8
 
 The maintainer's tool. It never runs on an adopter's machine.
 
 | Command | Does |
 | --- | --- |
 | `cargo xtask build` | Reads the content and the definitions, checks every token, the option tokens of M1, #6 included, literal reference, harness term, and front matter, renders `dist/claude-code/`, the [contract](../concepts/contract.md) packed into parts within the harness's limit (M1, #4), the [tightship binary](tightship-binary.md) compiled for the machine that builds, with home paths remapped, and the memory hooks (M1, #5), then scans it for the maintainer's identity |
+| `cargo xtask build --binaries <folder>` | The same, with the four prebuilt binaries of `<folder>` in place of the compile step, for the release pipeline (M1, #8) |
+| `cargo xtask package <tag>` | Packs a `dist/claude-code/` holding the four binaries into `dist/tightship-claude-code.zip`, with fixed file modes, and writes the release's catalog `dist/marketplace.json` (M1, #8) |
 | `cargo xtask scan` | Runs gitleaks over the whole history and looks for vault notes in the working tree |
 
 The code is split by command: `xtask/src/build/` and `xtask/src/scan/`, with `git.rs` and `diagnostics.rs`
