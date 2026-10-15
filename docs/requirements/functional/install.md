@@ -131,22 +131,23 @@ The system shall keep the state of every option across an update of the plugin.
 > As an adopter, I want the uninstall to remove everything the plugin added, so that my harness is as it
 > was before.
 
-The system shall leave, after uninstall, no file, setting, or hook that the plugin added, except the
-vault.
+The system shall leave, after an uninstall that follows the install guide, no file, setting, or hook that
+the plugin added, except the vault.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | The vault is the adopter's data; everything else is the plugin's. |
-| Source | Analysis 2026-10-14, approved by the maintainer |
+| Rationale | The vault is the adopter's data; everything else is the plugin's. Claude Code runs no plugin code on uninstall, so the steps that undo what the plugin wrote into the adopter's settings are the guide's. |
+| Source | Analysis 2026-10-14, approved by the maintainer; change request [#31](https://github.com/ATNexusLab/tightship/issues/31) |
 | Priority | Should |
 | Status | approved |
 | Milestone | M1 |
-| Since | v1.0.0 |
+| Since | v1.0.0, changed in v1.6.0 |
 
 **Acceptance criteria**
 
-- **FR-INS-06.1** — Given the plugin was installed with every option on, when the adopter uninstalls it,
-  then the harness's user directory holds nothing the plugin added and the vault is unchanged.
+- **FR-INS-06.1** — Given the plugin was installed with every option on, when the adopter follows the
+  install guide's uninstall steps, then the harness's user directory holds nothing the plugin added and
+  the vault is unchanged.
 
 <a id="fr-ins-07"></a>
 

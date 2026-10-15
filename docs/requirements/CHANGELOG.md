@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.0 — 2026-10-15
+
+FR-INS-06.1 could not hold once the status line is on: Claude Code lets no plugin set `statusLine`, runs no
+plugin code on uninstall, and deletes the plugin's data folder, which holds the adopter's previous status
+line. Change request [#31](https://github.com/ATNexusLab/tightship/issues/31).
+
+**Changed**
+
+- FR-INS-06 and FR-INS-06.1 hold for an uninstall that follows the install guide's steps, which turn
+  `status_line` off and open one session first.
+
 ## 1.5.1 — 2026-10-15
 
 Editorial. The [spec of epic #8](../specs/release-m1/release-the-plugin.md) settles OQ-04 for Claude Code.
