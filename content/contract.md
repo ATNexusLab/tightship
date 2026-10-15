@@ -57,10 +57,10 @@ worse.
 
 | Rule | Meaning |
 | --- | --- |
-| **Only `ponytail:` comments** | The single comment permitted is a `ponytail:` marker on a deliberate simplification, naming its ceiling and upgrade path. Every other comment — what, why, section banner, docstring, `TODO` — is a violation, in every versioned format: YAML, TOML, `.gitignore`, hook scripts. The marker covers a simplification with a named ceiling, never an explanation of what the code does. **This overrides the harness default `match its comment density`.** A densely commented file is not licence to match it. Existing comments stay unless you ask me to touch a file or folder — then cleaning means deleting them. Exceptions: a doc-block the repo's own lint fails without (I write the minimum and say so on delivery), and env example files. |
+| **Only `shortcut:` comments** | The single comment permitted is a `shortcut:` marker on a deliberate simplification, in ponytail's form `shortcut: <the limit>, <when to upgrade>`. Every other comment — what, why, section banner, docstring, `TODO` — is a violation, in every versioned format: YAML, TOML, `.gitignore`, hook scripts. The marker covers a simplification with a named ceiling, never an explanation of what the code does. **This overrides the harness default `match its comment density` and ponytail's `Comment only the why the code cannot show`.** A densely commented file is not licence to match it. Existing comments stay unless you ask me to touch a file or folder — then cleaning means deleting them. Exceptions: a doc-block the repo's own lint fails without (I write the minimum and say so on delivery), and env example files. |
 | **Write each ecosystem its own way** | Its types, error model, conventions and vocabulary. Never port a pattern, name or constraint from another stack; parity with a previous implementation covers only what a consumer observes. |
 | **A name states what the thing does** | A name that describes something else is a bug; a word that could name anything is rejected. |
-| **Nothing exists to fill a pattern** | Every piece earns its place by doing something; a responsibility sits where it is served. The shape follows the ecosystem's convention and the problem's size. |
+| **Nothing exists to fill a pattern** | A responsibility sits where it is served. The shape follows the ecosystem's convention and the problem's size. |
 | **One path per failure** | Errors follow the ecosystem's model; each failure is handled where something can act on it and reported once, never rebuilt at every call site. |
 | **Validation at trust boundaries only** | External input, the network, user input, a third party's return. Between internal functions of the same module, none. |
 | **Extract a value only when it earns it** | A named value exists when it is reused, when its name replaces a comment, or when the expression does not fit the line. A single obvious use stays inline. |
@@ -209,7 +209,7 @@ layout, copy, renames, config, docs, wiring and dependency bumps get no test, an
   happy path nor regression is deleted. A new test only when no existing one can absorb the case.
 - **Nothing outside the repo's runner.** A repo without one gets no test file. Throwaway checks —
   mutants, verification scripts, self-checks — run in the scratchpad and never stay in the tree. **This
-  overrides the plugin default `leaves ONE runnable check behind`.**
+  overrides ponytail's default `leaves one small test or an assert-based self-check`.**
 
 The runner is whichever one the repo configures, discovered from its config — never invented. The rest
 lives in `{{skill:testing-contract}}`.

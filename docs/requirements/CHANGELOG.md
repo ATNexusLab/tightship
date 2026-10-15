@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.0 — 2026-10-15
+
+The baseline contract quotes ponytail 4.9.0, and the plugin installs ponytail 5.2.0, whose comment marker,
+self-check rule, and comment default differ. One clause of the baseline also repeats ponytail. Change request
+[#20](https://github.com/ATNexusLab/tightship/issues/20), approved after the comparison of scenario 18 of the
+[spec of epic #4](../specs/contract/load-the-contract.md).
+
+**Changed**
+
+- FR-CTR-04 also lets a baseline rule change where BR-05 requires it: a companion already states the rule, or
+  no longer has the default the rule cites. FR-CTR-04.1 accepts a rule listed in the spec of M1 as changed for
+  BR-05, with the companion's text.
+
 ## 1.1.1 — 2026-10-15
 
 Editorial. No requirement changes meaning. The spec of epic #4 settles OQ-06 for Claude Code.

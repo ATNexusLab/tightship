@@ -45,7 +45,8 @@ throwaway plugin on Claude Code 2.1.299:
 5. **The Memory section names the commands epic #5 builds:** `tightship vault search`, `tightship vault new`,
    and `tightship vault path`, in place of the baseline's `vault.py`. Epic #5's spec takes these names.
 6. **What leaves the baseline as personal** is the four items of rule 8, each with its reason. Every other rule
-   is carried, with harness names turned into capability tokens and piece names into piece tokens.
+   is carried, with harness names turned into capability tokens and piece names into piece tokens, except the
+   four changes rule 8 makes for BR-05 ([#20](https://github.com/ATNexusLab/tightship/issues/20)).
 7. Two tasks: the build renders a contract into hooks, then the baseline's contract is migrated.
 
 ## Acceptance Criteria
@@ -256,6 +257,16 @@ project behind either.
 | "The vault is `ai-memory`, shared across harnesses and machines through a private git repo" | Names the maintainer's vault and where it is hosted | "The vault is the adopter's git repository of notes, shared across harnesses and machines" |
 | `vault.py path`, `vault.py search`, `vault.py new` | The maintainer's script, which the plugin does not ship | `tightship vault path`, `tightship vault search`, `tightship vault new` (epic #5) |
 | "wait for the "vai"" | The maintainer's word in Portuguese | "wait for a go-ahead" |
+
+- Changed for BR-05 ([#20](https://github.com/ATNexusLab/tightship/issues/20)), against ponytail 5.2.0, the
+  version the plugin installs:
+
+| Baseline text | Ponytail 5.2.0 | In the shipped contract |
+| --- | --- | --- |
+| "Only `ponytail:` comments … a `ponytail:` marker on a deliberate simplification, naming its ceiling and upgrade path" | "A shortcut with a known limit gets a code comment in this form: `shortcut: <the limit>, <when to upgrade>`" | "Only `shortcut:` comments … a `shortcut:` marker on a deliberate simplification, in ponytail's form `shortcut: <the limit>, <when to upgrade>`" |
+| "This overrides the harness default `match its comment density`." | "Comment only the why the code cannot show, in one line." | "This overrides the harness default `match its comment density` and ponytail's `Comment only the why the code cannot show`." |
+| "This overrides the plugin default `leaves ONE runnable check behind`." | "… leaves one small test or an assert-based self-check." | "This overrides ponytail's default `leaves one small test or an assert-based self-check`." |
+| "Every piece earns its place by doing something; a responsibility sits where it is served." | "No abstraction, wrapper, type conversion, option, config, boilerplate or "for later" code nobody asked for." | "A responsibility sits where it is served." |
 
 ### 9. The contract restates no companion's rule
 
@@ -469,6 +480,7 @@ Given the baseline's CLAUDE.md at commit 1f41699
 When each of its rules, bullets, table rows, and numbered steps is looked up in content/contract.md
 Then each one is found, with only the changes of rule 8
 Or it is one of the four rows of rule 8's personal table
+Or it is one of the four rows of rule 8's table of changes for BR-05
 ```
 
 ### Scenario 18 — No companion's rule is restated (BR-05)
