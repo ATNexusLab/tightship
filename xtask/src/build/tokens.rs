@@ -2,10 +2,12 @@ use std::ops::Range;
 
 use super::content::{Kind, is_valid_name};
 use super::harness::Harness;
+use super::options::is_option_name;
 
 pub enum Form<'text> {
     Piece(Kind, &'text str),
     Capability(&'text str),
+    Option(&'text str),
     UnknownKind(&'text str),
     Malformed,
 }
@@ -68,6 +70,7 @@ pub fn render<'text>(text: &'text str, harness: &Harness) -> (String, Vec<&'text
                     .replace("{name}", name),
             ),
             Form::Capability(name) => harness.capabilities.get(name).cloned(),
+            Form::Option(name) => Some(harness.references.option(name)),
             Form::UnknownKind(_) | Form::Malformed => None,
         };
         replacement.unwrap_or_else(|| {
@@ -83,7 +86,12 @@ fn classify(inner: &str) -> Form<'_> {
         return Form::Malformed;
     };
     let kind_is_word = !kind.is_empty() && kind.bytes().all(|byte| byte.is_ascii_lowercase());
-    if !kind_is_word || !is_valid_name(name) {
+    let name_is_valid = if kind == "option" {
+        is_option_name(name)
+    } else {
+        is_valid_name(name)
+    };
+    if !kind_is_word || !name_is_valid {
         return Form::Malformed;
     }
     match kind {
@@ -91,6 +99,7 @@ fn classify(inner: &str) -> Form<'_> {
         "command" => Form::Piece(Kind::Command, name),
         "agent" => Form::Piece(Kind::Agent, name),
         "capability" => Form::Capability(name),
+        "option" => Form::Option(name),
         _ => Form::UnknownKind(kind),
     }
 }

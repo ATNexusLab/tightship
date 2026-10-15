@@ -1,6 +1,6 @@
 use super::content::{Content, Kind, SupportingBody};
 use super::harness::Harness;
-use super::tokens::{self, Form};
+use super::tokens::{self, Form, Token};
 use crate::diagnostics::Diagnostic;
 
 pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Diagnostic>) {
@@ -9,43 +9,56 @@ pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Dia
         .iter()
         .map(|piece| (piece.kind, piece.name.as_str()))
         .collect();
-    let bodies = content
-        .pieces
-        .iter()
-        .map(|piece| (piece.path.as_str(), piece.body.as_str(), piece.body_line));
+    let bodies = content.pieces.iter().map(|piece| {
+        (
+            piece.path.as_str(),
+            piece.body.as_str(),
+            piece.body_line,
+            true,
+        )
+    });
     let supporting = content
         .supporting
         .iter()
         .filter_map(|supporting| match &supporting.body {
-            SupportingBody::Markdown(text) => Some((supporting.path.as_str(), text.as_str(), 1)),
+            SupportingBody::Markdown(text) => {
+                Some((supporting.path.as_str(), text.as_str(), 1, false))
+            }
             SupportingBody::Copied(_) => None,
         });
     let options = content
         .options
         .iter()
-        .map(|file| (file.path.as_str(), file.text.as_str(), 1));
+        .map(|file| (file.path.as_str(), file.text.as_str(), 1, false));
     let contract = content
         .contract
         .iter()
-        .map(|contract| (contract.path.as_str(), contract.text.as_str(), 1));
+        .map(|contract| (contract.path.as_str(), contract.text.as_str(), 1, false));
     let vault_template = content
         .vault_template
         .iter()
-        .map(|text| ("content/vault-template/AGENTS.md", text.as_str(), 1));
+        .map(|text| ("content/vault-template/AGENTS.md", text.as_str(), 1, false));
+    let boolean_options: Vec<&str> = content
+        .options
+        .iter()
+        .flat_map(|file| &file.declared)
+        .filter(|option| option.kind == "boolean")
+        .map(|option| option.name.as_str())
+        .collect();
     let forms = literal_forms(&pieces);
     let texts = bodies
         .chain(supporting)
         .chain(options)
         .chain(contract)
         .chain(vault_template);
-    for (path, text, first_line) in texts {
+    for (path, text, first_line, in_piece) in texts {
         let report = |line: usize, message: String| {
             Diagnostic::at_line(path, first_line + line - 1, message)
         };
         let mut blanked = text.as_bytes().to_vec();
         for token in tokens::scan(text) {
             blanked[token.range.clone()].fill(b' ');
-            let message = token_error(token.text, &token.form, &pieces, harnesses);
+            let message = token_error(&token, in_piece, &pieces, &boolean_options, harnesses);
             diagnostics.extend(
                 message
                     .into_iter()
@@ -66,12 +79,14 @@ pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Dia
 }
 
 fn token_error(
-    text: &str,
-    form: &Form<'_>,
+    token: &Token<'_>,
+    in_piece: bool,
     pieces: &[(Kind, &str)],
+    boolean_options: &[&str],
     harnesses: &[Harness],
 ) -> Vec<String> {
-    match form {
+    let text = token.text;
+    match &token.form {
         Form::Piece(kind, name) if !pieces.contains(&(*kind, name)) => {
             vec![format!("{text} names no {} in content/", kind.noun())]
         }
@@ -86,6 +101,17 @@ fn token_error(
                 )
             })
             .collect(),
+        Form::Option(_) if !in_piece => {
+            vec![format!(
+                "{text} works only in a skill, a command, or an agent"
+            )]
+        }
+        Form::Option(name) if !boolean_options.contains(name) => {
+            vec![format!(
+                "{text} names no boolean option in content/options.toml"
+            )]
+        }
+        Form::Option(_) => Vec::new(),
         Form::UnknownKind(kind) => vec![format!("unknown token kind \"{kind}\" in {text}")],
         Form::Malformed => vec![format!(
             "\"{text}\" is not a token; write {{{{<kind>:<name>}}}}"

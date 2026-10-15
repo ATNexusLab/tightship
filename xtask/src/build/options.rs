@@ -24,6 +24,14 @@ pub struct OptionsFile {
     pub declared: Vec<UserOption>,
 }
 
+pub fn is_option_name(name: &str) -> bool {
+    name.len() <= 64
+        && name.starts_with(|character: char| character.is_ascii_lowercase())
+        && name.chars().all(|character| {
+            character.is_ascii_lowercase() || character.is_ascii_digit() || character == '_'
+        })
+}
+
 pub fn read(path: &str, text: String, diagnostics: &mut Vec<Diagnostic>) -> OptionsFile {
     #[derive(Deserialize)]
     #[serde(deny_unknown_fields)]
@@ -31,13 +39,6 @@ pub fn read(path: &str, text: String, diagnostics: &mut Vec<Diagnostic>) -> Opti
         #[serde(default)]
         options: Vec<UserOption>,
     }
-    let is_option_name = |name: &str| {
-        name.len() <= 64
-            && name.starts_with(|character: char| character.is_ascii_lowercase())
-            && name.chars().all(|character| {
-                character.is_ascii_lowercase() || character.is_ascii_digit() || character == '_'
-            })
-    };
     let mut file = OptionsFile {
         path: path.to_owned(),
         text,
