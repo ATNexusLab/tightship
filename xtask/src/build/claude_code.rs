@@ -234,6 +234,15 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
             }),
         ]);
     }
+    if declares("status_line") {
+        session_start.push(serde_json::json!({
+            "matcher": "startup",
+            "hooks": [{
+                "type": "command",
+                "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
+            }],
+        }));
+    }
     if session_start.is_empty() {
         return Ok(None);
     }

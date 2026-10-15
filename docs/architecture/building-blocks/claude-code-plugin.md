@@ -19,6 +19,11 @@ Its `bin/` holds the [tightship binary](tightship-binary.md) and its launcher, a
 `SessionStart` and on each prompt, unless the memory option is off (M1, #5). The manifest declares
 `vault_folder`, a `directory` setting with no default, next to the options.
 
+One more `SessionStart` hook, on `startup`, runs `tightship hook status-line` whatever the status line option's
+state, since turning the option off is what puts the adopter's status line back. A plugin cannot set
+`statusLine` itself, so the binary writes it into the adopter's user settings after consent
+([status line](../concepts/status-line.md), M1, #7).
+
 **It never** gets edited. Every change goes to the canonical content or the harness definition, then
 through the build.
 

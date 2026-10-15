@@ -2,6 +2,7 @@ pub mod checkpoint;
 pub mod export;
 pub mod prompt;
 pub mod start;
+pub mod status_line;
 
 use std::env;
 use std::fs::OpenOptions;
@@ -47,11 +48,14 @@ fn export_vault(folder: &Path) -> Result<(), Failure> {
     else {
         return Ok(());
     };
-    let quoted = folder.to_string_lossy().replace('\'', "'\\''");
     OpenOptions::new()
         .create(true)
         .append(true)
         .open(&file)
-        .and_then(|mut opened| writeln!(opened, "export TIGHTSHIP_VAULT='{quoted}'"))
+        .and_then(|mut opened| writeln!(opened, "export TIGHTSHIP_VAULT={}", quoted(folder)))
         .map_err(|error| Failure::EnvUnwritable(file, error))
+}
+
+fn quoted(path: &Path) -> String {
+    format!("'{}'", path.to_string_lossy().replace('\'', "'\\''"))
 }

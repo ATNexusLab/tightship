@@ -2,6 +2,7 @@ mod failure;
 mod git;
 mod hook;
 mod project;
+mod status;
 mod vault;
 
 use std::panic;
@@ -23,7 +24,10 @@ Usage: tightship vault path
        tightship vault lint
        tightship vault sync
        tightship vault handoff release --title <title> < body
-       tightship vault handoff claim";
+       tightship vault handoff claim
+       tightship status-line render
+       tightship status-line enable
+       tightship status-line decline";
 
 #[derive(Parser)]
 #[command(name = "tightship")]
@@ -38,6 +42,8 @@ enum Area {
     Vault(VaultCommand),
     #[command(subcommand)]
     Hook(HookCommand),
+    #[command(subcommand)]
+    StatusLine(StatusLineCommand),
 }
 
 #[derive(Subcommand)]
@@ -46,6 +52,14 @@ enum HookCommand {
     Export,
     Checkpoint,
     Prompt,
+    StatusLine,
+}
+
+#[derive(Subcommand)]
+enum StatusLineCommand {
+    Render,
+    Enable,
+    Decline,
 }
 
 #[derive(Subcommand)]
@@ -96,6 +110,10 @@ fn main() -> ExitCode {
         Area::Hook(HookCommand::Export) => hook::export::run(),
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
         Area::Hook(HookCommand::Prompt) => hook::prompt::run(),
+        Area::Hook(HookCommand::StatusLine) => hook::status_line::run(),
+        Area::StatusLine(StatusLineCommand::Render) => status::render::run(),
+        Area::StatusLine(StatusLineCommand::Enable) => status::settings::enable(),
+        Area::StatusLine(StatusLineCommand::Decline) => status::settings::decline(),
     };
     match ran {
         Ok(()) => ExitCode::SUCCESS,

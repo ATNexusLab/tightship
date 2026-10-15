@@ -21,10 +21,13 @@ From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.
 - **Network:** only the git remote of the adopter's vault, when the vault is synced
   ([FR-MEM-11](../../requirements/functional/memory.md#fr-mem-11), M1, #5), which also carries the handoff
   (M1, #6). A handoff claim runs `git fetch` in the project's repository, through the adopter's git.
-- **Disk:** the adopter's vault, and the harness's settings file, for the status line only, after the adopter
-  consents ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02)). In the harness's own
-  places, the plugin also writes the checkpoint's prompt counter in the plugin's data folder, and one `export`
-  line per session in the session's environment file ([memory](memory.md), M1, #5). The options' state is the
-  harness's own: it keeps it in its user settings ([options](options.md), M1, #3).
+- **Disk:** the adopter's vault, and the `statusLine` key of the harness's user settings, after the adopter
+  consents ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02), [status line](status-line.md),
+  M1, #7). In the harness's own places, the plugin also writes, in the plugin's data folder, the checkpoint's
+  prompt counter ([memory](memory.md), M1, #5) and `status-line.json` (M1, #7), and one `export` line per
+  session in the session's environment file (M1, #5). The options' state is the harness's own: it keeps it in
+  its user settings ([options](options.md), M1, #3). The user settings can hold secrets in their `env`, so
+  a rewrite keeps the file's permissions, and the temporary file beside it is readable only by the adopter
+  (M1, #7).
 
 The build writes only to `dist/`.
