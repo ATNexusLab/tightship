@@ -89,6 +89,13 @@ scope's earlier ones, and run `tightship vault sync` to push it. The project's r
 `tightship vault handoff claim`, which prints and removes the scope's handoffs, sync again, and compare each
 handoff with the repository after a `git fetch`. It shows the next step and the open decisions, and waits.
 
+**Session start: the status line** (M1, #7). On `startup`, `tightship hook status-line` runs whatever the
+status line option's state. With the option on and the status line not yet decided, it prints a question for
+the agent to put to the adopter, and the agent runs `tightship status-line enable` or `decline` on the answer.
+`enable` saves the adopter's `statusLine` in the plugin's data folder and writes the workflow's into the user
+settings, and Claude Code then runs `tightship status-line render` as the status line. With the option off, the
+hook puts the saved value back ([status line](concepts/status-line.md)).
+
 **The adopter syncs the vault** (M1, #5). The command `sync` has the agent run `tightship vault sync`, which
 commits the vault's changes, rebases them on its git remote, renumbers colliding ids, and pushes. A conflict or
 a git failure stops it with exit 1 and the next step, and the agent resolves it and syncs again

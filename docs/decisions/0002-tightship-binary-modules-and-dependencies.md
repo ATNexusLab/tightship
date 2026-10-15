@@ -1,4 +1,4 @@
-# 0002. The tightship binary: modules by domain, a pure core, four dependencies
+# 0002. The tightship binary: modules by domain, a pure core, five dependencies
 
 - Status: accepted
 - Date: 2026-10-15
@@ -47,7 +47,8 @@ A subcommand reads what it needs at the start (files, git, the environment, stdi
 functions, and writes once at the end. No trait stands for the file system, git, or the clock, because
 each has one implementation. Tests run the built binary over real folders.
 
-**Dependencies.** Each one is pinned to an exact version:
+**Dependencies.** Amended by the [epic #7 spec](../specs/status-line/show-the-status-line.md) with
+`unicode-width`. Each one is pinned to an exact version:
 
 | Crate | For | Why not the alternative |
 | --- | --- | --- |
@@ -55,6 +56,10 @@ each has one implementation. Tests run the built binary over real folders.
 | `jiff` 0.2.38 | The local date of a note, the age of a note | The standard library has no time zone |
 | `serde_json` 1.0.154 | The JSON a hook reads on stdin | Already in the workspace |
 | `deunicode` 1.6.2 | Folding a title to the ASCII of its slug | Unicode normalization drops what it cannot decompose, where `deunicode` transliterates it |
+| `unicode-width` 0.2.2 | The width a terminal gives the status line's text (M1, #7) | Counting characters overstates nothing for ASCII and gets every wide character, such as CJK or an emoji, wrong |
+
+`serde_json` runs with its `preserve_order` feature (M1, #7), so rewriting the adopter's settings for the
+status line keeps their keys in order.
 
 `clap` runs through `try_parse`, never `parse`, since clap exits with 2 on a usage error. `main` turns each
 usage error into the spec's message and exit 1. Front matter is read and written by hand: it is flat
@@ -73,7 +78,7 @@ Module files follow the Rust 2018 layout, `build.rs` beside `build/`, not `mod.r
   launcher, or release target.
 - The core cannot be unit-tested against a fake file system. Every rule is tested through the binary, the
   way the spec's scenarios state it.
-- The adopter's binary carries four dependencies and their own dependencies, and each one is bumped on purpose.
+- The adopter's binary carries five dependencies and their own dependencies, and each one is bumped on purpose.
 - clap's generated help is replaced by the spec's usage text.
 
 ## Alternatives considered

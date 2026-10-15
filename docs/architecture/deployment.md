@@ -35,9 +35,11 @@ sits at the repository root with an `archive` source pointing at the release's z
 
 The adopter chooses the [options](concepts/options.md) in the dialog of `/plugin install`, or with `--config
 <name>=false` on the shell's install, and changes them later with `/plugin configure` or `claude plugin
-configure`. An update keeps them. `claude plugin uninstall tightship@tightship --prune -y` deletes them, the
-plugin's data folder, and the companions it installed; the adopter then removes the four catalogs with `claude
-plugin marketplace remove` (M1, #3).
+configure`. An update keeps them. Before uninstalling, the adopter turns `status_line` off and opens one
+session, which puts their own status line back; Claude Code runs no plugin code on uninstall (M1, #7).
+`claude plugin uninstall tightship@tightship --prune -y` then deletes the options, the plugin's data folder,
+and the companions it installed; the adopter then removes the four catalogs with `claude plugin marketplace
+remove` (M1, #3).
 
 ## Adopter prerequisites
 
