@@ -41,13 +41,14 @@ Rust for application code, for the build, and for every new script
 | Type checking | `cargo check --workspace --all-targets` | Type-checks the Rust workspace |
 | Formatting | `cargo fmt --all --check` | rustfmt defaults |
 | Build | `uvx zensical==0.0.70 build` | Builds the docs site into `site/` |
-| Build | `cargo xtask build` | Builds the Claude Code plugin, with the `tightship` binary for this machine, into `dist/claude-code/` |
-| Tests | `cargo test --workspace` | The build's, the package's, the scan's, and the binary's scenarios, over fixtures in a temporary folder; needs gitleaks 8.30.1 |
+| Build | `cargo xtask build` | Builds the plugins, with the `tightship` binary for this machine, into `dist/claude-code/` and `dist/antigravity-cli/` |
+| Tests | `cargo test --workspace` | The build's, the package's, the scan's, the installer's, and the binary's scenarios, over fixtures in a temporary folder; needs gitleaks 8.30.1 |
 | Run | `uvx zensical==0.0.70 serve --open` | Serves the docs at `http://localhost:8000` |
 | Run | `claude --plugin-dir dist/claude-code` | Loads the built plugin in a session |
 | Run | `claude plugin marketplace add ./dist/claude-code`, then `claude plugin install tightship@tightship` | Installs the built plugin with its companions, once the catalogs `DietrichGebert/ponytail`, `ayghri/i-have-adhd`, and `blader/humanizer` are added |
-| Release | `cargo xtask build --binaries <folder>` | The plugin with the four prebuilt binaries of `<folder>`, as `macos/tightship`, `linux-x64/tightship`, `linux-arm64/tightship`, and `windows-x64/tightship.exe`, nothing compiled |
-| Release | `cargo xtask package <tag>` | Packs that plugin into `dist/tightship-claude-code.zip` and writes its catalog `dist/marketplace.json`; the tag is `v` and the built version |
+| Run | `agy plugin validate dist/antigravity-cli --strict` | Validates the built Antigravity CLI plugin |
+| Release | `cargo xtask build --binaries <folder>` | The plugins with the four prebuilt binaries of `<folder>`, as `macos/tightship`, `linux-x64/tightship`, `linux-arm64/tightship`, and `windows-x64/tightship.exe`, nothing compiled |
+| Release | `cargo xtask package <tag>` | Packs the plugins into `dist/tightship-claude-code.zip` and `dist/tightship-antigravity-cli.zip`, and writes `dist/marketplace.json`; the tag is `v` and the built version |
 
 At each pull request into `develop` or `main`, `.github/workflows/` runs only the gates its files call for:
 `rust.yml` the Rust gates on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git Bash) when the
@@ -58,8 +59,8 @@ from the repository secret `IDENTITY_TERMS`, so a change to the file is copied t
 an identity term, and a runner's, `runner`, is a word the content uses.
 
 A tag `v<version>` pushed on `main` runs `release.yml`: it builds the binary for the four platforms, then
-`cargo xtask build --binaries binaries` and `cargo xtask package <tag>`, and publishes the zip and its catalog
-as a pre-release. It is the only workflow with `contents: write`, on its pack job.
+`cargo xtask build --binaries binaries` and `cargo xtask package <tag>`, and publishes the zips, catalog,
+and installers as a pre-release. It is the only workflow with `contents: write`, on its pack job.
 
 ## Architecture
 
