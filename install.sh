@@ -91,8 +91,10 @@ STATUS_LINE_ARG=""
 VAULT_FOLDER_ARG=""
 INIT_VAULT_ARG=""
 VERSION="latest"
+VERSION_SPECIFIED=0
 FROM_DIR=""
 YES=0
+SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd || true)"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -146,10 +148,12 @@ while [ $# -gt 0 ]; do
       ;;
     --version)
       VERSION="$2"
+      VERSION_SPECIFIED=1
       shift 2
       ;;
     --version=*)
       VERSION="${1#*=}"
+      VERSION_SPECIFIED=1
       shift
       ;;
     --from-dir)
@@ -436,8 +440,13 @@ if [ "$HARNESS" = "claude-code" ] || [ "$HARNESS" = "all" ]; then
   claude plugin marketplace add ayghri/i-have-adhd || true
   claude plugin marketplace add blader/humanizer || true
 
-  if [ -n "$FROM_DIR" ]; then
-    claude plugin marketplace add "$FROM_DIR" || true
+  claude_source="$FROM_DIR"
+  if [ -z "$claude_source" ] && [ "$VERSION_SPECIFIED" -eq 0 ] && [ -f "$SCRIPT_DIR/dist/claude-code/.claude-plugin/plugin.json" ]; then
+    claude_source="$SCRIPT_DIR/dist/claude-code"
+  fi
+
+  if [ -n "$claude_source" ]; then
+    claude plugin marketplace add "$claude_source" || true
   else
     claude plugin marketplace add ATNexusLab/tightship || true
   fi
@@ -465,6 +474,8 @@ if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
   source_dir=""
   if [ -n "$FROM_DIR" ]; then
     source_dir="$FROM_DIR"
+  elif [ "$VERSION_SPECIFIED" -eq 0 ] && [ -f "$SCRIPT_DIR/dist/antigravity-cli/plugin.json" ]; then
+    source_dir="$SCRIPT_DIR/dist/antigravity-cli"
   else
     TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
     zip_dest="$TMP_DIR/tightship-antigravity-cli.zip"
@@ -473,7 +484,11 @@ if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
     else
       download_url="https://github.com/ATNexusLab/tightship/releases/download/$VERSION/tightship-antigravity-cli.zip"
     fi
-    download_file "$download_url" "$zip_dest"
+    if ! download_file "$download_url" "$zip_dest"; then
+      echo "error: failed to download tightship-antigravity-cli.zip from $download_url" >&2
+      echo "hint: if you are running in a local repository clone, run cargo xtask build and pass --from-dir dist/antigravity-cli" >&2
+      exit 1
+    fi
     unzip -q "$zip_dest" -d "$TMP_DIR/extracted"
     source_dir="$TMP_DIR/extracted"
   fi

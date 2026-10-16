@@ -293,9 +293,14 @@ if ($Harness -eq "claude-code" -or $Harness -eq "all") {
     try { & claude plugin marketplace add DietrichGebert/ponytail } catch {}
     try { & claude plugin marketplace add ayghri/i-have-adhd } catch {}
     try { & claude plugin marketplace add blader/humanizer } catch {}
+    $isVersionSpecified = $PSBoundParameters.ContainsKey('Version')
+    $claudeSource = $FromDir
+    if (-not $claudeSource -and -not $isVersionSpecified -and (Test-Path (Join-Path $PSScriptRoot "dist\claude-code\.claude-plugin\plugin.json"))) {
+        $claudeSource = Join-Path $PSScriptRoot "dist\claude-code"
+    }
 
-    if ($FromDir) {
-        try { & claude plugin marketplace add $FromDir } catch {}
+    if ($claudeSource) {
+        try { & claude plugin marketplace add $claudeSource } catch {}
     } else {
         try { & claude plugin marketplace add ATNexusLab/tightship } catch {}
     }
@@ -328,6 +333,8 @@ if ($Harness -eq "antigravity-cli" -or $Harness -eq "all") {
     $tempZipFolder = $null
     if ($FromDir) {
         $sourceDir = $FromDir
+    } elseif (-not $isVersionSpecified -and (Test-Path (Join-Path $PSScriptRoot "dist\antigravity-cli\plugin.json"))) {
+        $sourceDir = Join-Path $PSScriptRoot "dist\antigravity-cli"
     } else {
         $tempZipFolder = Join-Path ([System.IO.Path]::GetTempPath()) ("tightship-" + [System.Guid]::NewGuid().ToString())
         New-Item -ItemType Directory -Force -Path $tempZipFolder | Out-Null
@@ -337,7 +344,13 @@ if ($Harness -eq "antigravity-cli" -or $Harness -eq "all") {
         } else {
             "https://github.com/ATNexusLab/tightship/releases/download/$Version/tightship-antigravity-cli.zip"
         }
-        Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
+        try {
+            Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
+        } catch {
+            Write-Stderr "error: failed to download tightship-antigravity-cli.zip from $downloadUrl"
+            Write-Stderr "hint: if you are running in a local repository clone, run cargo xtask build and pass -FromDir dist\antigravity-cli"
+            exit 1
+        }
         $extracted = Join-Path $tempZipFolder "extracted"
         Expand-Archive -Path $zipDest -DestinationPath $extracted -Force
         $sourceDir = $extracted
