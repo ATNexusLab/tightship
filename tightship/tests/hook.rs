@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{Duration, SystemTime};
 
-use common::{Sandbox, assert_succeeds, note, run, stdout_of, with_stdin};
+use common::{Sandbox, assert_succeeds, note, run, stderr_of, stdout_of, with_stdin};
 
 fn project(sandbox: &Sandbox, name: &str) -> PathBuf {
     let folder = sandbox.path(name);
@@ -22,6 +22,13 @@ fn hook(sandbox: &Sandbox, subcommand: &str, working_directory: &Path) -> Comman
         .env("TIGHTSHIP_ENV_FILE", sandbox.path("env-file"))
         .env("TIGHTSHIP_DATA", sandbox.path("data"));
     command
+}
+
+fn hook_output(sandbox: &Sandbox) -> PathBuf {
+    sandbox.write(
+        "hook-output.json",
+        include_str!("../../harnesses/antigravity-cli/plugin/hook-output.json"),
+    )
 }
 
 fn export_line(sandbox: &Sandbox) -> String {
@@ -332,5 +339,355 @@ fn an_unreadable_vault_or_note_or_data_folder_fails_with_exit_1() {
             "error: cannot write the checkpoint counter {}: Not a directory (os error 20)",
             sandbox.path("data/checkpoints/abc").display()
         ),
+    );
+}
+
+#[test]
+fn scenario_4_session_start_injects_contract_and_memory_as_inject_steps_json() {
+    let sandbox = Sandbox::new();
+    let vault = sandbox.path("vault");
+    sandbox.write(
+        "data/options.toml",
+        &format!(
+            "contract = true\nmemory = true\nvault_folder = '{}'\n",
+            vault.display()
+        ),
+    );
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0001",
+        "pinned: true\n",
+        "Pinned note.",
+    );
+    sandbox.write(
+        "vault/notes/tightship/mem-0002-handoff.md",
+        "---\nid: mem-0002\ntype: handoff\nproject: tightship\nwhy: next session picks up here\npinned: true\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-14\n---\n\n# Handoff\n\n**Goal:** ship plugin\n**Done:** options\n**Next step:** tests\n**Open decisions:** none\n**Repo state:** clean\n",
+    );
+    let working_directory = project(&sandbox, "tightship");
+    let part_1 = sandbox.write(
+        "contract/part-1.md",
+        "# Contract (1/2)\nRule 1: Always verify.\n",
+    );
+    let memory_md = sandbox.write(
+        "contract/memory.md",
+        "# Memory (2/2)\nRule 2: Keep the vault.\n",
+    );
+
+    let mut contract_cmd = sandbox.tightship(&["hook", "contract", part_1.to_str().unwrap()]);
+    contract_cmd
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
+    let output = run(&mut contract_cmd);
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    assert_eq!(
+        json["injectSteps"][0]["systemMessage"]["systemMessage"],
+        "# Contract (1/2)\nRule 1: Always verify.\n"
+    );
+
+    let mut memory_cmd = sandbox.tightship(&[
+        "hook",
+        "contract",
+        "--gate",
+        "memory",
+        memory_md.to_str().unwrap(),
+    ]);
+    memory_cmd
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
+    let output = run(&mut memory_cmd);
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    assert_eq!(
+        json["injectSteps"][0]["systemMessage"]["systemMessage"],
+        "# Memory (2/2)\nRule 2: Keep the vault.\n"
+    );
+
+    let mut start_cmd = sandbox.tightship(&["hook", "start"]);
+    start_cmd
+        .current_dir(&working_directory)
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_ENV_FILE", sandbox.path("env-file"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
+    let output = run(&mut start_cmd);
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    let msg = json["injectSteps"][0]["systemMessage"]["systemMessage"]
+        .as_str()
+        .unwrap();
+    assert!(msg.contains("mem-0001"), "{msg}");
+    assert!(msg.contains("**Goal:** ship plugin"), "{msg}");
+}
+
+#[test]
+fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
+    let sandbox = Sandbox::new();
+    let vault = sandbox.path("vault");
+    sandbox.write(
+        "data/options.toml",
+        &format!(
+            "contract = true\nmemory = false\nvault_folder = '{}'\n",
+            vault.display()
+        ),
+    );
+    let working_directory = project(&sandbox, "tightship");
+    let part_1 = sandbox.write("contract/part-1.md", "# Contract (1/2)\nRule 1\n");
+    let memory_md = sandbox.write("contract/memory.md", "# Memory (2/2)\nRule 2\n");
+
+    let mut contract_cmd = sandbox.tightship(&["hook", "contract", part_1.to_str().unwrap()]);
+    contract_cmd
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
+    let output = run(&mut contract_cmd);
+    assert_succeeds(&output);
+    let json: serde_json::Value = serde_json::from_str(&stdout_of(&output)).expect("valid JSON");
+    assert_eq!(
+        json["injectSteps"][0]["systemMessage"]["systemMessage"],
+        "# Contract (1/2)\nRule 1\n"
+    );
+
+    let mut memory_cmd = sandbox.tightship(&[
+        "hook",
+        "contract",
+        "--gate",
+        "memory",
+        memory_md.to_str().unwrap(),
+    ]);
+    memory_cmd
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
+    let output = run(&mut memory_cmd);
+    assert_succeeds(&output);
+    assert_eq!(stdout_of(&output), "");
+
+    let mut start_cmd = sandbox.tightship(&["hook", "start"]);
+    start_cmd
+        .current_dir(&working_directory)
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
+    let output = run(&mut start_cmd);
+    assert_succeeds(&output);
+    assert_eq!(stdout_of(&output), "");
+
+    let mut prompt_cmd = sandbox.tightship(&["hook", "prompt"]);
+    prompt_cmd
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
+    let output = with_stdin(&mut prompt_cmd, r#"{"conversationId":"conv-1"}"#);
+    assert_succeeds(&output);
+    assert_eq!(stdout_of(&output), "");
+
+    sandbox.write("data/options.toml", "contract = false\n");
+    let mut contract_cmd1 = sandbox.tightship(&["hook", "contract", part_1.to_str().unwrap()]);
+    contract_cmd1
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
+    let output = run(&mut contract_cmd1);
+    assert_succeeds(&output);
+    assert_eq!(stdout_of(&output), "");
+
+    let mut contract_cmd2 = sandbox.tightship(&[
+        "hook",
+        "contract",
+        "--gate",
+        "memory",
+        memory_md.to_str().unwrap(),
+    ]);
+    contract_cmd2
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
+    let output = run(&mut contract_cmd2);
+    assert_succeeds(&output);
+    assert_eq!(stdout_of(&output), "");
+}
+
+#[test]
+fn scenario_6_malformed_options_toml_fails_without_blocking_the_session() {
+    let sandbox = Sandbox::new();
+    let options_file = sandbox.write("data/options.toml", "contract = \"not-a-bool\"\n");
+    let working_directory = project(&sandbox, "tightship");
+
+    let mut start_cmd = sandbox.tightship(&["hook", "start"]);
+    start_cmd
+        .current_dir(&working_directory)
+        .env("TIGHTSHIP_DATA", sandbox.path("data"));
+    let output = run(&mut start_cmd);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(
+        stderr_of(&output),
+        format!("error: {} is not valid TOML\n", options_file.display())
+    );
+}
+
+#[test]
+fn scenario_7_prompt_checkpoint_fires_on_every_10th_pre_invocation_using_conversation_id() {
+    let sandbox = Sandbox::new();
+    let vault = sandbox.path("vault");
+    sandbox.write(
+        "data/options.toml",
+        &format!("memory = true\nvault_folder = '{}'\n", vault.display()),
+    );
+
+    for call in 1..=10 {
+        let mut prompt_cmd = sandbox.tightship(&["hook", "prompt"]);
+        prompt_cmd
+            .env("TIGHTSHIP_DATA", sandbox.path("data"))
+            .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
+        let output = with_stdin(&mut prompt_cmd, r#"{"conversationId":"conv-42"}"#);
+        assert_succeeds(&output);
+        let stdout = stdout_of(&output);
+        if call < 10 {
+            assert_eq!(stdout, "", "call {call} must output 0 bytes");
+        } else {
+            let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+            let msg = json["injectSteps"][0]["systemMessage"]["systemMessage"]
+                .as_str()
+                .unwrap();
+            assert!(
+                msg.starts_with(
+                    "MEMORY CHECKPOINT — did anything this session become a durable fact?"
+                ),
+                "{msg}"
+            );
+        }
+    }
+}
+
+#[test]
+fn hook_contract_unreadable_file_fails_with_contract_file_unreadable() {
+    let sandbox = Sandbox::new();
+    let nonexistent = sandbox.path("nonexistent.md");
+    let mut command = sandbox.tightship(&["hook", "contract", nonexistent.to_str().unwrap()]);
+    let output = run(&mut command);
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = stderr_of(&output);
+    assert!(
+        stderr.starts_with(&format!("error: cannot read {}: ", nonexistent.display())),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn contract_part_prints_through_the_hook_output_and_respects_the_options() {
+    let sandbox = Sandbox::new();
+    let plugin = sandbox.path("plugin");
+    let part = plugin.join("contract/part-1.md");
+    fs::create_dir_all(part.parent().expect("contract folder")).expect("folders");
+    fs::write(&part, "Rule one.\n").expect("the part");
+    let data = data_dir(&sandbox, "data");
+    fs::write(data.join("options.json"), r#"{"contract":false}"#).expect("options");
+    let mut command = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
+    command
+        .env("TIGHTSHIP_ROOT", &plugin)
+        .env("TIGHTSHIP_DATA", &data)
+        .env("TIGHTSHIP_HOOK_OUTPUT", context_output(&sandbox));
+    let off = run(&mut command);
+    assert_succeeds(&off);
+    assert_eq!(stdout_of(&off), "");
+    fs::write(
+        data.join("options.json"),
+        r#"{"contract":true,"memory":false}"#,
+    )
+    .expect("options");
+    let output = run(&mut command);
+    assert_succeeds(&output);
+    let value: serde_json::Value =
+        serde_json::from_str(stdout_of(&output).trim()).expect("one JSON line");
+    assert_eq!(value["additional_context"], "Rule one.\n");
+}
+
+#[test]
+fn contract_part_skips_gated_memory_when_memory_is_off() {
+    let sandbox = Sandbox::new();
+    let plugin = sandbox.path("plugin");
+    let memory = plugin.join("contract/memory.md");
+    fs::create_dir_all(memory.parent().expect("contract folder")).expect("folders");
+    fs::write(&memory, "Vault rule.\n").expect("the part");
+    let data = data_dir(&sandbox, "data-memory-off");
+    fs::write(
+        data.join("options.json"),
+        r#"{"contract":true,"memory":false}"#,
+    )
+    .expect("options");
+    let mut command = sandbox.tightship(&["hook", "contract-part", "memory.md"]);
+    command
+        .env("TIGHTSHIP_ROOT", &plugin)
+        .env("TIGHTSHIP_DATA", &data);
+    let output = run(&mut command);
+    assert_succeeds(&output);
+    assert_eq!(stdout_of(&output), "");
+}
+
+fn context_output(sandbox: &Sandbox) -> PathBuf {
+    sandbox.write("hook-output.json", r#"{"additional_context":"{text}"}"#)
+}
+
+fn data_dir(sandbox: &Sandbox, name: &str) -> PathBuf {
+    let folder = sandbox.path(name);
+    fs::create_dir_all(&folder).expect("data folder");
+    folder
+}
+
+fn write_options_json(data: &Path, vault: &Path) {
+    let body = serde_json::json!({
+        "memory": true,
+        "vault_folder": vault.to_string_lossy(),
+    });
+    fs::write(data.join("options.json"), body.to_string()).expect("options.json");
+}
+
+#[test]
+fn start_reads_the_vault_from_options_json() {
+    let sandbox = Sandbox::new();
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0099",
+        "pinned: true\n",
+        "Shared from another harness.",
+    );
+    let vault = sandbox.path("vault");
+    let data = data_dir(&sandbox, "data");
+    write_options_json(&data, &vault);
+    let working_directory = project(&sandbox, "tightship");
+    let mut command = sandbox.tightship(&["hook", "start"]);
+    command
+        .current_dir(&working_directory)
+        .env("TIGHTSHIP_DATA", &data)
+        .env("TIGHTSHIP_HOOK_OUTPUT", context_output(&sandbox));
+    let output = run(&mut command);
+    assert_succeeds(&output);
+    let value: serde_json::Value =
+        serde_json::from_str(stdout_of(&output).trim()).expect("one JSON line");
+    let text = value["additional_context"].as_str().expect("context");
+    assert!(text.contains("[[mem-0099-a-note]]"), "{text}");
+}
+
+#[test]
+fn checkpoint_prints_through_its_own_output_template() {
+    let sandbox = Sandbox::new();
+    let data = data_dir(&sandbox, "data");
+    write_options_json(&data, &sandbox.path("vault"));
+    fs::create_dir_all(sandbox.path("vault")).expect("vault");
+    let checkpoint_output = sandbox.write("checkpoint-output.json", r#"{"user_message":"{text}"}"#);
+    let mut command = sandbox.tightship(&["hook", "checkpoint"]);
+    command
+        .env("TIGHTSHIP_DATA", &data)
+        .env("TIGHTSHIP_HOOK_OUTPUT", context_output(&sandbox))
+        .env("TIGHTSHIP_CHECKPOINT_OUTPUT", checkpoint_output);
+    let output = run(&mut command);
+    assert_succeeds(&output);
+    let value: serde_json::Value =
+        serde_json::from_str(stdout_of(&output).trim()).expect("one JSON line");
+    assert!(
+        value["user_message"]
+            .as_str()
+            .is_some_and(|text| text.contains("MEMORY CHECKPOINT")),
+        "{value}"
     );
 }

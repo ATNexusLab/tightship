@@ -9,65 +9,36 @@ use crate::failure::Failure;
 
 const RECORD: &str = "status-line.json";
 
-pub enum Record {
-    On(Option<Value>),
-    Declined,
-}
-
-pub fn enable() -> Result<(), Failure> {
-    let settings_path = variable("TIGHTSHIP_SETTINGS")?;
-    let data = variable("TIGHTSHIP_DATA")?;
-    let root = variable("TIGHTSHIP_ROOT")?;
-    let mut settings = read_settings(&settings_path)?;
-    if settings.get("statusLine").is_some_and(is_ours) {
-        println!("tightship's status line is already on.");
-        return Ok(());
-    }
-    write_record(&data, &Record::On(settings.get("statusLine").cloned()))?;
-    settings.insert(
-        "statusLine".to_owned(),
-        serde_json::json!({ "type": "command", "command": command_for(&root) }),
-    );
-    if let Err(failure) = write_settings(&settings_path, &settings) {
-        remove_record(&data)?;
-        return Err(failure);
-    }
-    println!(
-        "tightship's status line is on. Turn the plugin's status_line option off to bring back the one you had."
-    );
-    Ok(())
-}
-
-pub fn decline() -> Result<(), Failure> {
-    let data = variable("TIGHTSHIP_DATA")?;
-    if let Some(Record::On(_)) = read_record(&data)? {
-        println!(
-            "tightship's status line is on; turn the plugin's status_line option off to bring back the one you had."
-        );
-        return Ok(());
-    }
-    write_record(&data, &Record::Declined)?;
-    println!(
-        "The status line stays as it is. tightship will not ask again until its status_line option is turned off and on."
-    );
-    Ok(())
-}
-
-pub fn variable(name: &'static str) -> Result<PathBuf, Failure> {
-    env::var_os(name)
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-        .ok_or(Failure::StatusLineNotSet(name))
-}
-
 pub fn is_ours(status_line: &Value) -> bool {
-    status_line
-        .get("command")
-        .and_then(Value::as_str)
-        .is_some_and(|command| command.ends_with("/bin/tightship\" status-line render"))
+    let Some(command) = status_line.get("command").and_then(Value::as_str) else {
+        return false;
+    };
+    let Some(path) = command.strip_suffix("\" status-line render") else {
+        return false;
+    };
+    let path = path.replace('\\', "/");
+    let mut components = path.rsplit('/');
+    let file = components.next();
+    let folder = components.next();
+    let above = components.next();
+    matches!(file, Some("tightship" | "tightship.cmd" | "tightship.exe"))
+        && (folder == Some("bin") || above == Some("bin"))
 }
 
 pub fn command_for(root: &Path) -> String {
+    if let Some(command) = env::var("TIGHTSHIP_STATUS_LINE_COMMAND")
+        .ok()
+        .filter(|command| !command.is_empty())
+    {
+        return command;
+    }
+    #[cfg(windows)]
+    {
+        let cmd = root.join("bin").join("tightship.cmd");
+        if cmd.exists() {
+            return format!("\"{}\" status-line render", cmd.display());
+        }
+    }
     format!("sh \"{}/bin/tightship\" status-line render", root.display())
 }
 
@@ -126,7 +97,7 @@ pub fn write_settings(path: &Path, settings: &Map<String, Value>) -> Result<(), 
     Ok(())
 }
 
-pub fn read_record(data: &Path) -> Result<Option<Record>, Failure> {
+pub fn read_previous(data: &Path) -> Result<Option<Value>, Failure> {
     let path = data.join(RECORD);
     let invalid = || Failure::StatusRecordInvalid(path.clone());
     let text = match fs::read_to_string(&path) {
@@ -143,25 +114,18 @@ pub fn read_record(data: &Path) -> Result<Option<Record>, Failure> {
         return Err(invalid());
     }
     match (state.as_ref().and_then(Value::as_str), previous) {
-        (Some("on"), previous) => Ok(Some(Record::On(previous))),
-        (Some("declined"), None) => Ok(Some(Record::Declined)),
+        (Some("on"), previous) => Ok(previous),
+        (Some("declined"), None) => Ok(None),
         _ => Err(invalid()),
     }
 }
 
-pub fn write_record(data: &Path, record: &Record) -> Result<(), Failure> {
+pub fn write_record(data: &Path, previous: Option<&Value>) -> Result<(), Failure> {
     let path = data.join(RECORD);
     let mut fields = Map::new();
-    match record {
-        Record::On(previous) => {
-            fields.insert("state".to_owned(), "on".into());
-            if let Some(previous) = previous {
-                fields.insert("previous".to_owned(), previous.clone());
-            }
-        }
-        Record::Declined => {
-            fields.insert("state".to_owned(), "declined".into());
-        }
+    fields.insert("state".to_owned(), "on".into());
+    if let Some(previous) = previous {
+        fields.insert("previous".to_owned(), previous.clone());
     }
     let unwritable = |error| Failure::StatusRecordUnwritable(path.clone(), error);
     let text = serde_json::to_string_pretty(&fields)

@@ -14,6 +14,10 @@ pub struct Harness {
     #[serde(skip)]
     pub name: String,
     pub plugin: Plugin,
+    pub dist: Dist,
+    pub install: Install,
+    #[serde(default)]
+    pub paths: BTreeMap<String, String>,
     pub references: References,
     pub access: Access,
     pub contract: Option<ContractTable>,
@@ -35,6 +39,53 @@ pub struct Plugin {
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct Dist {
+    pub manifest: String,
+    pub catalog: Option<String>,
+    #[serde(rename = "try-it")]
+    pub try_it: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Install {
+    pub label: String,
+    pub command: String,
+    #[serde(rename = "min-version")]
+    pub min_version: String,
+    #[serde(default)]
+    pub aliases: Vec<String>,
+    #[serde(rename = "companion-steps", default)]
+    pub companion_steps: CompanionSteps,
+}
+
+#[derive(Deserialize, Default)]
+#[serde(deny_unknown_fields)]
+pub struct CompanionSteps {
+    pub plugin: Option<Steps>,
+    pub skill: Option<Steps>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Steps {
+    pub sh: String,
+    pub ps1: String,
+}
+
+impl Install {
+    pub fn field(&self, name: &str) -> Option<&str> {
+        match name {
+            "label" => Some(&self.label),
+            "command" => Some(&self.command),
+            "min-version" => Some(&self.min_version),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ContractTable {
     pub limit: usize,
 }
@@ -43,7 +94,29 @@ pub struct ContractTable {
 #[serde(deny_unknown_fields)]
 pub struct Companion {
     pub plugin: String,
-    pub marketplace: String,
+    pub marketplace: Option<String>,
+    pub repository: String,
+    #[serde(default)]
+    pub kind: CompanionKind,
+}
+
+#[derive(Deserialize, Default, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+pub enum CompanionKind {
+    #[default]
+    Plugin,
+    Skill,
+}
+
+impl Companion {
+    pub fn marketplace(&self, harness: &str) -> io::Result<&str> {
+        self.marketplace.as_deref().ok_or_else(|| {
+            io::Error::other(format!(
+                "harnesses/{harness}/harness.toml: companion \"{}\" has no marketplace",
+                self.plugin
+            ))
+        })
+    }
 }
 
 #[derive(Deserialize)]

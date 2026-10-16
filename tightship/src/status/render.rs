@@ -29,10 +29,16 @@ impl Segment {
 pub fn run() -> Result<(), Failure> {
     let input = io::read_to_string(io::stdin())
         .map_err(|error| Failure::StatusInputInvalid(error.to_string()))?;
-    let session: Value = serde_json::from_str(&input)
+    let mut session: Value = serde_json::from_str(&input)
         .map_err(|error| Failure::StatusInputInvalid(error.to_string()))?;
     if !session.is_object() {
         return Err(Failure::StatusInputInvalid("expected an object".to_owned()));
+    }
+    let prefix = env::var("TIGHTSHIP_MODEL_PREFIX").unwrap_or_default();
+    if let Some(Value::String(model)) = session.pointer_mut("/model/display_name")
+        && let Some(short) = model.strip_prefix(prefix.as_str())
+    {
+        *model = short.to_owned();
     }
     let branch =
         text(&session, "/workspace/current_dir").and_then(|folder| read_branch(Path::new(folder)));
@@ -135,7 +141,6 @@ fn identity_row(session: &Value, branch: Option<&str>) -> Vec<Segment> {
         row.push(Segment::painted("35", format!("agent:{agent}"), 11));
     }
     if let Some(model) = text(session, "/model/display_name") {
-        let model = model.strip_prefix("Claude ").unwrap_or(model);
         let short_name = model.find(" (").map_or(model, |end| &model[..end]);
         row.push(Segment::painted("1;37", short_name.to_owned(), 4));
     }

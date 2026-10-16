@@ -1,10 +1,12 @@
 mod failure;
 mod git;
 mod hook;
+mod options;
 mod project;
 mod status;
 mod vault;
 
+use std::env;
 use std::panic;
 use std::path::PathBuf;
 use std::process::{self, ExitCode};
@@ -26,8 +28,11 @@ Usage: tightship vault path
        tightship vault handoff release --title <title> < body
        tightship vault handoff claim
        tightship status-line render
-       tightship status-line enable
-       tightship status-line decline";
+       tightship options set <name> <value>
+       tightship options list
+       tightship options reset
+       tightship options disabled <name>
+       tightship hook contract-part <file>";
 
 #[derive(Parser)]
 #[command(name = "tightship")]
@@ -44,22 +49,39 @@ enum Area {
     Hook(HookCommand),
     #[command(subcommand)]
     StatusLine(StatusLineCommand),
+    #[command(subcommand)]
+    Options(OptionsCommand),
 }
 
 #[derive(Subcommand)]
 enum HookCommand {
+    Contract {
+        #[arg(long)]
+        gate: Option<String>,
+        #[arg(value_name = "file")]
+        file: PathBuf,
+    },
     Start,
     Export,
     Checkpoint,
     Prompt,
     StatusLine,
+    ContractPart {
+        file: String,
+    },
 }
 
 #[derive(Subcommand)]
 enum StatusLineCommand {
     Render,
-    Enable,
-    Decline,
+}
+
+#[derive(Subcommand)]
+enum OptionsCommand {
+    Set { name: String, value: String },
+    List,
+    Reset,
+    Disabled { name: String },
 }
 
 #[derive(Subcommand)]
@@ -80,6 +102,13 @@ enum VaultCommand {
     Sync,
     #[command(subcommand)]
     Handoff(vault::handoff::Command),
+}
+
+pub fn variable(name: &'static str) -> Result<PathBuf, Failure> {
+    env::var_os(name)
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .ok_or(Failure::VariableNotSet(name))
 }
 
 fn main() -> ExitCode {
@@ -106,14 +135,24 @@ fn main() -> ExitCode {
         Area::Vault(VaultCommand::Lint) => vault::lint::run(),
         Area::Vault(VaultCommand::Sync) => vault::sync::run(),
         Area::Vault(VaultCommand::Handoff(command)) => vault::handoff::run(&command),
+        Area::Hook(HookCommand::Contract { gate, file }) => {
+            hook::contract::run(gate.as_deref(), &file)
+        }
         Area::Hook(HookCommand::Start) => hook::start::run(),
         Area::Hook(HookCommand::Export) => hook::export::run(),
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
         Area::Hook(HookCommand::Prompt) => hook::prompt::run(),
         Area::Hook(HookCommand::StatusLine) => hook::status_line::run(),
+        Area::Hook(HookCommand::ContractPart { file }) => hook::contract_part::run(&file),
         Area::StatusLine(StatusLineCommand::Render) => status::render::run(),
-        Area::StatusLine(StatusLineCommand::Enable) => status::settings::enable(),
-        Area::StatusLine(StatusLineCommand::Decline) => status::settings::decline(),
+        Area::Options(OptionsCommand::Set { name, value }) => options::set(&name, &value),
+        Area::Options(OptionsCommand::List) => options::list(),
+        Area::Options(OptionsCommand::Reset) => options::reset(),
+        Area::Options(OptionsCommand::Disabled { name }) => match options::disabled(&name) {
+            Ok(true) => Ok(()),
+            Ok(false) => return ExitCode::from(1),
+            Err(failure) => Err(failure),
+        },
     };
     match ran {
         Ok(()) => ExitCode::SUCCESS,

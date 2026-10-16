@@ -1,0 +1,5 @@
+plugin_dir="$(cd "$(dirname "$0")/.." && pwd)"
+export TIGHTSHIP_ROOT="${TIGHTSHIP_ROOT:-${PLUGIN_ROOT:-$plugin_dir}}"
+export TIGHTSHIP_DATA="${TIGHTSHIP_DATA:-${PLUGIN_DATA:-{{path:data}}}}"
+export TIGHTSHIP_SETTINGS="${TIGHTSHIP_SETTINGS:-${AGY_CONFIG_DIR:-{{path:config}}}/settings.json}"
+export TIGHTSHIP_HOOK_OUTPUT="${TIGHTSHIP_HOOK_OUTPUT:-$plugin_dir/hook-output.json}"

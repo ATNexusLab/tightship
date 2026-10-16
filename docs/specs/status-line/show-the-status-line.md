@@ -621,8 +621,8 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M1, #7:
 - **Restoring the status line on an uninstall without turning the option off first:** Claude Code runs no
   plugin code on uninstall. The install guide's step is epic #8's, and FR-INS-06.1 changes by the change
   request #31.
-- **The status line in Cursor, Antigravity CLI, and Codex:** [OQ-08](../../requirements/open-questions.md#oq-08),
-  settled by each harness's spec in M2 to M4.
+- **The status line in the Cursor editor:** [epic #58](../cursor-plugin/ship-for-cursor.md) (CLI only).
+  **Antigravity CLI and Codex:** [OQ-08](../../requirements/open-questions.md#oq-08).
 - **A project's or a folder's settings:** a `statusLine` there overrides ours, and the plugin never writes
   there. The adopter keeps that choice.
 - **Segments beyond the baseline's:** cost, session name, vim mode, and the rest of Claude Code's input. FR-STL-01

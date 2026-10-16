@@ -1,20 +1,57 @@
-use super::content::Content;
+use std::fs;
+use std::io;
+use std::path::Path;
+
+use super::content::{self, Content};
 use super::harness::Harness;
 use super::words::is_part_of_a_word;
-use crate::diagnostics::Diagnostic;
+use crate::diagnostics::{Diagnostic, naming};
 
 pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Diagnostic>) {
     for file in &content.files {
         let text = String::from_utf8_lossy(&file.bytes);
-        for (index, line) in text.split('\n').enumerate() {
-            for harness in harnesses {
-                for term in terms_found(line, harness) {
-                    let message = format!(
-                        "\"{term}\" belongs to {harness}; use a {{{{capability:…}}}} token defined in harnesses/{harness}/harness.toml",
-                        harness = harness.name
-                    );
-                    diagnostics.push(Diagnostic::at_line(&file.path, index + 1, message));
-                }
+        scan(&file.path, &text, harnesses, diagnostics, |harness| {
+            format!("use a {{{{capability:…}}}} token defined in harnesses/{harness}/harness.toml")
+        });
+    }
+}
+
+pub fn check_binary(
+    root: &Path,
+    harnesses: &[Harness],
+    diagnostics: &mut Vec<Diagnostic>,
+) -> io::Result<()> {
+    let sources = root.join("tightship").join("src");
+    if !sources.is_dir() {
+        return Ok(());
+    }
+    for file in content::files_under(&sources)? {
+        let text = fs::read_to_string(&file).map_err(naming(&file))?;
+        let relative = file.strip_prefix(root).map_err(io::Error::other)?;
+        let path = relative.to_string_lossy().replace('\\', "/");
+        scan(&path, &text, harnesses, diagnostics, |harness| {
+            format!("move it to harnesses/{harness}/ and pass it in through the launcher")
+        });
+    }
+    Ok(())
+}
+
+fn scan(
+    path: &str,
+    text: &str,
+    harnesses: &[Harness],
+    diagnostics: &mut Vec<Diagnostic>,
+    remedy: impl Fn(&str) -> String,
+) {
+    for (index, line) in text.split('\n').enumerate() {
+        for harness in harnesses {
+            for term in terms_found(line, harness) {
+                let message = format!(
+                    "\"{term}\" belongs to {harness}; {remedy}",
+                    harness = harness.name,
+                    remedy = remedy(&harness.name)
+                );
+                diagnostics.push(Diagnostic::at_line(path, index + 1, message));
             }
         }
     }

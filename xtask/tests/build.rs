@@ -4,7 +4,7 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-use common::{Repository, assert_fails_with, assert_succeeds, stderr_of};
+use common::{Repository, assert_fails_with, assert_succeeds, harness_files, stderr_of};
 
 fn piece<'path>(path: &'path str, body: &str) -> (&'path str, String) {
     let name = Path::new(path)
@@ -201,6 +201,19 @@ fn a_harness_term_in_content_fails() {
 }
 
 #[test]
+fn a_harness_term_in_the_binary_sources_fails() {
+    let repository = Repository::with(&[(
+        "tightship/src/status/render.rs",
+        "fn prefix() -> &'static str {\n    \"Claude Code\"\n}\n".to_owned(),
+    )]);
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: tightship/src/status/render.rs:2: \"Claude Code\" belongs to claude-code; move it to harnesses/claude-code/ and pass it in through the launcher",
+    );
+}
+
+#[test]
 fn a_word_containing_a_term_is_not_a_match() {
     let repository = Repository::with(&[piece(
         "content/skills/api-design/SKILL.md",
@@ -349,6 +362,55 @@ fn json_at(repository: &Repository, path: &str) -> serde_json::Value {
     serde_json::from_str(&text).expect("valid JSON")
 }
 
+fn canonical_content(relative: &str) -> String {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join(relative);
+    fs::read_to_string(path).expect("canonical content")
+}
+
+fn claude_code_neutrality_terms() -> Vec<String> {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../harnesses/claude-code/harness.toml");
+    let text = fs::read_to_string(path).expect("claude-code harness");
+    let section = text
+        .split("[neutrality]")
+        .nth(1)
+        .and_then(|rest| rest.split("\n[").next())
+        .expect("neutrality section");
+    let mut terms = Vec::new();
+    let mut chars = section.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch == '"' {
+            let mut term = String::new();
+            for next in chars.by_ref() {
+                if next == '"' {
+                    break;
+                }
+                term.push(next);
+            }
+            if !term.is_empty() {
+                terms.push(term);
+            }
+        }
+    }
+    terms
+}
+
+fn cursor_fixture_files(extra: Vec<(String, String)>) -> Vec<(String, String)> {
+    let mut files = harness_files("cursor");
+    files.extend(extra);
+    files
+}
+
+fn cursor_repository(extra: Vec<(String, String)>) -> Repository {
+    let built = cursor_fixture_files(extra);
+    let files: Vec<(&str, String)> = built
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.clone()))
+        .collect();
+    Repository::with(&files)
+}
+
 #[test]
 fn the_manifest_lists_the_companions_and_the_options_and_the_catalog_allows_them() {
     let repository = Repository::with(&[
@@ -445,18 +507,21 @@ fn the_launcher_runs_the_binary_built_for_this_machine() {
 
 #[test]
 fn a_companion_without_a_marketplace_fails_and_leaves_no_plugin() {
-    let repository = Repository::with(&[(
-        "harnesses/claude-code/harness.toml",
-        format!(
-            "{}[[companions]]\nplugin = \"ponytail\"\n",
-            harness_without_companions()
+    let repository = Repository::with(&[
+        piece("content/commands/epic.md", "Open the epic.\n"),
+        (
+            "harnesses/claude-code/harness.toml",
+            format!(
+                "{}[[companions]]\nplugin = \"ponytail\"\nrepository = \"DietrichGebert/ponytail\"\n",
+                harness_without_companions()
+            ),
         ),
-    )]);
+    ]);
     fs::create_dir_all(repository.path("dist/claude-code")).expect("a previous build");
 
     assert_fails_with(
         &repository.run("build"),
-        "error: harnesses/claude-code/harness.toml: missing field `marketplace`",
+        "error: harnesses/claude-code/harness.toml: companion \"ponytail\" has no marketplace",
     );
     assert!(!repository.path("dist/claude-code").exists());
 }
@@ -560,6 +625,159 @@ fn an_option_declared_twice_fails() {
 }
 
 #[test]
+fn cursor_plugin_renders_slash_commands_without_plugin_prefix() {
+    let harness_files = harness_files("cursor");
+    let mut files: Vec<(&str, String)> = harness_files
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.clone()))
+        .collect();
+    files.extend([
+        piece(
+            "content/commands/spec.md",
+            "Use {{skill:spec-writing}}, then {{command:epic}}.\n",
+        ),
+        piece("content/skills/spec-writing/SKILL.md", "Write the spec.\n"),
+        piece("content/commands/epic.md", "Open the epic.\n"),
+    ]);
+    let repository = Repository::with(&files);
+
+    assert_succeeds(&repository.run("build"));
+    let spec = fs::read_to_string(repository.path("dist/cursor/commands/spec.md"))
+        .expect("the rendered command");
+    assert!(spec.contains("Use spec-writing, then /epic."));
+    assert!(
+        repository
+            .path("dist/cursor/skills/spec-writing/SKILL.md")
+            .is_file()
+    );
+    assert!(repository.path("dist/cursor/commands/epic.md").is_file());
+    let manifest = json_at(&repository, "dist/cursor/.cursor-plugin/plugin.json");
+    assert!(manifest.get("dependencies").is_none());
+    assert!(manifest.get("userConfig").is_none());
+    assert!(repository.path("dist/cursor/bin/tightship.cmd").is_file());
+}
+
+#[test]
+fn cursor_manifest_lists_variables_from_options() {
+    let (epic_path, epic_text) = piece("content/commands/epic.md", "Open the epic.\n");
+    let (options_path, options_text) = typed_options(&[
+        ("status_line", "boolean", "Show the status line"),
+        ("contract", "boolean", "Load the rules"),
+        (
+            "memory",
+            "boolean",
+            "Keep notes out of {{capability:plan-mode}}",
+        ),
+        ("vault_folder", "directory", "Your vault"),
+    ]);
+    let repository = cursor_repository(vec![
+        (epic_path.to_owned(), epic_text),
+        (options_path.to_owned(), options_text),
+    ]);
+
+    assert_succeeds(&repository.run("build"));
+    let manifest = json_at(&repository, "dist/cursor/.cursor-plugin/plugin.json");
+    assert!(manifest.get("userConfig").is_none());
+    assert!(manifest.get("dependencies").is_none());
+    let options = manifest["variables"]
+        .as_object()
+        .expect("variables is an object");
+    let names: Vec<&str> = options.keys().map(String::as_str).collect();
+    assert_eq!(names, ["status_line", "contract", "memory", "vault_folder"]);
+    assert_eq!(
+        options["memory"],
+        serde_json::json!({
+            "type": "boolean",
+            "title": "An option",
+            "description": "Keep notes out of Plan mode",
+            "default": true,
+        })
+    );
+    assert!(
+        options
+            .values()
+            .take(3)
+            .all(|option| option["type"] == "boolean" && option["default"] == true)
+    );
+    assert_eq!(
+        options["vault_folder"],
+        serde_json::json!({
+            "type": "directory",
+            "title": "An option",
+            "description": "Your vault",
+        })
+    );
+    assert!(
+        repository
+            .path("dist/cursor/.cursor-plugin/marketplace.json")
+            .is_file()
+    );
+}
+
+#[test]
+fn cursor_grilling_skill_holds_no_claude_code_literals() {
+    let grilling = canonical_content("content/skills/grilling/SKILL.md");
+    let repository = cursor_repository(vec![(
+        "content/skills/grilling/SKILL.md".to_owned(),
+        grilling,
+    )]);
+
+    assert_succeeds(&repository.run("build"));
+    let rendered = fs::read_to_string(repository.path("dist/cursor/skills/grilling/SKILL.md"))
+        .expect("rendered grilling skill");
+    for term in claude_code_neutrality_terms() {
+        assert!(
+            !rendered.contains(&term),
+            "dist/cursor/skills/grilling/SKILL.md must not contain claude-code term {:?}",
+            term
+        );
+    }
+}
+
+#[test]
+fn cursor_session_start_includes_status_line_hook() {
+    let repository = cursor_repository(vec![(
+        "content/options.toml".to_owned(),
+        "[[options]]\nname = \"status_line\"\ntitle = \"Status line\"\ndescription = \"Status line\"\ntype = \"boolean\"\n".to_owned(),
+    )]);
+
+    assert_succeeds(&repository.run("build"));
+    let hooks: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(repository.path("dist/cursor/hooks/hooks.json")).expect("hooks"),
+    )
+    .expect("valid JSON");
+    let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
+    assert!(
+        hooks["hooks"]["sessionStart"]
+            .as_array()
+            .expect("sessionStart hooks")
+            .iter()
+            .any(|hook| hook["command"] == format!("{binary} hook status-line")),
+        "expected status-line hook in sessionStart: {hooks}"
+    );
+}
+
+#[test]
+fn cursor_verifier_agent_has_readonly_front_matter() {
+    let verifier = canonical_content("content/agents/adversarial-verifier.md");
+    let repository = cursor_repository(vec![(
+        "content/agents/adversarial-verifier.md".to_owned(),
+        verifier,
+    )]);
+
+    assert_succeeds(&repository.run("build"));
+    let rendered =
+        fs::read_to_string(repository.path("dist/cursor/agents/adversarial-verifier.md"))
+            .expect("rendered verifier");
+    assert!(
+        rendered.contains("readonly: true\n") || rendered.contains("readonly: \"true\"\n"),
+        "expected readonly: true in front matter:\n{rendered}"
+    );
+    assert!(rendered.contains("tools: \"Read, Grep, Glob, Shell\"\n"));
+    assert!(rendered.contains("You are an adversarial verifier."));
+}
+
+#[test]
 fn an_option_naming_the_harness_or_a_missing_piece_fails() {
     let repository = Repository::with(&[options(&[
         ("memory", "Keep notes in ~/.claude"),
@@ -575,4 +793,140 @@ fn an_option_naming_the_harness_or_a_missing_piece_fails() {
         &output,
         "error: content/options.toml:10: {{command:nope}} names no command in content/",
     );
+}
+
+#[test]
+fn both_harnesses_build_from_canonical_content_and_pass_validation() {
+    let harness_files = harness_files("antigravity-cli");
+    let mut files: Vec<(&str, String)> = harness_files
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.clone()))
+        .collect();
+    files.extend([
+        typed_options(&[
+            ("contract", "boolean", "Contract"),
+            ("memory", "boolean", "Memory"),
+            ("status_line", "boolean", "Status line"),
+            ("vault_folder", "directory", "Vault folder"),
+        ]),
+        (
+            "content/contract.md",
+            "+++\n[gated]\nMemory = \"memory\"\n+++\n\n# Global Working Contract\n\nPreamble.\n\n## Section 1\n\nSection 1 text.\n\n## Memory\n\nMemory text.\n".to_owned(),
+        ),
+        (
+            "content/agents/adversarial-verifier.md",
+            "+++\nname = \"adversarial-verifier\"\ndescription = \"Verifier\"\naccess = \"read-only\"\n+++\nVerifier body.\n".to_owned(),
+        ),
+    ]);
+    let skill_names = [
+        "architecture-reading",
+        "spec-writing",
+        "frontend-architecture",
+        "technical-writing",
+        "hexagonal-architecture",
+        "requirements-engineering",
+        "grilling",
+        "security-audit",
+        "project-docs",
+        "api-design",
+        "performance-analysis",
+        "testing-contract",
+        "database-design",
+    ];
+    let command_names = [
+        "epic",
+        "audit",
+        "sync",
+        "spec",
+        "requirements",
+        "sprint",
+        "pr-review",
+        "closeout",
+        "handoff",
+        "bootstrap",
+    ];
+    let pieces: Vec<(String, String)> = skill_names
+        .iter()
+        .map(|name| {
+            (
+                format!("content/skills/{name}/SKILL.md"),
+                format!(
+                    "+++\nname = \"{name}\"\ndescription = \"Skill {name}\"\n+++\nBody of {name}.\n"
+                ),
+            )
+        })
+        .chain(command_names.iter().map(|name| {
+            (
+                format!("content/commands/{name}.md"),
+                format!("+++\nname = \"{name}\"\ndescription = \"Command {name}\"\nargument-hint = \"[arg]\"\n+++\nBody of {name}.\n"),
+            )
+        }))
+        .collect();
+    files.extend(
+        pieces
+            .iter()
+            .map(|(path, text)| (path.as_str(), text.clone())),
+    );
+
+    let repository = Repository::with(&files);
+    assert_succeeds(&repository.run("build"));
+
+    assert!(repository.path("dist/claude-code").is_dir());
+    assert!(repository.path("dist/antigravity-cli").is_dir());
+
+    for name in skill_names {
+        assert!(
+            repository
+                .path(&format!("dist/antigravity-cli/skills/{name}/SKILL.md"))
+                .is_file()
+        );
+    }
+    for name in command_names {
+        let skill_file = repository.path(&format!("dist/antigravity-cli/skills/{name}/SKILL.md"));
+        assert!(skill_file.is_file());
+        let text = fs::read_to_string(&skill_file).expect("command as skill");
+        assert!(!text.contains("argument-hint"));
+    }
+    assert!(
+        repository
+            .path("dist/antigravity-cli/skills/contract/SKILL.md")
+            .is_file()
+    );
+
+    let verifier =
+        fs::read_to_string(repository.path("dist/antigravity-cli/agents/adversarial-verifier.md"))
+            .expect("verifier agent");
+    assert!(verifier.contains("view_file"));
+    assert!(verifier.contains("list_dir"));
+    assert!(verifier.contains("find_by_name"));
+    assert!(verifier.contains("grep_search"));
+    assert!(verifier.contains("run_command"));
+    assert!(!verifier.contains("write_to_file"));
+    assert!(!verifier.contains("replace_file_content"));
+
+    let part_1 = fs::read_to_string(repository.path("dist/antigravity-cli/contract/part-1.md"))
+        .expect("part-1.md");
+    assert!(part_1.contains(
+        "After any context compaction (/compact), load the contract skill to restore this contract in full."
+    ));
+
+    if Command::new("which")
+        .arg("agy")
+        .output()
+        .map(|out| out.status.success())
+        .unwrap_or(false)
+    {
+        let validate = Command::new("agy")
+            .arg("plugin")
+            .arg("validate")
+            .arg(repository.path("dist/antigravity-cli"))
+            .arg("--strict")
+            .output()
+            .expect("agy validate runs");
+        assert!(
+            validate.status.success(),
+            "agy plugin validate: {}",
+            String::from_utf8_lossy(&validate.stderr)
+        );
+    }
 }

@@ -1,5 +1,63 @@
 # Changelog
 
+## 1.9.0 — 2026-10-16
+
+Turning the `status_line` option on is the adopter's consent, by change request
+[#55](https://github.com/ATNexusLab/tightship/issues/55). The question in chat had been gone since tightship 1.0.2,
+but a no recorded before it, or a status line command tightship did not recognize as its own, kept the
+status line off with the option on.
+
+**Added**
+
+- FR-STL-02.2: with the option off, a session start leaves the workflow's status line out of the harness's
+  settings.
+- FR-STL-02.3: with the option on, a session start writes the workflow's status line, whatever the settings
+  held before.
+
+**Changed**
+
+- FR-STL-02 is renamed "The status line option is the consent" and writes the status line only while the
+  option is on, instead of asking the adopter first.
+- NFR-FLEX-02.1 names FR-STL-02.3 in place of FR-STL-02.1 among the criteria the Cursor editor cannot pass.
+
+**Retired**
+
+- FR-STL-02.1: the adopter no longer answers a question in chat, so no refusal is recorded.
+
+## 1.8.1 — 2026-10-16
+
+Editorial. The [spec of epic #59](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md) settles OQ-04,
+OQ-05, OQ-06, and OQ-08 for Antigravity CLI.
+
+**Changed**
+
+- NFR-FLEX-03 and NFR-FLEX-03.1 name Antigravity CLI 1.4.0 as the minimum supported version and record
+  FR-MEM-02.2 as the only criterion Antigravity CLI 1.4.0 cannot fire automatically because `SessionStart`
+  runs only once at conversation start.
+- OQ-04, OQ-05, OQ-06, and OQ-08 now ask about Cursor and Codex only. For Antigravity CLI, the
+  [spec of epic #59](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md) settles them: minimum
+  version 1.4.0; companions and options installed by the one-command interactive installer (`install.sh` /
+  `install.ps1`) or the install guide's commands; contract injected by `SessionStart` hooks in
+  `injectSteps` JSON format with a `contract` skill for reload after `/compact`; status line written to
+  `~/.gemini/antigravity-cli/settings.json` with consent and restored when turned off.
+- Overview: the harness versions table states Antigravity CLI 1.4.0 and the Windows `cmd /c` hook
+  launcher.
+
+## 1.8.0 — 2026-10-15
+
+Two changes the maintainer approved in the planning of sprint 2. Cursor and Antigravity CLI are built in the
+same sprint, by change request [#56](https://github.com/ATNexusLab/tightship/issues/56). A vault location can
+name the home folder with `~`, by change request [#57](https://github.com/ATNexusLab/tightship/issues/57).
+
+**Added**
+
+- FR-MEM-09.2: a vault location that is `~` alone or starts with `~` and a path separator resolves under the
+  user's home folder, on macOS, Linux, and Windows.
+
+**Changed**
+
+- BR-01: work on a harness may run alongside work on the one before it. The releases keep their order.
+
 ## 1.7.0 — 2026-10-15
 
 The documents an adopter or a contributor reads first get a Brazilian Portuguese translation, decided by the

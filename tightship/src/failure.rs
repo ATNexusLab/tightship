@@ -36,13 +36,25 @@ pub enum Failure {
     SyncConflict(PathBuf, Vec<String>),
     SyncGitFailed(PathBuf, &'static str, String),
     StatusInputInvalid(String),
-    StatusLineNotSet(&'static str),
+    VariableNotSet(&'static str),
     SettingsUnreadable(PathBuf, io::Error),
     SettingsInvalid(PathBuf),
     SettingsUnwritable(PathBuf, io::Error),
     StatusRecordInvalid(PathBuf),
     StatusRecordUnwritable(PathBuf, io::Error),
+    OptionsInvalid(PathBuf),
+    OptionsJsonInvalid(PathBuf),
+    OptionsUnknown(String),
+    OptionsUnreadable(PathBuf, io::Error),
+    ContractFileUnreadable(PathBuf, io::Error),
+    HookOutputUnreadable(PathBuf, io::Error),
+    HookOutputInvalid(PathBuf),
     Usage(String),
+    OptionsIo(String),
+    OptionsInvalidValue(String),
+    ContractPartNameInvalid(String),
+    ContractPartMissing(PathBuf),
+    ContractPartUnreadable(PathBuf, io::Error),
 }
 
 impl fmt::Display for Failure {
@@ -160,9 +172,9 @@ impl fmt::Display for Failure {
                 formatter,
                 "the status line input is not a JSON object: {message}"
             ),
-            Self::StatusLineNotSet(variable) => write!(
+            Self::VariableNotSet(variable) => write!(
                 formatter,
-                "{variable} is not set; run the exact command the session start printed"
+                "{variable} is not set; run tightship through the plugin's bin/tightship"
             ),
             Self::SettingsUnreadable(path, error) => write!(
                 formatter,
@@ -189,7 +201,45 @@ impl fmt::Display for Failure {
                 "cannot write the status line record {}: {error}",
                 path.display()
             ),
+            Self::OptionsInvalid(path) => {
+                write!(formatter, "{} is not valid TOML", path.display())
+            }
+            Self::OptionsJsonInvalid(path) => {
+                write!(formatter, "{} is not valid JSON", path.display())
+            }
+            Self::OptionsUnknown(name) => {
+                write!(formatter, "unknown option \"{name}\"")
+            }
+            Self::OptionsUnreadable(path, error) => {
+                write!(formatter, "cannot read {}: {error}", path.display())
+            }
+            Self::ContractFileUnreadable(path, error) => {
+                write!(formatter, "cannot read {}: {error}", path.display())
+            }
+            Self::HookOutputUnreadable(path, error) => {
+                write!(formatter, "cannot read {}: {error}", path.display())
+            }
+            Self::HookOutputInvalid(path) => write!(
+                formatter,
+                "{} is not JSON with a \"{{text}}\" slot for the hook's output",
+                path.display()
+            ),
             Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", crate::USAGE),
+            Self::OptionsIo(message) => write!(formatter, "{message}"),
+            Self::OptionsInvalidValue(name) => {
+                write!(formatter, "{name} must be true or false")
+            }
+            Self::ContractPartNameInvalid(name) => {
+                write!(formatter, "contract part name {:?} is invalid", name)
+            }
+            Self::ContractPartMissing(path) => {
+                write!(formatter, "contract part {} is missing", path.display())
+            }
+            Self::ContractPartUnreadable(path, error) => write!(
+                formatter,
+                "cannot read contract part {}: {error}",
+                path.display()
+            ),
         }
     }
 }

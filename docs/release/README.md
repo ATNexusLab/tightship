@@ -18,7 +18,8 @@ their word. The pipeline is in the [release spec](../specs/release-m1/release-th
    ```
 
    `.github/workflows/release.yml` builds the binary for the four platforms and publishes the pre-release
-   `v<version>` with `tightship-claude-code.zip` and `marketplace.json`.
+   `v<version>` with `tightship-claude-code.zip`, `tightship-cursor.zip`, `tightship-antigravity-cli.zip`,
+   `marketplace.json`, `cursor-marketplace.json`, `install.sh`, and `install.ps1`.
 4. **Run the [checklist](checklist.md)** on macOS, Linux, and Windows, each at Claude Code 2.1.295 or later,
    installing from the release's own `marketplace.json`, as the checklist's preparation says.
 5. **Promote it**, only when every row passes on all three:

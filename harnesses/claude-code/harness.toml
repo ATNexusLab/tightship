@@ -5,6 +5,21 @@ author = "ATNexusLab"
 repository = "https://github.com/ATNexusLab/tightship"
 license = "MIT"
 
+[dist]
+manifest = ".claude-plugin/plugin.json"
+catalog = ".claude-plugin/marketplace.json"
+try-it = "claude --plugin-dir dist/claude-code"
+
+[install]
+label = "Claude Code"
+command = "claude"
+min-version = "2.1.295"
+aliases = ["claude"]
+
+[install.companion-steps.plugin]
+sh = "claude plugin marketplace add {repository} || true"
+ps1 = "try { & claude plugin marketplace add {repository} } catch {}"
+
 [references]
 skill = "{plugin}:{name}"
 command = "/{plugin}:{name}"
@@ -64,11 +79,14 @@ tools = [
 [[companions]]
 plugin = "ponytail"
 marketplace = "ponytail"
+repository = "DietrichGebert/ponytail"
 
 [[companions]]
 plugin = "i-have-adhd"
 marketplace = "i-have-adhd"
+repository = "ayghri/i-have-adhd"
 
 [[companions]]
 plugin = "humanizer"
 marketplace = "humanizer"
+repository = "blader/humanizer"

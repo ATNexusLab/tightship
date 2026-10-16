@@ -6,6 +6,8 @@ English · [Português](README.pt-BR.md)
 [![Rust](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/rust.yml?style=flat-square&label=rust)](https://github.com/ATNexusLab/tightship/actions/workflows/rust.yml)
 [![Scan](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/scan.yml?style=flat-square&label=scan)](https://github.com/ATNexusLab/tightship/actions/workflows/scan.yml)
 [![Claude Code 2.1.295+](https://img.shields.io/badge/Claude%20Code-2.1.295%2B-FF5A1F?style=flat-square)](docs/install/claude-code/README.md)
+[![Cursor 3.25.6+](https://img.shields.io/badge/Cursor-3.25.6%2B-121212?style=flat-square)](docs/install/cursor/README.md)
+[![Antigravity CLI 1.4.0+](https://img.shields.io/badge/Antigravity%20CLI-1.4.0%2B-4285F4?style=flat-square)](docs/install/antigravity-cli/README.md)
 [![Release](https://img.shields.io/github/v/release/ATNexusLab/tightship?include_prereleases&style=flat-square&label=release&color=121212)](https://github.com/ATNexusLab/tightship/releases)
 
 **A workflow for AI coding agents, from requirement to release.**
@@ -32,7 +34,7 @@ alone gets the same rigor a team would demand.
 | 13 skills | Loaded on demand: API, database, frontend, and hexagonal architecture, requirements engineering, spec writing, security audit, testing, performance, technical writing, and more |
 | Verifier | A read-only subagent that tries to disprove a fix, a finding, or a "done" before you trust it |
 | Memory | Optional. Curated notes in a git repository you own, shared across sessions, machines, and harnesses |
-| Status line | Optional. Written to your settings only after you agree |
+| Status line | Optional. Written to your settings only while you have it turned on |
 
 Three companion plugins install with it. [ponytail](https://github.com/DietrichGebert/ponytail) keeps the
 code to the simplest thing that works. [i-have-adhd](https://github.com/ayghri/i-have-adhd) shapes answers
@@ -52,26 +54,31 @@ with zero errors and zero warnings and you have read the change.
 
 ## Quickstart
 
-You need Claude Code 2.1.295 or later. On Windows, also Git for Windows: the hooks run under its `sh`.
+Run the installer for Claude Code (2.1.295+), Antigravity CLI (1.4.0+), or both:
 
 ```sh
-claude plugin marketplace add DietrichGebert/ponytail
-claude plugin marketplace add ayghri/i-have-adhd
-claude plugin marketplace add blader/humanizer
-claude plugin marketplace add ATNexusLab/tightship
-claude plugin install tightship@tightship
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | sh
 ```
 
-The next session asks which options to turn on. The [install guide](docs/install/claude-code/README.md)
-covers options, updates, uninstalling, and moving from the pre-plugin install.
+On Windows in PowerShell:
+
+```powershell
+irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
+```
+
+The installer detects your CLIs and asks which options to turn on. The install guides
+([Claude Code](docs/install/claude-code/README.md), [Antigravity CLI](docs/install/antigravity-cli/README.md))
+cover options, updates, uninstalling, and moving from pre-plugin installs. For Cursor (3.25.6+, `agent`
+2026.10.14+), follow the [Cursor install guide](docs/install/cursor/README.md); it is not part of the unified
+installer yet.
 
 ## Harnesses
 
 | Harness | Status | Milestone |
 | --- | --- | --- |
 | Claude Code | Available | M1 |
+| Antigravity CLI | Available | M3 |
 | Cursor | Planned | M2 |
-| Antigravity CLI | Planned | M3 |
 | Codex | Planned | M4 |
 
 Every piece is written once in `content/`, which names no harness. A Rust build turns it into each
@@ -88,6 +95,7 @@ git clone https://github.com/ATNexusLab/tightship.git
 cd tightship
 cargo xtask build
 claude --plugin-dir dist/claude-code
+agent --plugin-dir dist/cursor
 ```
 
 The build needs a `.identity-terms` file at the root. [CONTRIBUTING.md](CONTRIBUTING.md) explains it and
@@ -97,7 +105,8 @@ lists every gate.
 
 | Where | What |
 | --- | --- |
-| [Install guide](docs/install/claude-code/README.md) | Installing, options, updates, uninstalling, migration |
+| [Install guide (Claude Code)](docs/install/claude-code/README.md) | Installing, options, updates, uninstalling, migration |
+| [Install guide (Cursor)](docs/install/cursor/README.md) | Companions, marketplace install, options, uninstall |
 | [Requirements](docs/requirements/README.md) | The versioned SRS: every requirement and its acceptance criteria |
 | [Architecture](docs/architecture/README.md) | The system map, in arc42 sections with C4 diagrams |
 | [Decisions](docs/decisions/README.md) | The architecture decision records |

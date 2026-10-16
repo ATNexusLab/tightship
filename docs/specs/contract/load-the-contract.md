@@ -532,8 +532,8 @@ N/A — the contract holds no data of the adopter, and the options it reads keep
   before epic #8.
 - **The contract in subagents:** a `SessionStart` hook reaches the main session only. The verifier works from
   its own instructions, and the baseline's subagent read nothing more than them.
-- **The contract in Cursor, Antigravity CLI, and Codex:** M2 to M4, each against its own limit. OQ-06 stays
-  open for them.
+- **The contract in Cursor:** [epic #58](../cursor-plugin/ship-for-cursor.md). **Antigravity CLI and Codex:**
+  M3 to M4, each against its own limit ([OQ-06](../../requirements/open-questions.md#oq-06)).
 - **Changes to the baseline after `1f41699`:** the baseline is fixed by the SRS; a new rule goes through
   change control.
 

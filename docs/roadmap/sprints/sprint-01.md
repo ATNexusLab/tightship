@@ -117,3 +117,45 @@ None of the three epics had a spec yet. The stage opened with `/spec` then `/epi
 before any code. Handoff (#6) builds on the vault of #5 and also restores the Closeout step's memory item.
 Status line (#7) adds its command to the `tightship` binary. Release M1 (#8) comes last: it builds the binary
 for every platform and releases what the other epics shipped.
+
+### Stage 4 result — 2026-10-15
+
+Goal reached. Epic #6 merged into `develop` with
+[PR #40](https://github.com/ATNexusLab/tightship/pull/40), epic #7 with
+[PR #42](https://github.com/ATNexusLab/tightship/pull/42), and epic #8 with
+[PR #43](https://github.com/ATNexusLab/tightship/pull/43) and
+[PR #46](https://github.com/ATNexusLab/tightship/pull/46).
+[PR #47](https://github.com/ATNexusLab/tightship/pull/47) released M1 as the Claude Code plugin 1.0.0, which closed
+every issue below.
+
+| Item | Result |
+| --- | --- |
+| [#6](https://github.com/ATNexusLab/tightship/issues/6) Handoff | Done |
+| [#32](https://github.com/ATNexusLab/tightship/issues/32) Release and claim the handoff in the binary | Done |
+| [#33](https://github.com/ATNexusLab/tightship/issues/33) Ship the handoff command, the option token, and the closeout's memory item | Done |
+| [#7](https://github.com/ATNexusLab/tightship/issues/7) Status line | Done |
+| [#34](https://github.com/ATNexusLab/tightship/issues/34) Render the baseline's status line | Done |
+| [#35](https://github.com/ATNexusLab/tightship/issues/35) Ask, turn on, and put back the status line | Done |
+| [#8](https://github.com/ATNexusLab/tightship/issues/8) Release M1 | Done |
+| [#36](https://github.com/ATNexusLab/tightship/issues/36) Run the gates on macOS, Linux, and Windows at every pull request | Done |
+| [#37](https://github.com/ATNexusLab/tightship/issues/37) Publish a pre-release from a tag | Done |
+| [#38](https://github.com/ATNexusLab/tightship/issues/38) Write the Claude Code install guide | Done |
+| [#39](https://github.com/ATNexusLab/tightship/issues/39) Run the release checklist on the three systems | Done |
+| [#31](https://github.com/ATNexusLab/tightship/issues/31) Let the uninstall turn the status line off first (FR-INS-06.1) | Done |
+| [#45](https://github.com/ATNexusLab/tightship/issues/45) Make the repository ready for outside adopters and contributors | Done |
+
+Change requests #30, #31, and #44, and the maintainer's decision on Portuguese translations, moved the
+requirements to v1.7.0 during the stage. After the release, the fixes #48 and #49 shipped as 1.0.1 and the
+status line's automatic turn-on as 1.0.2.
+
+## Sprint result — 2026-10-15
+
+Goal reached, three days early: M1 is released, and its GitHub Milestone is closed. Nothing carries over.
+The sprint closed on 2026-10-15 by the maintainer's decision, and sprint 2 starts the next day.
+
+Two changes came out of the close, both approved for sprint 2 by the maintainer. Cursor and Antigravity CLI
+are built side by side, which changes BR-01
+([#56](https://github.com/ATNexusLab/tightship/issues/56)). A vault location may name the home folder with `~`,
+which adds FR-MEM-09.2 ([#57](https://github.com/ATNexusLab/tightship/issues/57)). The requirements moved to
+v1.8.0. The status line bug [#55](https://github.com/ATNexusLab/tightship/issues/55), found after 1.0.2, joins
+sprint 2.

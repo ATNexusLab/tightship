@@ -224,7 +224,7 @@ The system shall read and write the vault at the location the adopter chose.
 | Attribute | Value |
 | --- | --- |
 | Rationale | A fixed path does not fit every machine or operating system. |
-| Source | Maintainer, elicitation 2026-10-14 |
+| Source | Maintainer, elicitation 2026-10-14; `~` by change request [#57](https://github.com/ATNexusLab/tightship/issues/57) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
@@ -234,6 +234,9 @@ The system shall read and write the vault at the location the adopter chose.
 
 - **FR-MEM-09.1** — Given the adopter chose a location other than the baseline's default, when any memory
   function runs, then it reads and writes only at that location.
+- **FR-MEM-09.2** — Given the adopter chose a location that is `~` alone or starts with `~` and a path
+  separator, when any memory function runs, then it reads and writes under the user's home folder, on macOS,
+  Linux, and Windows.
 
 <a id="fr-mem-10"></a>
 

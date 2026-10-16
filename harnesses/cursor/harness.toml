@@ -1,0 +1,83 @@
+[plugin]
+name = "tightship"
+description = "Skills, a command per step of the development loop, and a read-only verifier"
+author = "ATNexusLab"
+repository = "https://github.com/ATNexusLab/tightship"
+license = "MIT"
+
+[dist]
+manifest = ".cursor-plugin/plugin.json"
+catalog = ".cursor-plugin/marketplace.json"
+try-it = "agent --plugin-dir dist/cursor"
+
+[install]
+label = "Cursor"
+command = "agent"
+min-version = "2026.10.14"
+aliases = ["cursor"]
+
+[paths]
+data = ".cursor/tightship"
+config = ".cursor"
+
+[references]
+skill = "{name}"
+command = "/{name}"
+agent = "{name}"
+option = "${user_config.{name}}"
+
+[access]
+read-only = "Read, Grep, Glob, Shell"
+
+[contract]
+limit = 10000
+
+[capabilities]
+arguments = "$ARGUMENTS"
+plan-mode = "Plan mode"
+plan-approval = "`SwitchMode` to Agent"
+explore-agent = "the **explore** subagent"
+general-agent = "`generalPurpose` subagent"
+review-command = "`code-reviewer` subagent"
+security-review-command = "`security-reviewer` subagent"
+harness-instructions-file = "`AGENTS.md`"
+area-instructions = "Cursor loads rules for the files in scope"
+skill-tool = "the skill"
+instruction-files-precedence = "Cursor rules with globs apply to the files they match; they do not replace `AGENTS.md` in the same folder"
+instruction-files-search = "`find . -name AGENTS.md`"
+instruction-files-migration = "When an area already has `AGENTS.md`, move any legacy harness instruction content into that file and remove the legacy file from the repo"
+binary-invocation = "\"${CURSOR_PLUGIN_ROOT}/bin/tightship\""
+
+[neutrality]
+names = ["Cursor", "Composer"]
+paths = [
+  ".cursor/",
+  "~/.cursor",
+  "CURSOR_PLUGIN_ROOT",
+  "CURSOR_PROJECT_DIR",
+]
+tools = [
+  "SwitchMode",
+  "TodoWrite",
+  "WebFetch",
+  "WebSearch",
+  "AskQuestion",
+  "CallMcpTool",
+  "GetDynamicTools",
+  "$ARGUMENTS",
+]
+
+[[companions]]
+plugin = "ponytail"
+marketplace = "ponytail"
+repository = "DietrichGebert/ponytail"
+
+[[companions]]
+plugin = "i-have-adhd"
+marketplace = "i-have-adhd"
+repository = "ayghri/i-have-adhd"
+
+[[companions]]
+plugin = "humanizer"
+marketplace = "humanizer"
+repository = "blader/humanizer"

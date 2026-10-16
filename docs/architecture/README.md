@@ -38,7 +38,7 @@ Dashed boxes are not built yet. Every element belongs to the milestone in its la
 | Adopter | Person | Installs the plugin, picks its options, invokes its commands |
 | This repository | External system, GitHub | Holds the canonical source and the catalog each harness installs from |
 | Claude Code, Cursor, Antigravity CLI, Codex | External systems, one milestone each ([BR-01](../requirements/business-rules.md#br-01)) | Load the plugin in its harness's own format |
-| Companion plugins | External systems | Installed with the plugin where the harness allows it ([FR-INS-02](../requirements/functional/install.md#fr-ins-02)); in Claude Code, as the plugin's dependencies, each from its own catalog (M1, #2) |
+| Companion plugins | External systems | Installed with the plugin where the harness allows it ([FR-INS-02](../requirements/functional/install.md#fr-ins-02)); in Claude Code, as the plugin's dependencies, each from its own catalog (M1, #2); in Antigravity CLI, by `install.sh` / `install.ps1` or the install guide's commands (M3, #59) |
 | Vault | External system, the adopter's git repository | Notes and handoffs the memory layer reads and writes |
 
 Out of scope: [the SRS's list](../requirements/README.md#scope).
@@ -54,7 +54,7 @@ From [ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)
 - **Rust throughout.** The build is a Cargo `xtask`; the plugin ships one compiled binary, `tightship`, so an
   adopter installs no runtime.
 - **The plugin installs as a release archive** that carries the binary for every target and a `sh` launcher
-  that picks one.
+  (plus `bin/tightship.cmd` for Windows `cmd /c`, M3, #59) that picks one.
 
 ## Building blocks
 
@@ -62,23 +62,28 @@ From [ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)
 
 ## Runtime
 
-**Session start: the contract** (M1, #4). Claude Code starts a session, runs `/clear`, or compacts the
-context, and fires the plugin's `SessionStart` hooks in parallel. Each prints one part of the contract from
-`contract/`, or nothing when the contract option or its own option is `false`, and Claude Code adds each
-print to the context as its own reminder ([contract](concepts/contract.md)).
+**Session start: the contract** (M1, #4; M3, #59). Claude Code starts a session, runs `/clear`, or compacts
+the context, and fires the plugin's `SessionStart` hooks in parallel. Each prints one part of the contract
+from `contract/`, or nothing when the contract option or its own option is `false`, and Claude Code adds each
+print to the context as its own reminder. In Antigravity CLI (M3, #59), `SessionStart` runs `tightship hook
+contract` for each part, which wraps the text in `injectSteps` JSON; after `/compact`, the agent loads the
+`contract` skill ([contract](concepts/contract.md)).
 
-**Session start: memory** (M1, #5). With memory on, the same event runs `tightship hook start`. It reads the
-pinned notes of the project's scope and of `all`, and the project's handoff, from the vault folder the
-adopter set, and prints them within 9,000 characters. It also appends `export TIGHTSHIP_VAULT=…` to the
-session's environment file. A resumed or forked session gets only the export
+**Session start: memory** (M1, #5; M3, #59). With memory on, the same event runs `tightship hook start`. It
+reads the pinned notes of the project's scope and of `all`, and the project's handoff, from the vault folder
+the adopter set, and prints them within 9,000 characters (wrapped in `injectSteps` JSON in Antigravity CLI,
+M3, #59). In Claude Code it also appends `export TIGHTSHIP_VAULT=…` to the session's environment file; in
+Antigravity CLI, `tightship` reads `vault_folder` directly from `${PLUGIN_DATA}/options.toml`
 ([memory](concepts/memory.md)).
 
-**A prompt: the checkpoint** (M1, #5). Each prompt runs `tightship hook prompt`, which counts the session's
-prompts in the plugin's data folder and prints the checkpoint on every 10th. A compaction prints it once more,
-from `SessionStart` on the source `compact`.
+**A prompt: the checkpoint** (M1, #5; M3, #59). Each prompt runs `tightship hook prompt` (`PreInvocation` in
+Antigravity CLI), which counts the session's prompts (`session_id` or `conversationId`) in the plugin's data
+folder and prints the checkpoint on every 10th. In Claude Code, a compaction prints it once more, from
+`SessionStart` on the source `compact`.
 
-**The agent reaches the vault** (M1, #5). The agent runs `tightship vault search`, `new`, or `lint` through
-its shell. The binary finds the vault in `TIGHTSHIP_VAULT`, which the session's environment file exported.
+**The agent reaches the vault** (M1, #5; M3, #59). The agent runs `tightship vault search`, `new`, or `lint`
+through its shell. The binary finds the vault in `TIGHTSHIP_VAULT` (exported in Claude Code) or in
+`vault_folder` of `${TIGHTSHIP_DATA}/options.toml` (in Antigravity CLI, M3, #59).
 
 **The adopter releases a handoff** (M1, #6). The command `handoff release` has the agent read the project's
 repository, write the handoff's body, run `tightship vault handoff release`, which writes it and removes the
@@ -89,12 +94,12 @@ scope's earlier ones, and run `tightship vault sync` to push it. The project's r
 `tightship vault handoff claim`, which prints and removes the scope's handoffs, sync again, and compare each
 handoff with the repository after a `git fetch`. It shows the next step and the open decisions, and waits.
 
-**Session start: the status line** (M1, #7). On `startup`, `tightship hook status-line` runs whatever the
-status line option's state. With the option on and the status line not yet decided, it prints a question for
-the agent to put to the adopter, and the agent runs `tightship status-line enable` or `decline` on the answer.
-`enable` saves the adopter's `statusLine` in the plugin's data folder and writes the workflow's into the user
-settings, and Claude Code then runs `tightship status-line render` as the status line. With the option off, the
-hook puts the saved value back ([status line](concepts/status-line.md)).
+**Session start: the status line** (M1, #7; M3, #59). On `startup`, `tightship hook status-line` runs whatever
+the status line option's state. With the option on, it saves the adopter's `statusLine` in the plugin's data
+folder and writes the workflow's into the user settings (`~/.claude/settings.json`,
+`~/.cursor/cli-config.json`, or `~/.gemini/antigravity-cli/settings.json`), and the harness then runs
+`tightship status-line render` as the status line. With the option off, the hook puts the saved value back
+([status line](concepts/status-line.md)).
 
 **The adopter syncs the vault** (M1, #5). The command `sync` has the agent run `tightship vault sync`, which
 commits the vault's changes, rebases them on its git remote, renumbers colliding ids, and pushes. A conflict or

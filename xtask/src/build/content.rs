@@ -30,6 +30,7 @@ pub struct FrontMatter {
     pub description: String,
     #[serde(rename = "argument-hint")]
     pub argument_hint: Option<String>,
+    pub access: Option<String>,
 }
 
 pub struct Piece {
@@ -123,7 +124,7 @@ pub fn is_valid_name(text: &str) -> bool {
         })
 }
 
-fn files_under(directory: &Path) -> io::Result<Vec<PathBuf>> {
+pub fn files_under(directory: &Path) -> io::Result<Vec<PathBuf>> {
     let mut entries = fs::read_dir(directory)
         .map_err(naming(directory))?
         .map(|entry| entry.map(|entry| entry.path()))
@@ -136,7 +137,7 @@ fn files_under(directory: &Path) -> io::Result<Vec<PathBuf>> {
             .file_type();
         if file_type.is_symlink() {
             return Err(io::Error::other(format!(
-                "{} is a symbolic link; content/ holds only real files",
+                "{} is a symbolic link; the build reads only real files",
                 entry.display()
             )));
         }
