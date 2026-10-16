@@ -4,7 +4,7 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-use common::{Repository, assert_fails_with, assert_succeeds, stderr_of};
+use common::{Repository, assert_fails_with, assert_succeeds, harness_files, stderr_of};
 
 fn piece<'path>(path: &'path str, body: &str) -> (&'path str, String) {
     let name = Path::new(path)
@@ -579,12 +579,12 @@ fn an_option_naming_the_harness_or_a_missing_piece_fails() {
 
 #[test]
 fn both_harnesses_build_from_canonical_content_and_pass_validation() {
-    let antigravity_harness = include_str!("../../harnesses/antigravity-cli/harness.toml");
-    let mut files = vec![
-        (
-            "harnesses/antigravity-cli/harness.toml",
-            antigravity_harness.to_owned(),
-        ),
+    let harness_files = harness_files("antigravity-cli");
+    let mut files: Vec<(&str, String)> = harness_files
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.clone()))
+        .collect();
+    files.extend([
         typed_options(&[
             ("contract", "boolean", "Contract"),
             ("memory", "boolean", "Memory"),
@@ -599,7 +599,7 @@ fn both_harnesses_build_from_canonical_content_and_pass_validation() {
             "content/agents/adversarial-verifier.md",
             "+++\nname = \"adversarial-verifier\"\ndescription = \"Verifier\"\naccess = \"read-only\"\n+++\nVerifier body.\n".to_owned(),
         ),
-    ];
+    ]);
     let skill_names = [
         "architecture-reading",
         "spec-writing",

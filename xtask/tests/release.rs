@@ -7,7 +7,7 @@ use std::process::Output;
 use sha2::{Digest, Sha256};
 use zip::ZipArchive;
 
-use common::{Repository, assert_fails_with, assert_succeeds};
+use common::{Repository, assert_fails_with, assert_succeeds, harness_files};
 
 const BINARIES: [&str; 4] = [
     "macos/tightship",
@@ -17,15 +17,15 @@ const BINARIES: [&str; 4] = [
 ];
 
 fn release_repository(version: &str) -> Repository {
-    let antigravity_harness = include_str!("../../harnesses/antigravity-cli/harness.toml");
-    let repository = Repository::with(&[
+    let harness_files = harness_files("antigravity-cli");
+    let mut files: Vec<(&str, String)> = harness_files
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.clone()))
+        .collect();
+    files.extend([
         (
             "Cargo.toml",
             format!("[workspace.package]\nversion = \"{version}\"\n"),
-        ),
-        (
-            "harnesses/antigravity-cli/harness.toml",
-            antigravity_harness.to_owned(),
         ),
         ("install.sh", include_str!("../../install.sh").to_owned()),
         ("install.ps1", include_str!("../../install.ps1").to_owned()),
@@ -34,6 +34,7 @@ fn release_repository(version: &str) -> Repository {
             "+++\nname = \"epic\"\ndescription = \"A piece\"\n+++\nOpen the epic.\n".to_owned(),
         ),
     ]);
+    let repository = Repository::with(&files);
     for binary in BINARIES {
         repository.write(
             &format!("binaries/{binary}"),

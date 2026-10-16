@@ -5,6 +5,11 @@ author = "ATNexusLab"
 repository = "https://github.com/ATNexusLab/tightship"
 license = "MIT"
 
+[dist]
+manifest = ".claude-plugin/plugin.json"
+catalog = ".claude-plugin/marketplace.json"
+try-it = "claude --plugin-dir dist/claude-code"
+
 [references]
 skill = "{plugin}:{name}"
 command = "/{plugin}:{name}"

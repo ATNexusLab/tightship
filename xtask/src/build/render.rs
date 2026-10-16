@@ -64,6 +64,43 @@ pub fn supporting_files(
     Ok(files)
 }
 
+pub fn harness_files(
+    root: &Path,
+    staging: &Path,
+    harness: &Harness,
+) -> io::Result<Vec<(PathBuf, Vec<u8>)>> {
+    let folder = root.join("harnesses").join(&harness.name);
+    let neutral = include_str!("../../../tightship/launcher.sh");
+    let environment_file = folder.join("launcher-env.sh");
+    let launcher = match fs::read_to_string(&environment_file) {
+        Ok(environment) => {
+            let (shebang, body) = neutral.split_once('\n').unwrap_or_default();
+            format!("{shebang}\n{environment}{body}")
+        }
+        Err(error) if error.kind() == io::ErrorKind::NotFound => neutral.to_owned(),
+        Err(error) => return Err(naming(&environment_file)(error)),
+    };
+    let mut files = vec![(staging.join("bin/tightship"), launcher.into_bytes())];
+    let plugin = folder.join("plugin");
+    if plugin.is_dir() {
+        copy_tree(&plugin, staging, &mut files)?;
+    }
+    Ok(files)
+}
+
+fn copy_tree(source: &Path, target: &Path, files: &mut Vec<(PathBuf, Vec<u8>)>) -> io::Result<()> {
+    for entry in fs::read_dir(source).map_err(naming(source))? {
+        let entry = entry?;
+        let copy = target.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            copy_tree(&entry.path(), &copy, files)?;
+        } else {
+            files.push((copy, fs::read(entry.path()).map_err(naming(&entry.path()))?));
+        }
+    }
+    Ok(())
+}
+
 pub fn binary_files(staging: &Path, binaries: &[Binary]) -> io::Result<Vec<(PathBuf, Vec<u8>)>> {
     let mut files = Vec::new();
     for binary in binaries {

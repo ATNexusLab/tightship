@@ -3,7 +3,7 @@ pub mod binary;
 mod claude_code;
 mod content;
 mod contract;
-mod harness;
+pub mod harness;
 mod identity;
 mod neutrality;
 mod options;
@@ -84,15 +84,11 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
     let mut rendered = Vec::new();
     for (harness, parts) in harnesses.iter().zip(&contract_parts) {
         println!("> Rendering {} into dist/{}/", harness.name, harness.name);
-        let ((staging, files), try_it) = match harness.name.as_str() {
-            "claude-code" => (
-                claude_code::render(root, harness, &content, parts, &binaries)?,
-                format!("claude --plugin-dir dist/{}", harness.name),
-            ),
-            "antigravity-cli" => (
-                antigravity_cli::render(root, harness, &content, parts, &binaries)?,
-                format!("agy plugin validate dist/{} --strict", harness.name),
-            ),
+        let (staging, files) = match harness.name.as_str() {
+            "claude-code" => claude_code::render(root, harness, &content, parts, &binaries)?,
+            "antigravity-cli" => {
+                antigravity_cli::render(root, harness, &content, parts, &binaries)?
+            }
             unknown => {
                 return Err(Failure::Io(io::Error::other(format!(
                     "unknown harness \"{unknown}\""
@@ -106,16 +102,17 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
             &format!("dist/{}", harness.name),
             &mut diagnostics,
         )?;
-        rendered.push((harness, staging, files, try_it));
+        rendered.push((harness, staging, files));
     }
     stop_on_errors(&mut diagnostics)?;
 
     let mut summaries = Vec::new();
-    for (harness, staging, files, try_it) in &rendered {
+    for (harness, staging, files) in &rendered {
         staging::publish(root, staging, &harness.name)?;
         summaries.push(format!(
-            "{}\nTry it: {try_it}",
-            summary(&content, &harness.name, *files)
+            "{}\nTry it: {}",
+            summary(&content, &harness.name, *files),
+            harness.dist.try_it
         ));
     }
     Ok(summaries.join("\n"))

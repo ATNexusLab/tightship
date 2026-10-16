@@ -6,8 +6,9 @@ pub mod start;
 pub mod status_line;
 
 use std::env;
-use std::fs::OpenOptions;
+use std::fs::{self, OpenOptions};
 use std::io::Write;
+use std::ops::BitOr;
 use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
@@ -38,23 +39,47 @@ start, a space that holds about thirty.
 
 Nothing durable? Ignore this and carry on.";
 
-pub fn emit(text: &str) {
+pub fn emit(text: &str) -> Result<(), Failure> {
     if text.is_empty() {
-        return;
+        return Ok(());
     }
-    if env::var_os("TIGHTSHIP_HOOK_FORMAT").is_some_and(|value| value == "inject-steps") {
-        let payload = serde_json::json!({
-            "injectSteps": [{
-                "systemMessage": {
-                    "systemMessage": text
-                }
-            }]
-        });
-        println!("{payload}");
-    } else if text.ends_with('\n') {
-        print!("{text}");
-    } else {
-        println!("{text}");
+    let Some(template) = env::var_os("TIGHTSHIP_HOOK_OUTPUT")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+    else {
+        if text.ends_with('\n') {
+            print!("{text}");
+        } else {
+            println!("{text}");
+        }
+        return Ok(());
+    };
+    let shape = fs::read_to_string(&template)
+        .map_err(|error| Failure::HookOutputUnreadable(template.clone(), error))?;
+    let mut payload: serde_json::Value =
+        serde_json::from_str(&shape).map_err(|_| Failure::HookOutputInvalid(template.clone()))?;
+    if !fill(&mut payload, text) {
+        return Err(Failure::HookOutputInvalid(template));
+    }
+    println!("{payload}");
+    Ok(())
+}
+
+fn fill(value: &mut serde_json::Value, text: &str) -> bool {
+    match value {
+        serde_json::Value::String(slot) if slot == "{text}" => {
+            *slot = text.to_owned();
+            true
+        }
+        serde_json::Value::Array(items) => items
+            .iter_mut()
+            .map(|item| fill(item, text))
+            .fold(false, BitOr::bitor),
+        serde_json::Value::Object(fields) => fields
+            .values_mut()
+            .map(|field| fill(field, text))
+            .fold(false, BitOr::bitor),
+        _ => false,
     }
 }
 

@@ -45,6 +45,8 @@ pub enum Failure {
     OptionsInvalid(PathBuf),
     OptionsUnreadable(PathBuf, io::Error),
     ContractFileUnreadable(PathBuf, io::Error),
+    HookOutputUnreadable(PathBuf, io::Error),
+    HookOutputInvalid(PathBuf),
     Usage(String),
 }
 
@@ -201,6 +203,14 @@ impl fmt::Display for Failure {
             Self::ContractFileUnreadable(path, error) => {
                 write!(formatter, "cannot read {}: {error}", path.display())
             }
+            Self::HookOutputUnreadable(path, error) => {
+                write!(formatter, "cannot read {}: {error}", path.display())
+            }
+            Self::HookOutputInvalid(path) => write!(
+                formatter,
+                "{} is not JSON with a \"{{text}}\" slot for the hook's output",
+                path.display()
+            ),
             Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", crate::USAGE),
         }
     }

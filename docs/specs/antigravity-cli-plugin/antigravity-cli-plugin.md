@@ -181,7 +181,7 @@ New subcommand on `tightship hook`:
 | `--gate <option>` | string | No | Name of an additional boolean option in `${TIGHTSHIP_DATA}/options.toml` that must not be `false` |
 | `<file>` | path | Yes | Path to the rendered contract part file |
 | `TIGHTSHIP_DATA` | path (env) | No | Folder holding `options.toml` |
-| `TIGHTSHIP_HOOK_FORMAT` | string (env) | No | `"inject-steps"` wraps non-empty stdout in `{"injectSteps":[{"systemMessage":{"systemMessage":"..."}}]}`; absent or empty prints plain text |
+| `TIGHTSHIP_HOOK_OUTPUT` | path (env) | No | A JSON file whose `"{text}"` slot non-empty stdout fills, such as `{"injectSteps":[{"systemMessage":{"systemMessage":"{text}"}}]}`; absent or empty prints plain text |
 
 #### `install.sh` and `install.ps1` arguments and interactive prompts
 
@@ -365,7 +365,7 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
   (to `${PLUGIN_DATA}` or `<config_dir>/plugin_data/tightship`), `TIGHTSHIP_SETTINGS` (to
   `${AGY_CONFIG_DIR:-$HOME/.gemini/antigravity-cli}/settings.json` on POSIX and
   `%USERPROFILE%\.gemini\antigravity-cli\settings.json` on Windows), and
-  `TIGHTSHIP_HOOK_FORMAT=inject-steps` before executing the platform binary.
+  `TIGHTSHIP_HOOK_OUTPUT` (the plugin's `hook-output.json`) before executing the platform binary.
 
 ### 4. Options in `${TIGHTSHIP_DATA}/options.toml` and JSON hook output (`FR-INS-03`..`05`)
 
@@ -383,8 +383,8 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
     value of `~` or `~/...` (or `~\...` on Windows) expands to the user's home directory (`#60`).
 - When `memory` is `false`, `hook start`, `hook export`, `hook checkpoint`, and `hook prompt` exit `0`
   and print nothing.
-- When `TIGHTSHIP_HOOK_FORMAT` is `"inject-steps"`, `hook contract`, `hook start`, `hook checkpoint`,
-  and `hook prompt` wrap any non-empty output string `<text>` in:
+- When `TIGHTSHIP_HOOK_OUTPUT` names `hook-output.json`, `hook contract`, `hook start`, `hook checkpoint`,
+  and `hook prompt` put any non-empty output string `<text>` in its `"{text}"` slot:
   `{"injectSteps":[{"systemMessage":{"systemMessage":"<text>"}}]}`
   followed by a newline, and print nothing (0 bytes) when the output is empty.
 
@@ -470,7 +470,7 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
 
 | Code | Exit | When | Message |
 | --- | --- | --- | --- |
-| `PACKAGE_PLUGIN_MISSING` | `1` | `cargo xtask package <tag>` runs when `dist/claude-code` or `dist/antigravity-cli` is missing | `"error: dist/<harness>/plugin.json is missing; run cargo xtask build --binaries <folder> first"` |
+| `PACKAGE_PLUGIN_MISSING` | `1` | `cargo xtask package <tag>` runs when `dist/claude-code` or `dist/antigravity-cli` is missing | `"error: dist/<harness>/<manifest> is missing; run cargo xtask build --binaries <folder> first"` |
 | `PACKAGE_BINARY_MISSING` | `1` | `cargo xtask package <tag>` runs when any of the 4 platform binaries is missing in `dist/<harness>/bin/` | `"error: dist/<harness>/bin/<platform>/<binary> is missing; run cargo xtask build --binaries <folder> first"` |
 | `OPTIONS_TOML_INVALID` | `1` | `${TIGHTSHIP_DATA}/options.toml` exists and is not valid TOML or has a non-boolean `contract`, `memory`, or `status_line` | `"error: <path> is not valid TOML"` |
 | `OPTIONS_TOML_UNREADABLE` | `1` | `${TIGHTSHIP_DATA}/options.toml` exists and cannot be read | `"error: cannot read <path>: <io error>"` |
@@ -566,7 +566,7 @@ And Antigravity CLI logs the hook warning and continues the session
 
 ```gherkin
 Given PLUGIN_DATA/options.toml has memory = true and vault_folder set
-When `tightship hook prompt` runs 10 times with stdin `{"conversationId":"conv-42"}` and TIGHTSHIP_HOOK_FORMAT=inject-steps
+When `tightship hook prompt` runs 10 times with stdin `{"conversationId":"conv-42"}` and TIGHTSHIP_HOOK_OUTPUT naming hook-output.json
 Then calls 1 through 9 output 0 bytes and exit 0
 And call 10 outputs `{"injectSteps":[{"systemMessage":{"systemMessage":"MEMORY CHECKPOINT..."}}]}` and exits 0
 ```
@@ -638,9 +638,9 @@ Applied to [docs/architecture/](../../architecture/README.md) and
 [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.md), marked M3, #59:
 
 - **ADR 0001 amended:** allows the cross-platform bootstrap installers (`install.sh` and `install.ps1` at
-  the repository root) and the Windows batch launcher (`harnesses/antigravity-cli/launcher.cmd`, copied to
-  `bin/tightship.cmd`), because the installer runs before any binary is downloaded and Antigravity CLI on
-  Windows invokes hooks via `cmd /c`.
+  the repository root) and the Windows batch launcher
+  (`harnesses/antigravity-cli/plugin/bin/tightship.cmd`, copied to `bin/tightship.cmd`), because the
+  installer runs before any binary is downloaded and Antigravity CLI on Windows invokes hooks via `cmd /c`.
 - **Building blocks:**
   - New block: [Antigravity CLI plugin](../../architecture/building-blocks/antigravity-cli-plugin.md)
     (`dist/antigravity-cli/`): `plugin.json`, `hooks.json`, `agents/adversarial-verifier.md`,
@@ -651,7 +651,7 @@ Applied to [docs/architecture/](../../architecture/README.md) and
     both `dist/tightship-claude-code.zip` and `dist/tightship-antigravity-cli.zip`.
   - [`tightship` binary](../../architecture/building-blocks/tightship-binary.md): gains
     `tightship hook contract`, reads `${TIGHTSHIP_DATA}/options.toml` when option environment variables
-    are unset, wraps hook output in `injectSteps` JSON when `TIGHTSHIP_HOOK_FORMAT=inject-steps`, and
+    are unset, fills the `"{text}"` slot of the JSON file `TIGHTSHIP_HOOK_OUTPUT` names, and
     reads `conversationId` in `hook prompt`.
   - [Release pipeline](../../architecture/building-blocks/release-pipeline.md): attaches
     `tightship-antigravity-cli.zip`, `install.sh`, and `install.ps1` to each release.

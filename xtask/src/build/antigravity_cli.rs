@@ -21,7 +21,7 @@ pub fn render(
     let staging = staging::staging_dir(root, &harness.name);
     staging::remove_if_present(&staging)?;
     let mut written = vec![(
-        staging.join("plugin.json"),
+        staging.join(&harness.dist.manifest),
         manifest(root, harness)?.into_bytes(),
     )];
 
@@ -53,29 +53,10 @@ pub fn render(
         written.push((staging.join("hooks.json"), hooks.into_bytes()));
     }
 
-    let launcher_posix = staging.join("bin/tightship");
-    written.push((launcher_posix.clone(), launcher_sh().into_bytes()));
-
-    let launcher_cmd = staging.join("bin/tightship.cmd");
-    written.push((
-        launcher_cmd.clone(),
-        include_bytes!("../../../harnesses/antigravity-cli/launcher.cmd").to_vec(),
-    ));
-
-    let mut executables = vec![launcher_posix, launcher_cmd];
-    let binary_copies = render::binary_files(&staging, binaries)?;
-    executables.extend(binary_copies.iter().map(|(copy, _)| copy.clone()));
-    written.extend(binary_copies);
-
-    staging::write_files(&written, &executables)?;
+    written.extend(render::harness_files(root, &staging, harness)?);
+    written.extend(render::binary_files(&staging, binaries)?);
+    staging::write_files(&staging, &written)?;
     Ok((staging, written.len()))
-}
-
-fn launcher_sh() -> String {
-    let neutral = include_str!("../../../tightship/launcher.sh");
-    let (shebang, body) = neutral.split_once('\n').unwrap_or_default();
-    let environment = include_str!("../../../harnesses/antigravity-cli/launcher-env.sh");
-    format!("{shebang}\n{environment}{body}")
 }
 
 fn prepare_contract_part(part: &Part) -> String {

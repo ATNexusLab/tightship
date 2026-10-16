@@ -24,6 +24,13 @@ fn hook(sandbox: &Sandbox, subcommand: &str, working_directory: &Path) -> Comman
     command
 }
 
+fn hook_output(sandbox: &Sandbox) -> PathBuf {
+    sandbox.write(
+        "hook-output.json",
+        include_str!("../../harnesses/antigravity-cli/plugin/hook-output.json"),
+    )
+}
+
 fn export_line(sandbox: &Sandbox) -> String {
     format!(
         "export TIGHTSHIP_VAULT='{}'\n",
@@ -370,7 +377,7 @@ fn scenario_4_session_start_injects_contract_and_memory_as_inject_steps_json() {
     let mut contract_cmd = sandbox.tightship(&["hook", "contract", part_1.to_str().unwrap()]);
     contract_cmd
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_FORMAT", "inject-steps");
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut contract_cmd);
     assert_succeeds(&output);
     let stdout = stdout_of(&output);
@@ -389,7 +396,7 @@ fn scenario_4_session_start_injects_contract_and_memory_as_inject_steps_json() {
     ]);
     memory_cmd
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_FORMAT", "inject-steps");
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut memory_cmd);
     assert_succeeds(&output);
     let stdout = stdout_of(&output);
@@ -404,7 +411,7 @@ fn scenario_4_session_start_injects_contract_and_memory_as_inject_steps_json() {
         .current_dir(&working_directory)
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
         .env("TIGHTSHIP_ENV_FILE", sandbox.path("env-file"))
-        .env("TIGHTSHIP_HOOK_FORMAT", "inject-steps");
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut start_cmd);
     assert_succeeds(&output);
     let stdout = stdout_of(&output);
@@ -434,7 +441,7 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     let mut contract_cmd = sandbox.tightship(&["hook", "contract", part_1.to_str().unwrap()]);
     contract_cmd
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_FORMAT", "inject-steps");
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut contract_cmd);
     assert_succeeds(&output);
     let json: serde_json::Value = serde_json::from_str(&stdout_of(&output)).expect("valid JSON");
@@ -452,7 +459,7 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     ]);
     memory_cmd
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_FORMAT", "inject-steps");
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut memory_cmd);
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
@@ -461,7 +468,7 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     start_cmd
         .current_dir(&working_directory)
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_FORMAT", "inject-steps");
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut start_cmd);
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
@@ -469,7 +476,7 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     let mut prompt_cmd = sandbox.tightship(&["hook", "prompt"]);
     prompt_cmd
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_FORMAT", "inject-steps");
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = with_stdin(&mut prompt_cmd, r#"{"conversationId":"conv-1"}"#);
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
@@ -478,7 +485,7 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     let mut contract_cmd1 = sandbox.tightship(&["hook", "contract", part_1.to_str().unwrap()]);
     contract_cmd1
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_FORMAT", "inject-steps");
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut contract_cmd1);
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
@@ -492,7 +499,7 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     ]);
     contract_cmd2
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_FORMAT", "inject-steps");
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut contract_cmd2);
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
@@ -530,7 +537,7 @@ fn scenario_7_prompt_checkpoint_fires_on_every_10th_pre_invocation_using_convers
         let mut prompt_cmd = sandbox.tightship(&["hook", "prompt"]);
         prompt_cmd
             .env("TIGHTSHIP_DATA", sandbox.path("data"))
-            .env("TIGHTSHIP_HOOK_FORMAT", "inject-steps");
+            .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
         let output = with_stdin(&mut prompt_cmd, r#"{"conversationId":"conv-42"}"#);
         assert_succeeds(&output);
         let stdout = stdout_of(&output);

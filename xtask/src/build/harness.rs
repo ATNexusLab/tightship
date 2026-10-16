@@ -14,6 +14,7 @@ pub struct Harness {
     #[serde(skip)]
     pub name: String,
     pub plugin: Plugin,
+    pub dist: Dist,
     pub references: References,
     pub access: Access,
     pub contract: Option<ContractTable>,
@@ -31,6 +32,15 @@ pub struct Plugin {
     pub author: String,
     pub repository: String,
     pub license: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Dist {
+    pub manifest: String,
+    pub catalog: Option<String>,
+    #[serde(rename = "try-it")]
+    pub try_it: String,
 }
 
 #[derive(Deserialize)]

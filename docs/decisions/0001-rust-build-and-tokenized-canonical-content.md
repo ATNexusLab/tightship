@@ -16,6 +16,9 @@
   `install.sh` and `install.ps1` at the repository root bootstrap installation across harnesses,
   `bin/tightship.cmd` launches the binary when a harness on Windows runs hooks through `cmd /c`, and a
   harness with no manifest `userConfig` stores options in `${PLUGIN_DATA}/options.toml`
+- Amended: 2026-10-16, by the [epic #59 spec](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
+  a harness's plugin files, its launcher variables, and its hook output shape live in its folder, and the
+  build and the package read them from there
 
 ## Context
 
@@ -84,6 +87,11 @@ appear. Each harness folder holds one `harness.toml` with:
 - The text of every capability: the harness's own feature, or the plain instruction that replaces it where the
   harness has none.
 - The harness's denylist: its names, paths, and tool names that the canonical content must not hold.
+- Its built plugin: the manifest's path, the catalog's when it has one, and the line that tries it.
+
+Next to it, `plugin/` holds files copied as they are into the harness's plugin, such as a launcher or the JSON
+shape a hook's output takes, and `launcher-env.sh` the variables the `sh` launcher sets for the harness. The
+code holds only what data cannot say: one renderer per harness, `xtask/src/build/<harness>.rs`.
 
 **Build.** `cargo xtask build` reads `content/`, resolves every token for each harness, and writes that harness's
 plugin to `dist/<harness>/`, which git ignores. A token that names a missing piece or an undefined capability

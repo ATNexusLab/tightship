@@ -37,7 +37,7 @@ pub fn run() -> Result<(), Failure> {
     let count = previous + 1;
     fs::write(&counter, count.to_string()).map_err(unwritable)?;
     if count.is_multiple_of(10) {
-        super::emit(super::CHECKPOINT);
+        super::emit(super::CHECKPOINT)?;
     }
     Ok(())
 }

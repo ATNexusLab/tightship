@@ -15,15 +15,16 @@ pub fn remove_if_present(folder: &Path) -> io::Result<()> {
     }
 }
 
-pub fn write_files(files: &[(PathBuf, Vec<u8>)], executables: &[PathBuf]) -> io::Result<()> {
+pub fn write_files(staging: &Path, files: &[(PathBuf, Vec<u8>)]) -> io::Result<()> {
+    let bin = staging.join("bin");
     for (file, bytes) in files {
         if let Some(folder) = file.parent() {
             fs::create_dir_all(folder).map_err(naming(folder))?;
         }
         fs::write(file, bytes).map_err(naming(file))?;
-    }
-    for file in executables {
-        make_executable(file)?;
+        if file.starts_with(&bin) {
+            make_executable(file)?;
+        }
     }
     Ok(())
 }

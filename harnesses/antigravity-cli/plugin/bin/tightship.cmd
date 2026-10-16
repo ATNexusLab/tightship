@@ -28,8 +28,8 @@ if not defined TIGHTSHIP_SETTINGS (
   )
 )
 
-if not defined TIGHTSHIP_HOOK_FORMAT (
-  set "TIGHTSHIP_HOOK_FORMAT=inject-steps"
+if not defined TIGHTSHIP_HOOK_OUTPUT (
+  set "TIGHTSHIP_HOOK_OUTPUT=%DEFAULT_ROOT%\hook-output.json"
 )
 
 set "BINARY=%BIN_DIR%windows-x64\tightship.exe"

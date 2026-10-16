@@ -20,16 +20,13 @@ pub fn render(
 ) -> io::Result<(PathBuf, usize)> {
     let staging = staging::staging_dir(root, &harness.name);
     staging::remove_if_present(&staging)?;
-    let mut written = vec![
-        (
-            staging.join(".claude-plugin/plugin.json"),
-            manifest(root, harness, content.options.as_ref())?.into_bytes(),
-        ),
-        (
-            staging.join(".claude-plugin/marketplace.json"),
-            catalog(harness)?.into_bytes(),
-        ),
-    ];
+    let mut written = vec![(
+        staging.join(&harness.dist.manifest),
+        manifest(root, harness, content.options.as_ref())?.into_bytes(),
+    )];
+    if let Some(file) = &harness.dist.catalog {
+        written.push((staging.join(file), catalog(harness)?.into_bytes()));
+    }
     for piece in &content.pieces {
         let file = match piece.kind {
             Kind::Agent => staging.join("agents").join(format!("{}.md", piece.name)),
@@ -47,16 +44,9 @@ pub fn render(
     if let Some(hooks) = hooks(parts, content.options.as_ref())? {
         written.push((staging.join("hooks/hooks.json"), hooks.into_bytes()));
     }
-    let launcher = staging.join("bin/tightship");
-    written.push((
-        launcher.clone(),
-        include_bytes!("../../../tightship/launcher.sh").to_vec(),
-    ));
-    let mut executables = vec![launcher];
-    let binary_copies = render::binary_files(&staging, binaries)?;
-    executables.extend(binary_copies.iter().map(|(copy, _)| copy.clone()));
-    written.extend(binary_copies);
-    staging::write_files(&written, &executables)?;
+    written.extend(render::harness_files(root, &staging, harness)?);
+    written.extend(render::binary_files(&staging, binaries)?);
+    staging::write_files(&staging, &written)?;
     Ok((staging, written.len()))
 }
 

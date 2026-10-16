@@ -17,9 +17,9 @@ Its `SessionStart` hooks in `hooks.json` run `tightship hook contract` for `cont
 `contract/memory.md`, `tightship hook start`, and `tightship hook status-line`. Its `PreInvocation` hook runs
 `tightship hook prompt`. Each hook calls `"${PLUGIN_ROOT}/bin/tightship"` directly: on macOS and Linux that
 runs the POSIX `sh` launcher `bin/tightship`, and on Windows `cmd /c` resolves `bin/tightship.cmd`. Both
-launchers set `TIGHTSHIP_ROOT`, `TIGHTSHIP_DATA`, `TIGHTSHIP_SETTINGS`, and
-`TIGHTSHIP_HOOK_FORMAT=inject-steps` before running the platform binary, so non-empty hook output is wrapped
-in `{"injectSteps":[{"systemMessage":{"systemMessage":"..."}}]}`.
+launchers set `TIGHTSHIP_ROOT`, `TIGHTSHIP_DATA`, `TIGHTSHIP_SETTINGS`, and `TIGHTSHIP_HOOK_OUTPUT` to the
+plugin's `hook-output.json`, `{"injectSteps":[{"systemMessage":{"systemMessage":"{text}"}}]}`, before running
+the platform binary, so non-empty hook output reaches Antigravity CLI as a system message.
 
 **It never** gets edited. Every change goes to the canonical content or the harness definition, then through
 the build.

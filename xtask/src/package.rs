@@ -8,37 +8,11 @@ use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, DateTime, System, ZipWriter};
 
 use crate::build::binary::PLATFORMS;
+use crate::build::harness;
 use crate::diagnostics::{Diagnostic, naming};
 use crate::{Failure, stop_on_errors};
 
 const CATALOG: &str = "marketplace.json";
-const INSTALLERS: [(&str, [&str; 2]); 2] = [
-    ("install.sh", ["RELEASE_TAG=", "ANTIGRAVITY_CLI_SHA256="]),
-    (
-        "install.ps1",
-        ["$ReleaseTag = ", "$AntigravityCliSha256 = "],
-    ),
-];
-
-struct Archive {
-    harness: &'static str,
-    file: &'static str,
-    manifest: &'static str,
-}
-
-const CLAUDE_CODE: Archive = Archive {
-    harness: "claude-code",
-    file: "tightship-claude-code.zip",
-    manifest: ".claude-plugin/plugin.json",
-};
-
-const ANTIGRAVITY_CLI: Archive = Archive {
-    harness: "antigravity-cli",
-    file: "tightship-antigravity-cli.zip",
-    manifest: "plugin.json",
-};
-
-const ARCHIVES: [Archive; 2] = [CLAUDE_CODE, ANTIGRAVITY_CLI];
 
 #[derive(Deserialize)]
 struct Manifest {
@@ -51,15 +25,10 @@ pub fn run(root: &Path, tag: &str) -> Result<String, Failure> {
     let staging = dist.join(".package.tmp");
     let packed = pack(root, &staging, tag);
     let published = packed.and_then(|summary| {
-        let installers = INSTALLERS.iter().map(|(installer, _)| *installer);
-        let files = ARCHIVES
-            .iter()
-            .map(|archive| archive.file)
-            .chain([CATALOG])
-            .chain(installers);
-        for file in files {
-            let target = dist.join(file);
-            fs::rename(staging.join(file), &target).map_err(naming(&target))?;
+        for entry in fs::read_dir(&staging).map_err(naming(&staging))? {
+            let file = entry?.file_name();
+            let target = dist.join(&file);
+            fs::rename(staging.join(&file), &target).map_err(naming(&target))?;
         }
         Ok(summary)
     });
@@ -75,16 +44,18 @@ pub fn run(root: &Path, tag: &str) -> Result<String, Failure> {
 fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
     let dist = root.join("dist");
     let mut diagnostics = Vec::new();
+    let harnesses = harness::read_all(root, &mut diagnostics)?;
     let mut manifests = Vec::new();
 
-    for archive in &ARCHIVES {
-        let harness = archive.harness;
-        println!("> Reading dist/{harness}/");
-        let plugin = dist.join(harness);
-        let manifest_path = plugin.join(archive.manifest);
+    for harness in &harnesses {
+        let name = &harness.name;
+        println!("> Reading dist/{name}/");
+        let plugin = dist.join(name);
+        let manifest_path = plugin.join(&harness.dist.manifest);
         if !manifest_path.is_file() {
             diagnostics.push(Diagnostic::general(format!(
-                "dist/{harness}/plugin.json is missing; run cargo xtask build --binaries <folder> first"
+                "dist/{name}/{} is missing; run cargo xtask build --binaries <folder> first",
+                harness.dist.manifest
             )));
             continue;
         }
@@ -95,7 +66,7 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
             let binary_path = plugin.join("bin").join(platform).join(binary);
             if !binary_path.is_file() {
                 diagnostics.push(Diagnostic::general(format!(
-                    "dist/{harness}/bin/{platform}/{binary} is missing; run cargo xtask build --binaries <folder> first"
+                    "dist/{name}/bin/{platform}/{binary} is missing; run cargo xtask build --binaries <folder> first"
                 )));
             }
         }
@@ -119,19 +90,16 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
     fs::create_dir_all(staging).map_err(naming(staging))?;
 
     let mut parts = Vec::new();
-    let mut shas = Vec::new();
-    for (archive, manifest) in ARCHIVES.iter().zip(&manifests) {
-        let harness = archive.harness;
-        println!("> Packing {}", archive.file);
-        let plugin = dist.join(harness);
+    let mut values = vec![("release-tag".to_owned(), tag.to_owned(), true)];
+    for (harness, manifest) in harnesses.iter().zip(&manifests) {
+        let archive = format!("{}-{}.zip", harness.plugin.name, harness.name);
+        println!("> Packing {archive}");
+        let plugin = dist.join(&harness.name);
         let mut files = Vec::new();
         list_files(&plugin, "", &mut files)?;
-        if harness == CLAUDE_CODE.harness {
-            files.retain(|file| file != ".claude-plugin/marketplace.json");
-        }
+        files.retain(|file| Some(file) != harness.dist.catalog.as_ref());
         files.sort();
 
-        let archive_path = staging.join(archive.file);
         let mut writer = ZipWriter::new(io::Cursor::new(Vec::new()));
         for file in &files {
             let mode = if file.starts_with("bin/") {
@@ -150,22 +118,27 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
             writer.write_all(&bytes)?;
         }
         let bytes = writer.finish().map_err(io::Error::other)?.into_inner();
+        let archive_path = staging.join(&archive);
         fs::write(&archive_path, &bytes).map_err(naming(&archive_path))?;
         let sha256: String = Sha256::digest(&bytes)
             .iter()
             .map(|byte| format!("{byte:02x}"))
             .collect();
 
-        if harness == CLAUDE_CODE.harness {
-            write_catalog(&dist, staging, &manifest.repository, &sha256, tag)?;
+        if let Some(catalog) = &harness.dist.catalog {
+            let url = format!("{}/releases/download/{tag}/{archive}", manifest.repository);
+            write_catalog(&plugin.join(catalog), staging, &url, &sha256)?;
         }
-        if harness == ANTIGRAVITY_CLI.harness {
-            write_installers(root, staging, &sha256, tag)?;
-        }
-        parts.push(format!("dist/{} ({} files)", archive.file, files.len()));
-        shas.push(format!("sha256 ({harness}): {sha256}"));
+        parts.push(format!("dist/{archive} ({} files)", files.len()));
+        values.push((format!("{}-sha256", harness.name), sha256, false));
     }
+    write_installers(root, staging, &values, tag)?;
 
+    let shas: Vec<String> = harnesses
+        .iter()
+        .zip(&values[1..])
+        .map(|(harness, (_, sha256, _))| format!("sha256 ({}): {sha256}", harness.name))
+        .collect();
     Ok(format!(
         "Packed {}, dist/{CATALOG}, and the installers for {tag}.\n{}",
         parts.join(", "),
@@ -174,18 +147,13 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
 }
 
 fn write_catalog(
-    dist: &Path,
+    local_path: &Path,
     staging: &Path,
-    repository: &str,
+    url: &str,
     sha256: &str,
-    tag: &str,
 ) -> Result<(), Failure> {
     println!("> Writing {CATALOG}");
-    let local_path = dist
-        .join(CLAUDE_CODE.harness)
-        .join(".claude-plugin")
-        .join(CATALOG);
-    let local_text = fs::read_to_string(&local_path).map_err(naming(&local_path))?;
+    let local_text = fs::read_to_string(local_path).map_err(naming(local_path))?;
     let mut catalog: serde_json::Value = serde_json::from_str(&local_text)
         .map_err(|error| io::Error::other(format!("{}: {error}", local_path.display())))?;
     let entry = catalog
@@ -193,28 +161,48 @@ fn write_catalog(
         .ok_or_else(|| io::Error::other(format!("{} has no plugin", local_path.display())))?;
     *entry = serde_json::json!({
         "source": "archive",
-        "url": format!("{repository}/releases/download/{tag}/{}", CLAUDE_CODE.file),
+        "url": url,
         "sha256": sha256,
     });
+    // shortcut: one release catalog named marketplace.json, name it per harness when a second harness declares [dist] catalog
     let catalog_path = staging.join(CATALOG);
     let catalog_text = serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n";
     fs::write(&catalog_path, catalog_text).map_err(naming(&catalog_path))?;
     Ok(())
 }
 
-fn write_installers(root: &Path, staging: &Path, sha256: &str, tag: &str) -> Result<(), Failure> {
-    for (installer, [tag_line, sha256_line]) in INSTALLERS {
+fn write_installers(
+    root: &Path,
+    staging: &Path,
+    values: &[(String, String, bool)],
+    tag: &str,
+) -> Result<(), Failure> {
+    for installer in ["install.sh", "install.ps1"] {
         println!("> Writing {installer} for {tag}");
         let source = root.join(installer);
         let text = fs::read_to_string(&source).map_err(naming(&source))?;
         let mut lines: Vec<String> = text.lines().map(str::to_owned).collect();
-        for (prefix, value) in [(tag_line, tag), (sha256_line, sha256)] {
+        for (name, value, required) in values {
+            let prefix = if installer == "install.sh" {
+                format!("{}=", name.replace('-', "_").to_uppercase())
+            } else {
+                let words = name.split('-').map(|word| {
+                    let (first, rest) = word.split_at(1);
+                    first.to_uppercase() + rest
+                });
+                format!("${} = ", words.collect::<String>())
+            };
             let empty = format!("{prefix}\"\"");
             let mut matching = lines.iter_mut().filter(|line| **line == empty);
-            let (Some(line), None) = (matching.next(), matching.next()) else {
-                return Err(io::Error::other(format!("{installer} needs one line {empty}")).into());
-            };
-            *line = format!("{prefix}\"{value}\"");
+            match (matching.next(), matching.next(), required) {
+                (Some(line), None, _) => *line = format!("{prefix}\"{value}\""),
+                (None, None, false) => {}
+                _ => {
+                    return Err(
+                        io::Error::other(format!("{installer} needs one line {empty}")).into(),
+                    );
+                }
+            }
         }
         let target = staging.join(installer);
         fs::write(&target, lines.join("\n") + "\n").map_err(naming(&target))?;

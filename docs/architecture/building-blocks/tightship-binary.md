@@ -18,8 +18,8 @@ The one program the plugin ships, with a subcommand per function. Epic #5 builds
 The binary reads `TIGHTSHIP_*` variables, which the hook lines or the launcher of each harness set from that
 harness's own, and falls back to `${TIGHTSHIP_DATA}/options.toml` when an option variable is unset (M3, #59),
 so it names no harness, plus `COLUMNS`, the terminal's width, for the status line (M1, #7). When
-`TIGHTSHIP_HOOK_FORMAT=inject-steps`, non-empty hook output is wrapped in
-`{"injectSteps":[{"systemMessage":{"systemMessage":"..."}}]}` (M3, #59).
+`TIGHTSHIP_HOOK_OUTPUT` names a JSON file, non-empty hook output fills that file's `"{text}"` slot, and the
+binary prints the filled JSON; the harness folder ships that file (M3, #59).
 
 `bin/tightship` is a `sh` launcher (and `bin/tightship.cmd` is a Windows batch launcher for harnesses that run
 hooks under `cmd /c`, M3, #59) that runs `bin/<platform>/tightship` for the machine, among `macos`,

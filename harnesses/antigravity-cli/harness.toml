@@ -5,6 +5,10 @@ author = "ATNexusLab"
 repository = "https://github.com/ATNexusLab/tightship"
 license = "MIT"
 
+[dist]
+manifest = "plugin.json"
+try-it = "agy plugin validate dist/antigravity-cli --strict"
+
 [references]
 skill = "{name}"
 command = "/{name}"
