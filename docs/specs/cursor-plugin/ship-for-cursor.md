@@ -112,8 +112,8 @@ Same keys as [epic #1](../canonical-source-and-build/build-the-plugin.md), with 
 | `[access]` | `read-only` | `Read, Grep, Glob, Shell` (Cursor tool names; verifier uses Shell, not Bash) |
 | `[contract]` | `limit` | `10000` |
 | `[neutrality]` | `names` | `["Cursor", "Composer"]` |
-| `[neutrality]` | `paths` | `[".cursor/", "~/.cursor", "AGENTS.md", "CURSOR_PLUGIN_ROOT", "CURSOR_PROJECT_DIR"]` |
-| `[neutrality]` | `tools` | `SwitchMode`, `Task`, `TodoWrite`, `WebFetch`, `WebSearch`, `AskQuestion`, `CallMcpTool`, `GetDynamicTools` |
+| `[neutrality]` | `paths` | `[".cursor/", "~/.cursor", "CURSOR_PLUGIN_ROOT", "CURSOR_PROJECT_DIR"]` |
+| `[neutrality]` | `tools` | `SwitchMode`, `TodoWrite`, `WebFetch`, `WebSearch`, `AskQuestion`, `CallMcpTool`, `GetDynamicTools`, `$ARGUMENTS` |
 
 `[[companions]]` lists the same three companions as Claude Code for the install guide and for parity in
 `harness.toml`; the build does not write a `dependencies` key in Cursor's `plugin.json`.
@@ -194,6 +194,9 @@ N/A — local clone only.
 ### 3. Neutrality
 
 - As epic #1, against `harnesses/cursor/harness.toml` only for Cursor terms.
+- Shared canonical filenames and headings (`AGENTS.md`, "Task Breakdown") are not listed as Cursor-only terms
+  because they appear in harness-neutral `content/`; Cursor-specific surface names stay in `[neutrality].names`,
+  paths, and tools.
 
 ### 4. Companions before workflow (FR-INS-02.2)
 
