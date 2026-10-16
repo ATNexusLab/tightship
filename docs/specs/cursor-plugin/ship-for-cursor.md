@@ -384,11 +384,11 @@ And the exit code is 1
 | --- | --- | --- | --- | --- | --- |
 | 1 | Probe Cursor hooks on macOS and Linux | Maintainer probes only; update `.claude/skills/cursor-plugin/SKILL.md` | Documented in the skill; limit stays 10000 unless a probe forces a change request | — | #65 |
 | 2 | Write companion and marketplace install steps | `docs/install/cursor/companions.md`, rule 4 sentence in `install.md` | Scenario 2 | — | #66 |
-| 3 | Add harnesses/cursor/harness.toml and capability entries | `harnesses/cursor/`, neutrality check | Scenario 1 | — | #67 |
-| 4 | Render dist/cursor pieces and manifest | `xtask/src/build/cursor.rs`, `build.rs`, tests in `xtask/tests/build.rs` | Scenario 1 | 3 | #68 |
-| 5 | Pack contract and emit Cursor hooks | `xtask` contract + cursor hooks, `tightship hook contract-part`, tests | Scenarios 3, 4, 8 | 4 | #69 |
-| 6 | Options file and tightship options subcommands | `tightship/src/options/`, hook guards, `variables` in manifest | Scenarios 4, 8, 9, 10 | 4 | #70 |
-| 7 | Wire memory and handoff hooks for Cursor | `tightship/hook/*`, cursor `hooks.json`, tests | Scenario 5 | 5, 6 | #71 |
+| 3 | Add harnesses/cursor/harness.toml and capability entries | `harnesses/cursor/harness.toml` (`[plugin]`, `[dist]`, `[install]`, `[paths]`, `[capabilities]`, `[neutrality]` per spec table), `launcher-env.*`; neutrality check | Scenario 1 | — | #67 |
+| 4 | Render dist/cursor pieces and manifest | `xtask/src/build/cursor.rs`, multi-harness `build.rs`, `bin/` launchers, `agents/adversarial-verifier.md` with `readonly: true`, tests in `xtask/tests/build.rs` | Scenarios 1 and 7 | 3 | #68 |
+| 5 | Pack contract and emit Cursor hooks | `xtask` contract pack for `cursor`, `dist/cursor/hooks/hooks.json`, `tightship hook contract-part` JSON output, `xtask/tests/cursor_contract.rs` | Scenarios 3, 4, 8 | 4 | #69 |
+| 6 | Options file and tightship options subcommands | `tightship/src/options.rs` (`$HOME/.cursor/tightship/options.json`), `tightship options` in `main.rs`, hook option guards in `xtask` (PowerShell reads JSON); manifest `variables` already in task 4 — not Antigravity `options.toml` | Scenarios 4, 8, 9, 10 | 4 | #70 |
+| 7 | Wire memory and handoff hooks for Cursor | Cursor-specific hook wiring only (`tightship/src/hook/*`, `launcher-env` → `TIGHTSHIP_*`); reuse M1 and #63 paths — no second vault implementation | Scenario 5 | 5, 6 | #71 |
 | 8 | Install guide and try-it line in AGENTS.md | `docs/install/cursor/`, README | Scenario 2, 6 | 2, 4 | #72 |
 | 9 | CLI status line probe and enable/render path | `tightship/status-line`, docs, task 1 probe notes | Rule 9 | 6 | #73 |
 | 10 | Package tightship-cursor.zip and catalog | `xtask/package.rs`, `.github/workflows/release.yml`, root catalog | Release contract in rule 12 | 4, 7, 8, 9 | #74 |
