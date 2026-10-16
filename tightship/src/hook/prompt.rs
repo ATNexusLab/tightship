@@ -7,7 +7,8 @@ use std::time::{Duration, SystemTime};
 use crate::failure::Failure;
 
 pub fn run() -> Result<(), Failure> {
-    if !super::vault_is_set() {
+    let options = crate::options::load()?;
+    if !options.memory || options.vault_folder.is_none() {
         return Ok(());
     }
     let mut input = String::new();
@@ -36,7 +37,7 @@ pub fn run() -> Result<(), Failure> {
     let count = previous + 1;
     fs::write(&counter, count.to_string()).map_err(unwritable)?;
     if count.is_multiple_of(10) {
-        println!("{}", super::CHECKPOINT);
+        super::emit(super::CHECKPOINT)?;
     }
     Ok(())
 }
@@ -45,7 +46,11 @@ fn session_file_name(input: &str) -> String {
     let parsed: Option<serde_json::Value> = serde_json::from_str(input).ok();
     let session_id = parsed
         .as_ref()
-        .and_then(|value| value.get("session_id"))
+        .and_then(|value| {
+            value
+                .get("session_id")
+                .or_else(|| value.get("conversationId"))
+        })
         .and_then(serde_json::Value::as_str)
         .filter(|session_id| !session_id.is_empty())
         .unwrap_or("unknown");

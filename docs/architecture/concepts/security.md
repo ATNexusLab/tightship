@@ -24,9 +24,10 @@ From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.
 - **Disk:** the adopter's vault, and the `statusLine` key of the harness's user settings, after the adopter
   consents ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02), [status line](status-line.md),
   M1, #7). In the harness's own places, the plugin also writes, in the plugin's data folder, the checkpoint's
-  prompt counter ([memory](memory.md), M1, #5) and `status-line.json` (M1, #7), and one `export` line per
-  session in the session's environment file (M1, #5). The options' state is the harness's own: it keeps it in
-  its user settings ([options](options.md), M1, #3). The user settings can hold secrets in their `env`, so
+  prompt counter ([memory](memory.md), M1, #5), `status-line.json` (M1, #7), and `options.toml` where the
+  harness has no `userConfig` (M3, #59), plus one `export` line per session in the session's environment file
+  (M1, #5). The options' state is kept in the harness's user settings or in `options.toml` inside the plugin's
+  data folder ([options](options.md), M1, #3; M3, #59). The user settings can hold secrets in their `env`, so
   a rewrite keeps the file's permissions, and the temporary file beside it is readable only by the adopter
   (M1, #7).
 

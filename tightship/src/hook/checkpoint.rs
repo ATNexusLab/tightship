@@ -1,8 +1,12 @@
 use crate::failure::Failure;
 
 pub fn run() -> Result<(), Failure> {
-    if super::vault_is_set() {
-        println!("{}", super::CHECKPOINT);
+    let options = crate::options::load()?;
+    if !options.memory {
+        return Ok(());
+    }
+    if options.vault_folder.is_some() {
+        super::emit(super::CHECKPOINT)?;
     }
     Ok(())
 }

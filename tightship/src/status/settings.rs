@@ -64,10 +64,21 @@ pub fn is_ours(status_line: &Value) -> bool {
     status_line
         .get("command")
         .and_then(Value::as_str)
-        .is_some_and(|command| command.ends_with("/bin/tightship\" status-line render"))
+        .is_some_and(|command| {
+            command.ends_with("/bin/tightship\" status-line render")
+                || command.ends_with("\\bin\\tightship.cmd\" status-line render")
+                || command.ends_with("/bin/tightship.cmd\" status-line render")
+        })
 }
 
 pub fn command_for(root: &Path) -> String {
+    #[cfg(windows)]
+    {
+        let cmd = root.join("bin").join("tightship.cmd");
+        if cmd.exists() {
+            return format!("\"{}\" status-line render", cmd.display());
+        }
+    }
     format!("sh \"{}/bin/tightship\" status-line render", root.display())
 }
 

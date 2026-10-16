@@ -18,16 +18,17 @@
   | Harness | Version observed | Milestone |
   | --- | --- | --- |
   | Claude Code | 2.1.299 | M1 |
-  | Cursor | editor 3.25.6; command-line agent 2026.10.14 | M2 |
-  | Antigravity CLI | not installed | M3 |
+  | Cursor | command-line agent 2026.10.14; editor not installed | M2 |
+  | Antigravity CLI | 1.4.0 (2026-10-16) | M3 |
   | Codex | 0.162.1 | M4 |
 
   The minimum supported version is 2.1.295 for Claude Code
-  ([NFR-FLEX-01](non-functional/flexibility.md#nfr-flex-01)), 3.25.6 for Cursor's editor and 2026.10.14 for
-  its command-line agent ([NFR-FLEX-02](non-functional/flexibility.md#nfr-flex-02)); for Antigravity CLI and
-  Codex it is [OQ-04](open-questions.md#oq-04).
-- **Adopter prerequisites:** nothing on macOS and Linux; Git for Windows on Windows, so that the plugin's
-  hooks run under Git Bash. The vault is a git repository, so the memory option needs git on every system
+  ([NFR-FLEX-01](non-functional/flexibility.md#nfr-flex-01)) and 1.4.0 for Antigravity CLI
+  ([NFR-FLEX-03](non-functional/flexibility.md#nfr-flex-03)); for Cursor and Codex it is
+  [OQ-04](open-questions.md#oq-04).
+- **Adopter prerequisites:** nothing on macOS and Linux; Git for Windows on Windows for Claude Code, so
+  that its hooks run under Git Bash (Antigravity CLI on Windows runs `bin/tightship.cmd` under `cmd /c`).
+  The vault is a git repository, so the memory option needs git on every system
   ([ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)).
 
 ## Constraints

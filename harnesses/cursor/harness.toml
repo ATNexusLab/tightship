@@ -5,6 +5,21 @@ author = "ATNexusLab"
 repository = "https://github.com/ATNexusLab/tightship"
 license = "MIT"
 
+[dist]
+manifest = ".cursor-plugin/plugin.json"
+catalog = ".cursor-plugin/marketplace.json"
+try-it = "agent --plugin-dir dist/cursor"
+
+[install]
+label = "Cursor"
+command = "agent"
+min-version = "2026.10.14"
+aliases = ["cursor"]
+
+[paths]
+data = ".cursor/tightship"
+config = ".cursor"
+
 [references]
 skill = "{name}"
 command = "/{name}"

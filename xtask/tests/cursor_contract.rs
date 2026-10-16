@@ -3,7 +3,7 @@ mod common;
 use std::fs;
 use std::process::Command;
 
-use common::{Repository, assert_succeeds};
+use common::{Repository, assert_succeeds, harness_files};
 
 fn contract(front_matter: &str, body: &str) -> (&'static str, String) {
     let text = if front_matter.is_empty() {
@@ -31,17 +31,19 @@ fn read(repository: &Repository, path: &str) -> String {
 
 #[test]
 fn cursor_contract_hooks_call_contract_part_on_session_start_and_every_prompt() {
-    let repository = Repository::with(&[
+    let harness_files = harness_files("cursor");
+    let mut files: Vec<(&str, String)> = harness_files
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.clone()))
+        .collect();
+    files.extend([
         contract(
             "[gated]\nMemory = \"memory\"\n",
             "# Working Contract\n\nThe preamble.\n\n## A\n\nRule A.\n\n## Memory\n\nUse the notes.\n",
         ),
         options(&["contract", "memory"]),
-        (
-            "harnesses/cursor/harness.toml",
-            include_str!("../../harnesses/cursor/harness.toml").to_owned(),
-        ),
     ]);
+    let repository = Repository::with(&files);
     assert_succeeds(&repository.run("build"));
     let hooks: serde_json::Value =
         serde_json::from_str(&read(&repository, "dist/cursor/hooks/hooks.json"))

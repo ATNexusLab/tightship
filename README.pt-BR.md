@@ -6,6 +6,7 @@
 [![Rust](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/rust.yml?style=flat-square&label=rust)](https://github.com/ATNexusLab/tightship/actions/workflows/rust.yml)
 [![Scan](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/scan.yml?style=flat-square&label=scan)](https://github.com/ATNexusLab/tightship/actions/workflows/scan.yml)
 [![Claude Code 2.1.295+](https://img.shields.io/badge/Claude%20Code-2.1.295%2B-FF5A1F?style=flat-square)](docs/install/claude-code/README.pt-BR.md)
+[![Antigravity CLI 1.4.0+](https://img.shields.io/badge/Antigravity%20CLI-1.4.0%2B-4285F4?style=flat-square)](docs/install/antigravity-cli/README.pt-BR.md)
 [![Release](https://img.shields.io/github/v/release/ATNexusLab/tightship?include_prereleases&style=flat-square&label=release&color=121212)](https://github.com/ATNexusLab/tightship/releases)
 
 **Um workflow para agentes de código com IA, do requisito ao release.**
@@ -53,27 +54,30 @@ zero avisos e de você ter lido a mudança.
 
 ## Início rápido
 
-Você precisa do Claude Code 2.1.295 ou posterior. No Windows, também do Git for Windows: os hooks rodam no
-`sh` dele.
+Execute o instalador para o Claude Code (2.1.295+), Antigravity CLI (1.4.0+) ou ambos:
 
 ```sh
-claude plugin marketplace add DietrichGebert/ponytail
-claude plugin marketplace add ayghri/i-have-adhd
-claude plugin marketplace add blader/humanizer
-claude plugin marketplace add ATNexusLab/tightship
-claude plugin install tightship@tightship
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | sh
 ```
 
-A próxima sessão pergunta quais opções ligar. O [guia de instalação](docs/install/claude-code/README.pt-BR.md)
-cobre opções, atualizações, desinstalação e a migração da instalação anterior ao plugin.
+No Windows usando o PowerShell:
+
+```powershell
+irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
+```
+
+O instalador detecta seus CLIs e pergunta quais opções ligar. Os guias de instalação
+([Claude Code](docs/install/claude-code/README.pt-BR.md),
+[Antigravity CLI](docs/install/antigravity-cli/README.pt-BR.md)) cobrem opções, atualizações, desinstalação
+e a migração da instalação anterior.
 
 ## Harnesses
 
 | Harness | Status | Marco |
 | --- | --- | --- |
 | Claude Code | Disponível | M1 |
+| Antigravity CLI | Disponível | M3 |
 | Cursor | Planejado | M2 |
-| Antigravity CLI | Planejado | M3 |
 | Codex | Planejado | M4 |
 
 Cada peça é escrita uma vez em `content/`, que não cita nenhum harness. Um build em Rust a transforma no

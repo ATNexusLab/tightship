@@ -12,6 +12,17 @@
   vault's git remote when it syncs the vault ([FR-MEM-11](../requirements/functional/memory.md#fr-mem-11))
 - Amended: 2026-10-15, by the [epic #6 spec](../specs/handoff/hand-off-the-session.md): a piece reads an
   option through the token kind `option`, which each harness renders as its own value of the option
+- Amended: 2026-10-16, by the [epic #59 spec](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
+  `install.sh` and `install.ps1` at the repository root bootstrap installation across harnesses,
+  `bin/tightship.cmd` launches the binary when a harness on Windows runs hooks through `cmd /c`, and a
+  harness with no manifest `userConfig` stores options in `${PLUGIN_DATA}/options.toml`
+- Amended: 2026-10-16, by the [epic #59 spec](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
+  the build assembles the two installers from a neutral core in `installer/` and one fragment per harness,
+  and each launcher from a neutral part in `tightship/` and the harness's variables, with the harness's
+  folders written once in its `harness.toml`
+- Amended: 2026-10-16, by the [epic #59 spec](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
+  a harness's plugin files, its launcher variables, and its hook output shape live in its folder, and the
+  build and the package read them from there
 
 ## Context
 
@@ -55,7 +66,10 @@ repository is one Cargo workspace:
   line). It starts with the first epic that needs a hook to run logic.
 
 A hook command line that only prints a file the plugin ships, such as each part of the contract, is not a
-program: it is one `sh` line, with the same prerequisite as the `sh` launcher.
+program: it is one `sh` line, with the same prerequisite as the `sh` launcher. Two bootstrap installer scripts
+(`install.sh` in POSIX `sh` and `install.ps1` in PowerShell), which `cargo xtask build` assembles into
+`dist/`, run before any binary is downloaded so an adopter can install the companions, the plugin, and the
+options in one command (M3, #59).
 
 **Canonical content.** One Markdown file per piece under `content/`: `skills/<name>/SKILL.md` with its
 supporting files, `commands/<name>.md`, `agents/<name>.md`. Front matter is TOML between `+++` lines, with
@@ -78,6 +92,14 @@ appear. Each harness folder holds one `harness.toml` with:
 - The text of every capability: the harness's own feature, or the plain instruction that replaces it where the
   harness has none.
 - The harness's denylist: its names, paths, and tool names that the canonical content must not hold.
+- Its built plugin: the manifest's path, the catalog's when it has one, and the line that tries it.
+- How the installers name and check it, in `[install]`, and its folders under the home folder, in `[paths]`.
+
+Next to it, `plugin/` holds files copied as they are into the harness's plugin, such as the JSON shape a
+hook's output takes. `launcher-env.sh` and `launcher-env.cmd` hold the variables each launcher sets for the
+harness, and `install.sh` and `install.ps1` the steps that install it. A `{{path:<name>}}` or
+`{{install:<name>}}` token in those four files is rendered in each shell's form. The code holds only what data
+cannot say: one renderer per harness, `xtask/src/build/<harness>.rs`.
 
 **Build.** `cargo xtask build` reads `content/`, resolves every token for each harness, and writes that harness's
 plugin to `dist/<harness>/`, which git ignores. A token that names a missing piece or an undefined capability
@@ -86,11 +108,13 @@ fails the build: that check is how references resolve. The generated plugin is n
 **Distribution.** A release attaches one archive per harness to a GitHub Release, and the catalog points at it.
 The archive holds the `tightship` binary for every target: macOS universal (arm64 and x86_64), Linux x64 and
 arm64 linked statically with musl, and Windows x64. `bin/tightship` is a `sh` launcher that picks the binary
-for the machine it runs on. GitHub Actions builds every target on its macOS, Linux, and Windows runners, at
-release only.
+for the machine it runs on, and `bin/tightship.cmd` is a Windows batch launcher for harnesses such as
+Antigravity CLI that run hooks under `cmd /c` on Windows (M3, #59). GitHub Actions builds every target on its
+macOS, Linux, and Windows runners, at release only.
 
-**Adopter prerequisites.** Nothing on macOS and Linux. Git for Windows on Windows, so that hooks run under Git
-Bash. Git on every system when the memory option is on.
+**Adopter prerequisites.** Nothing on macOS and Linux. Git for Windows on Windows for Claude Code, so that its
+hooks run under Git Bash (Antigravity CLI on Windows runs `bin/tightship.cmd` under `cmd /c`, M3, #59). Git on
+every system when the memory option is on.
 
 **Reach.** The plugin connects to one network host: the git remote of the adopter's vault, when it syncs the
 vault or pulls and pushes a handoff. Outside what the harness owns, it writes in two places only:
@@ -99,12 +123,14 @@ vault or pulls and pushes a handoff. Outside what the harness owns, it writes in
 - The harness's settings file, for the status line only, after the adopter consents
   ([FR-STL-02](../requirements/functional/status-line.md#fr-stl-02)).
 
-The options' state is kept by the harness, in its own user configuration, and reaches the plugin's hooks as
-environment variables.
+The options' state is kept by the harness in its own user configuration and reaches the plugin's hooks as
+environment variables, or, in a harness whose manifest has no `userConfig` (Antigravity CLI, M3, #59), in
+`${PLUGIN_DATA}/options.toml` inside the plugin data folder the harness owns and preserves across updates.
 
 In two places the harness owns and deletes, the plugin also writes small state of its own:
 
-- The plugin's data folder, for the prompt count of the memory checkpoint, one file per session.
+- The plugin's data folder, for the prompt count of the memory checkpoint (one file per session),
+  `status-line.json`, and `options.toml` where the harness has no `userConfig` (M3, #59).
 - The session's environment file, for one `export` of the vault's folder, so the binary finds the vault when
   the agent runs it.
 
@@ -121,7 +147,7 @@ The build writes only to `dist/`.
 - A release needs GitHub Actions and a build matrix. Each archive carries every target, from 15 to 20 MB.
 - The macOS binary carries only the linker's ad-hoc signature. The release epic tests that it runs from an
   archive Claude Code downloaded.
-- An adopter on Windows without Git for Windows cannot run the plugin's hooks.
+- An adopter of Claude Code on Windows without Git for Windows cannot run the plugin's hooks.
 
 ## Alternatives considered
 

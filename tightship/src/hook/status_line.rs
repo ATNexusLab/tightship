@@ -1,11 +1,10 @@
-use std::env;
-
 use serde_json::Value;
 
 use crate::failure::Failure;
 use crate::status::settings::{self, Record};
 
 pub fn run() -> Result<(), Failure> {
+    let options = crate::options::load()?;
     let settings_path = settings::variable("TIGHTSHIP_SETTINGS")?;
     let data = settings::variable("TIGHTSHIP_DATA")?;
     let root = settings::variable("TIGHTSHIP_ROOT")?;
@@ -14,7 +13,7 @@ pub fn run() -> Result<(), Failure> {
     let ours = user_settings
         .get("statusLine")
         .is_some_and(settings::is_ours);
-    if env::var_os("TIGHTSHIP_STATUS_LINE").is_some_and(|value| value == "false") {
+    if !options.status_line {
         if ours {
             match record {
                 Some(Record::On(Some(previous))) => {

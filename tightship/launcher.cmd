@@ -1,10 +1,9 @@
-@echo off
-setlocal EnableExtensions
-set "ROOT=%~dp0"
-set "BIN=%ROOT%windows-x64\tightship.exe"
-if exist "%BIN%" (
-  "%BIN%" %*
-  exit /b %ERRORLEVEL%
+@echo off & setlocal
+set "BINARY=%~dp0windows-x64\tightship.exe"
+if not exist "%BINARY%" (
+  echo error: tightship has no binary for Windows 64-bit >&2
+  exit /b 1
 )
-echo error: tightship has no binary for this machine >&2
-exit /b 1
+
+"%BINARY%" %*
+exit /b %ERRORLEVEL%

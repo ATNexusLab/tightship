@@ -50,6 +50,12 @@ enum Area {
 
 #[derive(Subcommand)]
 enum HookCommand {
+    Contract {
+        #[arg(long)]
+        gate: Option<String>,
+        #[arg(value_name = "file")]
+        file: PathBuf,
+    },
     Start,
     Export,
     Checkpoint,
@@ -111,6 +117,9 @@ fn main() -> ExitCode {
         Area::Vault(VaultCommand::Lint) => vault::lint::run(),
         Area::Vault(VaultCommand::Sync) => vault::sync::run(),
         Area::Vault(VaultCommand::Handoff(command)) => vault::handoff::run(&command),
+        Area::Hook(HookCommand::Contract { gate, file }) => {
+            hook::contract::run(gate.as_deref(), &file)
+        }
         Area::Hook(HookCommand::Start) => hook::start::run(),
         Area::Hook(HookCommand::Export) => hook::export::run(),
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
