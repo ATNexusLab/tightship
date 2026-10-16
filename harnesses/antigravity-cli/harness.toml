@@ -1,0 +1,70 @@
+[plugin]
+name = "tightship"
+description = "Skills, a command per step of the development loop, and a read-only verifier"
+author = "ATNexusLab"
+repository = "https://github.com/ATNexusLab/tightship"
+license = "MIT"
+
+[references]
+skill = "{name}"
+command = "/{name}"
+agent = "{name}"
+option = "{name}"
+
+[access]
+read-only = "view_file, list_dir, find_by_name, grep_search, run_command"
+
+[contract]
+limit = 100000
+
+[capabilities]
+arguments = "$ARGUMENTS"
+plan-mode = "plan mode"
+plan-approval = "an artifact with `RequestFeedback: true`"
+explore-agent = "the `research` subagent"
+general-agent = "the `self` subagent"
+review-command = "`/pr-review`"
+security-review-command = "the `security-audit` skill"
+harness-instructions-file = "`AGENTS.md`"
+area-instructions = "Antigravity CLI loads a directory's `AGENTS.md` when it works on files under it"
+skill-tool = "`view_file` on the skill's `SKILL.md`"
+instruction-files-precedence = "Antigravity CLI reads `AGENTS.md` and `.agent/rules/*.md` in the workspace"
+instruction-files-search = "`find . -name AGENTS.md -o -path '*/.agent/rules/*.md'`"
+instruction-files-migration = "Rules in `.agent/rules/*.md` that belong to the whole project or an area move into that directory's `AGENTS.md`, and the `.agent/rules/*.md` file is removed. A personal uncommitted rule stays untouched until I ask whether it belongs in the repo."
+
+[neutrality]
+names = ["Antigravity CLI", "Antigravity", "Google DeepMind"]
+paths = [
+  ".gemini/",
+  "~/.gemini",
+  ".agent/",
+  ".agents/",
+  ".antigravity-plugin",
+  ".gemini-plugin",
+  "PLUGIN_ROOT",
+  "PLUGIN_DATA",
+]
+tools = [
+  "invoke_subagent",
+  "define_subagent",
+  "manage_subagents",
+  "ask_question",
+  "view_file",
+  "replace_file_content",
+  "multi_replace_file_content",
+  "write_to_file",
+  "run_command",
+  "manage_task",
+]
+
+[[companions]]
+plugin = "ponytail"
+marketplace = "https://github.com/DietrichGebert/ponytail"
+
+[[companions]]
+plugin = "i-have-adhd"
+marketplace = "https://github.com/ayghri/i-have-adhd"
+
+[[companions]]
+plugin = "humanizer"
+marketplace = "https://github.com/blader/humanizer"

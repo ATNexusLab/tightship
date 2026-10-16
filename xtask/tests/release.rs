@@ -17,10 +17,15 @@ const BINARIES: [&str; 4] = [
 ];
 
 fn release_repository(version: &str) -> Repository {
+    let antigravity_harness = include_str!("../../harnesses/antigravity-cli/harness.toml");
     let repository = Repository::with(&[
         (
             "Cargo.toml",
             format!("[workspace.package]\nversion = \"{version}\"\n"),
+        ),
+        (
+            "harnesses/antigravity-cli/harness.toml",
+            antigravity_harness.to_owned(),
         ),
         (
             "content/commands/epic.md",
@@ -56,7 +61,7 @@ fn built_file_count(output: &Output) -> usize {
     count.parse().expect("a number")
 }
 
-fn plugin_files(repository: &Repository) -> Vec<String> {
+fn plugin_files(repository: &Repository, harness: &str) -> Vec<String> {
     fn walk(folder: &std::path::Path, prefix: &str, files: &mut Vec<String>) {
         for entry in fs::read_dir(folder).expect("a folder") {
             let entry = entry.expect("an entry");
@@ -69,7 +74,7 @@ fn plugin_files(repository: &Repository) -> Vec<String> {
         }
     }
     let mut files = Vec::new();
-    walk(&repository.path("dist/claude-code"), "", &mut files);
+    walk(&repository.path(&format!("dist/{harness}")), "", &mut files);
     files.sort();
     files
 }
@@ -84,10 +89,25 @@ fn a_build_with_the_four_binaries_copies_them_without_compiling() {
     assert_succeeds(&prebuilt);
     assert_eq!(built_file_count(&prebuilt), built_file_count(&host) + 3);
     assert!(repository.path("dist/claude-code/bin/tightship").is_file());
+    assert!(
+        repository
+            .path("dist/antigravity-cli/bin/tightship")
+            .is_file()
+    );
+    assert!(
+        repository
+            .path("dist/antigravity-cli/bin/tightship.cmd")
+            .is_file()
+    );
     for binary in BINARIES {
         let copied = fs::read_to_string(repository.path(&format!("dist/claude-code/bin/{binary}")))
             .expect("the copied binary");
         assert_eq!(copied, format!("prebuilt {binary}\n"));
+
+        let agy_copied =
+            fs::read_to_string(repository.path(&format!("dist/antigravity-cli/bin/{binary}")))
+                .expect("the copied binary for antigravity-cli");
+        assert_eq!(agy_copied, format!("prebuilt {binary}\n"));
     }
 }
 
@@ -101,6 +121,7 @@ fn a_missing_binary_fails_and_leaves_no_plugin() {
         "error: binaries/linux-arm64/tightship is missing; --binaries needs macos, linux-x64, linux-arm64, and windows-x64",
     );
     assert!(!repository.path("dist/claude-code").exists());
+    assert!(!repository.path("dist/antigravity-cli").exists());
 }
 
 #[test]
@@ -115,7 +136,10 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
         .iter()
         .map(|byte| format!("{byte:02x}"))
         .collect();
-    assert!(String::from_utf8_lossy(&output.stdout).contains(&format!("sha256: {sha256}\n")));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains(&format!("sha256 (claude-code): {sha256}"))
+    );
 
     let mut archive = ZipArchive::new(std::io::Cursor::new(bytes)).expect("a readable zip");
     let mut modes = BTreeMap::new();
@@ -124,7 +148,7 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
         let mode = entry.unix_mode().expect("a unix mode") & 0o777;
         modes.insert(entry.name().expect("a UTF-8 name").into_owned(), mode);
     }
-    let mut expected = plugin_files(&repository);
+    let mut expected = plugin_files(&repository, "claude-code");
     expected.retain(|file| file != ".claude-plugin/marketplace.json");
     assert_eq!(modes.keys().cloned().collect::<Vec<_>>(), expected);
     let executables: Vec<&str> = modes
@@ -143,6 +167,48 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
         ]
     );
     assert!(modes.values().all(|mode| *mode == 0o755 || *mode == 0o644));
+
+    let agy_bytes =
+        fs::read(repository.path("dist/tightship-antigravity-cli.zip")).expect("the agy zip");
+    let agy_sha256: String = Sha256::digest(&agy_bytes)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains(&format!("sha256 (antigravity-cli): {agy_sha256}"))
+    );
+
+    let mut agy_archive = ZipArchive::new(std::io::Cursor::new(agy_bytes)).expect("a readable zip");
+    let mut agy_modes = BTreeMap::new();
+    for index in 0..agy_archive.len() {
+        let entry = agy_archive.by_index(index).expect("an entry");
+        let mode = entry.unix_mode().expect("a unix mode") & 0o777;
+        agy_modes.insert(entry.name().expect("a UTF-8 name").into_owned(), mode);
+    }
+    let agy_expected = plugin_files(&repository, "antigravity-cli");
+    assert_eq!(agy_modes.keys().cloned().collect::<Vec<_>>(), agy_expected);
+    let agy_executables: Vec<&str> = agy_modes
+        .iter()
+        .filter(|(_, mode)| **mode == 0o755)
+        .map(|(name, _)| name.as_str())
+        .collect();
+    assert_eq!(
+        agy_executables,
+        [
+            "bin/linux-arm64/tightship",
+            "bin/linux-x64/tightship",
+            "bin/macos/tightship",
+            "bin/tightship",
+            "bin/tightship.cmd",
+            "bin/windows-x64/tightship.exe",
+        ]
+    );
+    assert!(
+        agy_modes
+            .values()
+            .all(|mode| *mode == 0o755 || *mode == 0o644)
+    );
 
     let catalog_text =
         fs::read_to_string(repository.path("dist/marketplace.json")).expect("a catalog");
@@ -171,6 +237,11 @@ fn a_tag_other_than_the_version_fails_and_writes_nothing() {
         "error: the tag v1.0.1 does not match the version 1.0.0; tag v1.0.0",
     );
     assert!(!repository.path("dist/tightship-claude-code.zip").exists());
+    assert!(
+        !repository
+            .path("dist/tightship-antigravity-cli.zip")
+            .exists()
+    );
     assert!(!repository.path("dist/marketplace.json").exists());
 }
 
@@ -178,11 +249,30 @@ fn a_tag_other_than_the_version_fails_and_writes_nothing() {
 fn a_plugin_without_every_platform_fails() {
     let repository = release_repository("1.0.0");
     assert_succeeds(&run(&repository, &["build", "--binaries", "binaries"]));
-    fs::remove_dir_all(repository.path("dist/claude-code/bin/linux-arm64")).expect("the platform");
+    fs::remove_file(repository.path("dist/claude-code/bin/linux-arm64/tightship"))
+        .expect("the binary");
 
     assert_fails_with(
         &run(&repository, &["package", "v1.0.0"]),
-        "error: dist/claude-code/bin/ has no linux-arm64; run cargo xtask build --binaries <folder> first",
+        "error: dist/claude-code/bin/linux-arm64/tightship is missing; run cargo xtask build --binaries <folder> first",
+    );
+}
+
+#[test]
+fn antigravity_cli_missing_a_platform_binary_fails() {
+    let repository = release_repository("1.0.2");
+    assert_succeeds(&run(&repository, &["build", "--binaries", "binaries"]));
+    fs::remove_file(repository.path("dist/antigravity-cli/bin/macos/tightship"))
+        .expect("the binary");
+
+    assert_fails_with(
+        &run(&repository, &["package", "v1.0.2"]),
+        "error: dist/antigravity-cli/bin/macos/tightship is missing; run cargo xtask build --binaries <folder> first",
+    );
+    assert!(
+        !repository
+            .path("dist/tightship-antigravity-cli.zip")
+            .exists()
     );
 }
 

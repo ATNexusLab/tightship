@@ -108,4 +108,4 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" --verify-tag --prerelease \
             --title "tightship $GITHUB_REF_NAME" --generate-notes \
-            dist/tightship-claude-code.zip dist/marketplace.json
+            dist/tightship-claude-code.zip dist/tightship-antigravity-cli.zip dist/marketplace.json

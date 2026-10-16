@@ -9,6 +9,7 @@ use super::content::{Content, Kind, Piece, SupportingBody};
 use super::contract::Part;
 use super::harness::Harness;
 use super::options::OptionsFile;
+use super::staging;
 use super::tokens;
 use crate::diagnostics::naming;
 
@@ -19,8 +20,8 @@ pub fn render(
     parts: &[Part],
     binaries: &[Binary],
 ) -> io::Result<(PathBuf, usize)> {
-    let staging = root.join("dist").join(format!(".{}.tmp", harness.name));
-    remove_if_present(&staging)?;
+    let staging = staging::staging_dir(root, &harness.name);
+    staging::remove_if_present(&staging)?;
     let mut written = vec![
         (
             staging.join(".claude-plugin/plugin.json"),
@@ -73,42 +74,8 @@ pub fn render(
         written.push((copy.clone(), bytes));
         executables.push(copy);
     }
-    for (file, bytes) in &written {
-        if let Some(folder) = file.parent() {
-            fs::create_dir_all(folder).map_err(naming(folder))?;
-        }
-        fs::write(file, bytes).map_err(naming(file))?;
-    }
-    #[cfg(unix)]
-    for file in &executables {
-        make_executable(file)?;
-    }
+    staging::write_files(&written, &executables)?;
     Ok((staging, written.len()))
-}
-
-pub fn publish(root: &Path, staging: &Path, harness_name: &str) -> io::Result<()> {
-    let target = root.join("dist").join(harness_name);
-    remove_if_present(&target)?;
-    fs::rename(staging, &target).map_err(naming(&target))
-}
-
-pub fn discard(root: &Path, harness_name: &str) -> io::Result<()> {
-    let dist = root.join("dist");
-    remove_if_present(&dist.join(format!(".{harness_name}.tmp")))?;
-    remove_if_present(&dist.join(harness_name))
-}
-
-#[cfg(unix)]
-fn make_executable(file: &Path) -> io::Result<()> {
-    use std::os::unix::fs::PermissionsExt;
-    fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(naming(file))
-}
-
-fn remove_if_present(folder: &Path) -> io::Result<()> {
-    match fs::remove_dir_all(folder) {
-        Err(error) if error.kind() != io::ErrorKind::NotFound => Err(naming(folder)(error)),
-        _ => Ok(()),
-    }
 }
 
 fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io::Result<String> {
