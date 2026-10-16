@@ -42,6 +42,8 @@ pub enum Failure {
     SettingsUnwritable(PathBuf, io::Error),
     StatusRecordInvalid(PathBuf),
     StatusRecordUnwritable(PathBuf, io::Error),
+    OptionsInvalid(PathBuf),
+    ContractFileUnreadable(PathBuf, io::Error),
     Usage(String),
 }
 
@@ -189,6 +191,12 @@ impl fmt::Display for Failure {
                 "cannot write the status line record {}: {error}",
                 path.display()
             ),
+            Self::OptionsInvalid(path) => {
+                write!(formatter, "{} is not valid TOML", path.display())
+            }
+            Self::ContractFileUnreadable(path, error) => {
+                write!(formatter, "cannot read {}: {error}", path.display())
+            }
             Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", crate::USAGE),
         }
     }

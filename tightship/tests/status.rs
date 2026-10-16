@@ -454,3 +454,100 @@ fn files_that_cannot_be_written_fail_without_a_half_change() {
         "{stderr}"
     );
 }
+
+#[test]
+fn scenario_9_status_line_enables_renders_and_restores_via_options_toml() {
+    let sandbox = Sandbox::new();
+    let previous_status_line = json!({ "type": "command", "command": "previous-status-cmd" });
+    sandbox.write(
+        "config/settings.json",
+        &pretty(&json!({
+            "statusLine": previous_status_line,
+            "theme": "dark"
+        })),
+    );
+    sandbox.write("data/options.toml", "status_line = true\n");
+
+    let mut hook_cmd = sandbox.tightship(&["hook", "status-line"]);
+    hook_cmd
+        .env("TIGHTSHIP_SETTINGS", sandbox.path("config/settings.json"))
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_ROOT", ROOT);
+    let output = run(&mut hook_cmd);
+    assert_succeeds(&output);
+
+    assert_eq!(
+        settings(&sandbox),
+        pretty(&json!({
+            "statusLine": { "type": "command", "command": OURS },
+            "theme": "dark"
+        }))
+    );
+    assert_eq!(
+        record(&sandbox),
+        Some(json!({
+            "state": "on",
+            "previous": previous_status_line
+        }))
+    );
+
+    checkout(&sandbox, "feat/59-antigravity-cli-plugin");
+    let render_output = render(&sandbox, "request", Some("200"));
+    assert_succeeds(&render_output);
+    let rendered_text = stdout_of(&render_output);
+    assert!(rendered_text.lines().count() >= 2, "{rendered_text}");
+
+    sandbox.write("data/options.toml", "status_line = false\n");
+    let mut restore_cmd = sandbox.tightship(&["hook", "status-line"]);
+    restore_cmd
+        .env("TIGHTSHIP_SETTINGS", sandbox.path("config/settings.json"))
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_ROOT", ROOT);
+    let output = run(&mut restore_cmd);
+    assert_succeeds(&output);
+
+    assert_eq!(
+        settings(&sandbox),
+        pretty(&json!({
+            "statusLine": previous_status_line,
+            "theme": "dark"
+        }))
+    );
+    assert_eq!(record(&sandbox), None);
+}
+
+#[test]
+fn the_status_line_recognizes_windows_cmd_launchers() {
+    let sandbox = Sandbox::new();
+    let backslash_cmd = json!({
+        "statusLine": {
+            "type": "command",
+            "command": "\"C:\\path\\bin\\tightship.cmd\" status-line render",
+        }
+    });
+    sandbox.write("config/settings.json", &pretty(&backslash_cmd));
+    sandbox.write("data/status-line.json", r#"{"state": "on"}"#);
+
+    let output = hook(&sandbox, None);
+    assert_succeeds(&output);
+    assert_eq!(
+        settings(&sandbox),
+        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
+    );
+    assert_eq!(record(&sandbox), Some(json!({ "state": "on" })));
+
+    let slash_cmd = json!({
+        "statusLine": {
+            "type": "command",
+            "command": "\"C:/path/bin/tightship.cmd\" status-line render",
+        }
+    });
+    sandbox.write("config/settings.json", &pretty(&slash_cmd));
+    let output2 = hook(&sandbox, None);
+    assert_succeeds(&output2);
+    assert_eq!(
+        settings(&sandbox),
+        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
+    );
+    assert_eq!(record(&sandbox), Some(json!({ "state": "on" })));
+}

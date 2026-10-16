@@ -1,4 +1,5 @@
 pub mod checkpoint;
+pub mod contract;
 pub mod export;
 pub mod prompt;
 pub mod start;
@@ -37,8 +38,29 @@ start, a space that holds about thirty.
 
 Nothing durable? Ignore this and carry on.";
 
-fn vault_is_set() -> bool {
-    env::var_os("TIGHTSHIP_VAULT").is_some_and(|value| !value.is_empty())
+pub fn vault_is_set() -> bool {
+    crate::options::load().is_ok_and(|options| options.memory && options.vault_folder.is_some())
+}
+
+pub fn emit(text: &str) -> Result<(), Failure> {
+    if text.is_empty() {
+        return Ok(());
+    }
+    if env::var_os("TIGHTSHIP_HOOK_FORMAT").is_some_and(|value| value == "inject-steps") {
+        let payload = serde_json::json!({
+            "injectSteps": [{
+                "systemMessage": {
+                    "systemMessage": text
+                }
+            }]
+        });
+        println!("{}", serde_json::to_string(&payload).unwrap_or_default());
+    } else if text.ends_with('\n') {
+        print!("{text}");
+    } else {
+        println!("{text}");
+    }
+    Ok(())
 }
 
 fn export_vault(folder: &Path) -> Result<(), Failure> {

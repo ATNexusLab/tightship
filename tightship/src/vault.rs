@@ -8,7 +8,6 @@ pub mod path;
 pub mod search;
 pub mod sync;
 
-use std::env;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
@@ -16,10 +15,8 @@ use std::path::PathBuf;
 use crate::failure::Failure;
 
 pub fn folder() -> Result<PathBuf, Failure> {
-    let folder = env::var_os("TIGHTSHIP_VAULT")
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-        .ok_or(Failure::VaultNotSet)?;
+    let options = crate::options::load()?;
+    let folder = options.vault_folder.ok_or(Failure::VaultNotSet)?;
     if !folder.is_absolute() {
         return Err(Failure::VaultNotAbsolute(folder));
     }
