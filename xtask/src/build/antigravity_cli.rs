@@ -232,9 +232,7 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
     if !session_hooks.is_empty() {
         events.insert(
             "SessionStart".to_owned(),
-            serde_json::json!([{
-                "hooks": session_hooks,
-            }]),
+            serde_json::Value::Array(session_hooks),
         );
     }
 
@@ -242,10 +240,8 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
         events.insert(
             "PreInvocation".to_owned(),
             serde_json::json!([{
-                "hooks": [{
-                    "type": "command",
-                    "command": "\"${PLUGIN_ROOT}/bin/tightship\" hook prompt",
-                }],
+                "type": "command",
+                "command": "\"${PLUGIN_ROOT}/bin/tightship\" hook prompt",
             }]),
         );
     }
@@ -254,7 +250,9 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
         return Ok(None);
     }
 
-    let hooks = serde_json::Value::Object(events);
+    let mut root = serde_json::Map::new();
+    root.insert("tightship".to_owned(), serde_json::Value::Object(events));
+    let hooks = serde_json::Value::Object(root);
     Ok(Some(
         serde_json::to_string_pretty(&hooks).map_err(io::Error::other)? + "\n",
     ))
