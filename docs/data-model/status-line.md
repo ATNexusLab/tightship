@@ -1,12 +1,15 @@
 # Status line
 
-**Milestone:** M1, epic #7 · **Spec:** [show the status line](../specs/status-line/show-the-status-line.md)
+**Milestone:** M1, epic #7; M3, epic #59 · **Specs:**
+[show the status line](../specs/status-line/show-the-status-line.md),
+[Antigravity CLI plugin](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md)
 
 What the `status_line` [option](options.md) changes, and the record that lets it be undone.
 
 ## The user settings' `statusLine`
 
-Written by `tightship status-line enable` into Claude Code's user settings, never a project's or a folder's:
+Written by `tightship status-line enable` into the harness's user settings (`~/.claude/settings.json` in Claude
+Code; `~/.gemini/antigravity-cli/settings.json` in Antigravity CLI, M3, #59), never a project's or a folder's:
 
 ```json
 {
@@ -14,12 +17,13 @@ Written by `tightship status-line enable` into Claude Code's user settings, neve
 }
 ```
 
-It is ours while its `command` ends in `/bin/tightship" status-line render`. Every other key of the file keeps
-its value and its order.
+It is ours while its `command` ends in `/bin/tightship" status-line render` or `\bin\tightship.cmd"
+status-line render` (M3, #59). Every other key of the file keeps its value and its order.
 
 ## `status-line.json`
 
-In the plugin's data folder, which Claude Code keeps across an update and deletes on uninstall:
+In the plugin's data folder (in Antigravity CLI, `~/.gemini/config/plugin_data/tightship/status-line.json`,
+M3, #59), which the harness keeps across an update:
 
 | Attribute | Type | Domain | Written by |
 | --- | --- | --- | --- |

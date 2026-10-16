@@ -1,6 +1,6 @@
 # Contract
 
-**Milestone:** M1, epic #4
+**Milestone:** M1, epic #4; M3, epic #59
 
 The contract is the always-on text that tells the agent how to work
 ([FR-CTR-01](../../requirements/functional/contract.md#fr-ctr-01)). It has one authored copy,
@@ -23,10 +23,21 @@ characters. The contract is longer, so the build splits it:
 The hooks fire on a new session, after `/clear`, and after each compaction. A resumed or forked session
 already holds the copy placed before. A hook that fails costs only its own part; the session starts.
 
+## How it reaches an Antigravity CLI session (M3, #59)
+
+Antigravity CLI truncates each `rules/*.md` file at 24,000 bytes and loads `rules/` unconditionally. Instead,
+`hooks.json` runs `tightship hook contract` at `SessionStart` for `contract/part-1.md` and
+`contract/memory.md` (with `[contract] limit = 100000`), which reads `${TIGHTSHIP_DATA}/options.toml` and
+prints each enabled file wrapped in `{"injectSteps":[{"systemMessage":{"systemMessage":"..."}}]}`. Because
+`SessionStart` in Antigravity CLI fires only once at conversation start, the build also writes
+`skills/contract/SKILL.md` and prepends a line to `contract/part-1.md` instructing the agent to load the
+`contract` skill after `/compact`.
+
 | Contract | Memory | The context holds |
 | --- | --- | --- |
 | On | On | Every part and the memory section |
 | On | Off | Every part, none of which names the vault |
 | Off | Any | Nothing from the contract |
 
-Every rule and error message: the [epic #4 spec](../../specs/contract/load-the-contract.md).
+Every rule and error message: the [epic #4 spec](../../specs/contract/load-the-contract.md) and the
+[epic #59 spec](../../specs/antigravity-cli-plugin/antigravity-cli-plugin.md).

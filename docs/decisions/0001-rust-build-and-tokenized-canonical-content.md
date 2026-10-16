@@ -12,6 +12,10 @@
   vault's git remote when it syncs the vault ([FR-MEM-11](../requirements/functional/memory.md#fr-mem-11))
 - Amended: 2026-10-15, by the [epic #6 spec](../specs/handoff/hand-off-the-session.md): a piece reads an
   option through the token kind `option`, which each harness renders as its own value of the option
+- Amended: 2026-10-16, by the [epic #59 spec](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
+  `install.sh` and `install.ps1` at the repository root bootstrap installation across harnesses,
+  `bin/tightship.cmd` launches the binary when a harness on Windows runs hooks through `cmd /c`, and a
+  harness with no manifest `userConfig` stores options in `${PLUGIN_DATA}/options.toml`
 
 ## Context
 
@@ -55,7 +59,9 @@ repository is one Cargo workspace:
   line). It starts with the first epic that needs a hook to run logic.
 
 A hook command line that only prints a file the plugin ships, such as each part of the contract, is not a
-program: it is one `sh` line, with the same prerequisite as the `sh` launcher.
+program: it is one `sh` line, with the same prerequisite as the `sh` launcher. Two bootstrap installer scripts
+at the repository root (`install.sh` in POSIX `sh` and `install.ps1` in PowerShell) run before any binary is
+downloaded so an adopter can install the companions, the plugin, and the options in one command (M3, #59).
 
 **Canonical content.** One Markdown file per piece under `content/`: `skills/<name>/SKILL.md` with its
 supporting files, `commands/<name>.md`, `agents/<name>.md`. Front matter is TOML between `+++` lines, with
@@ -86,11 +92,13 @@ fails the build: that check is how references resolve. The generated plugin is n
 **Distribution.** A release attaches one archive per harness to a GitHub Release, and the catalog points at it.
 The archive holds the `tightship` binary for every target: macOS universal (arm64 and x86_64), Linux x64 and
 arm64 linked statically with musl, and Windows x64. `bin/tightship` is a `sh` launcher that picks the binary
-for the machine it runs on. GitHub Actions builds every target on its macOS, Linux, and Windows runners, at
-release only.
+for the machine it runs on, and `bin/tightship.cmd` is a Windows batch launcher for harnesses such as
+Antigravity CLI that run hooks under `cmd /c` on Windows (M3, #59). GitHub Actions builds every target on its
+macOS, Linux, and Windows runners, at release only.
 
-**Adopter prerequisites.** Nothing on macOS and Linux. Git for Windows on Windows, so that hooks run under Git
-Bash. Git on every system when the memory option is on.
+**Adopter prerequisites.** Nothing on macOS and Linux. Git for Windows on Windows for Claude Code, so that its
+hooks run under Git Bash (Antigravity CLI on Windows runs `bin/tightship.cmd` under `cmd /c`, M3, #59). Git on
+every system when the memory option is on.
 
 **Reach.** The plugin connects to one network host: the git remote of the adopter's vault, when it syncs the
 vault or pulls and pushes a handoff. Outside what the harness owns, it writes in two places only:
@@ -99,12 +107,14 @@ vault or pulls and pushes a handoff. Outside what the harness owns, it writes in
 - The harness's settings file, for the status line only, after the adopter consents
   ([FR-STL-02](../requirements/functional/status-line.md#fr-stl-02)).
 
-The options' state is kept by the harness, in its own user configuration, and reaches the plugin's hooks as
-environment variables.
+The options' state is kept by the harness in its own user configuration and reaches the plugin's hooks as
+environment variables, or, in a harness whose manifest has no `userConfig` (Antigravity CLI, M3, #59), in
+`${PLUGIN_DATA}/options.toml` inside the plugin data folder the harness owns and preserves across updates.
 
 In two places the harness owns and deletes, the plugin also writes small state of its own:
 
-- The plugin's data folder, for the prompt count of the memory checkpoint, one file per session.
+- The plugin's data folder, for the prompt count of the memory checkpoint (one file per session),
+  `status-line.json`, and `options.toml` where the harness has no `userConfig` (M3, #59).
 - The session's environment file, for one `export` of the vault's folder, so the binary finds the vault when
   the agent runs it.
 

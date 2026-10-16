@@ -1,6 +1,6 @@
 # Memory
 
-**Milestone:** M1, epics #5 and #6
+**Milestone:** M1, epics #5 and #6; M3, epic #59
 
 The memory layer is an option ([FR-MEM-10](../../requirements/functional/memory.md#fr-mem-10)). With it on, a
 session works with the adopter's vault, a git repository of curated notes in the folder the adopter set
@@ -11,9 +11,11 @@ session works with the adopter's vault, a git repository of curated notes in the
 
 The adopter sets the folder in the plugin's `vault_folder` setting, and no default exists. Claude Code hands
 the setting only to hooks, so the session-start hook exports it, as `TIGHTSHIP_VAULT`, to the session's
-environment file, which Claude Code runs before each command of the agent's shell. `tightship vault` finds the
-vault there. With no folder set, or a folder that is gone, the session starts with a line saying it has no
-vault, and the agent tells the adopter how to make one with `tightship vault init <folder>`.
+environment file, which Claude Code runs before each command of the agent's shell. In Antigravity CLI
+(M3, #59), `vault_folder` lives in `${PLUGIN_DATA}/options.toml`, and `tightship` reads it from
+`${TIGHTSHIP_DATA}/options.toml` whenever `TIGHTSHIP_VAULT` is unset. With no folder set, or a folder that is
+gone, the session starts with a line saying it has no vault, and the agent tells the adopter how to make one
+with `tightship vault init <folder>`.
 
 ## The project's scope
 
@@ -36,8 +38,9 @@ line, so the agent knows a search may find more.
 
 A reminder to record what the session learned, printed on every 10th prompt of a session and once after each
 compaction ([FR-MEM-02](../../requirements/functional/memory.md#fr-mem-02)). No harness hook adds text before
-a compaction, so the checkpoint comes right after it. The prompt count of each session is a file in the
-plugin's data folder, deleted after 7 days without a prompt.
+a compaction, so the checkpoint comes right after it (in Claude Code, which fires `SessionStart` on `compact`).
+The prompt count of each session (`session_id` in Claude Code, `conversationId` in Antigravity CLI, M3, #59)
+is a file in the plugin's data folder, deleted after 7 days without a prompt.
 
 ## The sync
 
@@ -58,5 +61,6 @@ The command `handoff claim` syncs, has `tightship vault handoff claim` print and
 scope, syncs again, and has the agent name what the repository lacks. The project's repository is only read.
 With memory off, the command says so and runs nothing; it reads the option through `{{option:memory}}`.
 
-Every rule and message: the [epic #5 spec](../../specs/memory/keep-the-vault.md) and the
-[epic #6 spec](../../specs/handoff/hand-off-the-session.md).
+Every rule and message: the [epic #5 spec](../../specs/memory/keep-the-vault.md), the
+[epic #6 spec](../../specs/handoff/hand-off-the-session.md), and the
+[epic #59 spec](../../specs/antigravity-cli-plugin/antigravity-cli-plugin.md).
