@@ -53,28 +53,8 @@ você pergunta sobre memória.
 
 ## A status line
 
-O editor Cursor não tem API de status line. Com `status_line` ligada, só o **CLI** grava `statusLine` em
-`~/.cursor/cli-config.json` depois que você concorda.
-
-Exporte os caminhos que os comandos de status line esperam (substitua `PLUGIN` como acima):
-
-```sh
-export TIGHTSHIP_SETTINGS="$HOME/.cursor/cli-config.json"
-export TIGHTSHIP_DATA="$HOME/.cursor/tightship"
-export TIGHTSHIP_ROOT="$PLUGIN"
-```
-
-Para ligar depois de concordar:
-
-```sh
-"$TIGHTSHIP" status-line enable
-```
-
-Para recusar quando perguntado e manter a status line atual do CLI:
-
-```sh
-"$TIGHTSHIP" status-line decline
-```
+O editor Cursor não tem API de status line. Com `status_line` ligada, a próxima sessão interativa do **CLI**
+grava o `statusLine` do tightship em `~/.cursor/cli-config.json` e guarda o seu de lado.
 
 Desligue a opção para devolver o `statusLine` anterior no próximo início de sessão (ou remover a chave se
 você não tinha nenhuma):
@@ -84,4 +64,4 @@ você não tinha nenhuma):
 ```
 
 Depois inicie uma sessão interativa do CLI para o hook de status line rodar, ou rode `"$TIGHTSHIP" hook
-status-line` com as mesmas três variáveis de ambiente.
+status-line`.

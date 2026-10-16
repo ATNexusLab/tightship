@@ -21,7 +21,7 @@ Its `bin/` holds the [tightship binary](tightship-binary.md) and its launcher, a
 
 One more `SessionStart` hook, on `startup`, runs `tightship hook status-line` whatever the status line option's
 state, since turning the option off is what puts the adopter's status line back. A plugin cannot set
-`statusLine` itself, so the binary writes it into the adopter's user settings after consent
+`statusLine` itself, so the binary writes it into the adopter's user settings while the option is on
 ([status line](../concepts/status-line.md), M1, #7).
 
 Every hook line that runs the binary, and the status line command, calls the launcher through `sh`, so an

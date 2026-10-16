@@ -8,8 +8,9 @@ What the `status_line` [option](options.md) changes, and the record that lets it
 
 ## The user settings' `statusLine`
 
-Written by `tightship status-line enable` into the harness's user settings (`~/.claude/settings.json` in Claude
-Code; `~/.gemini/antigravity-cli/settings.json` in Antigravity CLI, M3, #59), never a project's or a folder's:
+Written by `tightship hook status-line`, while the option is on, into the harness's user settings
+(`~/.claude/settings.json` in Claude Code; `~/.gemini/antigravity-cli/settings.json` in Antigravity CLI,
+M3, #59), never a project's or a folder's:
 
 ```json
 {
@@ -17,8 +18,9 @@ Code; `~/.gemini/antigravity-cli/settings.json` in Antigravity CLI, M3, #59), ne
 }
 ```
 
-It is ours while its `command` ends in `/bin/tightship" status-line render` or `\bin\tightship.cmd"
-status-line render` (M3, #59). Every other key of the file keeps its value and its order.
+It is ours while its `command` runs the plugin's `bin/tightship`, `bin/tightship.cmd`, or
+`bin/<platform>/tightship[.exe]` with `status-line render`, with `/` or `\` between folders (M3, #59; #55).
+Every other key of the file keeps its value and its order.
 
 ## `status-line.json`
 
@@ -27,8 +29,8 @@ M3, #59), which the harness keeps across an update:
 
 | Attribute | Type | Domain | Written by |
 | --- | --- | --- | --- |
-| `state` | string | `on` or `declined` | `enable`, `decline`, or the session start |
-| `previous` | any JSON value | The adopter's `statusLine` before `enable`; absent when they had none | `enable` |
+| `state` | string | `on`; a `declined` from an earlier version reads as no record | The session start |
+| `previous` | any JSON value | The adopter's `statusLine` before ours; absent when they had none | The session start |
 
 ## Invariants
 
@@ -48,7 +50,7 @@ The Cursor editor has no status line. The CLI alone reads `statusLine` from `~/.
 }
 ```
 
-`tightship status-line enable` writes that entry after consent and saves the adopter's previous value in
-`$HOME/.cursor/tightship/status-line.json`, with the same `state` and `previous` shape as
+`tightship hook status-line` writes that entry while the option is on and saves the adopter's previous value
+in `$HOME/.cursor/tightship/status-line.json`, with the same `state` and `previous` shape as
 `status-line.json` above. FR-STL-01 to FR-STL-03 apply in the CLI only; the editor is out of scope for those
 criteria ([epic #58 spec](../specs/cursor-plugin/ship-for-cursor.md)).
