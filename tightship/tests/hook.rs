@@ -636,10 +636,7 @@ fn cursor_hook_output(sandbox: &Sandbox) -> PathBuf {
 }
 
 fn cursor_data_dir(sandbox: &Sandbox, home: &str) -> PathBuf {
-    let folder = sandbox
-        .path(home)
-        .join(".cursor")
-        .join("tightship");
+    let folder = sandbox.path(home).join(".cursor").join("tightship");
     fs::create_dir_all(&folder).expect("cursor data");
     folder
 }
