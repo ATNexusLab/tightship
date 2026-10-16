@@ -12,13 +12,14 @@ options_file_antigravity_cli() {
   printf '%s\n' "$ANTIGRAVITY_CLI_DATA/options.toml"
 }
 
-install_antigravity_cli() {
-  step "Installing the ponytail companion" agy plugin install https://github.com/DietrichGebert/ponytail
-  step "Installing the i-have-adhd companion" agy plugin install https://github.com/ayghri/i-have-adhd
+install_skill() {
+  skill_dir="{{path:skills}}/$1"
+  mkdir -p "$skill_dir"
+  step "Downloading the $1 skill" download_file "https://raw.githubusercontent.com/$2/main/SKILL.md" "$skill_dir/SKILL.md"
+}
 
-  humanizer_dir="{{path:skills}}/humanizer"
-  mkdir -p "$humanizer_dir"
-  step "Downloading the humanizer skill" download_file "https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md" "$humanizer_dir/SKILL.md"
+install_antigravity_cli() {
+  {{install:companions}}
 
   source_dir=""
   if [ -n "$FROM_DIR" ]; then

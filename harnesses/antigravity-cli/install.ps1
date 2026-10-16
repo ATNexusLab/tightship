@@ -21,16 +21,17 @@ function Invoke-Tightship {
     }
 }
 
-function Install-AntigravityCli {
-    Invoke-Step "Installing the ponytail companion" { & agy plugin install https://github.com/DietrichGebert/ponytail }
-    Invoke-Step "Installing the i-have-adhd companion" { & agy plugin install https://github.com/ayghri/i-have-adhd }
-
-    $humanizerDir = "{{path:skills}}/humanizer"
-    if (-not (Test-Path $humanizerDir)) {
-        New-Item -ItemType Directory -Force -Path $humanizerDir | Out-Null
+function Install-Skill([string]$name, [string]$repository) {
+    $skillDir = "{{path:skills}}/$name"
+    if (-not (Test-Path $skillDir)) {
+        New-Item -ItemType Directory -Force -Path $skillDir | Out-Null
     }
-    $humanizerSkill = Join-Path $humanizerDir "SKILL.md"
-    Invoke-Step "Downloading the humanizer skill" { Invoke-RestMethod -Uri "https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md" -OutFile $humanizerSkill }
+    $skillFile = Join-Path $skillDir "SKILL.md"
+    Invoke-Step "Downloading the $name skill" { Invoke-RestMethod -Uri "https://raw.githubusercontent.com/$repository/main/SKILL.md" -OutFile $skillFile }
+}
+
+function Install-AntigravityCli {
+    {{install:companions}}
 
     $sourceDir = $null
     $tempZipFolder = $null

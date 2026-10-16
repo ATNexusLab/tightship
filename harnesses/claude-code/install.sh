@@ -1,7 +1,5 @@
 install_claude_code() {
-  claude plugin marketplace add DietrichGebert/ponytail || true
-  claude plugin marketplace add ayghri/i-have-adhd || true
-  claude plugin marketplace add blader/humanizer || true
+  {{install:companions}}
 
   if [ -n "$FROM_DIR" ]; then
     claude plugin marketplace add "$FROM_DIR" || true

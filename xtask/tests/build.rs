@@ -507,18 +507,21 @@ fn the_launcher_runs_the_binary_built_for_this_machine() {
 
 #[test]
 fn a_companion_without_a_marketplace_fails_and_leaves_no_plugin() {
-    let repository = Repository::with(&[(
-        "harnesses/claude-code/harness.toml",
-        format!(
-            "{}[[companions]]\nplugin = \"ponytail\"\n",
-            harness_without_companions()
+    let repository = Repository::with(&[
+        piece("content/commands/epic.md", "Open the epic.\n"),
+        (
+            "harnesses/claude-code/harness.toml",
+            format!(
+                "{}[[companions]]\nplugin = \"ponytail\"\nrepository = \"DietrichGebert/ponytail\"\n",
+                harness_without_companions()
+            ),
         ),
-    )]);
+    ]);
     fs::create_dir_all(repository.path("dist/claude-code")).expect("a previous build");
 
     assert_fails_with(
         &repository.run("build"),
-        "error: harnesses/claude-code/harness.toml: missing field `marketplace`",
+        "error: harnesses/claude-code/harness.toml: companion \"ponytail\" has no marketplace",
     );
     assert!(!repository.path("dist/claude-code").exists());
 }

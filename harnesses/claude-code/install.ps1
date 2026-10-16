@@ -1,7 +1,5 @@
 function Install-ClaudeCode {
-    try { & claude plugin marketplace add DietrichGebert/ponytail } catch {}
-    try { & claude plugin marketplace add ayghri/i-have-adhd } catch {}
-    try { & claude plugin marketplace add blader/humanizer } catch {}
+    {{install:companions}}
     if ($FromDir) {
         try { & claude plugin marketplace add $FromDir } catch {}
     } else {

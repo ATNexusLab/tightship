@@ -15,6 +15,14 @@ command = "agy"
 min-version = "1.4.0"
 aliases = ["agy"]
 
+[install.companion-steps.plugin]
+sh = 'step "Installing the {plugin} companion" agy plugin install https://github.com/{repository}'
+ps1 = 'Invoke-Step "Installing the {plugin} companion" { & agy plugin install https://github.com/{repository} }'
+
+[install.companion-steps.skill]
+sh = 'install_skill {plugin} {repository}'
+ps1 = 'Install-Skill {plugin} {repository}'
+
 [paths]
 data = ".gemini/config/plugin_data/tightship"
 config = ".gemini/antigravity-cli"
@@ -75,12 +83,13 @@ tools = [
 
 [[companions]]
 plugin = "ponytail"
-marketplace = "https://github.com/DietrichGebert/ponytail"
+repository = "DietrichGebert/ponytail"
 
 [[companions]]
 plugin = "i-have-adhd"
-marketplace = "https://github.com/ayghri/i-have-adhd"
+repository = "ayghri/i-have-adhd"
 
 [[companions]]
 plugin = "humanizer"
-marketplace = "https://github.com/blader/humanizer"
+repository = "blader/humanizer"
+kind = "skill"

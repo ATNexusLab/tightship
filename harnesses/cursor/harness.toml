@@ -70,11 +70,14 @@ tools = [
 [[companions]]
 plugin = "ponytail"
 marketplace = "ponytail"
+repository = "DietrichGebert/ponytail"
 
 [[companions]]
 plugin = "i-have-adhd"
 marketplace = "i-have-adhd"
+repository = "ayghri/i-have-adhd"
 
 [[companions]]
 plugin = "humanizer"
 marketplace = "humanizer"
+repository = "blader/humanizer"
