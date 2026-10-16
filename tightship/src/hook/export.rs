@@ -2,7 +2,11 @@ use crate::failure::Failure;
 use crate::vault;
 
 pub fn run() -> Result<(), Failure> {
-    match vault::folder() {
+    let options = crate::options::load()?;
+    if !options.memory {
+        return Ok(());
+    }
+    match vault::folder_from(&options) {
         Ok(folder) => super::export_vault(&folder),
         Err(Failure::VaultNotSet | Failure::VaultNotAbsolute(_) | Failure::VaultMissing(_)) => {
             Ok(())

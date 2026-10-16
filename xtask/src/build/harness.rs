@@ -14,6 +14,10 @@ pub struct Harness {
     #[serde(skip)]
     pub name: String,
     pub plugin: Plugin,
+    pub dist: Dist,
+    pub install: Install,
+    #[serde(default)]
+    pub paths: BTreeMap<String, String>,
     pub references: References,
     pub access: Access,
     pub contract: Option<ContractTable>,
@@ -31,6 +35,37 @@ pub struct Plugin {
     pub author: String,
     pub repository: String,
     pub license: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Dist {
+    pub manifest: String,
+    pub catalog: Option<String>,
+    #[serde(rename = "try-it")]
+    pub try_it: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Install {
+    pub label: String,
+    pub command: String,
+    #[serde(rename = "min-version")]
+    pub min_version: String,
+    #[serde(default)]
+    pub aliases: Vec<String>,
+}
+
+impl Install {
+    pub fn field(&self, name: &str) -> Option<&str> {
+        match name {
+            "label" => Some(&self.label),
+            "command" => Some(&self.command),
+            "min-version" => Some(&self.min_version),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Deserialize)]

@@ -403,3 +403,74 @@ fn executable(file: &Path) {
     use std::os::unix::fs::PermissionsExt;
     fs::set_permissions(file, fs::Permissions::from_mode(0o755)).expect("an executable");
 }
+
+#[test]
+fn scenario_8_tightship_vault_reads_vault_folder_from_options_toml() {
+    let sandbox = Sandbox::new();
+    let home = sandbox.path("home");
+    let vault = home.join("ai-memory");
+    fs::create_dir_all(&vault).expect("create vault dir");
+    let project = sandbox.path("tightship");
+    fs::create_dir_all(project.join(".git")).expect("the project's .git");
+
+    sandbox.write(
+        "home/ai-memory/notes/tightship/mem-0001-a-note.md",
+        "---\nid: mem-0001\ntype: preference\nproject: tightship\nwhy: testing options toml resolution\npinned: true\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-01\n---\n\n# A note\n\nBody here.\n",
+    );
+    sandbox.write(
+        "home/ai-memory/notes/tightship/mem-0002-handoff.md",
+        "---\nid: mem-0002\ntype: handoff\nproject: tightship\nwhy: next session picks up here\npinned: true\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-14\n---\n\n# Handoff\n\n**Goal:** ship plugin\n**Done:** options\n**Next step:** tests\n**Open decisions:** none\n**Repo state:** clean\n",
+    );
+    sandbox.write("data/options.toml", "vault_folder = \"~/ai-memory\"\n");
+
+    let mut path_cmd = sandbox.tightship(&["vault", "path"]);
+    path_cmd
+        .env("HOME", &home)
+        .env("USERPROFILE", &home)
+        .env("TIGHTSHIP_DATA", sandbox.path("data"));
+    let output = run(&mut path_cmd);
+    assert_succeeds(&output);
+    assert_eq!(stdout_of(&output), format!("{}\n", vault.display()));
+
+    let mut search_cmd = sandbox.tightship(&["vault", "search", "options"]);
+    search_cmd
+        .current_dir(&project)
+        .env("HOME", &home)
+        .env("USERPROFILE", &home)
+        .env("TIGHTSHIP_DATA", sandbox.path("data"));
+    let output = run(&mut search_cmd);
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    assert!(
+        stdout.contains("notes/tightship/mem-0001-a-note.md"),
+        "{stdout}"
+    );
+
+    let mut start_cmd = sandbox.tightship(&["hook", "start"]);
+    start_cmd
+        .current_dir(&project)
+        .env("HOME", &home)
+        .env("USERPROFILE", &home)
+        .env("TIGHTSHIP_DATA", sandbox.path("data"));
+    let output = run(&mut start_cmd);
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    assert!(stdout.contains("mem-0001"), "{stdout}");
+    assert!(stdout.contains("**Goal:** ship plugin"), "{stdout}");
+
+    let mut claim_cmd = sandbox.tightship(&["vault", "handoff", "claim"]);
+    claim_cmd
+        .current_dir(&project)
+        .env("HOME", &home)
+        .env("USERPROFILE", &home)
+        .env("TIGHTSHIP_DATA", sandbox.path("data"));
+    let output = run(&mut claim_cmd);
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    assert!(stdout.contains("**Goal:** ship plugin"), "{stdout}");
+    assert!(
+        !sandbox
+            .path("home/ai-memory/notes/tightship/mem-0002-handoff.md")
+            .exists()
+    );
+}

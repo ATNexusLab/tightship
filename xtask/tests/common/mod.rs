@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 use tempfile::{NamedTempFile, TempDir};
@@ -15,16 +15,28 @@ impl Repository {
             root: tempfile::tempdir().expect("a temporary directory"),
             global_git_config: NamedTempFile::new().expect("an empty git config"),
         };
-        let harness = include_str!("../../../harnesses/claude-code/harness.toml");
         let base = [
             (
-                "Cargo.toml",
+                "Cargo.toml".to_owned(),
                 "[workspace.package]\nversion = \"0.1.0\"\n".to_owned(),
             ),
-            ("harnesses/claude-code/harness.toml", harness.to_owned()),
-            (".identity-terms", "fixture-maintainer-handle\n".to_owned()),
+            (
+                ".identity-terms".to_owned(),
+                "fixture-maintainer-handle\n".to_owned(),
+            ),
+            (
+                "installer/install.sh".to_owned(),
+                include_str!("../../../installer/install.sh").to_owned(),
+            ),
+            (
+                "installer/install.ps1".to_owned(),
+                include_str!("../../../installer/install.ps1").to_owned(),
+            ),
         ];
-        for (path, text) in base.iter().chain(files) {
+        for (path, text) in base.into_iter().chain(harness_files("claude-code")) {
+            repository.write(&path, &text);
+        }
+        for (path, text) in files {
             repository.write(path, text);
         }
         repository.git(&["init", "--quiet"]);
@@ -73,6 +85,27 @@ impl Repository {
             .env("GIT_CONFIG_NOSYSTEM", "1");
         command
     }
+}
+
+pub fn harness_files(harness: &str) -> Vec<(String, String)> {
+    fn walk(folder: &Path, prefix: &str, files: &mut Vec<(String, String)>) {
+        for entry in fs::read_dir(folder).expect("a harness folder") {
+            let entry = entry.expect("an entry");
+            let relative = format!("{prefix}/{}", entry.file_name().to_string_lossy());
+            if entry.file_type().expect("a file type").is_dir() {
+                walk(&entry.path(), &relative, files);
+            } else {
+                let text = fs::read_to_string(entry.path()).expect("a harness file");
+                files.push((relative, text));
+            }
+        }
+    }
+    let folder = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../harnesses")
+        .join(harness);
+    let mut files = Vec::new();
+    walk(&folder, &format!("harnesses/{harness}"), &mut files);
+    files
 }
 
 pub fn stderr_of(output: &Output) -> String {

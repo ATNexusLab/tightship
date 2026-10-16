@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.8.1 — 2026-10-16
+
+Editorial. The [spec of epic #59](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md) settles OQ-04,
+OQ-05, OQ-06, and OQ-08 for Antigravity CLI.
+
+**Changed**
+
+- NFR-FLEX-03 and NFR-FLEX-03.1 name Antigravity CLI 1.4.0 as the minimum supported version and record
+  FR-MEM-02.2 as the only criterion Antigravity CLI 1.4.0 cannot fire automatically because `SessionStart`
+  runs only once at conversation start.
+- OQ-04, OQ-05, OQ-06, and OQ-08 now ask about Cursor and Codex only. For Antigravity CLI, the
+  [spec of epic #59](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md) settles them: minimum
+  version 1.4.0; companions and options installed by the one-command interactive installer (`install.sh` /
+  `install.ps1`) or the install guide's commands; contract injected by `SessionStart` hooks in
+  `injectSteps` JSON format with a `contract` skill for reload after `/compact`; status line written to
+  `~/.gemini/antigravity-cli/settings.json` with consent and restored when turned off.
+- Overview: the harness versions table states Antigravity CLI 1.4.0 and the Windows `cmd /c` hook
+  launcher.
+
 ## 1.8.0 — 2026-10-15
 
 Two changes the maintainer approved in the planning of sprint 2. Cursor and Antigravity CLI are built in the

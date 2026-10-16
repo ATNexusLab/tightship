@@ -48,11 +48,11 @@ agent.
 
 ## NFR-FLEX-03 — Antigravity CLI is supported
 
-The system shall pass every functional acceptance criterion in Antigravity CLI.
+The system shall pass every functional acceptance criterion in Antigravity CLI, from version 1.4.0.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | Third harness in [BR-01](../business-rules.md#br-01). |
+| Rationale | Third harness in [BR-01](../business-rules.md#br-01). 1.4.0 is the version verified for `plugin.json` / `hooks.json` validation, `injectSteps` hook output, and `statusLine` support ([epic #59 spec](../../specs/antigravity-cli-plugin/antigravity-cli-plugin.md)). |
 | Source | Maintainer, elicitation 2026-10-14 |
 | Priority | Must |
 | Status | approved |
@@ -61,8 +61,10 @@ The system shall pass every functional acceptance criterion in Antigravity CLI.
 
 **Acceptance criteria**
 
-- **NFR-FLEX-03.1** — 100% of the functional acceptance criteria pass in Antigravity CLI at its minimum
-  supported version, except those its spec records as impossible in that harness, each with its reason.
+- **NFR-FLEX-03.1** — 100% of the functional acceptance criteria pass in Antigravity CLI 1.4.0, except
+  [FR-MEM-02.2](../functional/memory.md#fr-mem-02), which [epic #59 spec](../../specs/antigravity-cli-plugin/antigravity-cli-plugin.md)
+  records as impossible in Antigravity CLI 1.4.0 because `SessionStart` fires only once at conversation
+  start and no post-compaction hook event exists.
 
 <a id="nfr-flex-04"></a>
 

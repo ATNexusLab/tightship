@@ -4,7 +4,7 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-use common::{Repository, assert_fails_with, assert_succeeds, stderr_of};
+use common::{Repository, assert_fails_with, assert_succeeds, harness_files, stderr_of};
 
 fn piece<'path>(path: &'path str, body: &str) -> (&'path str, String) {
     let name = Path::new(path)
@@ -575,4 +575,140 @@ fn an_option_naming_the_harness_or_a_missing_piece_fails() {
         &output,
         "error: content/options.toml:10: {{command:nope}} names no command in content/",
     );
+}
+
+#[test]
+fn both_harnesses_build_from_canonical_content_and_pass_validation() {
+    let harness_files = harness_files("antigravity-cli");
+    let mut files: Vec<(&str, String)> = harness_files
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.clone()))
+        .collect();
+    files.extend([
+        typed_options(&[
+            ("contract", "boolean", "Contract"),
+            ("memory", "boolean", "Memory"),
+            ("status_line", "boolean", "Status line"),
+            ("vault_folder", "directory", "Vault folder"),
+        ]),
+        (
+            "content/contract.md",
+            "+++\n[gated]\nMemory = \"memory\"\n+++\n\n# Global Working Contract\n\nPreamble.\n\n## Section 1\n\nSection 1 text.\n\n## Memory\n\nMemory text.\n".to_owned(),
+        ),
+        (
+            "content/agents/adversarial-verifier.md",
+            "+++\nname = \"adversarial-verifier\"\ndescription = \"Verifier\"\naccess = \"read-only\"\n+++\nVerifier body.\n".to_owned(),
+        ),
+    ]);
+    let skill_names = [
+        "architecture-reading",
+        "spec-writing",
+        "frontend-architecture",
+        "technical-writing",
+        "hexagonal-architecture",
+        "requirements-engineering",
+        "grilling",
+        "security-audit",
+        "project-docs",
+        "api-design",
+        "performance-analysis",
+        "testing-contract",
+        "database-design",
+    ];
+    let command_names = [
+        "epic",
+        "audit",
+        "sync",
+        "spec",
+        "requirements",
+        "sprint",
+        "pr-review",
+        "closeout",
+        "handoff",
+        "bootstrap",
+    ];
+    let pieces: Vec<(String, String)> = skill_names
+        .iter()
+        .map(|name| {
+            (
+                format!("content/skills/{name}/SKILL.md"),
+                format!(
+                    "+++\nname = \"{name}\"\ndescription = \"Skill {name}\"\n+++\nBody of {name}.\n"
+                ),
+            )
+        })
+        .chain(command_names.iter().map(|name| {
+            (
+                format!("content/commands/{name}.md"),
+                format!("+++\nname = \"{name}\"\ndescription = \"Command {name}\"\nargument-hint = \"[arg]\"\n+++\nBody of {name}.\n"),
+            )
+        }))
+        .collect();
+    files.extend(
+        pieces
+            .iter()
+            .map(|(path, text)| (path.as_str(), text.clone())),
+    );
+
+    let repository = Repository::with(&files);
+    assert_succeeds(&repository.run("build"));
+
+    assert!(repository.path("dist/claude-code").is_dir());
+    assert!(repository.path("dist/antigravity-cli").is_dir());
+
+    for name in skill_names {
+        assert!(
+            repository
+                .path(&format!("dist/antigravity-cli/skills/{name}/SKILL.md"))
+                .is_file()
+        );
+    }
+    for name in command_names {
+        let skill_file = repository.path(&format!("dist/antigravity-cli/skills/{name}/SKILL.md"));
+        assert!(skill_file.is_file());
+        let text = fs::read_to_string(&skill_file).expect("command as skill");
+        assert!(!text.contains("argument-hint"));
+    }
+    assert!(
+        repository
+            .path("dist/antigravity-cli/skills/contract/SKILL.md")
+            .is_file()
+    );
+
+    let verifier =
+        fs::read_to_string(repository.path("dist/antigravity-cli/agents/adversarial-verifier.md"))
+            .expect("verifier agent");
+    assert!(verifier.contains("view_file"));
+    assert!(verifier.contains("list_dir"));
+    assert!(verifier.contains("find_by_name"));
+    assert!(verifier.contains("grep_search"));
+    assert!(verifier.contains("run_command"));
+    assert!(!verifier.contains("write_to_file"));
+    assert!(!verifier.contains("replace_file_content"));
+
+    let part_1 = fs::read_to_string(repository.path("dist/antigravity-cli/contract/part-1.md"))
+        .expect("part-1.md");
+    assert!(part_1.contains(
+        "After any context compaction (/compact), load the contract skill to restore this contract in full."
+    ));
+
+    if Command::new("which")
+        .arg("agy")
+        .output()
+        .map(|out| out.status.success())
+        .unwrap_or(false)
+    {
+        let validate = Command::new("agy")
+            .arg("plugin")
+            .arg("validate")
+            .arg(repository.path("dist/antigravity-cli"))
+            .arg("--strict")
+            .output()
+            .expect("agy validate runs");
+        assert!(
+            validate.status.success(),
+            "agy plugin validate: {}",
+            String::from_utf8_lossy(&validate.stderr)
+        );
+    }
 }
