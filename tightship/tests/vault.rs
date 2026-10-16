@@ -426,6 +426,7 @@ fn scenario_8_tightship_vault_reads_vault_folder_from_options_toml() {
     let mut path_cmd = sandbox.tightship(&["vault", "path"]);
     path_cmd
         .env("HOME", &home)
+        .env("USERPROFILE", &home)
         .env("TIGHTSHIP_DATA", sandbox.path("data"));
     let output = run(&mut path_cmd);
     assert_succeeds(&output);
@@ -435,6 +436,7 @@ fn scenario_8_tightship_vault_reads_vault_folder_from_options_toml() {
     search_cmd
         .current_dir(&project)
         .env("HOME", &home)
+        .env("USERPROFILE", &home)
         .env("TIGHTSHIP_DATA", sandbox.path("data"));
     let output = run(&mut search_cmd);
     assert_succeeds(&output);
@@ -448,6 +450,7 @@ fn scenario_8_tightship_vault_reads_vault_folder_from_options_toml() {
     start_cmd
         .current_dir(&project)
         .env("HOME", &home)
+        .env("USERPROFILE", &home)
         .env("TIGHTSHIP_DATA", sandbox.path("data"));
     let output = run(&mut start_cmd);
     assert_succeeds(&output);
@@ -459,6 +462,7 @@ fn scenario_8_tightship_vault_reads_vault_folder_from_options_toml() {
     claim_cmd
         .current_dir(&project)
         .env("HOME", &home)
+        .env("USERPROFILE", &home)
         .env("TIGHTSHIP_DATA", sandbox.path("data"));
     let output = run(&mut claim_cmd);
     assert_succeeds(&output);

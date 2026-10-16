@@ -349,7 +349,7 @@ fn scenario_4_session_start_injects_contract_and_memory_as_inject_steps_json() {
     sandbox.write(
         "data/options.toml",
         &format!(
-            "contract = true\nmemory = true\nvault_folder = \"{}\"\n",
+            "contract = true\nmemory = true\nvault_folder = '{}'\n",
             vault.display()
         ),
     );
@@ -430,7 +430,7 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     sandbox.write(
         "data/options.toml",
         &format!(
-            "contract = true\nmemory = false\nvault_folder = \"{}\"\n",
+            "contract = true\nmemory = false\nvault_folder = '{}'\n",
             vault.display()
         ),
     );
@@ -530,7 +530,7 @@ fn scenario_7_prompt_checkpoint_fires_on_every_10th_pre_invocation_using_convers
     let vault = sandbox.path("vault");
     sandbox.write(
         "data/options.toml",
-        &format!("memory = true\nvault_folder = \"{}\"\n", vault.display()),
+        &format!("memory = true\nvault_folder = '{}'\n", vault.display()),
     );
 
     for call in 1..=10 {
