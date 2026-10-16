@@ -100,9 +100,8 @@ fn cursor_contract_hooks_call_contract_part_on_session_start_and_every_prompt() 
         serde_json::from_str(&read(&repository, "dist/cursor/hooks/hooks.json"))
             .expect("valid JSON");
     let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
-    let part = format!(
-        "{binary} options disabled contract || {binary} hook contract-part part-1.md"
-    );
+    let part =
+        format!("{binary} options disabled contract || {binary} hook contract-part part-1.md");
     let memory_part = format!(
         "{binary} options disabled contract || {binary} options disabled memory || {binary} hook contract-part memory.md"
     );
@@ -136,9 +135,11 @@ fn cursor_contract_hooks_call_contract_part_on_session_start_and_every_prompt() 
     let home = repository.path("home-default");
     let stdout = run_contract_part(&repository, "part-1.md", &home, None);
     let value: serde_json::Value = serde_json::from_str(stdout.trim()).expect("one JSON line");
-    assert!(value["additional_context"]
-        .as_str()
-        .is_some_and(|text| text.contains("Rule A.")));
+    assert!(
+        value["additional_context"]
+            .as_str()
+            .is_some_and(|text| text.contains("Rule A."))
+    );
 }
 
 #[test]
@@ -151,7 +152,10 @@ fn cursor_contract_hooks_honor_the_options() {
     };
     let home = repository.path("home-options");
 
-    assert_eq!(run_contract_part(&repository, "part-1.md", &home, None), json_line(&part));
+    assert_eq!(
+        run_contract_part(&repository, "part-1.md", &home, None),
+        json_line(&part)
+    );
     assert_eq!(
         run_contract_part(&repository, "memory.md", &home, None),
         json_line(&memory)

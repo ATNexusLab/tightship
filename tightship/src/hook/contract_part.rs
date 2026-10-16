@@ -16,13 +16,13 @@ pub fn run(file: &str) -> Result<(), Failure> {
     }
     let root = plugin_root()?;
     let path = contract_file(&root, file)?;
-    let text = fs::read_to_string(&path).map_err(|error| Failure::ContractPartUnreadable(path, error))?;
+    let text =
+        fs::read_to_string(&path).map_err(|error| Failure::ContractPartUnreadable(path, error))?;
     let payload = serde_json::json!({ "additional_context": text });
     println!(
         "{}",
-        serde_json::to_string(&payload).map_err(|error| {
-            Failure::HookOutputInvalid(PathBuf::from(error.to_string()))
-        })?
+        serde_json::to_string(&payload)
+            .map_err(|error| { Failure::HookOutputInvalid(PathBuf::from(error.to_string())) })?
     );
     Ok(())
 }

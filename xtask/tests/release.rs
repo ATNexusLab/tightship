@@ -272,15 +272,18 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
     }
     let mut cursor_expected = plugin_files(&repository, "cursor");
     cursor_expected.retain(|file| file != ".cursor-plugin/marketplace.json");
-    assert_eq!(cursor_modes.keys().cloned().collect::<Vec<_>>(), cursor_expected);
+    assert_eq!(
+        cursor_modes.keys().cloned().collect::<Vec<_>>(),
+        cursor_expected
+    );
     assert!(
         cursor_modes
             .values()
             .all(|mode| *mode == 0o755 || *mode == 0o644)
     );
 
-    let cursor_catalog_text =
-        fs::read_to_string(repository.path("dist/cursor-marketplace.json")).expect("cursor catalog");
+    let cursor_catalog_text = fs::read_to_string(repository.path("dist/cursor-marketplace.json"))
+        .expect("cursor catalog");
     let cursor_catalog: serde_json::Value =
         serde_json::from_str(&cursor_catalog_text).expect("valid JSON");
     assert_eq!(

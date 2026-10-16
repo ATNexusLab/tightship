@@ -350,13 +350,14 @@ fn json_at(repository: &Repository, path: &str) -> serde_json::Value {
 }
 
 fn canonical_content(relative: &str) -> String {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join(relative);
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join(relative);
     fs::read_to_string(path).expect("canonical content")
 }
 
 fn claude_code_neutrality_terms() -> Vec<String> {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../harnesses/claude-code/harness.toml");
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../harnesses/claude-code/harness.toml");
     let text = fs::read_to_string(path).expect("claude-code harness");
     let section = text
         .split("[neutrality]")
@@ -637,11 +638,7 @@ fn cursor_plugin_renders_slash_commands_without_plugin_prefix() {
     let manifest = json_at(&repository, "dist/cursor/.cursor-plugin/plugin.json");
     assert!(manifest.get("dependencies").is_none());
     assert!(manifest.get("userConfig").is_none());
-    assert!(
-        repository
-            .path("dist/cursor/bin/tightship.cmd")
-            .is_file()
-    );
+    assert!(repository.path("dist/cursor/bin/tightship.cmd").is_file());
 }
 
 #[test]
@@ -710,10 +707,8 @@ fn cursor_grilling_skill_holds_no_claude_code_literals() {
     )]);
 
     assert_succeeds(&repository.run("build"));
-    let rendered = fs::read_to_string(
-        repository.path("dist/cursor/skills/grilling/SKILL.md"),
-    )
-    .expect("rendered grilling skill");
+    let rendered = fs::read_to_string(repository.path("dist/cursor/skills/grilling/SKILL.md"))
+        .expect("rendered grilling skill");
     for term in claude_code_neutrality_terms() {
         assert!(
             !rendered.contains(&term),
@@ -731,9 +726,10 @@ fn cursor_session_start_includes_status_line_hook() {
     )]);
 
     assert_succeeds(&repository.run("build"));
-    let hooks: serde_json::Value =
-        serde_json::from_str(&fs::read_to_string(repository.path("dist/cursor/hooks/hooks.json")).expect("hooks"))
-            .expect("valid JSON");
+    let hooks: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(repository.path("dist/cursor/hooks/hooks.json")).expect("hooks"),
+    )
+    .expect("valid JSON");
     let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
     assert!(
         hooks["hooks"]["sessionStart"]
@@ -754,10 +750,9 @@ fn cursor_verifier_agent_has_readonly_front_matter() {
     )]);
 
     assert_succeeds(&repository.run("build"));
-    let rendered = fs::read_to_string(
-        repository.path("dist/cursor/agents/adversarial-verifier.md"),
-    )
-    .expect("rendered verifier");
+    let rendered =
+        fs::read_to_string(repository.path("dist/cursor/agents/adversarial-verifier.md"))
+            .expect("rendered verifier");
     assert!(
         rendered.contains("readonly: true\n") || rendered.contains("readonly: \"true\"\n"),
         "expected readonly: true in front matter:\n{rendered}"

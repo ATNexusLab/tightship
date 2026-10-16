@@ -237,11 +237,9 @@ impl fmt::Display for Failure {
             Self::ContractPartNameInvalid(name) => {
                 write!(formatter, "contract part name {:?} is invalid", name)
             }
-            Self::ContractPartMissing(path) => write!(
-                formatter,
-                "contract part {} is missing",
-                path.display()
-            ),
+            Self::ContractPartMissing(path) => {
+                write!(formatter, "contract part {} is missing", path.display())
+            }
             Self::ContractPartUnreadable(path, error) => write!(
                 formatter,
                 "cannot read contract part {}: {error}",

@@ -81,15 +81,10 @@ enum StatusLineCommand {
 
 #[derive(Subcommand)]
 enum OptionsCommand {
-    Set {
-        name: String,
-        value: String,
-    },
+    Set { name: String, value: String },
     List,
     Reset,
-    Disabled {
-        name: String,
-    },
+    Disabled { name: String },
 }
 
 #[derive(Subcommand)]
@@ -151,13 +146,14 @@ fn main() -> ExitCode {
         Area::Options(OptionsCommand::Set { name, value }) => options::cursor_set(&name, &value),
         Area::Options(OptionsCommand::List) => options::cursor_list(),
         Area::Options(OptionsCommand::Reset) => options::cursor_reset(),
-        Area::Options(OptionsCommand::Disabled { name }) => match options::cursor_validate_name(&name)
-            .and_then(|()| options::cursor_boolean(&name))
-        {
-            Ok(true) => return ExitCode::from(1),
-            Ok(false) => Ok(()),
-            Err(failure) => Err(failure),
-        },
+        Area::Options(OptionsCommand::Disabled { name }) => {
+            match options::cursor_validate_name(&name).and_then(|()| options::cursor_boolean(&name))
+            {
+                Ok(true) => return ExitCode::from(1),
+                Ok(false) => Ok(()),
+                Err(failure) => Err(failure),
+            }
+        }
     };
     match ran {
         Ok(()) => ExitCode::SUCCESS,

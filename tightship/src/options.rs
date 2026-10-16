@@ -10,9 +10,11 @@ use crate::failure::Failure;
 pub const CURSOR_OPTION_NAMES: &[&str] = &["contract", "memory", "status_line", "vault_folder"];
 
 pub fn cursor_options_path() -> Result<PathBuf, Failure> {
-    let home = home_dir().ok_or_else(|| Failure::OptionsUnreadable(PathBuf::new(), {
-        io::Error::new(io::ErrorKind::NotFound, "HOME is not set")
-    }))?;
+    let home = home_dir().ok_or_else(|| {
+        Failure::OptionsUnreadable(PathBuf::new(), {
+            io::Error::new(io::ErrorKind::NotFound, "HOME is not set")
+        })
+    })?;
     Ok(home.join(".cursor").join("tightship").join("options.json"))
 }
 
@@ -48,10 +50,7 @@ pub fn cursor_set(name: &str, value: &str) -> Result<(), Failure> {
     let display = if name == "vault_folder" {
         let expanded = expand_tilde(Path::new(value.trim()));
         let stored = expanded.to_string_lossy().into_owned();
-        table.insert(
-            name.to_owned(),
-            Value::String(stored.clone()),
-        );
+        table.insert(name.to_owned(), Value::String(stored.clone()));
         stored
     } else {
         let enabled = parse_boolean_value(name, value)?;
@@ -93,8 +92,7 @@ fn cursor_read_table(path: &Path) -> Result<serde_json::Map<String, Value>, Fail
     if !path.is_file() {
         return Ok(serde_json::Map::new());
     }
-    let text = fs::read_to_string(path)
-        .map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    let text = fs::read_to_string(path).map_err(|error| Failure::OptionsIo(error.to_string()))?;
     let value = serde_json::from_str::<Value>(&text)
         .map_err(|_| Failure::OptionsJsonInvalid(path.to_path_buf()))?;
     match value {
@@ -141,7 +139,11 @@ impl Options {
     }
 }
 
-fn json_boolean(table: &serde_json::Map<String, Value>, name: &str, file: &Path) -> Result<bool, Failure> {
+fn json_boolean(
+    table: &serde_json::Map<String, Value>,
+    name: &str,
+    file: &Path,
+) -> Result<bool, Failure> {
     match table.get(name) {
         None => Ok(true),
         Some(Value::Bool(false)) => Ok(false),
@@ -150,7 +152,10 @@ fn json_boolean(table: &serde_json::Map<String, Value>, name: &str, file: &Path)
     }
 }
 
-fn json_vault_folder(table: &serde_json::Map<String, Value>, file: &Path) -> Result<Option<PathBuf>, Failure> {
+fn json_vault_folder(
+    table: &serde_json::Map<String, Value>,
+    file: &Path,
+) -> Result<Option<PathBuf>, Failure> {
     match table.get("vault_folder") {
         None => Ok(None),
         Some(Value::String(value)) if value.trim().is_empty() => Ok(None),

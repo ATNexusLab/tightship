@@ -582,11 +582,7 @@ fn contract_part_prints_json_and_respects_cursor_options() {
     let home = sandbox.path("home");
     let options_folder = home.join(".cursor/tightship");
     fs::create_dir_all(&options_folder).expect("options folder");
-    fs::write(
-        options_folder.join("options.json"),
-        r#"{"contract":false}"#,
-    )
-    .expect("options");
+    fs::write(options_folder.join("options.json"), r#"{"contract":false}"#).expect("options");
     let mut command = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
     command
         .env("CURSOR_PLUGIN_ROOT", &plugin)
@@ -659,10 +655,7 @@ fn start_reads_the_vault_from_cursor_options_json() {
     let data = cursor_data_dir(&sandbox, "adopter");
     fs::write(
         data.join("options.json"),
-        format!(
-            r#"{{"memory":true,"vault_folder":"{}"}}"#,
-            vault.display()
-        ),
+        format!(r#"{{"memory":true,"vault_folder":"{}"}}"#, vault.display()),
     )
     .expect("options.json");
     let working_directory = project(&sandbox, "tightship");
@@ -677,10 +670,7 @@ fn start_reads_the_vault_from_cursor_options_json() {
     let value: serde_json::Value =
         serde_json::from_str(stdout_of(&output).trim()).expect("one JSON line");
     let text = value["additional_context"].as_str().expect("context");
-    assert!(
-        text.contains("[[mem-0099-a-note]]"),
-        "{text}"
-    );
+    assert!(text.contains("[[mem-0099-a-note]]"), "{text}");
 }
 
 #[test]
