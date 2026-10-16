@@ -12,8 +12,6 @@ param(
 
     [string]$InitVault,
 
-    [string]$Version = "latest",
-
     [string]$FromDir,
 
     [Alias("y")]
@@ -23,6 +21,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+$ReleaseTag = ""
+$AntigravityCliSha256 = ""
 
 if ($Help) {
     Write-Output @"
@@ -37,8 +38,7 @@ Options:
   -StatusLine <bool>    Enable status line: true or false (default: true)
   -VaultFolder <path>   Path to memory vault (e.g. ~/ai-memory)
   -InitVault <bool>     Initialize missing vault folder with tightship vault init (default: false)
-  -Version <tag>        Release version to install (default: latest)
-  -FromDir <path>       Install from local directory instead of downloading release
+  -FromDir <path>       Install from a local directory instead of downloading this installer's release
   -Yes, -y              Accept defaults without interactive prompts
   -Help                 Show this help message
 "@
@@ -186,6 +186,11 @@ if ($Harness -eq "antigravity-cli" -or $Harness -eq "all") {
     Test-Agy
 }
 
+if ($Harness -ne "claude-code" -and -not $FromDir -and -not $ReleaseTag) {
+    Write-Stderr "error: this install.ps1 belongs to no release; run https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1, or pass -FromDir <folder>"
+    exit 1
+}
+
 $userProfile = if ($env:USERPROFILE) { $env:USERPROFILE } else { $env:HOME }
 $tightshipData = if ($env:TIGHTSHIP_DATA) { $env:TIGHTSHIP_DATA } else { Join-Path $userProfile ".gemini\config\plugin_data\tightship" }
 $optionsFile = Join-Path $tightshipData "options.toml"
@@ -312,17 +317,19 @@ if ($Harness -eq "antigravity-cli" -or $Harness -eq "all") {
         $tempZipFolder = Join-Path ([System.IO.Path]::GetTempPath()) ("tightship-" + [System.Guid]::NewGuid().ToString())
         New-Item -ItemType Directory -Force -Path $tempZipFolder | Out-Null
         $zipDest = Join-Path $tempZipFolder "tightship-antigravity-cli.zip"
-        $downloadUrl = if ($Version -eq "latest") {
-            "https://github.com/ATNexusLab/tightship/releases/latest/download/tightship-antigravity-cli.zip"
-        } else {
-            "https://github.com/ATNexusLab/tightship/releases/download/$Version/tightship-antigravity-cli.zip"
-        }
-        Write-Host "> Downloading tightship-antigravity-cli.zip"
+        $downloadUrl = "https://github.com/ATNexusLab/tightship/releases/download/$ReleaseTag/tightship-antigravity-cli.zip"
+        Write-Host "> Downloading tightship-antigravity-cli.zip $ReleaseTag"
         try {
             Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
         } catch {
             Write-Stderr "error: failed to download tightship-antigravity-cli.zip from $downloadUrl"
             Write-Stderr "hint: if you are running in a local repository clone, run cargo xtask build and pass -FromDir dist\antigravity-cli"
+            exit 1
+        }
+        Write-Host "> Checking the sha256 of tightship-antigravity-cli.zip"
+        $zipSha256 = (Get-FileHash -Algorithm SHA256 -Path $zipDest).Hash.ToLowerInvariant()
+        if ($zipSha256 -ne $AntigravityCliSha256) {
+            Write-Stderr "error: tightship-antigravity-cli.zip has sha256 $zipSha256; $ReleaseTag published $AntigravityCliSha256"
             exit 1
         }
         $extracted = Join-Path $tempZipFolder "extracted"
@@ -348,20 +355,17 @@ status_line = $finalStatusLine
     Set-Content -Path $optionsFile -Value ($tomlContent + "`n") -Encoding utf8
 
     $env:TIGHTSHIP_DATA = $tightshipData
-    $cmdLauncher = Join-Path $pluginTarget "bin\tightship.cmd"
-    $shLauncher = Join-Path $pluginTarget "bin\tightship"
-    if (Test-Path $cmdLauncher) {
-        Invoke-Step "Applying the status line option" { & $cmdLauncher hook status-line }
-    } else {
-        Invoke-Step "Applying the status line option" { & sh $shLauncher hook status-line }
+    function Invoke-Tightship {
+        if ($env:OS -eq "Windows_NT") {
+            & (Join-Path $pluginTarget "bin\tightship.cmd") @args
+        } else {
+            & sh (Join-Path $pluginTarget "bin/tightship") @args
+        }
     }
+    Invoke-Step "Applying the status line option" { Invoke-Tightship hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder) {
-        if (Test-Path $cmdLauncher) {
-            Invoke-Step "Creating the vault at $finalVaultFolder" { & $cmdLauncher vault init $finalVaultFolder }
-        } else {
-            Invoke-Step "Creating the vault at $finalVaultFolder" { & sh $shLauncher vault init $finalVaultFolder }
-        }
+        Invoke-Step "Creating the vault at $finalVaultFolder" { Invoke-Tightship vault init $finalVaultFolder }
     }
 
     if ($tempZipFolder -and (Test-Path $tempZipFolder)) {

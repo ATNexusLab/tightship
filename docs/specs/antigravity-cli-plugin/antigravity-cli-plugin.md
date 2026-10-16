@@ -196,8 +196,7 @@ available (`/dev/tty` on POSIX, `Host.UI` on PowerShell), or uses its default wh
 | `--status-line <bool>` | string | No | `true` or `false`; default `true` |
 | `--vault-folder <path>` | path | No | Absolute path or `~/...` path; default empty |
 | `--init-vault` | flag | No | Creates `<vault-folder>` with `tightship vault init` when it does not exist yet |
-| `--version <tag>` | string | No | Release tag `v<version>` (default: `latest`) |
-| `--from-dir <folder>` | path | No | Installs from a local `dist/` directory instead of downloading from GitHub Releases |
+| `--from-dir <folder>` | path | No | Installs from a local `dist/` directory instead of downloading the installer's own release |
 | `--yes` / `-y` | flag | No | Accepts defaults for any omitted flag without prompting |
 
 ### Response
@@ -427,8 +426,7 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
   1. `claude plugin marketplace add DietrichGebert/ponytail`
   2. `claude plugin marketplace add ayghri/i-have-adhd`
   3. `claude plugin marketplace add blader/humanizer`
-  4. `claude plugin marketplace add ATNexusLab/tightship` (or the release catalog URL when `--version`
-     is specified)
+  4. `claude plugin marketplace add ATNexusLab/tightship`
   5. `claude plugin install tightship@tightship` with `--config contract=<bool>`,
      `--config memory=<bool>`, `--config status_line=<bool>`, and (when non-empty)
      `--config vault_folder=<expanded_path>`.
@@ -437,9 +435,11 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
   2. `agy plugin install https://github.com/ayghri/i-have-adhd`
   3. Downloads `https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md` to
      `~/.gemini/config/skills/humanizer/SKILL.md` (creating the directory if needed).
-  4. Downloads `tightship-antigravity-cli.zip` from the selected release (or copies `--from-dir`),
-     extracts it to a temporary directory, and runs `agy plugin install <temp_dir>` (which installs into
-     `~/.gemini/config/plugins/tightship`).
+  4. Downloads `tightship-antigravity-cli.zip` from the release the installer belongs to (or copies
+     `--from-dir`), checks it against the `sha256` that release wrote into the installer, extracts it to a
+     temporary directory, and runs `agy plugin install <temp_dir>` (which installs into
+     `~/.gemini/config/plugins/tightship`). The installer at the repository root belongs to no release:
+     without `--from-dir` it stops before installing anything.
   5. Writes `~/.gemini/config/plugin_data/tightship/options.toml` with `contract`, `memory`,
      `status_line`, and (when non-empty) `vault_folder`.
   6. Runs `~/.gemini/config/plugins/tightship/bin/tightship hook status-line` so the status line setting
@@ -478,6 +478,8 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
 | `INSTALL_HARNESS_UNKNOWN` | `1` | `install.sh` or `install.ps1` receives an unknown `--harness` value | `"error: unknown harness <value>; expected claude-code, antigravity-cli, or all"` |
 | `INSTALL_CLAUDE_MISSING` | `1` | `claude-code` selected and `claude` is missing or `< 2.1.295` | `"error: claude 2.1.295 or later is required; found <version or 'not installed'>"` |
 | `INSTALL_AGY_MISSING` | `1` | `antigravity-cli` selected and `agy` is missing or `< 1.4.0` | `"error: agy 1.4.0 or later is required; found <version or 'not installed'>"` |
+| `INSTALL_NOT_A_RELEASE` | `1` | `antigravity-cli` selected, no `--from-dir`, and the installer is the repository's, not a release's | `"error: this <installer> belongs to no release; run https://github.com/ATNexusLab/tightship/releases/latest/download/<installer>, or pass --from-dir <folder>"` |
+| `INSTALL_ZIP_SHA256_MISMATCH` | `1` | The downloaded `tightship-antigravity-cli.zip` differs from the `sha256` its release wrote into the installer | `"error: tightship-antigravity-cli.zip has sha256 <actual>; <tag> published <expected>"` |
 
 ## Side Effects
 
@@ -485,7 +487,8 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
   - `cargo xtask build` writes `dist/claude-code/` and `dist/antigravity-cli/` via temporary staging
     folders `dist/.claude-code.tmp` and `dist/.antigravity-cli.tmp`.
   - `cargo xtask package <tag>` writes `dist/tightship-claude-code.zip`,
-    `dist/tightship-antigravity-cli.zip`, and `dist/marketplace.json` via `dist/.package.tmp`.
+    `dist/tightship-antigravity-cli.zip`, `dist/marketplace.json`, and `dist/install.sh` and
+    `dist/install.ps1` with the tag and the Antigravity CLI zip's `sha256`, via `dist/.package.tmp`.
   - `install.sh` and `install.ps1` write `~/.gemini/config/plugin_data/tightship/options.toml` and invoke
     each selected harness's plugin installer.
 - **Concurrency:** Each staging directory is isolated per harness; `settings.json` updates in

@@ -12,6 +12,13 @@ use crate::diagnostics::{Diagnostic, naming};
 use crate::{Failure, stop_on_errors};
 
 const CATALOG: &str = "marketplace.json";
+const INSTALLERS: [(&str, [&str; 2]); 2] = [
+    ("install.sh", ["RELEASE_TAG=", "ANTIGRAVITY_CLI_SHA256="]),
+    (
+        "install.ps1",
+        ["$ReleaseTag = ", "$AntigravityCliSha256 = "],
+    ),
+];
 
 struct Archive {
     harness: &'static str,
@@ -25,14 +32,13 @@ const CLAUDE_CODE: Archive = Archive {
     manifest: ".claude-plugin/plugin.json",
 };
 
-const ARCHIVES: [Archive; 2] = [
-    CLAUDE_CODE,
-    Archive {
-        harness: "antigravity-cli",
-        file: "tightship-antigravity-cli.zip",
-        manifest: "plugin.json",
-    },
-];
+const ANTIGRAVITY_CLI: Archive = Archive {
+    harness: "antigravity-cli",
+    file: "tightship-antigravity-cli.zip",
+    manifest: "plugin.json",
+};
+
+const ARCHIVES: [Archive; 2] = [CLAUDE_CODE, ANTIGRAVITY_CLI];
 
 #[derive(Deserialize)]
 struct Manifest {
@@ -43,9 +49,14 @@ struct Manifest {
 pub fn run(root: &Path, tag: &str) -> Result<String, Failure> {
     let dist = root.join("dist");
     let staging = dist.join(".package.tmp");
-    let packed = pack(&dist, &staging, tag);
+    let packed = pack(root, &staging, tag);
     let published = packed.and_then(|summary| {
-        let files = ARCHIVES.iter().map(|archive| archive.file).chain([CATALOG]);
+        let installers = INSTALLERS.iter().map(|(installer, _)| *installer);
+        let files = ARCHIVES
+            .iter()
+            .map(|archive| archive.file)
+            .chain([CATALOG])
+            .chain(installers);
         for file in files {
             let target = dist.join(file);
             fs::rename(staging.join(file), &target).map_err(naming(&target))?;
@@ -61,7 +72,8 @@ pub fn run(root: &Path, tag: &str) -> Result<String, Failure> {
     published
 }
 
-fn pack(dist: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
+fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
+    let dist = root.join("dist");
     let mut diagnostics = Vec::new();
     let mut manifests = Vec::new();
 
@@ -145,14 +157,17 @@ fn pack(dist: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
             .collect();
 
         if harness == CLAUDE_CODE.harness {
-            write_catalog(dist, staging, &manifest.repository, &sha256, tag)?;
+            write_catalog(&dist, staging, &manifest.repository, &sha256, tag)?;
+        }
+        if harness == ANTIGRAVITY_CLI.harness {
+            write_installers(root, staging, &sha256, tag)?;
         }
         parts.push(format!("dist/{} ({} files)", archive.file, files.len()));
         shas.push(format!("sha256 ({harness}): {sha256}"));
     }
 
     Ok(format!(
-        "Packed {}, and dist/{CATALOG} for {tag}.\n{}",
+        "Packed {}, dist/{CATALOG}, and the installers for {tag}.\n{}",
         parts.join(", "),
         shas.join("\n")
     ))
@@ -184,6 +199,26 @@ fn write_catalog(
     let catalog_path = staging.join(CATALOG);
     let catalog_text = serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n";
     fs::write(&catalog_path, catalog_text).map_err(naming(&catalog_path))?;
+    Ok(())
+}
+
+fn write_installers(root: &Path, staging: &Path, sha256: &str, tag: &str) -> Result<(), Failure> {
+    for (installer, [tag_line, sha256_line]) in INSTALLERS {
+        println!("> Writing {installer} for {tag}");
+        let source = root.join(installer);
+        let text = fs::read_to_string(&source).map_err(naming(&source))?;
+        let mut lines: Vec<String> = text.lines().map(str::to_owned).collect();
+        for (prefix, value) in [(tag_line, tag), (sha256_line, sha256)] {
+            let empty = format!("{prefix}\"\"");
+            let mut matching = lines.iter_mut().filter(|line| **line == empty);
+            let (Some(line), None) = (matching.next(), matching.next()) else {
+                return Err(io::Error::other(format!("{installer} needs one line {empty}")).into());
+            };
+            *line = format!("{prefix}\"{value}\"");
+        }
+        let target = staging.join(installer);
+        fs::write(&target, lines.join("\n") + "\n").map_err(naming(&target))?;
+    }
     Ok(())
 }
 

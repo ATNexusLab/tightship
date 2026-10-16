@@ -27,6 +27,8 @@ fn release_repository(version: &str) -> Repository {
             "harnesses/antigravity-cli/harness.toml",
             antigravity_harness.to_owned(),
         ),
+        ("install.sh", include_str!("../../install.sh").to_owned()),
+        ("install.ps1", include_str!("../../install.ps1").to_owned()),
         (
             "content/commands/epic.md",
             "+++\nname = \"epic\"\ndescription = \"A piece\"\n+++\nOpen the epic.\n".to_owned(),
@@ -223,6 +225,26 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
             "sha256": sha256,
         })
     );
+    for (installer, tag_line, sha256_line) in [
+        (
+            "install.sh",
+            "RELEASE_TAG=\"v1.0.0\"",
+            format!("ANTIGRAVITY_CLI_SHA256=\"{agy_sha256}\""),
+        ),
+        (
+            "install.ps1",
+            "$ReleaseTag = \"v1.0.0\"",
+            format!("$AntigravityCliSha256 = \"{agy_sha256}\""),
+        ),
+    ] {
+        let released = fs::read_to_string(repository.path(&format!("dist/{installer}")))
+            .expect("the released installer");
+        assert!(released.lines().any(|line| line == tag_line), "{installer}");
+        assert!(
+            released.lines().any(|line| line == sha256_line),
+            "{installer}"
+        );
+    }
     assert_eq!(
         catalog["allowCrossMarketplaceDependenciesOn"],
         serde_json::json!(["ponytail", "i-have-adhd", "humanizer"])
@@ -245,6 +267,7 @@ fn a_tag_other_than_the_version_fails_and_writes_nothing() {
             .exists()
     );
     assert!(!repository.path("dist/marketplace.json").exists());
+    assert!(!repository.path("dist/install.sh").exists());
 }
 
 #[test]

@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+RELEASE_TAG=""
+ANTIGRAVITY_CLI_SHA256=""
 CLAUDE_MIN_VERSION="2.1.295"
 AGY_MIN_VERSION="1.4.0"
 
@@ -17,8 +19,7 @@ Options:
   --status-line <bool>   Enable status line: true or false (default: true)
   --vault-folder <path>  Path to memory vault (e.g. ~/ai-memory)
   --init-vault <bool>    Initialize missing vault folder with tightship vault init (default: false)
-  --version <tag>        Release version to install (default: latest)
-  --from-dir <path>      Install from local directory instead of downloading release
+  --from-dir <path>      Install from a local directory instead of downloading this installer's release
   -y, --yes              Accept defaults without interactive prompts
   -h, --help             Show this help message
 EOF
@@ -67,6 +68,17 @@ extract_version() {
   printf '%s\n' "$1" | grep -oE '[0-9]+(\.[0-9]+)+' | head -n1
 }
 
+sha256_of() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | cut -d' ' -f1
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | cut -d' ' -f1
+  else
+    echo "error: neither sha256sum nor shasum is available to check $1" >&2
+    return 1
+  fi
+}
+
 download_file() {
   _url="$1"
   _dest="$2"
@@ -107,7 +119,6 @@ MEMORY_ARG=""
 STATUS_LINE_ARG=""
 VAULT_FOLDER_ARG=""
 INIT_VAULT_ARG=""
-VERSION="latest"
 FROM_DIR=""
 YES=0
 
@@ -159,14 +170,6 @@ while [ $# -gt 0 ]; do
       ;;
     --init-vault=*)
       INIT_VAULT_ARG="${1#*=}"
-      shift
-      ;;
-    --version)
-      VERSION="$2"
-      shift 2
-      ;;
-    --version=*)
-      VERSION="${1#*=}"
       shift
       ;;
     --from-dir)
@@ -322,6 +325,11 @@ case "$HARNESS" in
     ;;
 esac
 
+if [ "$HARNESS" != "claude-code" ] && [ -z "$FROM_DIR" ] && [ -z "$RELEASE_TAG" ]; then
+  echo "error: this install.sh belongs to no release; run https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh, or pass --from-dir <folder>" >&2
+  exit 1
+fi
+
 TIGHTSHIP_DATA="${TIGHTSHIP_DATA:-${PLUGIN_DATA:-$HOME/.gemini/config/plugin_data/tightship}}"
 OPTIONS_FILE="$TIGHTSHIP_DATA/options.toml"
 
@@ -446,15 +454,17 @@ if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
   else
     TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
     zip_dest="$TMP_DIR/tightship-antigravity-cli.zip"
-    if [ "$VERSION" = "latest" ]; then
-      download_url="https://github.com/ATNexusLab/tightship/releases/latest/download/tightship-antigravity-cli.zip"
-    else
-      download_url="https://github.com/ATNexusLab/tightship/releases/download/$VERSION/tightship-antigravity-cli.zip"
-    fi
-    echo "> Downloading tightship-antigravity-cli.zip"
+    download_url="https://github.com/ATNexusLab/tightship/releases/download/$RELEASE_TAG/tightship-antigravity-cli.zip"
+    echo "> Downloading tightship-antigravity-cli.zip $RELEASE_TAG"
     if ! download_file "$download_url" "$zip_dest"; then
       echo "error: failed to download tightship-antigravity-cli.zip from $download_url" >&2
       echo "hint: if you are running in a local repository clone, run cargo xtask build and pass --from-dir dist/antigravity-cli" >&2
+      exit 1
+    fi
+    echo "> Checking the sha256 of tightship-antigravity-cli.zip"
+    zip_sha256=$(sha256_of "$zip_dest") || exit 1
+    if [ "$zip_sha256" != "$ANTIGRAVITY_CLI_SHA256" ]; then
+      echo "error: tightship-antigravity-cli.zip has sha256 $zip_sha256; $RELEASE_TAG published $ANTIGRAVITY_CLI_SHA256" >&2
       exit 1
     fi
     unzip -q "$zip_dest" -d "$TMP_DIR/extracted"
