@@ -11,3 +11,7 @@ if not defined TIGHTSHIP_ROOT (
 if not defined TIGHTSHIP_DATA (
   set "TIGHTSHIP_DATA={{path:data}}"
 )
+
+if not defined TIGHTSHIP_HOOK_OUTPUT (
+  set "TIGHTSHIP_HOOK_OUTPUT=%PLUGIN_DIR%\hook-output.json"
+)

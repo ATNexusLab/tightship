@@ -631,3 +631,83 @@ fn contract_part_skips_gated_memory_when_memory_is_off() {
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
 }
+
+fn cursor_hook_output(sandbox: &Sandbox) -> PathBuf {
+    sandbox.write(
+        "cursor-hook-output.json",
+        r#"{"additional_context":"{text}"}"#,
+    )
+}
+
+fn cursor_data_dir(sandbox: &Sandbox, home: &str) -> PathBuf {
+    let folder = sandbox.path(home).join(".cursor/tightship");
+    fs::create_dir_all(&folder).expect("cursor data");
+    folder
+}
+
+#[test]
+fn start_reads_the_vault_from_cursor_options_json() {
+    let sandbox = Sandbox::new();
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0099",
+        "pinned: true\n",
+        "Shared from another harness.",
+    );
+    let vault = sandbox.path("vault");
+    let data = cursor_data_dir(&sandbox, "adopter");
+    fs::write(
+        data.join("options.json"),
+        format!(
+            r#"{{"memory":true,"vault_folder":"{}"}}"#,
+            vault.display()
+        ),
+    )
+    .expect("options.json");
+    let working_directory = project(&sandbox, "tightship");
+    let mut command = sandbox.tightship(&["hook", "start"]);
+    command
+        .current_dir(&working_directory)
+        .env("TIGHTSHIP_DATA", &data)
+        .env("CURSOR_PLUGIN_ROOT", sandbox.path("plugin"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", cursor_hook_output(&sandbox));
+    let output = run(&mut command);
+    assert_succeeds(&output);
+    let value: serde_json::Value =
+        serde_json::from_str(stdout_of(&output).trim()).expect("one JSON line");
+    let text = value["additional_context"].as_str().expect("context");
+    assert!(
+        text.contains("[[mem-0099-a-note]]"),
+        "{text}"
+    );
+}
+
+#[test]
+fn checkpoint_on_cursor_emits_user_message_json() {
+    let sandbox = Sandbox::new();
+    let data = cursor_data_dir(&sandbox, "adopter-checkpoint");
+    fs::write(
+        data.join("options.json"),
+        format!(
+            r#"{{"memory":true,"vault_folder":"{}"}}"#,
+            sandbox.path("vault").display()
+        ),
+    )
+    .expect("options.json");
+    fs::create_dir_all(sandbox.path("vault")).expect("vault");
+    let mut command = sandbox.tightship(&["hook", "checkpoint"]);
+    command
+        .env("TIGHTSHIP_DATA", &data)
+        .env("CURSOR_PLUGIN_ROOT", sandbox.path("plugin"));
+    let output = run(&mut command);
+    assert_succeeds(&output);
+    let value: serde_json::Value =
+        serde_json::from_str(stdout_of(&output).trim()).expect("one JSON line");
+    assert!(
+        value["user_message"]
+            .as_str()
+            .is_some_and(|text| text.contains("MEMORY CHECKPOINT")),
+        "{value}"
+    );
+}

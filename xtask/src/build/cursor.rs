@@ -41,7 +41,7 @@ pub fn render(
         let file = staging.join("contract").join(&part.file);
         written.push((file, part.text.clone().into_bytes()));
     }
-    if let Some(hooks) = hooks(parts)? {
+    if let Some(hooks) = hooks(parts, content.options.as_ref())? {
         written.push((staging.join("hooks/hooks.json"), hooks.into_bytes()));
     }
     written.extend(render::harness_files(root, &staging, harness)?);
@@ -50,11 +50,11 @@ pub fn render(
     Ok((staging, written.len()))
 }
 
-fn hooks(parts: &[Part]) -> io::Result<Option<String>> {
-    if parts.is_empty() {
-        return Ok(None);
-    }
-    let commands: Vec<serde_json::Value> = parts
+fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<String>> {
+    let declares =
+        |name| options.is_some_and(|file| file.declared.iter().any(|option| option.name == name));
+    let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
+    let mut session_start: Vec<serde_json::Value> = parts
         .iter()
         .map(|part| {
             json!({
@@ -62,11 +62,33 @@ fn hooks(parts: &[Part]) -> io::Result<Option<String>> {
             })
         })
         .collect();
+    let mut before_submit = session_start.clone();
+    if declares("memory") {
+        let memory = format!("{binary} options disabled memory || {binary} hook start");
+        let prompt = format!("{binary} options disabled memory || {binary} hook prompt");
+        let checkpoint = format!("{binary} options disabled memory || {binary} hook checkpoint");
+        session_start.push(json!({ "command": memory }));
+        before_submit.push(json!({ "command": prompt }));
+        let body = json!({
+            "version": 1,
+            "hooks": {
+                "sessionStart": session_start,
+                "beforeSubmitPrompt": before_submit,
+                "preCompact": [{ "command": checkpoint }],
+            },
+        });
+        return Ok(Some(
+            serde_json::to_string_pretty(&body).map_err(io::Error::other)? + "\n",
+        ));
+    }
+    if session_start.is_empty() {
+        return Ok(None);
+    }
     let body = json!({
         "version": 1,
         "hooks": {
-            "sessionStart": commands.clone(),
-            "beforeSubmitPrompt": commands,
+            "sessionStart": session_start,
+            "beforeSubmitPrompt": before_submit,
         },
     });
     Ok(Some(

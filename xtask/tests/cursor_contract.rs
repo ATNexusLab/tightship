@@ -103,17 +103,32 @@ fn cursor_contract_hooks_call_contract_part_on_session_start_and_every_prompt() 
     let part = format!(
         "{binary} options disabled contract || {binary} hook contract-part part-1.md"
     );
-    let memory = format!(
+    let memory_part = format!(
         "{binary} options disabled contract || {binary} options disabled memory || {binary} hook contract-part memory.md"
     );
+    let memory_start = format!("{binary} options disabled memory || {binary} hook start");
+    let memory_prompt = format!("{binary} options disabled memory || {binary} hook prompt");
+    let memory_checkpoint = format!("{binary} options disabled memory || {binary} hook checkpoint");
     assert_eq!(hooks["version"], serde_json::json!(1));
     assert_eq!(
         hooks["hooks"]["sessionStart"],
-        serde_json::json!([{ "command": part }, { "command": memory }])
+        serde_json::json!([
+            { "command": part },
+            { "command": memory_part },
+            { "command": memory_start }
+        ])
     );
     assert_eq!(
         hooks["hooks"]["beforeSubmitPrompt"],
-        hooks["hooks"]["sessionStart"]
+        serde_json::json!([
+            { "command": part },
+            { "command": memory_part },
+            { "command": memory_prompt }
+        ])
+    );
+    assert_eq!(
+        hooks["hooks"]["preCompact"],
+        serde_json::json!([{ "command": memory_checkpoint }])
     );
     let Some(_) = host_binary(&repository) else {
         return;
