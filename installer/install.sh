@@ -2,18 +2,16 @@
 set -e
 
 RELEASE_TAG=""
-ANTIGRAVITY_CLI_SHA256=""
-CLAUDE_MIN_VERSION="2.1.295"
-AGY_MIN_VERSION="1.4.0"
+REPOSITORY="{{repository}}"
 
 show_help() {
   cat <<'EOF'
 Usage: install.sh [OPTIONS]
 
-Install the tightship plugin for Claude Code, Antigravity CLI, or both.
+Install the tightship plugin for one harness or all of them.
 
 Options:
-  --harness <name>       Target harness: claude-code, antigravity-cli, or all
+  --harness <name>       Target harness: {{harness-choices}}
   --contract <bool>      Enable the working contract: true or false (default: true)
   --memory <bool>        Enable memory layer: true or false (default: true)
   --status-line <bool>   Enable status line: true or false (default: true)
@@ -113,6 +111,63 @@ step() {
   fi
 }
 
+require_version() {
+  _command=$(harness_field "$1" command)
+  _minimum=$(harness_field "$1" min-version)
+  if ! command -v "$_command" >/dev/null 2>&1; then
+    echo "error: $_command $_minimum or later is required; found not installed" >&2
+    exit 1
+  fi
+  _raw=$("$_command" --version 2>&1 || true)
+  _ver=$(extract_version "$_raw")
+  if [ -z "$_ver" ]; then
+    _ver="$_raw"
+  fi
+  if ! version_ge "$_ver" "$_minimum"; then
+    echo "error: $_command $_minimum or later is required; found $_ver" >&2
+    exit 1
+  fi
+}
+
+call_hook() {
+  _hook="$1_$(harness_field "$2" id)"
+  if command -v "$_hook" >/dev/null 2>&1; then
+    "$_hook"
+  fi
+}
+
+harness_numbered() {
+  _index=0
+  for _harness in $HARNESSES; do
+    _index=$((_index + 1))
+    if [ "$_index" = "$1" ]; then
+      echo "$_harness"
+      return 0
+    fi
+  done
+  return 1
+}
+
+labels_of() {
+  _labels=""
+  _left=$#
+  for _harness in "$@"; do
+    _label=$(harness_field "$_harness" label)
+    _left=$((_left - 1))
+    if [ -z "$_labels" ]; then
+      _labels="$_label"
+    elif [ "$_left" -eq 0 ]; then
+      _labels="$_labels and $_label"
+    else
+      _labels="$_labels, $_label"
+    fi
+  done
+  printf '%s\n' "$_labels"
+}
+
+{{harnesses}}
+
+{{fragments}}
 HARNESS=""
 CONTRACT_ARG=""
 MEMORY_ARG=""
@@ -227,123 +282,72 @@ prompt_read() {
   fi
 }
 
-has_claude=0
-has_agy=0
-command -v claude >/dev/null 2>&1 && has_claude=1
-command -v agy >/dev/null 2>&1 && has_agy=1
-
 if [ -n "$HARNESS" ]; then
   case "$HARNESS" in
-    claude|claude-code)
-      HARNESS="claude-code"
-      ;;
-    antigravity-cli|agy)
-      HARNESS="antigravity-cli"
-      ;;
     all|both)
-      HARNESS="all"
+      SELECTED="$HARNESSES"
       ;;
     *)
-      echo "error: unknown harness $HARNESS; expected claude-code, antigravity-cli, or all" >&2
-      exit 1
+      if ! SELECTED=$(harness_named "$HARNESS"); then
+        echo "error: unknown harness $HARNESS; expected {{harness-choices}}" >&2
+        exit 1
+      fi
       ;;
   esac
 else
-  default_harness="all"
-  default_label="Both"
-  if [ "$has_claude" -eq 1 ] && [ "$has_agy" -eq 0 ]; then
-    default_harness="claude-code"
-    default_label="Claude Code"
-  elif [ "$has_claude" -eq 0 ] && [ "$has_agy" -eq 1 ]; then
-    default_harness="antigravity-cli"
-    default_label="Antigravity CLI"
+  detected=""
+  menu=""
+  count=0
+  for harness in $HARNESSES; do
+    count=$((count + 1))
+    menu="$menu[$count] $(harness_field "$harness" label) "
+    if command -v "$(harness_field "$harness" command)" >/dev/null 2>&1; then
+      detected="$detected $harness"
+    fi
+  done
+  default_selection="${detected# }"
+  if [ -z "$default_selection" ]; then
+    default_selection="$HARNESSES"
   fi
 
   if [ "$YES" -eq 1 ]; then
-    HARNESS="$default_harness"
+    SELECTED="$default_selection"
   else
-    choice=$(prompt_read "Install tightship for: [1] Claude Code [2] Antigravity CLI [3] Both (default: $default_label): " "$default_harness")
+    all_number=$((count + 1))
+    choice=$(prompt_read "Install tightship for: $menu[$all_number] All (default: $(labels_of $default_selection)): " "")
     case "$choice" in
-      1|claude|claude-code)
-        HARNESS="claude-code"
+      "")
+        SELECTED="$default_selection"
         ;;
-      2|antigravity-cli|agy)
-        HARNESS="antigravity-cli"
-        ;;
-      3|all|both)
-        HARNESS="all"
+      all|both|"$all_number")
+        SELECTED="$HARNESSES"
         ;;
       *)
-        HARNESS="$default_harness"
+        SELECTED=$(harness_numbered "$choice") || SELECTED=$(harness_named "$choice") || SELECTED="$default_selection"
         ;;
     esac
   fi
 fi
 
-check_claude() {
-  if ! command -v claude >/dev/null 2>&1; then
-    echo "error: claude $CLAUDE_MIN_VERSION or later is required; found not installed" >&2
-    exit 1
-  fi
-  _raw=$(claude --version 2>&1 || true)
-  _ver=$(extract_version "$_raw")
-  if [ -z "$_ver" ]; then
-    _ver="$_raw"
-  fi
-  if ! version_ge "$_ver" "$CLAUDE_MIN_VERSION"; then
-    echo "error: claude $CLAUDE_MIN_VERSION or later is required; found $_ver" >&2
-    exit 1
-  fi
-}
-
-check_agy() {
-  if ! command -v agy >/dev/null 2>&1; then
-    echo "error: agy $AGY_MIN_VERSION or later is required; found not installed" >&2
-    exit 1
-  fi
-  _raw=$(agy --version 2>&1 || true)
-  _ver=$(extract_version "$_raw")
-  if [ -z "$_ver" ]; then
-    _ver="$_raw"
-  fi
-  if ! version_ge "$_ver" "$AGY_MIN_VERSION"; then
-    echo "error: agy $AGY_MIN_VERSION or later is required; found $_ver" >&2
-    exit 1
-  fi
-}
-
-case "$HARNESS" in
-  claude-code)
-    check_claude
-    ;;
-  antigravity-cli)
-    check_agy
-    ;;
-  all)
-    check_claude
-    check_agy
-    ;;
-esac
-
-if [ "$HARNESS" != "claude-code" ] && [ -z "$FROM_DIR" ] && [ -z "$RELEASE_TAG" ]; then
-  echo "error: this install.sh belongs to no release; run https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh, or pass --from-dir <folder>" >&2
-  exit 1
-fi
-
-TIGHTSHIP_DATA="${TIGHTSHIP_DATA:-${PLUGIN_DATA:-$HOME/.gemini/config/plugin_data/tightship}}"
-OPTIONS_FILE="$TIGHTSHIP_DATA/options.toml"
+for harness in $SELECTED; do
+  require_version "$harness"
+  call_hook check "$harness"
+done
 
 existing_contract=""
 existing_memory=""
 existing_status_line=""
 existing_vault_folder=""
 
-if [ -f "$OPTIONS_FILE" ]; then
-  existing_contract=$(grep -E '^[[:space:]]*contract[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*contract[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
-  existing_memory=$(grep -E '^[[:space:]]*memory[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*memory[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
-  existing_status_line=$(grep -E '^[[:space:]]*status_line[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*status_line[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
-  existing_vault_folder=$(grep -E '^[[:space:]]*vault_folder[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*vault_folder[[:space:]]*=[[:space:]]*//' | sed -E -e 's/^[[:space:]]*"((\\.|[^"\\])*)"[[:space:]]*$/\1/' -e 's/\\(.)/\1/g' || true)
-fi
+for harness in $SELECTED; do
+  OPTIONS_FILE=$(call_hook options_file "$harness")
+  if [ -n "$OPTIONS_FILE" ] && [ -f "$OPTIONS_FILE" ]; then
+    existing_contract=$(grep -E '^[[:space:]]*contract[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*contract[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
+    existing_memory=$(grep -E '^[[:space:]]*memory[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*memory[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
+    existing_status_line=$(grep -E '^[[:space:]]*status_line[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*status_line[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
+    existing_vault_folder=$(grep -E '^[[:space:]]*vault_folder[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*vault_folder[[:space:]]*=[[:space:]]*//' | sed -E -e 's/^[[:space:]]*"((\\.|[^"\\])*)"[[:space:]]*$/\1/' -e 's/\\(.)/\1/g' || true)
+  fi
+done
 
 if [ -n "$CONTRACT_ARG" ]; then
   CONTRACT=$(to_bool --contract "$CONTRACT_ARG")
@@ -422,85 +426,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-if [ "$HARNESS" = "claude-code" ] || [ "$HARNESS" = "all" ]; then
-  claude plugin marketplace add DietrichGebert/ponytail || true
-  claude plugin marketplace add ayghri/i-have-adhd || true
-  claude plugin marketplace add blader/humanizer || true
+for harness in $SELECTED; do
+  "install_$(harness_field "$harness" id)"
+done
 
-  if [ -n "$FROM_DIR" ]; then
-    claude plugin marketplace add "$FROM_DIR" || true
-  else
-    claude plugin marketplace add ATNexusLab/tightship || true
-  fi
-
-  set -- --config "contract=$CONTRACT" --config "memory=$MEMORY" --config "status_line=$STATUS_LINE"
-  if [ -n "$VAULT_FOLDER" ]; then
-    set -- "$@" --config "vault_folder=$VAULT_FOLDER"
-  fi
-  step "Installing tightship for Claude Code" claude plugin install tightship@tightship "$@"
-fi
-
-if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
-  step "Installing the ponytail companion" agy plugin install https://github.com/DietrichGebert/ponytail
-  step "Installing the i-have-adhd companion" agy plugin install https://github.com/ayghri/i-have-adhd
-
-  humanizer_dir="$HOME/.gemini/config/skills/humanizer"
-  mkdir -p "$humanizer_dir"
-  step "Downloading the humanizer skill" download_file "https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md" "$humanizer_dir/SKILL.md"
-
-  source_dir=""
-  if [ -n "$FROM_DIR" ]; then
-    source_dir="$FROM_DIR"
-  else
-    TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
-    zip_dest="$TMP_DIR/tightship-antigravity-cli.zip"
-    download_url="https://github.com/ATNexusLab/tightship/releases/download/$RELEASE_TAG/tightship-antigravity-cli.zip"
-    echo "> Downloading tightship-antigravity-cli.zip $RELEASE_TAG"
-    if ! download_file "$download_url" "$zip_dest"; then
-      echo "error: failed to download tightship-antigravity-cli.zip from $download_url" >&2
-      echo "hint: if you are running in a local repository clone, run cargo xtask build and pass --from-dir dist/antigravity-cli" >&2
-      exit 1
-    fi
-    echo "> Checking the sha256 of tightship-antigravity-cli.zip"
-    zip_sha256=$(sha256_of "$zip_dest") || exit 1
-    if [ "$zip_sha256" != "$ANTIGRAVITY_CLI_SHA256" ]; then
-      echo "error: tightship-antigravity-cli.zip has sha256 $zip_sha256; $RELEASE_TAG published $ANTIGRAVITY_CLI_SHA256" >&2
-      exit 1
-    fi
-    unzip -q "$zip_dest" -d "$TMP_DIR/extracted"
-    source_dir="$TMP_DIR/extracted"
-  fi
-
-  step "Installing tightship for Antigravity CLI" agy plugin install "$source_dir"
-  plugin_target="$HOME/.gemini/config/plugins/tightship"
-
-  mkdir -p "$TIGHTSHIP_DATA"
-  {
-    printf "contract = %s\n" "$CONTRACT"
-    printf "memory = %s\n" "$MEMORY"
-    printf "status_line = %s\n" "$STATUS_LINE"
-    if [ -n "$VAULT_FOLDER" ]; then
-      printf "vault_folder = \"%s\"\n" "$(printf '%s' "$VAULT_FOLDER" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
-    fi
-  } > "$OPTIONS_FILE"
-
-  export TIGHTSHIP_DATA
-  mkdir -p "$HOME/.gemini/antigravity-cli"
-  step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
-
-  if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
-    step "Creating the vault at $VAULT_FOLDER" "$plugin_target/bin/tightship" vault init "$VAULT_FOLDER"
-  fi
-fi
-
-case "$HARNESS" in
-  claude-code)
-    echo "Installed tightship for Claude Code."
-    ;;
-  antigravity-cli)
-    echo "Installed tightship for Antigravity CLI."
-    ;;
-  all)
-    echo "Installed tightship for Claude Code and Antigravity CLI."
-    ;;
-esac
+echo "Installed tightship for $(labels_of $SELECTED)."

@@ -2,7 +2,7 @@
 
 > **Status:** published
 > **Profile:** API
-> **Module:** `harnesses/antigravity-cli/`, `xtask/`, `tightship/`, `install.sh`, `install.ps1`,
+> **Module:** `harnesses/antigravity-cli/`, `xtask/`, `tightship/`, `installer/`,
 > `.github/workflows/`, `docs/install/antigravity-cli/`
 > **Epic:** #59
 > **Requirements:** NFR-FLEX-03, NFR-FLEX-07, NFR-COMP-01, FR-INS-01 to FR-INS-08, FR-CTR-01 to FR-CTR-03,
@@ -475,7 +475,7 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
 | `OPTIONS_TOML_INVALID` | `1` | `${TIGHTSHIP_DATA}/options.toml` exists and is not valid TOML or has a non-boolean `contract`, `memory`, or `status_line` | `"error: <path> is not valid TOML"` |
 | `OPTIONS_TOML_UNREADABLE` | `1` | `${TIGHTSHIP_DATA}/options.toml` exists and cannot be read | `"error: cannot read <path>: <io error>"` |
 | `CONTRACT_FILE_UNREADABLE` | `1` | `tightship hook contract <file>` cannot read `<file>` | `"error: cannot read <file>: <io error>"` |
-| `INSTALL_HARNESS_UNKNOWN` | `1` | `install.sh` or `install.ps1` receives an unknown `--harness` value | `"error: unknown harness <value>; expected claude-code, antigravity-cli, or all"` |
+| `INSTALL_HARNESS_UNKNOWN` | `1` | `install.sh` or `install.ps1` receives an unknown `--harness` value | `"error: unknown harness <value>; expected antigravity-cli, claude-code, or all"` |
 | `INSTALL_CLAUDE_MISSING` | `1` | `claude-code` selected and `claude` is missing or `< 2.1.295` | `"error: claude 2.1.295 or later is required; found <version or 'not installed'>"` |
 | `INSTALL_AGY_MISSING` | `1` | `antigravity-cli` selected and `agy` is missing or `< 1.4.0` | `"error: agy 1.4.0 or later is required; found <version or 'not installed'>"` |
 | `INSTALL_NOT_A_RELEASE` | `1` | `antigravity-cli` selected, no `--from-dir`, and the installer is the repository's, not a release's | `"error: this <installer> belongs to no release; run https://github.com/ATNexusLab/tightship/releases/latest/download/<installer>, or pass --from-dir <folder>"` |
@@ -637,10 +637,11 @@ Then GitHub refuses the push and `.github/workflows/release.yml` does not run
 Applied to [docs/architecture/](../../architecture/README.md) and
 [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.md), marked M3, #59:
 
-- **ADR 0001 amended:** allows the cross-platform bootstrap installers (`install.sh` and `install.ps1` at
-  the repository root) and the Windows batch launcher
-  (`harnesses/antigravity-cli/plugin/bin/tightship.cmd`, copied to `bin/tightship.cmd`), because the
-  installer runs before any binary is downloaded and Antigravity CLI on Windows invokes hooks via `cmd /c`.
+- **ADR 0001 amended:** allows the cross-platform bootstrap installers (`install.sh` and `install.ps1`,
+  assembled from `installer/` and each harness's fragments) and the Windows batch launcher
+  (`tightship/launcher.cmd` with `harnesses/antigravity-cli/launcher-env.cmd`, built into
+  `bin/tightship.cmd`), because the installer runs before any binary is downloaded and Antigravity CLI on
+  Windows invokes hooks via `cmd /c`.
 - **Building blocks:**
   - New block: [Antigravity CLI plugin](../../architecture/building-blocks/antigravity-cli-plugin.md)
     (`dist/antigravity-cli/`): `plugin.json`, `hooks.json`, `agents/adversarial-verifier.md`,
@@ -673,8 +674,8 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M3, #59:
 
 ## Out of Scope
 
-- **Cursor (`M2`, #58) and Codex (`M4`) plugins:** handled in their own epics. `install.sh` and
-  `install.ps1` are structured so adding Cursor and Codex is a new harness branch in the same scripts.
+- **Cursor (`M2`, #58) and Codex (`M4`) plugins:** handled in their own epics. Adding Cursor and Codex to
+  `install.sh` and `install.ps1` is a new harness folder with its `[install]` table and its two fragments.
 - **Publishing to a hosted Antigravity plugin marketplace:** Antigravity CLI installs from a local
   directory, zip, or git URL; no public registry is required.
 - **Automatic reload after `/compact` without calling the `contract` skill:** Antigravity CLI 1.4.0 has

@@ -27,8 +27,6 @@ fn release_repository(version: &str) -> Repository {
             "Cargo.toml",
             format!("[workspace.package]\nversion = \"{version}\"\n"),
         ),
-        ("install.sh", include_str!("../../install.sh").to_owned()),
-        ("install.ps1", include_str!("../../install.ps1").to_owned()),
         (
             "content/commands/epic.md",
             "+++\nname = \"epic\"\ndescription = \"A piece\"\n+++\nOpen the epic.\n".to_owned(),
@@ -268,7 +266,9 @@ fn a_tag_other_than_the_version_fails_and_writes_nothing() {
             .exists()
     );
     assert!(!repository.path("dist/marketplace.json").exists());
-    assert!(!repository.path("dist/install.sh").exists());
+    let installer =
+        fs::read_to_string(repository.path("dist/install.sh")).expect("the built installer");
+    assert!(installer.lines().any(|line| line == "RELEASE_TAG=\"\""));
 }
 
 #[test]

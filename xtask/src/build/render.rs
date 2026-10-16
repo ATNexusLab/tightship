@@ -7,6 +7,7 @@ use serde::Deserialize;
 use super::binary::Binary;
 use super::content::{Content, SupportingBody};
 use super::harness::Harness;
+use super::scripts::{self, Shell};
 use super::tokens;
 use crate::diagnostics::naming;
 
@@ -70,17 +71,29 @@ pub fn harness_files(
     harness: &Harness,
 ) -> io::Result<Vec<(PathBuf, Vec<u8>)>> {
     let folder = root.join("harnesses").join(&harness.name);
-    let neutral = include_str!("../../../tightship/launcher.sh");
-    let environment_file = folder.join("launcher-env.sh");
-    let launcher = match fs::read_to_string(&environment_file) {
-        Ok(environment) => {
-            let (shebang, body) = neutral.split_once('\n').unwrap_or_default();
-            format!("{shebang}\n{environment}{body}")
+    let launcher = |neutral: &str, environment: &str, shell| -> io::Result<Option<String>> {
+        let environment_file = folder.join(environment);
+        match fs::read_to_string(&environment_file) {
+            Ok(text) => {
+                let source = format!("harnesses/{}/{environment}", harness.name);
+                let filled = scripts::fill(&text, &source, harness, shell)?;
+                let (header, body) = neutral.split_once('\n').unwrap_or_default();
+                Ok(Some(format!("{header}\n{filled}{body}")))
+            }
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(None),
+            Err(error) => Err(naming(&environment_file)(error)),
         }
-        Err(error) if error.kind() == io::ErrorKind::NotFound => neutral.to_owned(),
-        Err(error) => return Err(naming(&environment_file)(error)),
     };
-    let mut files = vec![(staging.join("bin/tightship"), launcher.into_bytes())];
+    let neutral_sh = include_str!("../../../tightship/launcher.sh");
+    let sh = launcher(neutral_sh, "launcher-env.sh", Shell::Sh)?;
+    let mut files = vec![(
+        staging.join("bin/tightship"),
+        sh.unwrap_or_else(|| neutral_sh.to_owned()).into_bytes(),
+    )];
+    let neutral_cmd = include_str!("../../../tightship/launcher.cmd");
+    if let Some(cmd) = launcher(neutral_cmd, "launcher-env.cmd", Shell::Cmd)? {
+        files.push((staging.join("bin/tightship.cmd"), cmd.into_bytes()));
+    }
     let plugin = folder.join("plugin");
     if plugin.is_dir() {
         copy_tree(&plugin, staging, &mut files)?;

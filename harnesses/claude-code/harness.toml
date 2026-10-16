@@ -10,6 +10,12 @@ manifest = ".claude-plugin/plugin.json"
 catalog = ".claude-plugin/marketplace.json"
 try-it = "claude --plugin-dir dist/claude-code"
 
+[install]
+label = "Claude Code"
+command = "claude"
+min-version = "2.1.295"
+aliases = ["claude"]
+
 [references]
 skill = "{plugin}:{name}"
 command = "/{plugin}:{name}"

@@ -9,6 +9,18 @@ license = "MIT"
 manifest = "plugin.json"
 try-it = "agy plugin validate dist/antigravity-cli --strict"
 
+[install]
+label = "Antigravity CLI"
+command = "agy"
+min-version = "1.4.0"
+aliases = ["agy"]
+
+[paths]
+data = ".gemini/config/plugin_data/tightship"
+config = ".gemini/antigravity-cli"
+plugins = ".gemini/config/plugins"
+skills = ".gemini/config/skills"
+
 [references]
 skill = "{name}"
 command = "/{name}"

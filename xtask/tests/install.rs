@@ -52,6 +52,10 @@ impl Installer {
         }
     }
 
+    fn built(self) -> PathBuf {
+        repo_root().join("dist").join(self.file())
+    }
+
     fn flag(self, name: &str) -> String {
         match self {
             Installer::Sh => format!("--{name}"),
@@ -154,7 +158,7 @@ cp "$source" "$dest"
     }
 
     fn released(&self, installer: Installer, sha256: &str) -> PathBuf {
-        let source = repo_root().join(installer.file());
+        let source = installer.built();
         let mut text = fs::read_to_string(&source).expect("read installer");
         for (prefix, value) in installer
             .release_lines()
@@ -217,7 +221,7 @@ cp "$source" "$dest"
     }
 
     fn run(&self, installer: Installer, args: &[&str]) -> Output {
-        self.run_script(installer, &repo_root().join(installer.file()), args)
+        self.run_script(installer, &installer.built(), args)
     }
 
     fn run_script(&self, installer: Installer, script: &Path, args: &[&str]) -> Output {
@@ -434,7 +438,7 @@ fn scenario_11_installer_rejects_unknown_harness() {
         assert_fails_with(
             installer,
             &output,
-            "error: unknown harness unknown-harness; expected claude-code, antigravity-cli, or all",
+            "error: unknown harness unknown-harness; expected antigravity-cli, claude-code, or all",
         );
     }
 }
@@ -792,7 +796,7 @@ fn both_installers_install_every_companion_the_harness_declares() {
             .expect("harness.toml is valid TOML");
     let companions = harness["companions"].as_array().expect("companions");
     for installer in INSTALLERS {
-        let script = fs::read_to_string(root.join(installer.file())).expect("read installer");
+        let script = fs::read_to_string(installer.built()).expect("read installer");
         for companion in companions {
             let marketplace = companion["marketplace"].as_str().expect("marketplace");
             let repository = marketplace

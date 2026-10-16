@@ -9,6 +9,7 @@ use zip::{CompressionMethod, DateTime, System, ZipWriter};
 
 use crate::build::binary::PLATFORMS;
 use crate::build::harness;
+use crate::build::scripts::pascal;
 use crate::diagnostics::{Diagnostic, naming};
 use crate::{Failure, stop_on_errors};
 
@@ -72,6 +73,13 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
         }
         manifests.push(manifest);
     }
+    for installer in ["install.sh", "install.ps1"] {
+        if !dist.join(installer).is_file() {
+            diagnostics.push(Diagnostic::general(format!(
+                "dist/{installer} is missing; run cargo xtask build --binaries <folder> first"
+            )));
+        }
+    }
     let mut versions: Vec<&str> = manifests
         .iter()
         .map(|manifest| manifest.version.as_str())
@@ -132,7 +140,7 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
         parts.push(format!("dist/{archive} ({} files)", files.len()));
         values.push((format!("{}-sha256", harness.name), sha256, false));
     }
-    write_installers(root, staging, &values, tag)?;
+    write_installers(&dist, staging, &values, tag)?;
 
     let shas: Vec<String> = harnesses
         .iter()
@@ -172,25 +180,21 @@ fn write_catalog(
 }
 
 fn write_installers(
-    root: &Path,
+    dist: &Path,
     staging: &Path,
     values: &[(String, String, bool)],
     tag: &str,
 ) -> Result<(), Failure> {
     for installer in ["install.sh", "install.ps1"] {
         println!("> Writing {installer} for {tag}");
-        let source = root.join(installer);
+        let source = dist.join(installer);
         let text = fs::read_to_string(&source).map_err(naming(&source))?;
         let mut lines: Vec<String> = text.lines().map(str::to_owned).collect();
         for (name, value, required) in values {
             let prefix = if installer == "install.sh" {
                 format!("{}=", name.replace('-', "_").to_uppercase())
             } else {
-                let words = name.split('-').map(|word| {
-                    let (first, rest) = word.split_at(1);
-                    first.to_uppercase() + rest
-                });
-                format!("${} = ", words.collect::<String>())
+                format!("${} = ", pascal(name))
             };
             let empty = format!("{prefix}\"\"");
             let mut matching = lines.iter_mut().filter(|line| **line == empty);

@@ -24,6 +24,14 @@ impl Repository {
                 ".identity-terms".to_owned(),
                 "fixture-maintainer-handle\n".to_owned(),
             ),
+            (
+                "installer/install.sh".to_owned(),
+                include_str!("../../../installer/install.sh").to_owned(),
+            ),
+            (
+                "installer/install.ps1".to_owned(),
+                include_str!("../../../installer/install.ps1").to_owned(),
+            ),
         ];
         for (path, text) in base.into_iter().chain(harness_files("claude-code")) {
             repository.write(&path, &text);

@@ -5,10 +5,12 @@ mod content;
 mod contract;
 pub mod harness;
 mod identity;
+mod installer;
 mod neutrality;
 mod options;
 mod references;
 mod render;
+pub mod scripts;
 mod staging;
 mod tokens;
 mod words;
@@ -17,7 +19,7 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use crate::diagnostics::Diagnostic;
+use crate::diagnostics::{Diagnostic, naming};
 use crate::{Failure, stop_on_errors};
 use content::{Content, Kind};
 
@@ -105,6 +107,8 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
         rendered.push((harness, staging, files));
     }
     stop_on_errors(&mut diagnostics)?;
+    println!("> Assembling the installers");
+    let installers = installer::assemble(root, &harnesses)?;
 
     let mut summaries = Vec::new();
     for (harness, staging, files) in &rendered {
@@ -115,6 +119,13 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
             harness.dist.try_it
         ));
     }
+    let mut names = Vec::new();
+    for (file, text) in installers {
+        let target = root.join("dist").join(file);
+        fs::write(&target, text).map_err(naming(&target))?;
+        names.push(format!("dist/{file}"));
+    }
+    summaries.push(format!("Built {}.", names.join(" and ")));
     Ok(summaries.join("\n"))
 }
 
