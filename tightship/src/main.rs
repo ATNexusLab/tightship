@@ -6,6 +6,7 @@ mod project;
 mod status;
 mod vault;
 
+use std::env;
 use std::panic;
 use std::path::PathBuf;
 use std::process::{self, ExitCode};
@@ -107,6 +108,13 @@ enum VaultCommand {
     Handoff(vault::handoff::Command),
 }
 
+pub fn variable(name: &'static str) -> Result<PathBuf, Failure> {
+    env::var_os(name)
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .ok_or(Failure::VariableNotSet(name))
+}
+
 fn main() -> ExitCode {
     panic::set_hook(Box::new(|info| {
         let message = info.payload_as_str().unwrap_or("no message");
@@ -143,17 +151,14 @@ fn main() -> ExitCode {
         Area::StatusLine(StatusLineCommand::Render) => status::render::run(),
         Area::StatusLine(StatusLineCommand::Enable) => status::settings::enable(),
         Area::StatusLine(StatusLineCommand::Decline) => status::settings::decline(),
-        Area::Options(OptionsCommand::Set { name, value }) => options::cursor_set(&name, &value),
-        Area::Options(OptionsCommand::List) => options::cursor_list(),
-        Area::Options(OptionsCommand::Reset) => options::cursor_reset(),
-        Area::Options(OptionsCommand::Disabled { name }) => {
-            match options::cursor_validate_name(&name).and_then(|()| options::cursor_boolean(&name))
-            {
-                Ok(true) => return ExitCode::from(1),
-                Ok(false) => Ok(()),
-                Err(failure) => Err(failure),
-            }
-        }
+        Area::Options(OptionsCommand::Set { name, value }) => options::set(&name, &value),
+        Area::Options(OptionsCommand::List) => options::list(),
+        Area::Options(OptionsCommand::Reset) => options::reset(),
+        Area::Options(OptionsCommand::Disabled { name }) => match options::disabled(&name) {
+            Ok(true) => Ok(()),
+            Ok(false) => return ExitCode::from(1),
+            Err(failure) => Err(failure),
+        },
     };
     match ran {
         Ok(()) => ExitCode::SUCCESS,

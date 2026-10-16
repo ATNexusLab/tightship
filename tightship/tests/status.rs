@@ -406,7 +406,7 @@ fn damaged_input_fails_and_changes_nothing() {
         .env("TIGHTSHIP_DATA", sandbox.path("data"));
     assert_fails_with(
         &run(&mut no_root),
-        "error: TIGHTSHIP_ROOT is not set; run the exact command the session start printed",
+        "error: TIGHTSHIP_ROOT is not set; run tightship through the plugin's bin/tightship",
     );
 }
 
@@ -559,7 +559,8 @@ fn cursor_status_line(sandbox: &Sandbox, arguments: &[&str]) -> Output {
     command
         .env("TIGHTSHIP_SETTINGS", sandbox.path("config/cli-config.json"))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", ROOT);
+        .env("TIGHTSHIP_ROOT", ROOT)
+        .env("TIGHTSHIP_STATUS_LINE_COMMAND", CURSOR_OURS);
     run(&mut command)
 }
 
@@ -636,7 +637,8 @@ fn cursor_status_line_keeps_the_plugin_root_token_when_the_plugin_folder_changes
     command
         .env("TIGHTSHIP_SETTINGS", sandbox.path("config/cli-config.json"))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", "/plugins/0.2.0");
+        .env("TIGHTSHIP_ROOT", "/plugins/0.2.0")
+        .env("TIGHTSHIP_STATUS_LINE_COMMAND", CURSOR_OURS);
     let output = run(&mut command);
 
     assert_succeeds(&output);

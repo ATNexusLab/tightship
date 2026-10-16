@@ -37,7 +37,7 @@ No Windows, use `"$PLUGIN/bin/tightship.cmd"` em vez de `"$PLUGIN/bin/tightship"
 ```
 
 `set` imprime `Set <name> to <value>.` e sai com `0`. `list` imprime JSON formatado, ou `{}` quando o arquivo
-não existe. `reset` remove `options.json` e imprime `Removed ~/.cursor/tightship/options.json.`
+não existe. `reset` remove `options.json` e imprime `Removed <path>.`, com o caminho completo do arquivo.
 
 Uma mudança vale a partir da próxima sessão ou da próxima execução de hook.
 

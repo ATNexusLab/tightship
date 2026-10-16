@@ -78,13 +78,20 @@ fn run_contract_part(
     home: &Path,
     options_json: Option<&str>,
 ) -> String {
-    let binary = host_binary(repository).expect("a built binary for this platform");
     if let Some(json) = options_json {
         write_cursor_options(home, json);
     }
-    let output = Command::new(&binary)
+    let plugin = repository.path("dist/cursor");
+    let mut launcher = if cfg!(windows) {
+        Command::new(plugin.join("bin/tightship.cmd"))
+    } else {
+        let mut sh = Command::new("sh");
+        sh.arg(plugin.join("bin/tightship"));
+        sh
+    };
+    let output = launcher
         .args(["hook", "contract-part", file])
-        .env("CURSOR_PLUGIN_ROOT", repository.path("dist/cursor"))
+        .env("CURSOR_PLUGIN_ROOT", &plugin)
         .env("HOME", home)
         .env("USERPROFILE", home)
         .output()

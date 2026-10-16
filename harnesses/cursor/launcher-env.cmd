@@ -19,3 +19,11 @@ if not defined TIGHTSHIP_SETTINGS (
 if not defined TIGHTSHIP_HOOK_OUTPUT (
   set "TIGHTSHIP_HOOK_OUTPUT=%PLUGIN_DIR%\hook-output.json"
 )
+
+if not defined TIGHTSHIP_CHECKPOINT_OUTPUT (
+  set "TIGHTSHIP_CHECKPOINT_OUTPUT=%PLUGIN_DIR%\checkpoint-output.json"
+)
+
+if not defined TIGHTSHIP_STATUS_LINE_COMMAND (
+  set "TIGHTSHIP_STATUS_LINE_COMMAND="${CURSOR_PLUGIN_ROOT}/bin/tightship" status-line render"
+)

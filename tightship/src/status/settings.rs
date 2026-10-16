@@ -15,9 +15,9 @@ pub enum Record {
 }
 
 pub fn enable() -> Result<(), Failure> {
-    let settings_path = variable("TIGHTSHIP_SETTINGS")?;
-    let data = variable("TIGHTSHIP_DATA")?;
-    let root = variable("TIGHTSHIP_ROOT")?;
+    let settings_path = crate::variable("TIGHTSHIP_SETTINGS")?;
+    let data = crate::variable("TIGHTSHIP_DATA")?;
+    let root = crate::variable("TIGHTSHIP_ROOT")?;
     let mut settings = read_settings(&settings_path)?;
     if settings.get("statusLine").is_some_and(is_ours) {
         println!("tightship's status line is already on.");
@@ -26,7 +26,7 @@ pub fn enable() -> Result<(), Failure> {
     write_record(&data, &Record::On(settings.get("statusLine").cloned()))?;
     settings.insert(
         "statusLine".to_owned(),
-        serde_json::json!({ "type": "command", "command": command_for(&root, &settings_path) }),
+        serde_json::json!({ "type": "command", "command": command_for(&root) }),
     );
     if let Err(failure) = write_settings(&settings_path, &settings) {
         remove_record(&data)?;
@@ -39,7 +39,7 @@ pub fn enable() -> Result<(), Failure> {
 }
 
 pub fn decline() -> Result<(), Failure> {
-    let data = variable("TIGHTSHIP_DATA")?;
+    let data = crate::variable("TIGHTSHIP_DATA")?;
     if let Some(Record::On(_)) = read_record(&data)? {
         println!(
             "tightship's status line is on; turn the plugin's status_line option off to bring back the one you had."
@@ -53,13 +53,6 @@ pub fn decline() -> Result<(), Failure> {
     Ok(())
 }
 
-pub fn variable(name: &'static str) -> Result<PathBuf, Failure> {
-    env::var_os(name)
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-        .ok_or(Failure::StatusLineNotSet(name))
-}
-
 pub fn is_ours(status_line: &Value) -> bool {
     status_line
         .get("command")
@@ -71,15 +64,12 @@ pub fn is_ours(status_line: &Value) -> bool {
         })
 }
 
-pub fn cursor_cli_config(settings_path: &Path) -> bool {
-    settings_path
-        .file_name()
-        .is_some_and(|name| name == "cli-config.json")
-}
-
-pub fn command_for(root: &Path, settings_path: &Path) -> String {
-    if cursor_cli_config(settings_path) {
-        return "\"${CURSOR_PLUGIN_ROOT}/bin/tightship\" status-line render".to_owned();
+pub fn command_for(root: &Path) -> String {
+    if let Some(command) = env::var("TIGHTSHIP_STATUS_LINE_COMMAND")
+        .ok()
+        .filter(|command| !command.is_empty())
+    {
+        return command;
     }
     #[cfg(windows)]
     {

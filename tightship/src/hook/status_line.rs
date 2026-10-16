@@ -5,9 +5,9 @@ use crate::status::settings::{self, Record};
 
 pub fn run() -> Result<(), Failure> {
     let options = crate::options::load()?;
-    let settings_path = settings::variable("TIGHTSHIP_SETTINGS")?;
-    let data = settings::variable("TIGHTSHIP_DATA")?;
-    let root = settings::variable("TIGHTSHIP_ROOT")?;
+    let settings_path = crate::variable("TIGHTSHIP_SETTINGS")?;
+    let data = crate::variable("TIGHTSHIP_DATA")?;
+    let root = crate::variable("TIGHTSHIP_ROOT")?;
     let record = settings::read_record(&data)?;
     let mut user_settings = settings::read_settings(&settings_path)?;
     let ours = user_settings
@@ -28,7 +28,7 @@ pub fn run() -> Result<(), Failure> {
         return settings::remove_record(&data);
     }
     if ours {
-        let command = Value::String(settings::command_for(&root, &settings_path));
+        let command = Value::String(settings::command_for(&root));
         let status_line = user_settings
             .get_mut("statusLine")
             .and_then(Value::as_object_mut);
@@ -47,7 +47,7 @@ pub fn run() -> Result<(), Failure> {
                 "statusLine".to_owned(),
                 serde_json::json!({
                     "type": "command",
-                    "command": settings::command_for(&root, &settings_path),
+                    "command": settings::command_for(&root),
                 }),
             );
             if let Err(failure) = settings::write_settings(&settings_path, &user_settings) {
