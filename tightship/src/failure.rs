@@ -43,14 +43,14 @@ pub enum Failure {
     StatusRecordInvalid(PathBuf),
     StatusRecordUnwritable(PathBuf, io::Error),
     OptionsInvalid(PathBuf),
+    OptionsJsonInvalid(PathBuf),
+    OptionsUnknown(String),
     OptionsUnreadable(PathBuf, io::Error),
     ContractFileUnreadable(PathBuf, io::Error),
     HookOutputUnreadable(PathBuf, io::Error),
     HookOutputInvalid(PathBuf),
     Usage(String),
-    #[expect(dead_code)]
     OptionsIo(String),
-    #[expect(dead_code)]
     OptionsInvalidValue(String),
     PluginRootUnset,
     ContractPartNameInvalid(String),
@@ -204,6 +204,12 @@ impl fmt::Display for Failure {
             ),
             Self::OptionsInvalid(path) => {
                 write!(formatter, "{} is not valid TOML", path.display())
+            }
+            Self::OptionsJsonInvalid(path) => {
+                write!(formatter, "{} is not valid JSON", path.display())
+            }
+            Self::OptionsUnknown(name) => {
+                write!(formatter, "unknown option \"{name}\"")
             }
             Self::OptionsUnreadable(path, error) => {
                 write!(formatter, "cannot read {}: {error}", path.display())

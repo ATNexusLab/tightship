@@ -99,8 +99,13 @@ fn cursor_contract_hooks_call_contract_part_on_session_start_and_every_prompt() 
     let hooks: serde_json::Value =
         serde_json::from_str(&read(&repository, "dist/cursor/hooks/hooks.json"))
             .expect("valid JSON");
-    let part = "${CURSOR_PLUGIN_ROOT}/bin/tightship hook contract-part part-1.md";
-    let memory = "${CURSOR_PLUGIN_ROOT}/bin/tightship hook contract-part memory.md";
+    let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
+    let part = format!(
+        "{binary} options disabled contract || {binary} hook contract-part part-1.md"
+    );
+    let memory = format!(
+        "{binary} options disabled contract || {binary} options disabled memory || {binary} hook contract-part memory.md"
+    );
     assert_eq!(hooks["version"], serde_json::json!(1));
     assert_eq!(
         hooks["hooks"]["sessionStart"],

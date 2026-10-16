@@ -58,10 +58,7 @@ fn hooks(parts: &[Part]) -> io::Result<Option<String>> {
         .iter()
         .map(|part| {
             json!({
-                "command": format!(
-                    "${{CURSOR_PLUGIN_ROOT}}/bin/tightship hook contract-part {}",
-                    part.file
-                ),
+                "command": hook_command(part),
             })
         })
         .collect();
@@ -75,6 +72,16 @@ fn hooks(parts: &[Part]) -> io::Result<Option<String>> {
     Ok(Some(
         serde_json::to_string_pretty(&body).map_err(io::Error::other)? + "\n",
     ))
+}
+
+fn hook_command(part: &Part) -> String {
+    let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
+    let mut guards = vec![format!("{binary} options disabled contract")];
+    if let Some(gate) = &part.gate {
+        guards.push(format!("{binary} options disabled {gate}"));
+    }
+    let hook = format!("{binary} hook contract-part {}", part.file);
+    format!("{} || {}", guards.join(" || "), hook)
 }
 
 fn catalog(harness: &Harness) -> io::Result<String> {

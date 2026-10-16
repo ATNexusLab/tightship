@@ -3,7 +3,11 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
+use serde_json::Value;
+
 use crate::failure::Failure;
+
+pub const CURSOR_OPTION_NAMES: &[&str] = &["contract", "memory", "status_line", "vault_folder"];
 
 pub fn cursor_options_path() -> Result<PathBuf, Failure> {
     let home = home_dir().ok_or_else(|| Failure::OptionsUnreadable(PathBuf::new(), {
@@ -19,14 +23,94 @@ pub fn cursor_boolean(name: &str) -> Result<bool, Failure> {
     }
     let text = fs::read_to_string(&path)
         .map_err(|error| Failure::OptionsUnreadable(path.clone(), error))?;
-    let value = serde_json::from_str::<serde_json::Value>(&text)
-        .map_err(|_| Failure::OptionsInvalid(path.clone()))?;
+    let value = serde_json::from_str::<Value>(&text)
+        .map_err(|_| Failure::OptionsJsonInvalid(path.clone()))?;
     match value.get(name) {
         None => Ok(true),
-        Some(serde_json::Value::Bool(false)) => Ok(false),
-        Some(serde_json::Value::Bool(true)) => Ok(true),
-        Some(_) => Err(Failure::OptionsInvalid(path)),
+        Some(Value::Bool(false)) => Ok(false),
+        Some(Value::Bool(true)) => Ok(true),
+        Some(_) => Err(Failure::OptionsJsonInvalid(path)),
     }
+}
+
+pub fn cursor_validate_name(name: &str) -> Result<(), Failure> {
+    if CURSOR_OPTION_NAMES.contains(&name) {
+        Ok(())
+    } else {
+        Err(Failure::OptionsUnknown(name.to_owned()))
+    }
+}
+
+pub fn cursor_set(name: &str, value: &str) -> Result<(), Failure> {
+    cursor_validate_name(name)?;
+    let path = cursor_options_path()?;
+    let mut table = cursor_read_table(&path)?;
+    let display = if name == "vault_folder" {
+        let expanded = expand_tilde(Path::new(value.trim()));
+        let stored = expanded.to_string_lossy().into_owned();
+        table.insert(
+            name.to_owned(),
+            Value::String(stored.clone()),
+        );
+        stored
+    } else {
+        let enabled = parse_boolean_value(name, value)?;
+        table.insert(name.to_owned(), Value::Bool(enabled));
+        enabled.to_string()
+    };
+    cursor_write_table(&path, &table)?;
+    println!("Set {name} to {display}.");
+    Ok(())
+}
+
+pub fn cursor_list() -> Result<(), Failure> {
+    let path = cursor_options_path()?;
+    let table = cursor_read_table(&path)?;
+    let text = serde_json::to_string_pretty(&Value::Object(table))
+        .map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    println!("{text}");
+    Ok(())
+}
+
+pub fn cursor_reset() -> Result<(), Failure> {
+    let path = cursor_options_path()?;
+    if path.is_file() {
+        fs::remove_file(&path).map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    }
+    println!("Removed ~/.cursor/tightship/options.json.");
+    Ok(())
+}
+
+fn parse_boolean_value(name: &str, value: &str) -> Result<bool, Failure> {
+    match value {
+        "true" => Ok(true),
+        "false" => Ok(false),
+        _ => Err(Failure::OptionsInvalidValue(name.to_owned())),
+    }
+}
+
+fn cursor_read_table(path: &Path) -> Result<serde_json::Map<String, Value>, Failure> {
+    if !path.is_file() {
+        return Ok(serde_json::Map::new());
+    }
+    let text = fs::read_to_string(path)
+        .map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    let value = serde_json::from_str::<Value>(&text)
+        .map_err(|_| Failure::OptionsJsonInvalid(path.to_path_buf()))?;
+    match value {
+        Value::Object(table) => Ok(table),
+        _ => Err(Failure::OptionsJsonInvalid(path.to_path_buf())),
+    }
+}
+
+fn cursor_write_table(path: &Path, table: &serde_json::Map<String, Value>) -> Result<(), Failure> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    }
+    let text = serde_json::to_string_pretty(&Value::Object(table.clone()))
+        .map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    fs::write(path, format!("{text}\n")).map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    Ok(())
 }
 
 #[derive(Debug, Clone)]

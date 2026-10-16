@@ -47,3 +47,25 @@ vault_folder = "~/ai-memory"
 | --- | --- | --- | --- |
 | `contract`, `memory`, `status_line` | boolean | `true` or `false`; an absent file or key means `true` | `install.sh` / `install.ps1` or the adopter |
 | `vault_folder` | string | An absolute or `~` folder; absent or empty until set | `install.sh` / `install.ps1` or the adopter |
+
+## Cursor (M2, #58)
+
+The editor shows options in Customize → Configure from the manifest `variables`, but hooks and the binary
+read state only from `$HOME/.cursor/tightship/options.json`, which `tightship options` writes:
+
+```json
+{
+  "contract": true,
+  "memory": false,
+  "status_line": true,
+  "vault_folder": "/home/adopter/ai-memory"
+}
+```
+
+| Attribute | Type | Domain | Written by |
+| --- | --- | --- | --- |
+| `contract`, `memory`, `status_line` | boolean | `true` or `false`; an absent file or key means `true` | `tightship options set` or the adopter |
+| `vault_folder` | string | An absolute or `~` folder; absent until set | `tightship options set` or the adopter |
+
+`tightship options list` prints the file as pretty-printed JSON, or `{}` when it does not exist.
+`tightship options reset` removes the file. Uninstall removes `$HOME/.cursor/tightship/` whole (M2, #72).
