@@ -334,3 +334,38 @@ fn an_unreadable_vault_or_note_or_data_folder_fails_with_exit_1() {
         ),
     );
 }
+
+#[test]
+fn contract_part_prints_json_and_respects_cursor_options() {
+    let sandbox = Sandbox::new();
+    let plugin = sandbox.path("plugin");
+    let part = plugin.join("contract/part-1.md");
+    fs::create_dir_all(part.parent().expect("contract folder")).expect("folders");
+    fs::write(&part, "Rule one.\n").expect("the part");
+    let home = sandbox.path("home");
+    let options_folder = home.join(".cursor/tightship");
+    fs::create_dir_all(&options_folder).expect("options folder");
+    fs::write(
+        options_folder.join("options.json"),
+        r#"{"contract":false}"#,
+    )
+    .expect("options");
+    let mut command = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
+    command
+        .env("CURSOR_PLUGIN_ROOT", &plugin)
+        .env("HOME", &home)
+        .env("USERPROFILE", &home);
+    let off = run(&mut command);
+    assert_succeeds(&off);
+    assert_eq!(stdout_of(&off), "");
+    fs::write(
+        options_folder.join("options.json"),
+        r#"{"contract":true,"memory":false}"#,
+    )
+    .expect("options");
+    let output = run(&mut command);
+    assert_succeeds(&output);
+    let value: serde_json::Value =
+        serde_json::from_str(stdout_of(&output).trim()).expect("one JSON line");
+    assert_eq!(value["additional_context"], "Rule one.\n");
+}

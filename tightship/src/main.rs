@@ -1,6 +1,7 @@
 mod failure;
 mod git;
 mod hook;
+mod options;
 mod project;
 mod status;
 mod vault;
@@ -27,7 +28,8 @@ Usage: tightship vault path
        tightship vault handoff claim
        tightship status-line render
        tightship status-line enable
-       tightship status-line decline";
+       tightship status-line decline
+       tightship hook contract-part <file>";
 
 #[derive(Parser)]
 #[command(name = "tightship")]
@@ -53,6 +55,9 @@ enum HookCommand {
     Checkpoint,
     Prompt,
     StatusLine,
+    ContractPart {
+        file: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -111,6 +116,7 @@ fn main() -> ExitCode {
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
         Area::Hook(HookCommand::Prompt) => hook::prompt::run(),
         Area::Hook(HookCommand::StatusLine) => hook::status_line::run(),
+        Area::Hook(HookCommand::ContractPart { file }) => hook::contract_part::run(&file),
         Area::StatusLine(StatusLineCommand::Render) => status::render::run(),
         Area::StatusLine(StatusLineCommand::Enable) => status::settings::enable(),
         Area::StatusLine(StatusLineCommand::Decline) => status::settings::decline(),

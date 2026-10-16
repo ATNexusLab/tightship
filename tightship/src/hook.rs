@@ -1,4 +1,5 @@
 pub mod checkpoint;
+pub mod contract_part;
 pub mod export;
 pub mod prompt;
 pub mod start;
