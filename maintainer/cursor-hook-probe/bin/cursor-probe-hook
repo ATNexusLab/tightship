@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mode="${1:-unknown}"
+log_dir="${CURSOR_PROJECT_DIR:-.}/.cursor-hook-probe"
+mkdir -p "$log_dir"
+stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+log_file="$log_dir/${stamp}-${mode}.log"
+stdin_payload="$(cat)"
+
+{
+  printf '=== %s event=%s ===\n' "$stamp" "$mode"
+  printf 'argv: %s\n' "$*"
+  printf 'uname: %s\n' "$(uname -s 2>/dev/null || echo unknown)"
+  printf 'CURSOR_PLUGIN_ROOT=%s\n' "${CURSOR_PLUGIN_ROOT:-}"
+  printf 'parent_comm: %s\n' "$(ps -o comm= -p "${PPID:-0}" 2>/dev/null || echo unknown)"
+  printf '--- stdin ---\n%s\n' "$stdin_payload"
+  printf '--- cursor env ---\n'
+  env | grep -E '^(CURSOR_|CLAUDE_)' | sort || true
+} >>"$log_file"
+
+limit_flag="$log_dir/limit-10000-fired"
+if [ "$mode" = "beforeSubmitPrompt" ] && [ ! -f "$limit_flag" ]; then
+  touch "$limit_flag"
+  cat "${CURSOR_PLUGIN_ROOT}/payloads/limit-10000.json"
+  exit 0
+fi
+
+system="$(uname -s 2>/dev/null || echo unknown)"
+printf '{"additional_context":"probe-%s-%s"}\n' "$mode" "$system"

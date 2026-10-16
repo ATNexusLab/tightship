@@ -8,18 +8,21 @@ description: Use when building, rendering, or debugging the Cursor plugin of thi
 What Cursor does with a plugin, as observed by probing, not as its docs promise. The docs are wrong or silent
 on several points below, so a fact marked **docs** is a hypothesis until a probe confirms it.
 
-Probed on 2026-10-15, Windows 11: editor 3.25.6, CLI `agent` 2026.10.14-941492e. A partial pass on
-2026-10-16 refreshed install docs and the checklist below; hook and piece behavior below is still from
-2026-10-15 unless noted. **macOS and Linux hooks are not probed yet** (issue #65 stays open for Unix).
-Re-probe a fact before relying on it at a newer version.
+Probed on 2026-10-15, Windows 11: editor 3.25.6, CLI `agent` 2026.10.14-941492e. Install docs and the
+production probe kit landed on 2026-10-16 (issue #65). **macOS and Linux hook rows stay open until you run the
+kit in production** and paste results into the checklist below. Re-probe a fact before relying on it at a
+newer version.
 
 ## Probe checklist (#65)
 
+Fill **macOS** and **Linux** after `maintainer/cursor-hook-probe/README.md` (production run). Close #65 when
+both rows read **Done**.
+
 | Platform | Hooks (shell, paths, JSON stdout) | `additional_context` size cap | Git marketplace install E2E |
 | --- | --- | --- | --- |
-| Windows | Done 2026-10-15 | Not measured; M2 uses **10000** by parity with Claude Code | Not re-run 2026-10-16 (`agent` not on PATH here); commands match Claude Code shape in `docs/install/cursor/` (**docs**) |
-| macOS | Not probed | Not probed | Not probed |
-| Linux | Not probed | Not probed | Not probed |
+| Windows | Done 2026-10-15 (PowerShell 7 wrapper; `${CURSOR_PLUGIN_ROOT}/bin/…` + `.cmd`) | Pending re-probe with kit; M2 holds **10000** until measured | Pending; commands in `docs/install/cursor/` (**docs**) |
+| macOS | **Production run pending** | **Production run pending** (kit fires 10 000 on first prompt) | **Production run pending** |
+| Linux | **Production run pending** | **Production run pending** | **Production run pending** |
 
 ## Layout
 
@@ -49,6 +52,8 @@ E2E probe) or from the editor under Customize → Plugins. Install companions be
 - **CLI only:** `agent --plugin-dir <folder>`.
 - **Non-interactive:** `agent -p --trust "<prompt>"`. `-p` skips some hooks (below), so confirm a hook's
   behavior in an interactive session too.
+- **Hook probe kit:** `maintainer/cursor-hook-probe/` (issue #65). Same `${CURSOR_PLUGIN_ROOT}/bin/…` command
+  shape as tightship; logs under `.cursor-hook-probe/` in the workspace.
 
 ## What each piece does
 
@@ -77,8 +82,8 @@ pwsh -NoProfile -NonInteractive -ExecutionPolicy Bypass -c "... Get-Content <pay
 - The command is PowerShell, not `sh`. `sh` is not on the Windows `PATH`, so `sh "<file>"` fails.
 - A command that is only a path, `${CURSOR_PLUGIN_ROOT}/bin/<name> <args>`, resolves `<name>.cmd` through
   `PATHEXT` on Windows (probed). On macOS and Linux the same string should run `<name>` without `.cmd`
-  (**docs**, not probed on Unix yet). Never wrap the path in `sh`; that form is what tightship ships in
-  `hooks/hooks.json`.
+  (**docs** until production probe on Unix confirms `parent_comm` and execution).
+- Never wrap the path in `sh`; that is the form tightship ships in `hooks/hooks.json`.
 - Contract and memory hooks must print **one line** of JSON on stdout, for example
   `{"additional_context":"<text>"}`. Multi-line stdout is untested.
 - **Trap:** the CLI hands that PowerShell text to the agent's shell. Started from Git Bash, where `SHELL` is
@@ -94,7 +99,8 @@ The environment holds `CURSOR_PLUGIN_ROOT`, `CLAUDE_PLUGIN_ROOT`, `CURSOR_PROJEC
 
 Every event gets JSON on stdin with `conversation_id`, `generation_id`, `session_id`, `model`,
 `hook_event_name`, `cursor_version`, `workspace_roots`, `user_email`, and `transcript_path`, which is `null`
-at `sessionStart`. The editor writes a root as `/c:/Users/...`; the CLI writes `C:\Users\...`.
+at `sessionStart`. The editor writes a root as `/c:/Users/...` on Windows; the CLI writes `C:\Users\...`.
+**Unix path shapes:** record from the probe kit logs on macOS and Linux.
 
 ### Events
 
@@ -120,8 +126,8 @@ its options somewhere it can read itself.
 
 The editor and the CLI import the plugins installed in Claude Code, listed as **Imported**. Their skills and
 subagents load unprefixed, next to the Cursor plugin's. A hook of theirs runs too, through the same PowerShell
-wrapper: one written in `sh` produces nothing on Windows, one that runs a program does. A plugin shipped for
-both harnesses loads twice in Cursor.
+wrapper on Windows: one written in `sh` produces nothing on Windows, one that runs a program does. A plugin
+shipped for both harnesses loads twice in Cursor.
 
 ## Status line
 
@@ -130,30 +136,17 @@ probed).
 
 ## Probing a behavior
 
-1. Build a throwaway plugin that sets one distinctive marker per piece and per hook, such as `RULE-MARK-2W`.
-2. Have each hook log its stdin, its environment, its arguments, and its parent process's command line to a
-   folder inside the workspace, then print its JSON.
-3. Ask the agent, in a new chat, which markers its context holds, and read the logs. The agent's report is a
-   hint: check the transcript under `~/.cursor/projects/<workspace>/agent-transcripts/` and the files on disk.
+1. Prefer `maintainer/cursor-hook-probe/` for hook shell, JSON stdout, 10 000-character `additional_context`,
+   and `workspace_roots` shape (issue #65).
+2. For other markers, build a throwaway plugin with one distinctive marker per piece and per hook, such as
+   `RULE-MARK-2W`.
+3. Ask the agent, in a new chat, which markers its context holds, and read `.cursor-hook-probe/` or your logs.
+   The agent's report is a hint: check the transcript under `~/.cursor/projects/<workspace>/agent-transcripts/`.
 4. A free plan runs out after a few dozen requests; spend them on what only the model can show.
 
 ## Not probed yet
 
-- The size limit of one `additional_context` on Cursor (use **10000** until a probe measures a lower cap).
 - Whether `beforeSubmitPrompt`'s `additional_context` reaches the agent in the CLI.
 - Whether `preToolUse` or `subagentStart` tells which subagent calls a tool, so a hook can deny edits to a
   read-only one.
-- The CLI's `statusLine` format, **macOS and Linux hook shells and paths**, end-to-end **git marketplace**
-  install on Windows, and uninstall.
-
-### Unix probe script (maintainer, #65)
-
-On macOS or Linux, with editor 3.25.6+ and `agent` 2026.10.14+:
-
-1. Copy a throwaway plugin with one hook:
-   `"command": \"${CURSOR_PLUGIN_ROOT}/bin/echo-test hook\"` or a script that logs `$0`, parent shell, and
-   prints `{"additional_context":"unix-probe"}`.
-2. Confirm the parent is **not** PowerShell and that `${CURSOR_PLUGIN_ROOT}/bin/tightship` (no `.cmd`) runs.
-3. Note `workspace_roots` path shape in hook stdin (editor vs CLI).
-4. Feed a part near 10000 characters; record whether Cursor truncates or errors.
-5. Update the checklist table at the top of this skill and close #65 when both Unix rows are **Done**.
+- The CLI's `statusLine` format and uninstall.

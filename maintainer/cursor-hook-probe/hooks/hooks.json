@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "${CURSOR_PLUGIN_ROOT}/bin/cursor-probe-hook sessionStart"
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "${CURSOR_PLUGIN_ROOT}/bin/cursor-probe-hook beforeSubmitPrompt"
+      }
+    ],
+    "preCompact": [
+      {
+        "command": "${CURSOR_PLUGIN_ROOT}/bin/cursor-probe-hook preCompact"
+      }
+    ]
+  }
+}
