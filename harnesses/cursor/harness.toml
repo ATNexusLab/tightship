@@ -38,13 +38,11 @@ names = ["Cursor", "Composer"]
 paths = [
   ".cursor/",
   "~/.cursor",
-  "AGENTS.md",
   "CURSOR_PLUGIN_ROOT",
   "CURSOR_PROJECT_DIR",
 ]
 tools = [
   "SwitchMode",
-  "Task",
   "TodoWrite",
   "WebFetch",
   "WebSearch",
