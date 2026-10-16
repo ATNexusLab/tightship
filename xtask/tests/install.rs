@@ -438,7 +438,7 @@ fn scenario_11_installer_rejects_unknown_harness() {
         assert_fails_with(
             installer,
             &output,
-            "error: unknown harness unknown-harness; expected antigravity-cli, claude-code, or all",
+            "error: unknown harness unknown-harness; expected antigravity-cli, claude-code, cursor, or all",
         );
     }
 }

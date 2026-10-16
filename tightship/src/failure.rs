@@ -48,7 +48,9 @@ pub enum Failure {
     HookOutputUnreadable(PathBuf, io::Error),
     HookOutputInvalid(PathBuf),
     Usage(String),
+    #[expect(dead_code)]
     OptionsIo(String),
+    #[expect(dead_code)]
     OptionsInvalidValue(String),
     PluginRootUnset,
     ContractPartNameInvalid(String),
