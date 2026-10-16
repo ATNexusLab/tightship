@@ -26,7 +26,8 @@ Terms from the SRS, as used here:
 ## Decisions this spec rests on
 
 Confirmed by the maintainer on 2026-10-16, on the probes in `.claude/skills/cursor-plugin/SKILL.md`
-(2026-10-15, Windows 11, editor 3.25.6, CLI `2026.10.14`), Cursor's hooks and plugins references, the
+(2026-10-15 Windows 11 and 2026-10-16 Linux dev, editor 3.25.6, CLI `2026.10.14` on Windows), Cursor's
+hooks and plugins references, the
 sprint-2 plan in `docs/roadmap/`, and the five shape decisions confirmed in chat on 2026-10-16:
 
 1. **One epic carries M2**, as [roadmap issue #58](../../roadmap/README.md#m2--cursor) says: build, install,
@@ -382,7 +383,7 @@ And the exit code is 1
 
 | # | Title | Scope | Acceptance criterion | Depends on | Issue |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Probe Cursor hooks on macOS and Linux | Maintainer probes only; update `.claude/skills/cursor-plugin/SKILL.md` | Documented in the skill; limit stays 10000 unless a probe forces a change request | — | #65 |
+| 1 | Document Cursor hook probes in maintainer skill | Maintainer probes on the dev platform; update `.claude/skills/cursor-plugin/SKILL.md`; CI covers cross-platform Rust | Documented in the skill; limit stays 10000 unless a probe forces a change request | — | #65 |
 | 2 | Write companion and marketplace install steps | `docs/install/cursor/companions.md`, rule 4 sentence in `install.md` | Scenario 2 | — | #66 |
 | 3 | Add harnesses/cursor/harness.toml and capability entries | `harnesses/cursor/harness.toml` (`[plugin]`, `[dist]`, `[install]`, `[paths]`, `[capabilities]`, `[neutrality]` per spec table), `launcher-env.*`; neutrality check | Scenario 1 | — | #67 |
 | 4 | Render dist/cursor pieces and manifest | `xtask/src/build/cursor.rs`, multi-harness `build.rs`, `bin/` launchers, `agents/adversarial-verifier.md` with `readonly: true`, tests in `xtask/tests/build.rs` | Scenarios 1 and 7 | 3 | #68 |

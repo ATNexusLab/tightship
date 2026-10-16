@@ -8,21 +8,21 @@ description: Use when building, rendering, or debugging the Cursor plugin of thi
 What Cursor does with a plugin, as observed by probing, not as its docs promise. The docs are wrong or silent
 on several points below, so a fact marked **docs** is a hypothesis until a probe confirms it.
 
-Probed on 2026-10-15, Windows 11: editor 3.25.6, CLI `agent` 2026.10.14-941492e. Install docs and the
-production probe kit landed on 2026-10-16 (issue #65). **macOS and Linux hook rows stay open until you run the
-kit in production** and paste results into the checklist below. Re-probe a fact before relying on it at a
-newer version.
+Probed on 2026-10-15, Windows 11: editor 3.25.6, CLI `agent` 2026.10.14-941492e. On 2026-10-16, Linux
+(maintainer dev, editor 3.25.6) confirmed Unix hook execution and the 10 000-character kit payload (issue
+65). Plugin **code** is cross-checked in CI (`rust.yml` on ubuntu, macos, windows); hook behavior in the
+editor is documented from the maintainer's dev machine plus the Windows probe, not from manual sessions on
+every OS. Re-probe a fact before relying on it at a newer version.
 
 ## Probe checklist (#65)
 
-Fill **macOS** and **Linux** after `maintainer/cursor-hook-probe/README.md` (production run). Close #65 when
-both rows read **Done**.
+Issue 65 is **closed** when this table matches what you measured. Git marketplace install E2E is tasks 72
+and 75, not this task.
 
-| Platform | Hooks (shell, paths, JSON stdout) | `additional_context` size cap | Git marketplace install E2E |
-| --- | --- | --- | --- |
-| Windows | Done 2026-10-15 (PowerShell 7 wrapper; `${CURSOR_PLUGIN_ROOT}/bin/…` + `.cmd`) | Pending re-probe with kit; M2 holds **10000** until measured | Pending; commands in `docs/install/cursor/` (**docs**) |
-| macOS | **Production run pending** | **Production run pending** (kit fires 10 000 on first prompt) | **Production run pending** |
-| Linux | **Production run pending** | **Production run pending** | **Production run pending** |
+| Platform | Hooks (shell, paths, JSON stdout) | `additional_context` size cap |
+| --- | --- | --- |
+| Windows | Done 2026-10-15: PowerShell 7 wrapper; `${CURSOR_PLUGIN_ROOT}/bin/…` resolves `.cmd` | **10000** (M2 contract limit; kit payload matches spec) |
+| Linux | Done 2026-10-16: `${CURSOR_PLUGIN_ROOT}/bin/…` runs directly (no `pwsh`); `workspace_roots` absolute paths | **10000** (kit `limit-10000.json` prints one line, 10 000 chars inside `additional_context`) |
 
 ## Layout
 
@@ -81,8 +81,8 @@ pwsh -NoProfile -NonInteractive -ExecutionPolicy Bypass -c "... Get-Content <pay
 
 - The command is PowerShell, not `sh`. `sh` is not on the Windows `PATH`, so `sh "<file>"` fails.
 - A command that is only a path, `${CURSOR_PLUGIN_ROOT}/bin/<name> <args>`, resolves `<name>.cmd` through
-  `PATHEXT` on Windows (probed). On macOS and Linux the same string should run `<name>` without `.cmd`
-  (**docs** until production probe on Unix confirms `parent_comm` and execution).
+  `PATHEXT` on Windows (probed). On Linux the same string runs the executable without `.cmd` (probed
+  2026-10-16; `parent_comm` is not `pwsh` or `powershell`).
 - Never wrap the path in `sh`; that is the form tightship ships in `hooks/hooks.json`.
 - Contract and memory hooks must print **one line** of JSON on stdout, for example
   `{"additional_context":"<text>"}`. Multi-line stdout is untested.
@@ -100,7 +100,8 @@ The environment holds `CURSOR_PLUGIN_ROOT`, `CLAUDE_PLUGIN_ROOT`, `CURSOR_PROJEC
 Every event gets JSON on stdin with `conversation_id`, `generation_id`, `session_id`, `model`,
 `hook_event_name`, `cursor_version`, `workspace_roots`, `user_email`, and `transcript_path`, which is `null`
 at `sessionStart`. The editor writes a root as `/c:/Users/...` on Windows; the CLI writes `C:\Users\...`.
-**Unix path shapes:** record from the probe kit logs on macOS and Linux.
+On Linux the editor uses normal absolute paths in `workspace_roots` (for example `/mnt/data/...`, probed
+2026-10-16).
 
 ### Events
 

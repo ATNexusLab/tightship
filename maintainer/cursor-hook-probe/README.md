@@ -38,31 +38,30 @@ agent --plugin-dir maintainer/cursor-hook-probe
 On Windows, run `agent` from PowerShell with `$env:SHELL = $null` if hooks fail under Git Bash (see the
 cursor-plugin skill).
 
-## Production run (macOS and Linux)
+## Production run (Unix editor)
 
-Run on each Unix platform you care about (native install, not WSL-only, unless you label the log as WSL).
+Run once on your dev machine (Linux is enough; CI covers macOS/Windows for Rust, not live hooks).
 
 1. Remove any old logs: `rm -rf .cursor-hook-probe` in the workspace.
 2. New chat in the editor; send one short prompt. Confirm `.cursor-hook-probe/*.log` files exist for
    `sessionStart` and `beforeSubmitPrompt`.
 3. In the `sessionStart` log, confirm `parent_comm` is **not** `pwsh` or `powershell`.
 4. Record `workspace_roots` path shape from stdin (editor vs CLI if you test both).
-5. Ask the agent whether it received context starting with `probe-beforeSubmitPrompt-` on the first turn after
-   the limit payload (first prompt fires the 10 000-character line). Note truncation, errors, or silence.
-6. Trigger a compaction if your plan allows; confirm `preCompact` log appears and that `sessionStart` does
-   **not** run again.
-7. Copy the filled rows into `.claude/skills/cursor-plugin/SKILL.md` (probe checklist) and note editor and CLI
-   versions in the intro paragraph.
+5. On the first prompt, the kit fires the 10 000-character `additional_context` line. Note truncation,
+   errors, or silence if you ask the agent what it received.
+6. Optional: trigger a compaction and confirm `preCompact` logs and that `sessionStart` does not run again.
+7. Copy results into `.claude/skills/cursor-plugin/SKILL.md` (probe checklist).
 
-Optional: repeat steps 1–5 with `agent --plugin-dir maintainer/cursor-hook-probe` in an interactive session.
+Optional: `agent --plugin-dir maintainer/cursor-hook-probe` in an interactive CLI session when `agent` is
+installed.
 
-## Production run (Windows, re-probe)
+## Windows notes
 
-Same steps as Unix. Expect `parent_comm` to involve PowerShell 7. Re-run git marketplace install from
-`docs/install/cursor/` if you have not confirmed E2E yet.
+Expect `parent_comm` to involve PowerShell 7 (probed 2026-10-15). Git marketplace install E2E is tracked in
+`docs/install/cursor/`, not issue #65.
 
 ## After production
 
 - If the 10 000-character `additional_context` is rejected or truncated below 10 000, open a change request
   against `docs/specs/cursor-plugin/ship-for-cursor.md` before lowering `[contract] limit`.
-- Close GitHub issue #65 when macOS and Linux checklist rows are **Done** in the skill.
+- Close GitHub issue #65 when the skill checklist is **Done** for Windows and your Unix dev platform.

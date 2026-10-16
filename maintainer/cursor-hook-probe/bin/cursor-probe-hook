@@ -14,8 +14,8 @@ stdin_payload="$(cat)"
   printf 'uname: %s\n' "$(uname -s 2>/dev/null || echo unknown)"
   printf 'CURSOR_PLUGIN_ROOT=%s\n' "${CURSOR_PLUGIN_ROOT:-}"
   printf 'parent_comm: %s\n' "$(ps -o comm= -p "${PPID:-0}" 2>/dev/null || echo unknown)"
-  printf '--- stdin ---\n%s\n' "$stdin_payload"
-  printf '--- cursor env ---\n'
+  printf '%s\n%s\n' '--- stdin ---' "$stdin_payload"
+  printf '%s\n' '--- cursor env ---'
   env | grep -E '^(CURSOR_|CLAUDE_)' | sort || true
 } >>"$log_file"
 
