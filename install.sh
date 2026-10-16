@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
 
-# Version requirements
 CLAUDE_MIN_VERSION="2.1.295"
 AGY_MIN_VERSION="1.4.0"
 
@@ -25,7 +24,6 @@ Options:
 EOF
 }
 
-# Version comparison: returns 0 if $1 >= $2, 1 otherwise. Dotted semver (e.g. 2.1.295).
 version_ge() {
   if [ "$1" = "$2" ]; then
     return 0
@@ -69,7 +67,6 @@ extract_version() {
   printf '%s\n' "$1" | grep -oE '[0-9]+(\.[0-9]+)+' | head -n1
 }
 
-# Download helper
 download_file() {
   _url="$1"
   _dest="$2"
@@ -104,7 +101,6 @@ step() {
   fi
 }
 
-# Argument parsing
 HARNESS=""
 CONTRACT_ARG=""
 MEMORY_ARG=""
@@ -196,7 +192,6 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-# Check terminal interaction capability
 TTY_FD=""
 if [ -t 0 ]; then
   TTY_FD="0"
@@ -229,7 +224,6 @@ prompt_read() {
   fi
 }
 
-# Validate or detect harness
 has_claude=0
 has_agy=0
 command -v claude >/dev/null 2>&1 && has_claude=1
@@ -252,7 +246,6 @@ if [ -n "$HARNESS" ]; then
       ;;
   esac
 else
-  # Detect default
   default_harness="all"
   default_label="Both"
   if [ "$has_claude" -eq 1 ] && [ "$has_agy" -eq 0 ]; then
@@ -284,7 +277,6 @@ else
   fi
 fi
 
-# Version verification for selected harnesses
 check_claude() {
   if ! command -v claude >/dev/null 2>&1; then
     echo "error: claude $CLAUDE_MIN_VERSION or later is required; found not installed" >&2
@@ -330,7 +322,6 @@ case "$HARNESS" in
     ;;
 esac
 
-# Options configuration
 TIGHTSHIP_DATA="${TIGHTSHIP_DATA:-${PLUGIN_DATA:-$HOME/.gemini/config/plugin_data/tightship}}"
 OPTIONS_FILE="$TIGHTSHIP_DATA/options.toml"
 
@@ -346,7 +337,6 @@ if [ -f "$OPTIONS_FILE" ]; then
   existing_vault_folder=$(grep -E '^[[:space:]]*vault_folder[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*vault_folder[[:space:]]*=[[:space:]]*//' | sed -E -e 's/^[[:space:]]*"((\\.|[^"\\])*)"[[:space:]]*$/\1/' -e 's/\\(.)/\1/g' || true)
 fi
 
-# Contract
 if [ -n "$CONTRACT_ARG" ]; then
   CONTRACT=$(to_bool --contract "$CONTRACT_ARG")
 elif [ "$YES" -eq 1 ]; then
@@ -358,7 +348,6 @@ else
   CONTRACT=$(to_bool "the answer" "$ans")
 fi
 
-# Memory
 if [ -n "$MEMORY_ARG" ]; then
   MEMORY=$(to_bool --memory "$MEMORY_ARG")
 elif [ "$YES" -eq 1 ]; then
@@ -370,7 +359,6 @@ else
   MEMORY=$(to_bool "the answer" "$ans")
 fi
 
-# Vault folder
 if [ -n "$VAULT_FOLDER_ARG" ]; then
   VAULT_FOLDER="$VAULT_FOLDER_ARG"
 elif [ "$YES" -eq 1 ]; then
@@ -387,7 +375,6 @@ else
   fi
 fi
 
-# Init vault
 INIT_VAULT="false"
 expanded_vault=""
 if [ -n "$VAULT_FOLDER" ]; then
@@ -408,7 +395,6 @@ if [ -n "$expanded_vault" ] && [ ! -d "$expanded_vault" ]; then
   fi
 fi
 
-# Status line
 if [ -n "$STATUS_LINE_ARG" ]; then
   STATUS_LINE=$(to_bool --status-line "$STATUS_LINE_ARG")
 elif [ "$YES" -eq 1 ]; then
@@ -420,7 +406,6 @@ else
   STATUS_LINE=$(to_bool "the answer" "$ans")
 fi
 
-# Temporary directory for release downloads if needed
 TMP_DIR=""
 cleanup() {
   if [ -n "$TMP_DIR" ] && [ -d "$TMP_DIR" ]; then
@@ -429,7 +414,6 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# Installation: Claude Code
 if [ "$HARNESS" = "claude-code" ] || [ "$HARNESS" = "all" ]; then
   claude plugin marketplace add DietrichGebert/ponytail || true
   claude plugin marketplace add ayghri/i-have-adhd || true
@@ -448,9 +432,7 @@ if [ "$HARNESS" = "claude-code" ] || [ "$HARNESS" = "all" ]; then
   step "Installing tightship for Claude Code" claude plugin install tightship@tightship "$@"
 fi
 
-# Installation: Antigravity CLI
 if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
-  # Companions
   step "Installing the ponytail companion" agy plugin install https://github.com/DietrichGebert/ponytail
   step "Installing the i-have-adhd companion" agy plugin install https://github.com/ayghri/i-have-adhd
 
@@ -458,7 +440,6 @@ if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
   mkdir -p "$humanizer_dir"
   step "Downloading the humanizer skill" download_file "https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md" "$humanizer_dir/SKILL.md"
 
-  # Source resolution
   source_dir=""
   if [ -n "$FROM_DIR" ]; then
     source_dir="$FROM_DIR"
@@ -483,7 +464,6 @@ if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
   step "Installing tightship for Antigravity CLI" agy plugin install "$source_dir"
   plugin_target="$HOME/.gemini/config/plugins/tightship"
 
-  # Write options.toml
   mkdir -p "$TIGHTSHIP_DATA"
   {
     printf "contract = %s\n" "$CONTRACT"
@@ -494,12 +474,10 @@ if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
     fi
   } > "$OPTIONS_FILE"
 
-  # Status line hook
   export TIGHTSHIP_DATA
   mkdir -p "$HOME/.gemini/antigravity-cli"
   step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
-  # Vault init if requested
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
     step "Creating the vault at $VAULT_FOLDER" "$plugin_target/bin/tightship" vault init "$VAULT_FOLDER"
   fi

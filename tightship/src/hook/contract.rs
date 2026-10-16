@@ -18,5 +18,6 @@ pub fn run(gate: Option<&str>, file: &Path) -> Result<(), Failure> {
     if content.is_empty() {
         return Ok(());
     }
-    super::emit(&content)
+    super::emit(&content);
+    Ok(())
 }

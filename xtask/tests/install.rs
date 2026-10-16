@@ -63,19 +63,18 @@ impl MockEnvironment {
     }
 
     fn isolated_path(&self) -> String {
-        let system_paths = std::env::var("PATH").unwrap_or_default();
-        let filtered: Vec<&str> = system_paths
-            .split(':')
-            .filter(|entry| {
-                !entry.contains(".gemini")
-                    && !entry.contains("claude")
-                    && !entry.contains("codex")
-                    && !entry.contains("mise")
-                    && !entry.contains(".local/bin")
-                    && !entry.contains("omarchy")
+        let harness_tools = ["agy", "claude", "codex", "cursor-agent"];
+        let system_path = std::env::var_os("PATH").unwrap_or_default();
+        let without_harnesses = std::env::split_paths(&system_path).filter(|folder| {
+            !harness_tools.iter().any(|tool| {
+                folder.join(tool).is_file() || folder.join(format!("{tool}.exe")).is_file()
             })
-            .collect();
-        format!("{}:{}", self.bin_dir.display(), filtered.join(":"))
+        });
+        let entries = std::iter::once(self.bin_dir.clone()).chain(without_harnesses);
+        std::env::join_paths(entries)
+            .expect("a joinable PATH")
+            .to_string_lossy()
+            .into_owned()
     }
 
     fn add_mock_script(&self, name: &str, content: &str) {
@@ -105,7 +104,6 @@ impl MockEnvironment {
             .expect("install.sh executes")
     }
 
-    #[allow(dead_code)]
     fn run_pwsh(&self, repo_root: &Path, args: &[&str]) -> std::process::Output {
         let install_ps1 = repo_root.join("install.ps1");
 
@@ -227,7 +225,6 @@ fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
     );
     assert!(stdout.contains("Installed tightship for Antigravity CLI."));
 
-    // Check ponytail and i-have-adhd
     assert!(
         env.home_dir
             .join(".gemini/config/plugins/ponytail")
@@ -241,13 +238,11 @@ fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
         "i-have-adhd plugin installed"
     );
 
-    // Check humanizer
     let humanizer_skill = env
         .home_dir
         .join(".gemini/config/skills/humanizer/SKILL.md");
     assert!(humanizer_skill.is_file(), "humanizer SKILL.md installed");
 
-    // Check tightship plugin
     assert!(
         env.home_dir
             .join(".gemini/config/plugins/tightship/plugin.json")
@@ -255,7 +250,6 @@ fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
         "tightship plugin installed"
     );
 
-    // Check options.toml
     let options_file = env
         .home_dir
         .join(".gemini/config/plugin_data/tightship/options.toml");
@@ -266,7 +260,6 @@ fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
     assert!(options_text.contains("status_line = true"));
     assert!(options_text.contains(r#"vault_folder = "~/ai-memory""#));
 
-    // Check settings.json statusLine
     let settings_file = env.home_dir.join(".gemini/antigravity-cli/settings.json");
     assert!(settings_file.is_file(), "settings.json created");
     let settings_text = fs::read_to_string(&settings_file).expect("read settings.json");
@@ -331,7 +324,6 @@ exit 0
         "unexpected stderr: {stderr}"
     );
 
-    // Check no files were created
     assert!(
         !env.home_dir
             .join(".gemini/config/plugins/tightship")
@@ -525,7 +517,6 @@ fn existing_options_are_preserved_on_update() {
     let root = repo_root();
     let env = MockEnvironment::new();
 
-    // Pre-create options.toml with contract = false
     let options_dir = env.home_dir.join(".gemini/config/plugin_data/tightship");
     fs::create_dir_all(&options_dir).expect("options dir");
     fs::write(

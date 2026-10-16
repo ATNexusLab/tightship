@@ -1,8 +1,3 @@
-<#
-.SYNOPSIS
-    Install the tightship plugin for Claude Code, Antigravity CLI, or both.
-#>
-
 param(
     [Alias("h")]
     [string]$Harness,
@@ -86,7 +81,6 @@ function Extract-Version([string]$text) {
 $CLAUDE_MIN = "2.1.295"
 $AGY_MIN = "1.4.0"
 
-# Check if input can be read interactively
 $canPrompt = -not [Console]::IsInputRedirected
 if (-not $Yes -and -not $canPrompt) {
     Write-Stderr "error: standard input is not a terminal; pass --yes or provide required flags"
@@ -122,7 +116,6 @@ function Prompt-User([string]$promptText, [string]$defaultVal) {
     return $reply.Trim()
 }
 
-# Normalize or detect Harness
 $hasClaude = [bool](Get-Command claude -ErrorAction SilentlyContinue)
 $hasAgy = [bool](Get-Command agy -ErrorAction SilentlyContinue)
 
@@ -160,7 +153,6 @@ if ($Harness) {
     }
 }
 
-# Verify CLI requirements
 function Test-Claude() {
     if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
         Write-Stderr "error: claude $CLAUDE_MIN or later is required; found not installed"
@@ -194,7 +186,6 @@ if ($Harness -eq "antigravity-cli" -or $Harness -eq "all") {
     Test-Agy
 }
 
-# Resolve options and existing options.toml
 $userProfile = if ($env:USERPROFILE) { $env:USERPROFILE } else { $env:HOME }
 $tightshipData = if ($env:TIGHTSHIP_DATA) { $env:TIGHTSHIP_DATA } else { Join-Path $userProfile ".gemini\config\plugin_data\tightship" }
 $optionsFile = Join-Path $tightshipData "options.toml"
@@ -213,7 +204,6 @@ if (Test-Path $optionsFile) {
     }
 }
 
-# Contract
 if ($Contract) {
     $finalContract = ConvertTo-Bool "-Contract" $Contract
 } elseif ($Yes) {
@@ -224,7 +214,6 @@ if ($Contract) {
     $finalContract = ConvertTo-Bool "the answer" $ans
 }
 
-# Memory
 if ($Memory) {
     $finalMemory = ConvertTo-Bool "-Memory" $Memory
 } elseif ($Yes) {
@@ -235,7 +224,6 @@ if ($Memory) {
     $finalMemory = ConvertTo-Bool "the answer" $ans
 }
 
-# Vault folder
 if ($VaultFolder) {
     $finalVaultFolder = $VaultFolder
 } elseif ($Yes) {
@@ -252,7 +240,6 @@ if ($VaultFolder) {
     }
 }
 
-# Init vault
 $finalInitVault = $false
 $expandedVault = $null
 if ($finalVaultFolder) {
@@ -274,7 +261,6 @@ if ($expandedVault -and -not (Test-Path $expandedVault)) {
     }
 }
 
-# Status line
 if ($StatusLine) {
     $finalStatusLine = ConvertTo-Bool "-StatusLine" $StatusLine
 } elseif ($Yes) {
@@ -285,7 +271,6 @@ if ($StatusLine) {
     $finalStatusLine = ConvertTo-Bool "the answer" $ans
 }
 
-# Install: Claude Code
 if ($Harness -eq "claude-code" -or $Harness -eq "all") {
     try { & claude plugin marketplace add DietrichGebert/ponytail } catch {}
     try { & claude plugin marketplace add ayghri/i-have-adhd } catch {}
@@ -308,7 +293,6 @@ if ($Harness -eq "claude-code" -or $Harness -eq "all") {
     Invoke-Step "Installing tightship for Claude Code" { & claude @claudeArgs }
 }
 
-# Install: Antigravity CLI
 if ($Harness -eq "antigravity-cli" -or $Harness -eq "all") {
     Invoke-Step "Installing the ponytail companion" { & agy plugin install https://github.com/DietrichGebert/ponytail }
     Invoke-Step "Installing the i-have-adhd companion" { & agy plugin install https://github.com/ayghri/i-have-adhd }
@@ -349,7 +333,6 @@ if ($Harness -eq "antigravity-cli" -or $Harness -eq "all") {
     Invoke-Step "Installing tightship for Antigravity CLI" { & agy plugin install $sourceDir }
     $pluginTarget = Join-Path $userProfile ".gemini\config\plugins\tightship"
 
-    # Write options.toml
     if (-not (Test-Path $tightshipData)) {
         New-Item -ItemType Directory -Force -Path $tightshipData | Out-Null
     }
@@ -364,7 +347,6 @@ status_line = $finalStatusLine
     }
     Set-Content -Path $optionsFile -Value ($tomlContent + "`n") -Encoding utf8
 
-    # Invoke status-line hook
     $env:TIGHTSHIP_DATA = $tightshipData
     $cmdLauncher = Join-Path $pluginTarget "bin\tightship.cmd"
     $shLauncher = Join-Path $pluginTarget "bin\tightship"
@@ -374,7 +356,6 @@ status_line = $finalStatusLine
         Invoke-Step "Applying the status line option" { & sh $shLauncher hook status-line }
     }
 
-    # Vault init
     if ($finalInitVault -and $finalVaultFolder) {
         if (Test-Path $cmdLauncher) {
             Invoke-Step "Creating the vault at $finalVaultFolder" { & $cmdLauncher vault init $finalVaultFolder }

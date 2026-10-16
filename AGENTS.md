@@ -23,7 +23,9 @@ Rust in one Cargo workspace, with the canonical content in Markdown and TOML
 
 ## Programming languages & scripts
 
-Rust for application code, for the build, and for every new script
+Rust for application code, for the build, and for every new script, except the two installers at the root,
+`install.sh` in POSIX `sh` and `install.ps1` in PowerShell, and the Windows launcher
+`harnesses/antigravity-cli/launcher.cmd`, which run before any binary is on the machine
 ([ADR 0001](docs/decisions/0001-rust-build-and-tokenized-canonical-content.md)).
 
 ## Conventions

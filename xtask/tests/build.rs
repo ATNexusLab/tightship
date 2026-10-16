@@ -627,20 +627,28 @@ fn both_harnesses_build_from_canonical_content_and_pass_validation() {
         "handoff",
         "bootstrap",
     ];
-    for name in skill_names {
-        files.push((
-            Box::leak(format!("content/skills/{name}/SKILL.md").into_boxed_str()),
-            format!(
-                "+++\nname = \"{name}\"\ndescription = \"Skill {name}\"\n+++\nBody of {name}.\n"
-            ),
-        ));
-    }
-    for name in command_names {
-        files.push((
-            Box::leak(format!("content/commands/{name}.md").into_boxed_str()),
-            format!("+++\nname = \"{name}\"\ndescription = \"Command {name}\"\nargument-hint = \"[arg]\"\n+++\nBody of {name}.\n"),
-        ));
-    }
+    let pieces: Vec<(String, String)> = skill_names
+        .iter()
+        .map(|name| {
+            (
+                format!("content/skills/{name}/SKILL.md"),
+                format!(
+                    "+++\nname = \"{name}\"\ndescription = \"Skill {name}\"\n+++\nBody of {name}.\n"
+                ),
+            )
+        })
+        .chain(command_names.iter().map(|name| {
+            (
+                format!("content/commands/{name}.md"),
+                format!("+++\nname = \"{name}\"\ndescription = \"Command {name}\"\nargument-hint = \"[arg]\"\n+++\nBody of {name}.\n"),
+            )
+        }))
+        .collect();
+    files.extend(
+        pieces
+            .iter()
+            .map(|(path, text)| (path.as_str(), text.clone())),
+    );
 
     let repository = Repository::with(&files);
     assert_succeeds(&repository.run("build"));

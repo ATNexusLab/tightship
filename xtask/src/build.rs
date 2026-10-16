@@ -84,11 +84,15 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
     let mut rendered = Vec::new();
     for (harness, parts) in harnesses.iter().zip(&contract_parts) {
         println!("> Rendering {} into dist/{}/", harness.name, harness.name);
-        let (staging, files) = match harness.name.as_str() {
-            "claude-code" => claude_code::render(root, harness, &content, parts, &binaries)?,
-            "antigravity-cli" => {
-                antigravity_cli::render(root, harness, &content, parts, &binaries)?
-            }
+        let ((staging, files), try_it) = match harness.name.as_str() {
+            "claude-code" => (
+                claude_code::render(root, harness, &content, parts, &binaries)?,
+                format!("claude --plugin-dir dist/{}", harness.name),
+            ),
+            "antigravity-cli" => (
+                antigravity_cli::render(root, harness, &content, parts, &binaries)?,
+                format!("agy plugin validate dist/{} --strict", harness.name),
+            ),
             unknown => {
                 return Err(Failure::Io(io::Error::other(format!(
                     "unknown harness \"{unknown}\""
@@ -102,22 +106,15 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
             &format!("dist/{}", harness.name),
             &mut diagnostics,
         )?;
-        rendered.push((harness, staging, files));
+        rendered.push((harness, staging, files, try_it));
     }
     stop_on_errors(&mut diagnostics)?;
 
     let mut summaries = Vec::new();
-    for (harness, staging, files) in &rendered {
+    for (harness, staging, files, try_it) in &rendered {
         staging::publish(root, staging, &harness.name)?;
-        let try_it = match harness.name.as_str() {
-            "claude-code" => format!("Try it: claude --plugin-dir dist/{}", harness.name),
-            "antigravity-cli" => {
-                format!("Try it: agy plugin validate dist/{} --strict", harness.name)
-            }
-            _ => String::new(),
-        };
         summaries.push(format!(
-            "{}\n{try_it}",
+            "{}\nTry it: {try_it}",
             summary(&content, &harness.name, *files)
         ));
     }

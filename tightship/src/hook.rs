@@ -38,9 +38,9 @@ start, a space that holds about thirty.
 
 Nothing durable? Ignore this and carry on.";
 
-pub fn emit(text: &str) -> Result<(), Failure> {
+pub fn emit(text: &str) {
     if text.is_empty() {
-        return Ok(());
+        return;
     }
     if env::var_os("TIGHTSHIP_HOOK_FORMAT").is_some_and(|value| value == "inject-steps") {
         let payload = serde_json::json!({
@@ -50,13 +50,12 @@ pub fn emit(text: &str) -> Result<(), Failure> {
                 }
             }]
         });
-        println!("{}", serde_json::to_string(&payload).unwrap_or_default());
+        println!("{payload}");
     } else if text.ends_with('\n') {
         print!("{text}");
     } else {
         println!("{text}");
     }
-    Ok(())
 }
 
 fn export_vault(folder: &Path) -> Result<(), Failure> {

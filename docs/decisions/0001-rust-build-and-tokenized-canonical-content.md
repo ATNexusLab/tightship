@@ -131,7 +131,7 @@ The build writes only to `dist/`.
 - A release needs GitHub Actions and a build matrix. Each archive carries every target, from 15 to 20 MB.
 - The macOS binary carries only the linker's ad-hoc signature. The release epic tests that it runs from an
   archive Claude Code downloaded.
-- An adopter on Windows without Git for Windows cannot run the plugin's hooks.
+- An adopter of Claude Code on Windows without Git for Windows cannot run the plugin's hooks.
 
 ## Alternatives considered
 
