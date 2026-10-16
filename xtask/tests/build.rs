@@ -201,6 +201,19 @@ fn a_harness_term_in_content_fails() {
 }
 
 #[test]
+fn a_harness_term_in_the_binary_sources_fails() {
+    let repository = Repository::with(&[(
+        "tightship/src/status/render.rs",
+        "fn prefix() -> &'static str {\n    \"Claude Code\"\n}\n".to_owned(),
+    )]);
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: tightship/src/status/render.rs:2: \"Claude Code\" belongs to claude-code; move it to harnesses/claude-code/ and pass it in through the launcher",
+    );
+}
+
+#[test]
 fn a_word_containing_a_term_is_not_a_match() {
     let repository = Repository::with(&[piece(
         "content/skills/api-design/SKILL.md",

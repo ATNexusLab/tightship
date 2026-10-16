@@ -23,6 +23,15 @@ fn checkout(sandbox: &Sandbox, branch: &str) {
 }
 
 fn render(sandbox: &Sandbox, fixture: &str, columns: Option<&str>) -> Output {
+    render_with_prefix(sandbox, fixture, columns, Some("Claude "))
+}
+
+fn render_with_prefix(
+    sandbox: &Sandbox,
+    fixture: &str,
+    columns: Option<&str>,
+    prefix: Option<&str>,
+) -> Output {
     let file = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/status")
         .join(format!("{fixture}.json"));
@@ -39,6 +48,10 @@ fn render(sandbox: &Sandbox, fixture: &str, columns: Option<&str>) -> Output {
     match columns {
         Some(columns) => command.env("COLUMNS", columns),
         None => command.env_remove("COLUMNS"),
+    };
+    match prefix {
+        Some(prefix) => command.env("TIGHTSHIP_MODEL_PREFIX", prefix),
+        None => command.env_remove("TIGHTSHIP_MODEL_PREFIX"),
     };
     with_stdin(&mut command, &input)
 }
@@ -82,6 +95,21 @@ fn render_prints_both_rows_in_their_colors() {
     ]
     .join(separator);
     assert_eq!(stdout_of(&output), format!("{identity}\n{usage}\n"));
+}
+
+#[test]
+fn a_harness_without_a_model_prefix_keeps_the_whole_model_name() {
+    let sandbox = Sandbox::new();
+    checkout(&sandbox, "feat/7-status-line");
+
+    let output = render_with_prefix(&sandbox, "request", Some("200"), None);
+
+    assert_succeeds(&output);
+    assert!(
+        plain(&output).contains(" · Claude Opus 5.5 · "),
+        "{}",
+        plain(&output)
+    );
 }
 
 #[test]

@@ -58,6 +58,7 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
     println!("> Checking references and harness neutrality");
     references::check(&content, &harnesses, &mut diagnostics);
     neutrality::check(&content, &harnesses, &mut diagnostics);
+    neutrality::check_binary(root, &harnesses, &mut diagnostics)?;
 
     let mut contract_parts = Vec::new();
     for harness in &harnesses {

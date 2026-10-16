@@ -13,13 +13,19 @@ The one program the plugin ships, with a subcommand per function. Epic #5 builds
 | `tightship vault handoff release\|claim` | The agent, through the command `handoff` (M1, #6) | Writes the project's handoff, or prints and removes it; never runs git |
 | `tightship hook status-line` | The plugin's hook, at `startup` | Offers the [status line](../concepts/status-line.md), follows the plugin's folder, or puts the previous one back (M1, #7) |
 | `tightship status-line enable\|decline` | The agent, on the adopter's answer | Writes the workflow's status line into the user settings, or records the no (M1, #7) |
-| `tightship status-line render` | Claude Code and Antigravity CLI, as the status line | Prints the baseline's two rows for the session's JSON (M1, #7; M3, #59) |
+| `tightship status-line render` | Claude Code, Cursor's CLI, and Antigravity CLI, as the status line | Prints the baseline's two rows for the session's JSON (M1, #7; M2, #58; M3, #59) |
+| `tightship hook contract-part <file>` | The plugin's hooks in Cursor (M2, #58) | Prints one packed contract part from `${TIGHTSHIP_ROOT}/contract/` unless its option is `false` |
+| `tightship options set\|list\|reset\|disabled` | The adopter, and Cursor's hook lines (M2, #58) | Edits `${TIGHTSHIP_DATA}/options.json`; `disabled` exits 0 when the option is `false` |
 
 The binary reads `TIGHTSHIP_*` variables, which the hook lines or the launcher of each harness set from that
 harness's own, and falls back to `${TIGHTSHIP_DATA}/options.toml` when an option variable is unset (M3, #59),
 so it names no harness, plus `COLUMNS`, the terminal's width, for the status line (M1, #7). When
 `TIGHTSHIP_HOOK_OUTPUT` names a JSON file, non-empty hook output fills that file's `"{text}"` slot, and the
-binary prints the filled JSON; the harness folder ships that file (M3, #59).
+binary prints the filled JSON; the harness folder ships that file (M3, #59). The memory checkpoint takes its
+shape from `TIGHTSHIP_CHECKPOINT_OUTPUT` when it is set. `TIGHTSHIP_STATUS_LINE_COMMAND` replaces the status
+line command the binary writes into the settings, and `status-line render` strips `TIGHTSHIP_MODEL_PREFIX`
+from the model's name (#78). `cargo xtask build` fails when a harness's neutrality term appears in
+`tightship/src/`.
 
 `bin/tightship` is a `sh` launcher (and `bin/tightship.cmd` is a Windows batch launcher for harnesses that run
 hooks under `cmd /c`, M3, #59) that runs `bin/<platform>/tightship` for the machine, among `macos`,
