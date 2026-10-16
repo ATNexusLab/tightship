@@ -30,9 +30,9 @@ Confirmed by the maintainer on 2026-10-16, on the probes in `.claude/skills/curs
 hooks and plugins references, the
 sprint-2 plan in `docs/roadmap/`, and the five shape decisions confirmed in chat on 2026-10-16:
 
-1. **One epic carries M2**, as [roadmap issue #58](../../roadmap/README.md#m2--cursor) says: build, install,
-   options, contract, memory, handoff, release for Cursor. This spec settles Cursor's part of the former
-   OQ-04, OQ-05, OQ-06, and OQ-08, and removes OQ-07 from the SRS.
+1. **One epic carries M2**, as [roadmap issue #58](https://github.com/ATNexusLab/tightship/issues/58) says:
+   build, install, options, contract, memory, handoff, release for Cursor. This spec settles Cursor's part of
+   the former OQ-04, OQ-05, OQ-06, and OQ-08, and removes OQ-07 from the SRS.
 2. **`cargo xtask build` renders every harness** that has a `harnesses/<name>/harness.toml`, in sorted name
    order, into `dist/<name>/`, in one run. Failure in any harness leaves no `dist/` behind for that harness,
    as today for Claude Code alone.

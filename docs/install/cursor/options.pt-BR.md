@@ -14,7 +14,7 @@ e o binário `tightship` ignoram esse diálogo e leem o estado só em `$HOME/.cu
 
 Arquivo ausente ou chave ausente significa **ligada** para cada opção booleana.
 
-## O binário tightship
+## O programa tightship
 
 Os comandos abaixo chamam `bin/tightship` na pasta onde o Cursor instalou o plugin. Defina `PLUGIN` para essa
 pasta (Customize → Plugins mostra os plugins instalados; uma cópia local de teste fica em
@@ -45,7 +45,7 @@ Uma mudança vale a partir da próxima sessão ou da próxima execução de hook
 
 A memória precisa de um vault, um repositório git de notas. Se você não tem um, rode
 `"$TIGHTSHIP" vault init <folder>` (ou peça ao agente numa sessão, com o caminho do binário em
-[o binário](#o-binário-tightship)). Defina a pasta com `options set vault_folder <path>` e comece uma nova
+[o binário](#o-programa-tightship)). Defina a pasta com `options set vault_folder <path>` e comece uma nova
 sessão. Para compartilhar o vault entre máquinas, envie-o para um remoto privado e clone em cada uma.
 
 Com a memória ligada e sem `vault_folder`, a sessão fica sem vault, e o agente explica como criar um quando
