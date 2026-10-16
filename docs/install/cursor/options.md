@@ -37,7 +37,7 @@ On Windows, use `"$PLUGIN/bin/tightship.cmd"` instead of `"$PLUGIN/bin/tightship
 ```
 
 `set` prints `Set <name> to <value>.` and exit `0`. `list` prints pretty-printed JSON, or `{}` when the file
-does not exist. `reset` removes `options.json` and prints `Removed ~/.cursor/tightship/options.json.`
+does not exist. `reset` removes `options.json` and prints `Removed <path>.`, with the file's full path.
 
 A change applies from the next session or the next hook run.
 
@@ -53,28 +53,8 @@ when you ask about memory.
 
 ## The status line
 
-The Cursor editor has no status line API. With `status_line` on, only the **CLI** writes `statusLine` into
-`~/.cursor/cli-config.json` after you consent.
-
-Export the paths the status-line commands expect (replace `PLUGIN` as above):
-
-```sh
-export TIGHTSHIP_SETTINGS="$HOME/.cursor/cli-config.json"
-export TIGHTSHIP_DATA="$HOME/.cursor/tightship"
-export TIGHTSHIP_ROOT="$PLUGIN"
-```
-
-Enable after consent:
-
-```sh
-"$TIGHTSHIP" status-line enable
-```
-
-Decline when prompted and you want to keep your current CLI status line:
-
-```sh
-"$TIGHTSHIP" status-line decline
-```
+The Cursor editor has no status line API. With `status_line` on, the next interactive **CLI** session writes
+tightship's `statusLine` into `~/.cursor/cli-config.json` and keeps yours aside.
 
 Turn the option off to restore your previous `statusLine` at the next session start (or remove the key when
 you had none):
@@ -83,5 +63,4 @@ you had none):
 "$TIGHTSHIP" options set status_line false
 ```
 
-Then start one interactive CLI session so the status-line hook runs, or run `"$TIGHTSHIP" hook status-line`
-with the same three environment variables set.
+Then start one interactive CLI session so the status-line hook runs, or run `"$TIGHTSHIP" hook status-line`.

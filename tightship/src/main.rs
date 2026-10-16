@@ -6,6 +6,7 @@ mod project;
 mod status;
 mod vault;
 
+use std::env;
 use std::panic;
 use std::path::PathBuf;
 use std::process::{self, ExitCode};
@@ -27,8 +28,6 @@ Usage: tightship vault path
        tightship vault handoff release --title <title> < body
        tightship vault handoff claim
        tightship status-line render
-       tightship status-line enable
-       tightship status-line decline
        tightship options set <name> <value>
        tightship options list
        tightship options reset
@@ -75,8 +74,6 @@ enum HookCommand {
 #[derive(Subcommand)]
 enum StatusLineCommand {
     Render,
-    Enable,
-    Decline,
 }
 
 #[derive(Subcommand)]
@@ -105,6 +102,13 @@ enum VaultCommand {
     Sync,
     #[command(subcommand)]
     Handoff(vault::handoff::Command),
+}
+
+pub fn variable(name: &'static str) -> Result<PathBuf, Failure> {
+    env::var_os(name)
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .ok_or(Failure::VariableNotSet(name))
 }
 
 fn main() -> ExitCode {
@@ -141,19 +145,14 @@ fn main() -> ExitCode {
         Area::Hook(HookCommand::StatusLine) => hook::status_line::run(),
         Area::Hook(HookCommand::ContractPart { file }) => hook::contract_part::run(&file),
         Area::StatusLine(StatusLineCommand::Render) => status::render::run(),
-        Area::StatusLine(StatusLineCommand::Enable) => status::settings::enable(),
-        Area::StatusLine(StatusLineCommand::Decline) => status::settings::decline(),
-        Area::Options(OptionsCommand::Set { name, value }) => options::cursor_set(&name, &value),
-        Area::Options(OptionsCommand::List) => options::cursor_list(),
-        Area::Options(OptionsCommand::Reset) => options::cursor_reset(),
-        Area::Options(OptionsCommand::Disabled { name }) => {
-            match options::cursor_validate_name(&name).and_then(|()| options::cursor_boolean(&name))
-            {
-                Ok(true) => return ExitCode::from(1),
-                Ok(false) => Ok(()),
-                Err(failure) => Err(failure),
-            }
-        }
+        Area::Options(OptionsCommand::Set { name, value }) => options::set(&name, &value),
+        Area::Options(OptionsCommand::List) => options::list(),
+        Area::Options(OptionsCommand::Reset) => options::reset(),
+        Area::Options(OptionsCommand::Disabled { name }) => match options::disabled(&name) {
+            Ok(true) => Ok(()),
+            Ok(false) => return ExitCode::from(1),
+            Err(failure) => Err(failure),
+        },
     };
     match ran {
         Ok(()) => ExitCode::SUCCESS,

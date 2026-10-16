@@ -1,52 +1,34 @@
 use std::env;
 use std::fs;
-use std::io;
 use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
 use crate::failure::Failure;
 
-pub const CURSOR_OPTION_NAMES: &[&str] = &["contract", "memory", "status_line", "vault_folder"];
+const OPTION_NAMES: &[&str] = &["contract", "memory", "status_line", "vault_folder"];
 
-pub fn cursor_options_path() -> Result<PathBuf, Failure> {
-    let home = home_dir().ok_or_else(|| {
-        Failure::OptionsUnreadable(PathBuf::new(), {
-            io::Error::new(io::ErrorKind::NotFound, "HOME is not set")
-        })
-    })?;
-    Ok(home.join(".cursor").join("tightship").join("options.json"))
+fn options_json() -> Result<PathBuf, Failure> {
+    Ok(crate::variable("TIGHTSHIP_DATA")?.join("options.json"))
 }
 
-pub fn cursor_boolean(name: &str) -> Result<bool, Failure> {
-    let path = cursor_options_path()?;
-    if !path.is_file() {
-        return Ok(true);
-    }
-    let text = fs::read_to_string(&path)
-        .map_err(|error| Failure::OptionsUnreadable(path.clone(), error))?;
-    let value = serde_json::from_str::<Value>(&text)
-        .map_err(|_| Failure::OptionsJsonInvalid(path.clone()))?;
-    match value.get(name) {
-        None => Ok(true),
-        Some(Value::Bool(false)) => Ok(false),
-        Some(Value::Bool(true)) => Ok(true),
-        Some(_) => Err(Failure::OptionsJsonInvalid(path)),
-    }
+pub fn disabled(name: &str) -> Result<bool, Failure> {
+    validate_name(name)?;
+    Ok(!load()?.is_enabled(name)?)
 }
 
-pub fn cursor_validate_name(name: &str) -> Result<(), Failure> {
-    if CURSOR_OPTION_NAMES.contains(&name) {
+fn validate_name(name: &str) -> Result<(), Failure> {
+    if OPTION_NAMES.contains(&name) {
         Ok(())
     } else {
         Err(Failure::OptionsUnknown(name.to_owned()))
     }
 }
 
-pub fn cursor_set(name: &str, value: &str) -> Result<(), Failure> {
-    cursor_validate_name(name)?;
-    let path = cursor_options_path()?;
-    let mut table = cursor_read_table(&path)?;
+pub fn set(name: &str, value: &str) -> Result<(), Failure> {
+    validate_name(name)?;
+    let path = options_json()?;
+    let mut table = read_table(&path)?;
     let display = if name == "vault_folder" {
         let expanded = expand_tilde(Path::new(value.trim()));
         let stored = expanded.to_string_lossy().into_owned();
@@ -57,26 +39,25 @@ pub fn cursor_set(name: &str, value: &str) -> Result<(), Failure> {
         table.insert(name.to_owned(), Value::Bool(enabled));
         enabled.to_string()
     };
-    cursor_write_table(&path, &table)?;
+    write_table(&path, &table)?;
     println!("Set {name} to {display}.");
     Ok(())
 }
 
-pub fn cursor_list() -> Result<(), Failure> {
-    let path = cursor_options_path()?;
-    let table = cursor_read_table(&path)?;
+pub fn list() -> Result<(), Failure> {
+    let table = read_table(&options_json()?)?;
     let text = serde_json::to_string_pretty(&Value::Object(table))
         .map_err(|error| Failure::OptionsIo(error.to_string()))?;
     println!("{text}");
     Ok(())
 }
 
-pub fn cursor_reset() -> Result<(), Failure> {
-    let path = cursor_options_path()?;
+pub fn reset() -> Result<(), Failure> {
+    let path = options_json()?;
     if path.is_file() {
         fs::remove_file(&path).map_err(|error| Failure::OptionsIo(error.to_string()))?;
     }
-    println!("Removed ~/.cursor/tightship/options.json.");
+    println!("Removed {}.", path.display());
     Ok(())
 }
 
@@ -88,7 +69,7 @@ fn parse_boolean_value(name: &str, value: &str) -> Result<bool, Failure> {
     }
 }
 
-fn cursor_read_table(path: &Path) -> Result<serde_json::Map<String, Value>, Failure> {
+fn read_table(path: &Path) -> Result<serde_json::Map<String, Value>, Failure> {
     if !path.is_file() {
         return Ok(serde_json::Map::new());
     }
@@ -101,7 +82,7 @@ fn cursor_read_table(path: &Path) -> Result<serde_json::Map<String, Value>, Fail
     }
 }
 
-fn cursor_write_table(path: &Path, table: &serde_json::Map<String, Value>) -> Result<(), Failure> {
+fn write_table(path: &Path, table: &serde_json::Map<String, Value>) -> Result<(), Failure> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| Failure::OptionsIo(error.to_string()))?;
     }

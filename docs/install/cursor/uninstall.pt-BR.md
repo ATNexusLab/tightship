@@ -6,7 +6,7 @@
 
 Pule esta etapa se você nunca ligou a status line do tightship no CLI.
 
-Defina `PLUGIN` para a pasta de instalação do tightship (veja [as opções](options.pt-BR.md#o-binário-tightship)),
+Defina `PLUGIN` para a pasta de instalação do tightship (veja [as opções](options.pt-BR.md#o-programa-tightship)),
 depois:
 
 ```sh

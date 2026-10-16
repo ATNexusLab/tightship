@@ -40,32 +40,27 @@ start, a space that holds about thirty.
 
 Nothing durable? Ignore this and carry on.";
 
-pub fn emit_pre_compact(text: &str) -> Result<(), Failure> {
-    if cursor_hook() {
-        let payload = serde_json::json!({ "user_message": text });
-        println!(
-            "{}",
-            serde_json::to_string(&payload).map_err(|error| {
-                Failure::HookOutputInvalid(PathBuf::from(error.to_string()))
-            })?
-        );
-        return Ok(());
-    }
-    emit(text)
-}
-
-fn cursor_hook() -> bool {
-    env::var_os("CURSOR_PLUGIN_ROOT").is_some_and(|value| !value.is_empty())
-}
-
 pub fn emit(text: &str) -> Result<(), Failure> {
+    emit_shaped(text, template("TIGHTSHIP_HOOK_OUTPUT"))
+}
+
+pub fn emit_checkpoint(text: &str) -> Result<(), Failure> {
+    let shape =
+        template("TIGHTSHIP_CHECKPOINT_OUTPUT").or_else(|| template("TIGHTSHIP_HOOK_OUTPUT"));
+    emit_shaped(text, shape)
+}
+
+fn template(variable: &str) -> Option<PathBuf> {
+    env::var_os(variable)
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+}
+
+fn emit_shaped(text: &str, template: Option<PathBuf>) -> Result<(), Failure> {
     if text.is_empty() {
         return Ok(());
     }
-    let Some(template) = env::var_os("TIGHTSHIP_HOOK_OUTPUT")
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-    else {
+    let Some(template) = template else {
         if text.ends_with('\n') {
             print!("{text}");
         } else {

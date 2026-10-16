@@ -14,8 +14,12 @@ may name a harness. Each one holds:
 - The text of every capability token.
 - The tools a read-only subagent gets (`Read, Grep, Glob, Bash` in Claude Code;
   `view_file, list_dir, find_by_name, grep_search, run_command` in Antigravity CLI, M3, #59).
-- The companion plugins the plugin depends on, each with the catalog or repository that lists it (M1, #2).
-- The denylist the neutrality check applies to the canonical content across every harness in `harnesses/`.
+- The companion plugins the plugin depends on, each with its repository, the catalog that lists it where
+  the harness has catalogs (M1, #2), and its kind, `plugin` or `skill`. `[install.companion-steps]` holds the
+  installer line for each kind, in `sh` and in PowerShell, which the build writes once per companion where
+  `install.sh` and `install.ps1` say `{{install:companions}}` (#77).
+- The denylist the neutrality check applies, across every harness in `harnesses/`, to the canonical content
+  and to the binary's sources in `tightship/src/` (#78).
 - `[contract] limit`: the most characters one hook may put in the context (M1, #4).
 
 **It never** holds a piece's text. A sentence that only one harness needs is a capability, and its text

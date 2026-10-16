@@ -1,30 +1,23 @@
-use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
-use crate::options;
 
 pub fn run(file: &str) -> Result<(), Failure> {
-    if !options::cursor_boolean("contract")? {
+    let options = crate::options::load()?;
+    if !options.contract {
         return Ok(());
     }
     if let Some(gate) = gate_for_file(file)
-        && !options::cursor_boolean(&gate)?
+        && !options.is_enabled(&gate)?
     {
         return Ok(());
     }
-    let root = plugin_root()?;
+    let root = crate::variable("TIGHTSHIP_ROOT")?;
     let path = contract_file(&root, file)?;
     let text =
         fs::read_to_string(&path).map_err(|error| Failure::ContractPartUnreadable(path, error))?;
-    let payload = serde_json::json!({ "additional_context": text });
-    println!(
-        "{}",
-        serde_json::to_string(&payload)
-            .map_err(|error| { Failure::HookOutputInvalid(PathBuf::from(error.to_string())) })?
-    );
-    Ok(())
+    super::emit(&text)
 }
 
 fn gate_for_file(file: &str) -> Option<String> {
@@ -32,17 +25,6 @@ fn gate_for_file(file: &str) -> Option<String> {
         return None;
     }
     Some(file.trim_end_matches(".md").to_owned())
-}
-
-fn plugin_root() -> Result<PathBuf, Failure> {
-    for key in ["CURSOR_PLUGIN_ROOT", "CLAUDE_PLUGIN_ROOT"] {
-        if let Ok(root) = env::var(key)
-            && !root.is_empty()
-        {
-            return Ok(PathBuf::from(root));
-        }
-    }
-    Err(Failure::PluginRootUnset)
 }
 
 fn contract_file(root: &Path, file: &str) -> Result<PathBuf, Failure> {

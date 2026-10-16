@@ -42,7 +42,7 @@ cannot meet ([epic #58 spec](../../specs/cursor-plugin/ship-for-cursor.md)).
 **Acceptance criteria**
 
 - **NFR-FLEX-02.1** — 100% of the functional acceptance criteria pass in Cursor's editor at 3.25.6 or later,
-  except FR-STL-01.1, FR-STL-02.1, and FR-STL-03.1, which pass in the command-line agent at 2026.10.14 or
+  except FR-STL-01.1, FR-STL-02.3, and FR-STL-03.1, which pass in the command-line agent at 2026.10.14 or
   later only.
 - **NFR-FLEX-02.2** — Hooks are not required under `agent -p`; criteria that need hooks are verified in the
   editor or in an interactive CLI session ([epic #58](../../specs/cursor-plugin/ship-for-cursor.md)).

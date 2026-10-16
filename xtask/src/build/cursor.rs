@@ -133,8 +133,9 @@ fn catalog(harness: &Harness) -> io::Result<String> {
     let plugin = &harness.plugin;
     let mut marketplaces = Vec::new();
     for companion in &harness.companions {
-        if !marketplaces.contains(&companion.marketplace.as_str()) {
-            marketplaces.push(companion.marketplace.as_str());
+        let marketplace = companion.marketplace(&harness.name)?;
+        if !marketplaces.contains(&marketplace) {
+            marketplaces.push(marketplace);
         }
     }
     let catalog = Catalog {

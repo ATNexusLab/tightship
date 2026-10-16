@@ -1,25 +1,25 @@
 use serde_json::Value;
 
 use crate::failure::Failure;
-use crate::status::settings::{self, Record};
+use crate::status::settings;
 
 pub fn run() -> Result<(), Failure> {
     let options = crate::options::load()?;
-    let settings_path = settings::variable("TIGHTSHIP_SETTINGS")?;
-    let data = settings::variable("TIGHTSHIP_DATA")?;
-    let root = settings::variable("TIGHTSHIP_ROOT")?;
-    let record = settings::read_record(&data)?;
+    let settings_path = crate::variable("TIGHTSHIP_SETTINGS")?;
+    let data = crate::variable("TIGHTSHIP_DATA")?;
+    let root = crate::variable("TIGHTSHIP_ROOT")?;
+    let previous = settings::read_previous(&data)?;
     let mut user_settings = settings::read_settings(&settings_path)?;
     let ours = user_settings
         .get("statusLine")
         .is_some_and(settings::is_ours);
     if !options.status_line {
         if ours {
-            match record {
-                Some(Record::On(Some(previous))) => {
+            match previous {
+                Some(previous) => {
                     user_settings.insert("statusLine".to_owned(), previous);
                 }
-                _ => {
+                None => {
                     user_settings.shift_remove("statusLine");
                 }
             }
@@ -27,8 +27,8 @@ pub fn run() -> Result<(), Failure> {
         }
         return settings::remove_record(&data);
     }
+    let command = Value::String(settings::command_for(&root));
     if ours {
-        let command = Value::String(settings::command_for(&root, &settings_path));
         let status_line = user_settings
             .get_mut("statusLine")
             .and_then(Value::as_object_mut);
@@ -40,23 +40,14 @@ pub fn run() -> Result<(), Failure> {
         }
         return Ok(());
     }
-    match record {
-        None => {
-            settings::write_record(&data, &Record::On(user_settings.get("statusLine").cloned()))?;
-            user_settings.insert(
-                "statusLine".to_owned(),
-                serde_json::json!({
-                    "type": "command",
-                    "command": settings::command_for(&root, &settings_path),
-                }),
-            );
-            if let Err(failure) = settings::write_settings(&settings_path, &user_settings) {
-                settings::remove_record(&data)?;
-                return Err(failure);
-            }
-        }
-        Some(Record::Declined) => {}
-        Some(Record::On(_)) => settings::write_record(&data, &Record::Declined)?,
+    settings::write_record(&data, user_settings.get("statusLine"))?;
+    user_settings.insert(
+        "statusLine".to_owned(),
+        serde_json::json!({ "type": "command", "command": command }),
+    );
+    if let Err(failure) = settings::write_settings(&settings_path, &user_settings) {
+        settings::remove_record(&data)?;
+        return Err(failure);
     }
     Ok(())
 }

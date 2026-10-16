@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 1.8.1 · **Date:** 2026-10-16 · [Changelog](CHANGELOG.md)
+**Version:** 1.9.0 · **Date:** 2026-10-16 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -74,7 +74,7 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-MEM-10](functional/memory.md#fr-mem-10) | Memory can be turned off | Must | approved | M1 |
 | [FR-MEM-11](functional/memory.md#fr-mem-11) | Sync the vault | Must | approved | M1 |
 | [FR-STL-01](functional/status-line.md#fr-stl-01) | Status line on opt-in | Must | approved | M1 |
-| [FR-STL-02](functional/status-line.md#fr-stl-02) | Consent before changing settings | Must | approved | M1 |
+| [FR-STL-02](functional/status-line.md#fr-stl-02) | The status line option is the consent | Must | approved | M1 |
 | [FR-STL-03](functional/status-line.md#fr-stl-03) | Turning it off restores the previous setting | Should | approved | M1 |
 | [FR-INS-01](functional/install.md#fr-ins-01) | Install through the harness's plugin mechanism | Must | approved | M1 |
 | [FR-INS-02](functional/install.md#fr-ins-02) | Companions are installed with the plugin | Must | approved | M1 |

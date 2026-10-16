@@ -99,8 +99,12 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
         dependencies: harness
             .companions
             .iter()
-            .map(|companion| format!("{}@{}", companion.plugin, companion.marketplace))
-            .collect(),
+            .map(|companion| {
+                companion
+                    .marketplace(&harness.name)
+                    .map(|marketplace| format!("{}@{}", companion.plugin, marketplace))
+            })
+            .collect::<io::Result<_>>()?,
         user_config,
     };
     Ok(serde_json::to_string_pretty(&manifest).map_err(io::Error::other)? + "\n")
@@ -214,8 +218,9 @@ fn catalog(harness: &Harness) -> io::Result<String> {
     let plugin = &harness.plugin;
     let mut marketplaces = Vec::new();
     for companion in &harness.companions {
-        if !marketplaces.contains(&companion.marketplace.as_str()) {
-            marketplaces.push(companion.marketplace.as_str());
+        let marketplace = companion.marketplace(&harness.name)?;
+        if !marketplaces.contains(&marketplace) {
+            marketplaces.push(marketplace);
         }
     }
     let catalog = Catalog {

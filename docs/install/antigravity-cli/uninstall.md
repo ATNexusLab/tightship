@@ -7,13 +7,7 @@ English · [Português](uninstall.pt-BR.md)
 Skip this step if you never turned tightship's status line on.
 
 Before deleting the plugin, restore your previous status line so your `settings.json` is returned to its
-prior state:
-
-```sh
-~/.gemini/config/plugins/tightship/bin/tightship status-line decline
-```
-
-Or set `status_line = false` in `~/.gemini/config/plugin_data/tightship/options.toml` and run:
+prior state. Set `status_line = false` in `~/.gemini/config/plugin_data/tightship/options.toml` and run:
 
 ```sh
 ~/.gemini/config/plugins/tightship/bin/tightship hook status-line

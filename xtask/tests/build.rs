@@ -201,6 +201,19 @@ fn a_harness_term_in_content_fails() {
 }
 
 #[test]
+fn a_harness_term_in_the_binary_sources_fails() {
+    let repository = Repository::with(&[(
+        "tightship/src/status/render.rs",
+        "fn prefix() -> &'static str {\n    \"Claude Code\"\n}\n".to_owned(),
+    )]);
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: tightship/src/status/render.rs:2: \"Claude Code\" belongs to claude-code; move it to harnesses/claude-code/ and pass it in through the launcher",
+    );
+}
+
+#[test]
 fn a_word_containing_a_term_is_not_a_match() {
     let repository = Repository::with(&[piece(
         "content/skills/api-design/SKILL.md",
@@ -494,18 +507,21 @@ fn the_launcher_runs_the_binary_built_for_this_machine() {
 
 #[test]
 fn a_companion_without_a_marketplace_fails_and_leaves_no_plugin() {
-    let repository = Repository::with(&[(
-        "harnesses/claude-code/harness.toml",
-        format!(
-            "{}[[companions]]\nplugin = \"ponytail\"\n",
-            harness_without_companions()
+    let repository = Repository::with(&[
+        piece("content/commands/epic.md", "Open the epic.\n"),
+        (
+            "harnesses/claude-code/harness.toml",
+            format!(
+                "{}[[companions]]\nplugin = \"ponytail\"\nrepository = \"DietrichGebert/ponytail\"\n",
+                harness_without_companions()
+            ),
         ),
-    )]);
+    ]);
     fs::create_dir_all(repository.path("dist/claude-code")).expect("a previous build");
 
     assert_fails_with(
         &repository.run("build"),
-        "error: harnesses/claude-code/harness.toml: missing field `marketplace`",
+        "error: harnesses/claude-code/harness.toml: companion \"ponytail\" has no marketplace",
     );
     assert!(!repository.path("dist/claude-code").exists());
 }

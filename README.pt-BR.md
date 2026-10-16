@@ -35,7 +35,7 @@ sozinho ganha o mesmo rigor que um time exigiria.
 | 13 skills | Carregadas sob demanda: arquitetura de API, de banco de dados, de frontend e hexagonal, engenharia de requisitos, escrita de spec, auditoria de segurança, testes, performance, escrita técnica e outras |
 | Verificador | Um subagente somente leitura que tenta refutar uma correção, um achado ou um "pronto" antes que você confie nele |
 | Memória | Opcional. Notas curadas num repositório git seu, compartilhadas entre sessões, máquinas e harnesses |
-| Status line | Opcional. Gravada nas suas configurações só depois que você concorda |
+| Status line | Opcional. Gravada nas suas configurações só enquanto você a deixa ligada |
 
 Três plugins companheiros são instalados junto. O [ponytail](https://github.com/DietrichGebert/ponytail)
 mantém o código no mais simples que funciona. O [i-have-adhd](https://github.com/ayghri/i-have-adhd)

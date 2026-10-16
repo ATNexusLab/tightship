@@ -95,12 +95,10 @@ scope's earlier ones, and run `tightship vault sync` to push it. The project's r
 handoff with the repository after a `git fetch`. It shows the next step and the open decisions, and waits.
 
 **Session start: the status line** (M1, #7; M3, #59). On `startup`, `tightship hook status-line` runs whatever
-the status line option's state. With the option on and the status line not yet decided, it prints a question
-for the agent to put to the adopter, and the agent runs `tightship status-line enable` or `decline` on the
-answer (or `install.sh` / `install.ps1` enables it with consent during installation, M3, #59). `enable` saves
-the adopter's `statusLine` in the plugin's data folder and writes the workflow's into the user settings
-(`~/.claude/settings.json` or `~/.gemini/antigravity-cli/settings.json`), and the harness then runs `tightship
-status-line render` as the status line. With the option off, the hook puts the saved value back
+the status line option's state. With the option on, it saves the adopter's `statusLine` in the plugin's data
+folder and writes the workflow's into the user settings (`~/.claude/settings.json`,
+`~/.cursor/cli-config.json`, or `~/.gemini/antigravity-cli/settings.json`), and the harness then runs
+`tightship status-line render` as the status line. With the option off, the hook puts the saved value back
 ([status line](concepts/status-line.md)).
 
 **The adopter syncs the vault** (M1, #5). The command `sync` has the agent run `tightship vault sync`, which

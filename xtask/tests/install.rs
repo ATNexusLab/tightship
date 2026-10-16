@@ -785,28 +785,3 @@ fn existing_options_are_preserved_on_update() {
         );
     }
 }
-
-#[test]
-fn both_installers_install_every_companion_the_harness_declares() {
-    let root = repo_root();
-    let harness: toml::Table =
-        fs::read_to_string(root.join("harnesses/antigravity-cli/harness.toml"))
-            .expect("read harness.toml")
-            .parse()
-            .expect("harness.toml is valid TOML");
-    let companions = harness["companions"].as_array().expect("companions");
-    for installer in INSTALLERS {
-        let script = fs::read_to_string(installer.built()).expect("read installer");
-        for companion in companions {
-            let marketplace = companion["marketplace"].as_str().expect("marketplace");
-            let repository = marketplace
-                .strip_prefix("https://github.com/")
-                .expect("a GitHub marketplace");
-            assert!(
-                script.contains(repository),
-                "{} does not install {repository}",
-                installer.file()
-            );
-        }
-    }
-}

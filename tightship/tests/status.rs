@@ -13,7 +13,6 @@ use common::{Sandbox, assert_fails_with, assert_succeeds, run, stderr_of, stdout
 const ROOT: &str = "/plugins/0.1.0";
 const OURS: &str = "sh \"/plugins/0.1.0/bin/tightship\" status-line render";
 const MINE: &str = r#"{"statusLine": {"type": "command", "command": "mine"}}"#;
-const ON: &str = "tightship's status line is on. Turn the plugin's status_line option off to bring back the one you had.";
 
 fn checkout(sandbox: &Sandbox, branch: &str) {
     sandbox.write(
@@ -23,6 +22,15 @@ fn checkout(sandbox: &Sandbox, branch: &str) {
 }
 
 fn render(sandbox: &Sandbox, fixture: &str, columns: Option<&str>) -> Output {
+    render_with_prefix(sandbox, fixture, columns, Some("Claude "))
+}
+
+fn render_with_prefix(
+    sandbox: &Sandbox,
+    fixture: &str,
+    columns: Option<&str>,
+    prefix: Option<&str>,
+) -> Output {
     let file = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/status")
         .join(format!("{fixture}.json"));
@@ -39,6 +47,10 @@ fn render(sandbox: &Sandbox, fixture: &str, columns: Option<&str>) -> Output {
     match columns {
         Some(columns) => command.env("COLUMNS", columns),
         None => command.env_remove("COLUMNS"),
+    };
+    match prefix {
+        Some(prefix) => command.env("TIGHTSHIP_MODEL_PREFIX", prefix),
+        None => command.env_remove("TIGHTSHIP_MODEL_PREFIX"),
     };
     with_stdin(&mut command, &input)
 }
@@ -82,6 +94,21 @@ fn render_prints_both_rows_in_their_colors() {
     ]
     .join(separator);
     assert_eq!(stdout_of(&output), format!("{identity}\n{usage}\n"));
+}
+
+#[test]
+fn a_harness_without_a_model_prefix_keeps_the_whole_model_name() {
+    let sandbox = Sandbox::new();
+    checkout(&sandbox, "feat/7-status-line");
+
+    let output = render_with_prefix(&sandbox, "request", Some("200"), None);
+
+    assert_succeeds(&output);
+    assert!(
+        plain(&output).contains(" · Claude Opus 5.5 · "),
+        "{}",
+        plain(&output)
+    );
 }
 
 #[test]
@@ -164,10 +191,6 @@ fn hook(sandbox: &Sandbox, option: Option<&str>) -> Output {
     status_line(sandbox, &["hook", "status-line"], ROOT, option)
 }
 
-fn agent(sandbox: &Sandbox, answer: &str) -> Output {
-    status_line(sandbox, &["status-line", answer], ROOT, None)
-}
-
 fn settings(sandbox: &Sandbox) -> String {
     fs::read_to_string(sandbox.path("config/settings.json")).expect("the settings file")
 }
@@ -203,7 +226,7 @@ fn the_session_start_activates_the_status_line() {
 }
 
 #[test]
-fn yes_saves_the_previous_status_line_and_off_puts_it_back_in_place() {
+fn on_saves_the_previous_status_line_and_off_puts_it_back_in_place() {
     let sandbox = Sandbox::new();
     let mine = json!({ "type": "command", "command": "mine" });
     sandbox.write(
@@ -211,10 +234,7 @@ fn yes_saves_the_previous_status_line_and_off_puts_it_back_in_place() {
         r#"{"model": "opus", "statusLine": {"type": "command", "command": "mine"}, "theme": "dark"}"#,
     );
 
-    let enabled = agent(&sandbox, "enable");
-
-    assert_succeeds(&enabled);
-    assert_eq!(stdout_of(&enabled), format!("{ON}\n"));
+    assert_succeeds(&hook(&sandbox, None));
     assert_eq!(
         settings(&sandbox),
         pretty(&json!({
@@ -240,25 +260,15 @@ fn yes_saves_the_previous_status_line_and_off_puts_it_back_in_place() {
 }
 
 #[test]
-fn yes_with_no_status_line_before_removes_the_key_when_off() {
+fn on_with_no_status_line_before_removes_the_key_when_off() {
     let sandbox = Sandbox::new();
     let ours = pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }));
 
-    assert_succeeds(&agent(&sandbox, "enable"));
+    assert_succeeds(&hook(&sandbox, None));
     assert_eq!(settings(&sandbox), ours);
     assert_eq!(record(&sandbox), Some(json!({ "state": "on" })));
 
-    let again = agent(&sandbox, "enable");
-    let declined = agent(&sandbox, "decline");
-
-    assert_eq!(
-        stdout_of(&again),
-        "tightship's status line is already on.\n"
-    );
-    assert_eq!(
-        stdout_of(&declined),
-        "tightship's status line is on; turn the plugin's status_line option off to bring back the one you had.\n"
-    );
+    assert_succeeds(&hook(&sandbox, None));
     assert_eq!(settings(&sandbox), ours);
     assert_eq!(record(&sandbox), Some(json!({ "state": "on" })));
 
@@ -278,25 +288,14 @@ fn yes_with_no_status_line_before_removes_the_key_when_off() {
 }
 
 #[test]
-fn no_is_kept_until_the_option_is_turned_off_and_on() {
+fn an_old_declined_record_does_not_keep_the_status_line_off() {
     let sandbox = Sandbox::new();
     sandbox.write("config/settings.json", MINE);
-
-    let declined = agent(&sandbox, "decline");
-
-    assert_succeeds(&declined);
-    assert_eq!(
-        stdout_of(&declined),
-        "The status line stays as it is. tightship will not ask again until its status_line option is turned off and on.\n"
-    );
-    assert_eq!(settings(&sandbox), MINE);
-    assert_eq!(stdout_of(&hook(&sandbox, None)), "");
-
-    let off = hook(&sandbox, Some("false"));
-    assert_eq!(stdout_of(&off), "");
-    assert_eq!(record(&sandbox), None);
+    sandbox.write("data/status-line.json", r#"{"state": "declined"}"#);
 
     let on = hook(&sandbox, None);
+
+    assert_succeeds(&on);
     assert_eq!(stdout_of(&on), "");
     assert_eq!(
         settings(&sandbox),
@@ -332,18 +331,29 @@ fn the_status_line_follows_the_plugin_folder() {
 }
 
 #[test]
-fn a_status_line_replaced_by_hand_counts_as_declined() {
+fn a_status_line_replaced_by_hand_is_saved_and_replaced() {
     let sandbox = Sandbox::new();
-    let theirs = r#"{"statusLine": {"type": "command", "command": "theirs"}}"#;
-    sandbox.write("config/settings.json", theirs);
-    sandbox.write("data/status-line.json", r#"{"state": "on"}"#);
+    sandbox.write(
+        "config/settings.json",
+        r#"{"statusLine": {"type": "command", "command": "theirs"}}"#,
+    );
+    sandbox.write(
+        "data/status-line.json",
+        r#"{"state": "on", "previous": {"type": "command", "command": "mine"}}"#,
+    );
 
     let output = hook(&sandbox, None);
 
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
-    assert_eq!(settings(&sandbox), theirs);
-    assert_eq!(record(&sandbox), Some(json!({ "state": "declined" })));
+    assert_eq!(
+        settings(&sandbox),
+        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
+    );
+    assert_eq!(
+        record(&sandbox),
+        Some(json!({ "state": "on", "previous": { "type": "command", "command": "theirs" } }))
+    );
 }
 
 #[cfg(unix)]
@@ -357,7 +367,7 @@ fn a_linked_settings_file_stays_a_link_with_its_permissions() {
     fs::create_dir_all(sandbox.path("config")).expect("the config folder");
     symlink(&target, sandbox.path("config/settings.json")).expect("the link");
 
-    assert_succeeds(&agent(&sandbox, "enable"));
+    assert_succeeds(&hook(&sandbox, None));
 
     assert_eq!(
         fs::read_link(sandbox.path("config/settings.json")).expect("still a link"),
@@ -380,7 +390,7 @@ fn damaged_input_fails_and_changes_nothing() {
     let file = sandbox.write("config/settings.json", "[1, 2");
 
     assert_fails_with(
-        &agent(&sandbox, "enable"),
+        &hook(&sandbox, None),
         &format!(
             "error: the settings file {} is not a JSON object; nothing changed",
             file.display()
@@ -400,13 +410,13 @@ fn damaged_input_fails_and_changes_nothing() {
     );
     assert_eq!(settings(&sandbox), MINE);
 
-    let mut no_root = sandbox.tightship(&["status-line", "enable"]);
+    let mut no_root = sandbox.tightship(&["hook", "status-line"]);
     no_root
         .env("TIGHTSHIP_SETTINGS", &file)
         .env("TIGHTSHIP_DATA", sandbox.path("data"));
     assert_fails_with(
         &run(&mut no_root),
-        "error: TIGHTSHIP_ROOT is not set; run the exact command the session start printed",
+        "error: TIGHTSHIP_ROOT is not set; run tightship through the plugin's bin/tightship",
     );
 }
 
@@ -423,7 +433,7 @@ fn files_that_cannot_be_written_fail_without_a_half_change() {
     };
     lock("config", 0o555);
 
-    let enabled = agent(&sandbox, "enable");
+    let enabled = hook(&sandbox, None);
 
     lock("config", 0o755);
     assert_eq!(enabled.status.code(), Some(1));
@@ -441,11 +451,11 @@ fn files_that_cannot_be_written_fail_without_a_half_change() {
     fs::create_dir_all(sandbox.path("data")).expect("the data folder");
     lock("data", 0o555);
 
-    let declined = agent(&sandbox, "decline");
+    let unrecorded = hook(&sandbox, None);
 
     lock("data", 0o755);
-    assert_eq!(declined.status.code(), Some(1));
-    let stderr = stderr_of(&declined);
+    assert_eq!(unrecorded.status.code(), Some(1));
+    let stderr = stderr_of(&unrecorded);
     assert!(
         stderr.starts_with(&format!(
             "error: cannot write the status line record {}: ",
@@ -517,39 +527,33 @@ fn scenario_9_status_line_enables_renders_and_restores_via_options_toml() {
 }
 
 #[test]
-fn the_status_line_recognizes_windows_cmd_launchers() {
+fn the_status_line_recognizes_its_launchers_and_binaries_on_every_platform() {
     let sandbox = Sandbox::new();
-    let backslash_cmd = json!({
-        "statusLine": {
-            "type": "command",
-            "command": "\"C:\\path\\bin\\tightship.cmd\" status-line render",
-        }
-    });
-    sandbox.write("config/settings.json", &pretty(&backslash_cmd));
     sandbox.write("data/status-line.json", r#"{"state": "on"}"#);
 
-    let output = hook(&sandbox, None);
-    assert_succeeds(&output);
-    assert_eq!(
-        settings(&sandbox),
-        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
-    );
-    assert_eq!(record(&sandbox), Some(json!({ "state": "on" })));
+    for command in [
+        r#""C:\path\bin\tightship.cmd" status-line render"#,
+        r#""C:/path/bin/tightship.cmd" status-line render"#,
+        r#""C:\path\1.0.2\bin\windows-x64\tightship.exe" status-line render"#,
+        r#""/path/1.0.2/bin/linux-x64/tightship" status-line render"#,
+    ] {
+        sandbox.write(
+            "config/settings.json",
+            &pretty(&json!({ "statusLine": { "type": "command", "command": command } })),
+        );
 
-    let slash_cmd = json!({
-        "statusLine": {
-            "type": "command",
-            "command": "\"C:/path/bin/tightship.cmd\" status-line render",
-        }
-    });
-    sandbox.write("config/settings.json", &pretty(&slash_cmd));
-    let output2 = hook(&sandbox, None);
-    assert_succeeds(&output2);
-    assert_eq!(
-        settings(&sandbox),
-        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
-    );
-    assert_eq!(record(&sandbox), Some(json!({ "state": "on" })));
+        assert_succeeds(&hook(&sandbox, None));
+        assert_eq!(
+            settings(&sandbox),
+            pretty(&json!({ "statusLine": { "type": "command", "command": OURS } })),
+            "{command}"
+        );
+        assert_eq!(
+            record(&sandbox),
+            Some(json!({ "state": "on" })),
+            "{command}"
+        );
+    }
 }
 
 const CURSOR_OURS: &str = "\"${CURSOR_PLUGIN_ROOT}/bin/tightship\" status-line render";
@@ -559,25 +563,13 @@ fn cursor_status_line(sandbox: &Sandbox, arguments: &[&str]) -> Output {
     command
         .env("TIGHTSHIP_SETTINGS", sandbox.path("config/cli-config.json"))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", ROOT);
+        .env("TIGHTSHIP_ROOT", ROOT)
+        .env("TIGHTSHIP_STATUS_LINE_COMMAND", CURSOR_OURS);
     run(&mut command)
 }
 
 fn cursor_settings(sandbox: &Sandbox) -> String {
     fs::read_to_string(sandbox.path("config/cli-config.json")).expect("the CLI config")
-}
-
-#[test]
-fn cursor_cli_config_gets_the_plugin_root_status_line_command() {
-    let sandbox = Sandbox::new();
-    sandbox.write("config/cli-config.json", MINE);
-    fs::create_dir_all(sandbox.path("data")).expect("the data folder");
-
-    assert_succeeds(&cursor_status_line(&sandbox, &["status-line", "enable"]));
-    assert_eq!(
-        cursor_settings(&sandbox),
-        pretty(&json!({ "statusLine": { "type": "command", "command": CURSOR_OURS } }))
-    );
 }
 
 #[test]
@@ -636,7 +628,8 @@ fn cursor_status_line_keeps_the_plugin_root_token_when_the_plugin_folder_changes
     command
         .env("TIGHTSHIP_SETTINGS", sandbox.path("config/cli-config.json"))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", "/plugins/0.2.0");
+        .env("TIGHTSHIP_ROOT", "/plugins/0.2.0")
+        .env("TIGHTSHIP_STATUS_LINE_COMMAND", CURSOR_OURS);
     let output = run(&mut command);
 
     assert_succeeds(&output);

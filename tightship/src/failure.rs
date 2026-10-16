@@ -36,7 +36,7 @@ pub enum Failure {
     SyncConflict(PathBuf, Vec<String>),
     SyncGitFailed(PathBuf, &'static str, String),
     StatusInputInvalid(String),
-    StatusLineNotSet(&'static str),
+    VariableNotSet(&'static str),
     SettingsUnreadable(PathBuf, io::Error),
     SettingsInvalid(PathBuf),
     SettingsUnwritable(PathBuf, io::Error),
@@ -52,7 +52,6 @@ pub enum Failure {
     Usage(String),
     OptionsIo(String),
     OptionsInvalidValue(String),
-    PluginRootUnset,
     ContractPartNameInvalid(String),
     ContractPartMissing(PathBuf),
     ContractPartUnreadable(PathBuf, io::Error),
@@ -173,9 +172,9 @@ impl fmt::Display for Failure {
                 formatter,
                 "the status line input is not a JSON object: {message}"
             ),
-            Self::StatusLineNotSet(variable) => write!(
+            Self::VariableNotSet(variable) => write!(
                 formatter,
-                "{variable} is not set; run the exact command the session start printed"
+                "{variable} is not set; run tightship through the plugin's bin/tightship"
             ),
             Self::SettingsUnreadable(path, error) => write!(
                 formatter,
@@ -230,10 +229,6 @@ impl fmt::Display for Failure {
             Self::OptionsInvalidValue(name) => {
                 write!(formatter, "{name} must be true or false")
             }
-            Self::PluginRootUnset => write!(
-                formatter,
-                "CURSOR_PLUGIN_ROOT is not set; hooks run only inside the plugin"
-            ),
             Self::ContractPartNameInvalid(name) => {
                 write!(formatter, "contract part name {:?} is invalid", name)
             }

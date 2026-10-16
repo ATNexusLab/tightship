@@ -6,7 +6,7 @@ pub fn run() -> Result<(), Failure> {
         return Ok(());
     }
     if options.vault_folder.is_some() {
-        super::emit_pre_compact(super::CHECKPOINT)?;
+        super::emit_checkpoint(super::CHECKPOINT)?;
     }
     Ok(())
 }

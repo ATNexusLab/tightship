@@ -49,8 +49,9 @@ você pergunta sobre memória.
 
 ## A status line
 
-Com `status_line` ligada, o tightship mostra a sua status line sob o prompt. Ela substitui o `statusLine`
-das suas configurações de usuário e guarda a sua anterior de lado.
+Com `status_line` ligada, o tightship mostra a sua status line sob o prompt a partir do próximo início de
+sessão. Ela substitui o `statusLine` das suas configurações de usuário, seja qual for, e guarda o anterior de
+lado.
 
 Desligar `status_line` devolve a sua status line anterior no próximo início de sessão, ou remove a chave se
 você não tinha uma.

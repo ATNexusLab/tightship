@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.9.0 — 2026-10-16
+
+Turning the `status_line` option on is the adopter's consent, by change request
+[#55](https://github.com/ATNexusLab/tightship/issues/55). The question in chat had been gone since tightship 1.0.2,
+but a no recorded before it, or a status line command tightship did not recognize as its own, kept the
+status line off with the option on.
+
+**Added**
+
+- FR-STL-02.2: with the option off, a session start leaves the workflow's status line out of the harness's
+  settings.
+- FR-STL-02.3: with the option on, a session start writes the workflow's status line, whatever the settings
+  held before.
+
+**Changed**
+
+- FR-STL-02 is renamed "The status line option is the consent" and writes the status line only while the
+  option is on, instead of asking the adopter first.
+- NFR-FLEX-02.1 names FR-STL-02.3 in place of FR-STL-02.1 among the criteria the Cursor editor cannot pass.
+
+**Retired**
+
+- FR-STL-02.1: the adopter no longer answers a question in chat, so no refusal is recorded.
+
 ## 1.8.1 — 2026-10-16
 
 Editorial. The [spec of epic #59](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md) settles OQ-04,

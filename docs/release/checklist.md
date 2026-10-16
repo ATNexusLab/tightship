@@ -116,10 +116,11 @@ On Windows, run every command in Git Bash.
 
 | Criterion | How it is checked | macOS | Linux | Windows |
 | --- | --- | --- | --- | --- |
-| FR-STL-01.1 | Manual: say yes to the offer; the status line shows the same segments as the baseline's in the same repository. Test: `tightship/tests/status.rs` `render_prints_both_rows_in_their_colors` | | | |
-| FR-STL-02.1 | Manual: say no to the offer; `~/.claude/settings.json` is unchanged. Test: `tightship/tests/status.rs` `no_is_kept_until_the_option_is_turned_off_and_on` | | | |
-| FR-STL-03.1 | Manual: with a `statusLine` of your own, say yes, then turn `status_line` off; the next session puts yours back byte for byte. Test: `tightship/tests/status.rs` `yes_saves_the_previous_status_line_and_off_puts_it_back_in_place` | | | |
-| FR-STL-03.2 | Test: `tightship/tests/status.rs` `yes_with_no_status_line_before_removes_the_key_when_off` | | | |
+| FR-STL-01.1 | Manual: turn `status_line` on; the status line shows the same segments as the baseline's in the same repository. Test: `tightship/tests/status.rs` `render_prints_both_rows_in_their_colors` | | | |
+| FR-STL-02.2 | Manual: with `status_line` off and a `statusLine` of your own, start a session; `~/.claude/settings.json` is unchanged. Test: `tightship/tests/status.rs` `cursor_turning_the_option_off_restores_the_previous_cli_status_line` | | | |
+| FR-STL-02.3 | Manual: point `statusLine` at another command, turn `status_line` on, and start a session; the workflow's status line shows. Test: `tightship/tests/status.rs` `an_old_declined_record_does_not_keep_the_status_line_off`, `a_status_line_replaced_by_hand_is_saved_and_replaced` | | | |
+| FR-STL-03.1 | Manual: with a `statusLine` of your own, turn `status_line` on, then off; the next session puts yours back byte for byte. Test: `tightship/tests/status.rs` `on_saves_the_previous_status_line_and_off_puts_it_back_in_place` | | | |
+| FR-STL-03.2 | Test: `tightship/tests/status.rs` `on_with_no_status_line_before_removes_the_key_when_off` | | | |
 
 ## Cursor command-line agent
 
