@@ -8,8 +8,18 @@ description: Use when building, rendering, or debugging the Cursor plugin of thi
 What Cursor does with a plugin, as observed by probing, not as its docs promise. The docs are wrong or silent
 on several points below, so a fact marked **docs** is a hypothesis until a probe confirms it.
 
-Probed on 2026-10-15, Windows 11: editor 3.25.6, CLI `agent` 2026.10.14-941492e. macOS and Linux are not
-probed yet. Re-probe a fact before relying on it at a newer version.
+Probed on 2026-10-15, Windows 11: editor 3.25.6, CLI `agent` 2026.10.14-941492e. A partial pass on
+2026-10-16 refreshed install docs and the checklist below; hook and piece behavior below is still from
+2026-10-15 unless noted. **macOS and Linux hooks are not probed yet** (issue #65 stays open for Unix).
+Re-probe a fact before relying on it at a newer version.
+
+## Probe checklist (#65)
+
+| Platform | Hooks (shell, paths, JSON stdout) | `additional_context` size cap | Git marketplace install E2E |
+| --- | --- | --- | --- |
+| Windows | Done 2026-10-15 | Not measured; M2 uses **10000** by parity with Claude Code | Not re-run 2026-10-16 (`agent` not on PATH here); commands match Claude Code shape in `docs/install/cursor/` (**docs**) |
+| macOS | Not probed | Not probed | Not probed |
+| Linux | Not probed | Not probed | Not probed |
 
 ## Layout
 
@@ -24,10 +34,13 @@ probed yet. Re-probe a fact before relying on it at a newer version.
 ```
 
 A path field in the manifest replaces the default folder; it does not add to it (**docs**). The manifest has
-no field for dependencies, so companion plugins are installed by hand (**docs**).
+no field for dependencies, so companion plugins are installed by hand (probed 2026-10-15: no `dependencies`
+key in `.cursor-plugin/plugin.json`).
 
-The catalog is `.cursor-plugin/marketplace.json` at a git repository's root, added with
-`agent plugin marketplace add <git-url>` or from the editor (**docs**). Every documented source is git.
+The catalog is `.cursor-plugin/marketplace.json` at a git repository's root. Adopters add it with
+`agent plugin marketplace add <owner>/<repo>` (same shape as `claude plugin marketplace add`, **docs** until
+E2E probe) or from the editor under Customize → Plugins. Install companions before tightship; see
+`docs/install/cursor/companions.md`. Every documented source is git.
 
 ## Loading a plugin to test it
 
@@ -63,7 +76,11 @@ pwsh -NoProfile -NonInteractive -ExecutionPolicy Bypass -c "... Get-Content <pay
 
 - The command is PowerShell, not `sh`. `sh` is not on the Windows `PATH`, so `sh "<file>"` fails.
 - A command that is only a path, `${CURSOR_PLUGIN_ROOT}/bin/<name> <args>`, resolves `<name>.cmd` through
-  `PATHEXT` on Windows and runs `<name>` itself on macOS and Linux. That is the one form valid on all three.
+  `PATHEXT` on Windows (probed). On macOS and Linux the same string should run `<name>` without `.cmd`
+  (**docs**, not probed on Unix yet). Never wrap the path in `sh`; that form is what tightship ships in
+  `hooks/hooks.json`.
+- Contract and memory hooks must print **one line** of JSON on stdout, for example
+  `{"additional_context":"<text>"}`. Multi-line stdout is untested.
 - **Trap:** the CLI hands that PowerShell text to the agent's shell. Started from Git Bash, where `SHELL` is
   set, the shell is bash and every hook fails with `syntax error near unexpected token '&'`. A failing
   `beforeShellExecution` hook then blocks every shell call. Probe from PowerShell with `$env:SHELL = $null`.
@@ -122,8 +139,21 @@ probed).
 
 ## Not probed yet
 
-- The size limit of one `additional_context`.
+- The size limit of one `additional_context` on Cursor (use **10000** until a probe measures a lower cap).
 - Whether `beforeSubmitPrompt`'s `additional_context` reaches the agent in the CLI.
 - Whether `preToolUse` or `subagentStart` tells which subagent calls a tool, so a hook can deny edits to a
   read-only one.
-- The CLI's `statusLine` format, macOS and Linux hooks, installing from a git catalog, and uninstall.
+- The CLI's `statusLine` format, **macOS and Linux hook shells and paths**, end-to-end **git marketplace**
+  install on Windows, and uninstall.
+
+### Unix probe script (maintainer, #65)
+
+On macOS or Linux, with editor 3.25.6+ and `agent` 2026.10.14+:
+
+1. Copy a throwaway plugin with one hook:
+   `"command": \"${CURSOR_PLUGIN_ROOT}/bin/echo-test hook\"` or a script that logs `$0`, parent shell, and
+   prints `{"additional_context":"unix-probe"}`.
+2. Confirm the parent is **not** PowerShell and that `${CURSOR_PLUGIN_ROOT}/bin/tightship` (no `.cmd`) runs.
+3. Note `workspace_roots` path shape in hook stdin (editor vs CLI).
+4. Feed a part near 10000 characters; record whether Cursor truncates or errors.
+5. Update the checklist table at the top of this skill and close #65 when both Unix rows are **Done**.
