@@ -30,6 +30,7 @@ pub struct FrontMatter {
     pub description: String,
     #[serde(rename = "argument-hint")]
     pub argument_hint: Option<String>,
+    pub access: Option<String>,
 }
 
 pub struct Piece {

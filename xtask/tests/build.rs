@@ -560,6 +560,41 @@ fn an_option_declared_twice_fails() {
 }
 
 #[test]
+fn cursor_plugin_renders_slash_commands_without_plugin_prefix() {
+    let repository = Repository::with(&[
+        piece(
+            "content/commands/spec.md",
+            "Use {{skill:spec-writing}}, then {{command:epic}}.\n",
+        ),
+        piece("content/skills/spec-writing/SKILL.md", "Write the spec.\n"),
+        piece("content/commands/epic.md", "Open the epic.\n"),
+        (
+            "harnesses/cursor/harness.toml",
+            include_str!("../../harnesses/cursor/harness.toml").to_owned(),
+        ),
+    ]);
+
+    assert_succeeds(&repository.run("build"));
+    let spec = fs::read_to_string(repository.path("dist/cursor/commands/spec.md"))
+        .expect("the rendered command");
+    assert!(spec.contains("Use spec-writing, then /epic."));
+    assert!(
+        repository
+            .path("dist/cursor/skills/spec-writing/SKILL.md")
+            .is_file()
+    );
+    assert!(repository.path("dist/cursor/commands/epic.md").is_file());
+    let manifest = json_at(&repository, "dist/cursor/.cursor-plugin/plugin.json");
+    assert!(manifest.get("dependencies").is_none());
+    assert!(manifest.get("userConfig").is_none());
+    assert!(
+        repository
+            .path("dist/cursor/bin/tightship.cmd")
+            .is_file()
+    );
+}
+
+#[test]
 fn an_option_naming_the_harness_or_a_missing_piece_fails() {
     let repository = Repository::with(&[options(&[
         ("memory", "Keep notes in ~/.claude"),

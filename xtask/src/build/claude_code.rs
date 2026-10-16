@@ -99,12 +99,12 @@ pub fn discard(root: &Path, harness_name: &str) -> io::Result<()> {
 }
 
 #[cfg(unix)]
-fn make_executable(file: &Path) -> io::Result<()> {
+pub(crate) fn make_executable(file: &Path) -> io::Result<()> {
     use std::os::unix::fs::PermissionsExt;
     fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(naming(file))
 }
 
-fn remove_if_present(folder: &Path) -> io::Result<()> {
+pub(crate) fn remove_if_present(folder: &Path) -> io::Result<()> {
     match fs::remove_dir_all(folder) {
         Err(error) if error.kind() != io::ErrorKind::NotFound => Err(naming(folder)(error)),
         _ => Ok(()),
