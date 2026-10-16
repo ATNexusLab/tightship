@@ -22,7 +22,6 @@ pub fn write_files(files: &[(PathBuf, Vec<u8>)], executables: &[PathBuf]) -> io:
         }
         fs::write(file, bytes).map_err(naming(file))?;
     }
-    #[cfg(unix)]
     for file in executables {
         make_executable(file)?;
     }
@@ -30,9 +29,14 @@ pub fn write_files(files: &[(PathBuf, Vec<u8>)], executables: &[PathBuf]) -> io:
 }
 
 #[cfg(unix)]
-pub fn make_executable(file: &Path) -> io::Result<()> {
+fn make_executable(file: &Path) -> io::Result<()> {
     use std::os::unix::fs::PermissionsExt;
     fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(naming(file))
+}
+
+#[cfg(not(unix))]
+fn make_executable(_file: &Path) -> io::Result<()> {
+    Ok(())
 }
 
 pub fn publish(root: &Path, staging: &Path, harness_name: &str) -> io::Result<()> {

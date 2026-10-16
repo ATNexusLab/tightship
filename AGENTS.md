@@ -52,9 +52,9 @@ Rust for application code, for the build, and for every new script
 
 At each pull request into `develop` or `main`, `.github/workflows/` runs only the gates its files call for:
 `rust.yml` the Rust gates on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git Bash) when the
-workspace, `content/`, or `harnesses/` changes; `docs.yml` markdownlint and the docs build on Linux when
-Markdown or the docs site changes; `scan.yml` the scan on Linux every time. `rust.yml` writes `.identity-terms`
-from the repository secret `IDENTITY_TERMS`, so a change to the file is copied there with
+workspace, `content/`, `harnesses/`, or an installer changes; `docs.yml` markdownlint and the docs build on
+Linux when Markdown or the docs site changes; `scan.yml` the scan on Linux every time. `rust.yml` writes
+`.identity-terms` from the repository secret `IDENTITY_TERMS`, so a change to the file is copied there with
 `gh secret set IDENTITY_TERMS < .identity-terms`. It clears `USER`: the build counts the system's user name as
 an identity term, and a runner's, `runner`, is a word the content uses.
 

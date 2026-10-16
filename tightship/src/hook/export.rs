@@ -6,7 +6,7 @@ pub fn run() -> Result<(), Failure> {
     if !options.memory {
         return Ok(());
     }
-    match vault::folder() {
+    match vault::folder_from(&options) {
         Ok(folder) => super::export_vault(&folder),
         Err(Failure::VaultNotSet | Failure::VaultNotAbsolute(_) | Failure::VaultMissing(_)) => {
             Ok(())

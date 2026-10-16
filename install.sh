@@ -13,7 +13,7 @@ Install the tightship plugin for Claude Code, Antigravity CLI, or both.
 
 Options:
   --harness <name>       Target harness: claude-code, antigravity-cli, or all
-  --contract <mode>      Contract mode: strict, lenient, off, true, or false (default: strict)
+  --contract <bool>      Enable the working contract: true or false (default: true)
   --memory <bool>        Enable memory layer: true or false (default: true)
   --status-line <bool>   Enable status line: true or false (default: true)
   --vault-folder <path>  Path to memory vault (e.g. ~/ai-memory)
@@ -83,6 +83,27 @@ download_file() {
   fi
 }
 
+to_bool() {
+  case "$(printf '%s' "$2" | tr '[:upper:]' '[:lower:]')" in
+    true|yes|y|on|1) echo "true" ;;
+    false|no|n|off|0) echo "false" ;;
+    *)
+      echo "error: $1 expects true or false; got \"$2\"" >&2
+      return 1
+      ;;
+  esac
+}
+
+step() {
+  _description="$1"
+  shift
+  echo "> $_description"
+  if ! "$@"; then
+    echo "error: $_description failed" >&2
+    exit 1
+  fi
+}
+
 # Argument parsing
 HARNESS=""
 CONTRACT_ARG=""
@@ -91,10 +112,8 @@ STATUS_LINE_ARG=""
 VAULT_FOLDER_ARG=""
 INIT_VAULT_ARG=""
 VERSION="latest"
-VERSION_SPECIFIED=0
 FROM_DIR=""
 YES=0
-SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd || true)"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -148,12 +167,10 @@ while [ $# -gt 0 ]; do
       ;;
     --version)
       VERSION="$2"
-      VERSION_SPECIFIED=1
       shift 2
       ;;
     --version=*)
       VERSION="${1#*=}"
-      VERSION_SPECIFIED=1
       shift
       ;;
     --from-dir)
@@ -206,9 +223,9 @@ prompt_read() {
     fi
   fi
   if [ -z "$_ans" ]; then
-    echo "$_default"
+    printf '%s\n' "$_default"
   else
-    echo "$_ans"
+    printf '%s\n' "$_ans"
   fi
 }
 
@@ -326,43 +343,31 @@ if [ -f "$OPTIONS_FILE" ]; then
   existing_contract=$(grep -E '^[[:space:]]*contract[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*contract[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
   existing_memory=$(grep -E '^[[:space:]]*memory[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*memory[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
   existing_status_line=$(grep -E '^[[:space:]]*status_line[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*status_line[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
-  existing_vault_folder=$(grep -E '^[[:space:]]*vault_folder[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*vault_folder[[:space:]]*=[[:space:]]*//' | sed -E 's/^[[:space:]]*"([^"]*)"[[:space:]]*$/\1/' || true)
+  existing_vault_folder=$(grep -E '^[[:space:]]*vault_folder[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*vault_folder[[:space:]]*=[[:space:]]*//' | sed -E -e 's/^[[:space:]]*"((\\.|[^"\\])*)"[[:space:]]*$/\1/' -e 's/\\(.)/\1/g' || true)
 fi
 
 # Contract
 if [ -n "$CONTRACT_ARG" ]; then
-  case "$CONTRACT_ARG" in
-    off|false|0) CONTRACT="false" ;;
-    *) CONTRACT="true" ;;
-  esac
+  CONTRACT=$(to_bool --contract "$CONTRACT_ARG")
 elif [ "$YES" -eq 1 ]; then
   CONTRACT="${existing_contract:-true}"
 else
   def="Y"
   [ "$existing_contract" = "false" ] && def="n"
   ans=$(prompt_read "Enable the working contract in every session? [Y/n]: " "$def")
-  case "$ans" in
-    n|N|no|false|0) CONTRACT="false" ;;
-    *) CONTRACT="true" ;;
-  esac
+  CONTRACT=$(to_bool "the answer" "$ans")
 fi
 
 # Memory
 if [ -n "$MEMORY_ARG" ]; then
-  case "$MEMORY_ARG" in
-    off|false|0) MEMORY="false" ;;
-    *) MEMORY="true" ;;
-  esac
+  MEMORY=$(to_bool --memory "$MEMORY_ARG")
 elif [ "$YES" -eq 1 ]; then
   MEMORY="${existing_memory:-true}"
 else
   def="Y"
   [ "$existing_memory" = "false" ] && def="n"
   ans=$(prompt_read "Enable the memory layer (curated vault notes and handoffs)? [Y/n]: " "$def")
-  case "$ans" in
-    n|N|no|false|0) MEMORY="false" ;;
-    *) MEMORY="true" ;;
-  esac
+  MEMORY=$(to_bool "the answer" "$ans")
 fi
 
 # Vault folder
@@ -372,9 +377,11 @@ elif [ "$YES" -eq 1 ]; then
   VAULT_FOLDER="${existing_vault_folder:-}"
 else
   if [ "$MEMORY" = "true" ]; then
-    def="${existing_vault_folder:-~/ai-memory}"
-    ans=$(prompt_read "Vault folder path (for example ~/ai-memory, or leave empty to set later): " "")
-    VAULT_FOLDER="$ans"
+    if [ -n "$existing_vault_folder" ]; then
+      VAULT_FOLDER=$(prompt_read "Vault folder path [$existing_vault_folder]: " "$existing_vault_folder")
+    else
+      VAULT_FOLDER=$(prompt_read "Vault folder path (for example ~/ai-memory, or leave empty to set later): " "")
+    fi
   else
     VAULT_FOLDER="${existing_vault_folder:-}"
   fi
@@ -392,37 +399,25 @@ fi
 
 if [ -n "$expanded_vault" ] && [ ! -d "$expanded_vault" ]; then
   if [ -n "$INIT_VAULT_ARG" ]; then
-    case "$INIT_VAULT_ARG" in
-      true|1|yes|y) INIT_VAULT="true" ;;
-      *) INIT_VAULT="false" ;;
-    esac
+    INIT_VAULT=$(to_bool --init-vault "$INIT_VAULT_ARG")
   elif [ "$YES" -eq 1 ]; then
     INIT_VAULT="false"
   else
     ans=$(prompt_read "Vault folder $VAULT_FOLDER does not exist. Create it now with tightship vault init? [Y/n]: " "Y")
-    case "$ans" in
-      n|N|no|false|0) INIT_VAULT="false" ;;
-      *) INIT_VAULT="true" ;;
-    esac
+    INIT_VAULT=$(to_bool "the answer" "$ans")
   fi
 fi
 
 # Status line
 if [ -n "$STATUS_LINE_ARG" ]; then
-  case "$STATUS_LINE_ARG" in
-    off|false|0) STATUS_LINE="false" ;;
-    *) STATUS_LINE="true" ;;
-  esac
+  STATUS_LINE=$(to_bool --status-line "$STATUS_LINE_ARG")
 elif [ "$YES" -eq 1 ]; then
   STATUS_LINE="${existing_status_line:-true}"
 else
   def="Y"
   [ "$existing_status_line" = "false" ] && def="n"
   ans=$(prompt_read "Enable tightship's status line (replaces your current statusLine and restores it when off)? [Y/n]: " "$def")
-  case "$ans" in
-    n|N|no|false|0) STATUS_LINE="false" ;;
-    *) STATUS_LINE="true" ;;
-  esac
+  STATUS_LINE=$(to_bool "the answer" "$ans")
 fi
 
 # Temporary directory for release downloads if needed
@@ -440,42 +435,33 @@ if [ "$HARNESS" = "claude-code" ] || [ "$HARNESS" = "all" ]; then
   claude plugin marketplace add ayghri/i-have-adhd || true
   claude plugin marketplace add blader/humanizer || true
 
-  claude_source="$FROM_DIR"
-  if [ -z "$claude_source" ] && [ "$VERSION_SPECIFIED" -eq 0 ] && [ -f "$SCRIPT_DIR/dist/claude-code/.claude-plugin/plugin.json" ]; then
-    claude_source="$SCRIPT_DIR/dist/claude-code"
-  fi
-
-  if [ -n "$claude_source" ]; then
-    claude plugin marketplace add "$claude_source" || true
+  if [ -n "$FROM_DIR" ]; then
+    claude plugin marketplace add "$FROM_DIR" || true
   else
     claude plugin marketplace add ATNexusLab/tightship || true
   fi
 
-  claude_args="--config contract=$CONTRACT --config memory=$MEMORY --config status_line=$STATUS_LINE"
+  set -- --config "contract=$CONTRACT" --config "memory=$MEMORY" --config "status_line=$STATUS_LINE"
   if [ -n "$VAULT_FOLDER" ]; then
-    claude_args="$claude_args --config vault_folder=$VAULT_FOLDER"
+    set -- "$@" --config "vault_folder=$VAULT_FOLDER"
   fi
-
-  # shellcheck disable=SC2086
-  claude plugin install tightship@tightship $claude_args
+  step "Installing tightship for Claude Code" claude plugin install tightship@tightship "$@"
 fi
 
 # Installation: Antigravity CLI
 if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
   # Companions
-  agy plugin install https://github.com/DietrichGebert/ponytail || true
-  agy plugin install https://github.com/ayghri/i-have-adhd || true
+  step "Installing the ponytail companion" agy plugin install https://github.com/DietrichGebert/ponytail
+  step "Installing the i-have-adhd companion" agy plugin install https://github.com/ayghri/i-have-adhd
 
   humanizer_dir="$HOME/.gemini/config/skills/humanizer"
   mkdir -p "$humanizer_dir"
-  download_file "https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md" "$humanizer_dir/SKILL.md"
+  step "Downloading the humanizer skill" download_file "https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md" "$humanizer_dir/SKILL.md"
 
   # Source resolution
   source_dir=""
   if [ -n "$FROM_DIR" ]; then
     source_dir="$FROM_DIR"
-  elif [ "$VERSION_SPECIFIED" -eq 0 ] && [ -f "$SCRIPT_DIR/dist/antigravity-cli/plugin.json" ]; then
-    source_dir="$SCRIPT_DIR/dist/antigravity-cli"
   else
     TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
     zip_dest="$TMP_DIR/tightship-antigravity-cli.zip"
@@ -484,6 +470,7 @@ if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
     else
       download_url="https://github.com/ATNexusLab/tightship/releases/download/$VERSION/tightship-antigravity-cli.zip"
     fi
+    echo "> Downloading tightship-antigravity-cli.zip"
     if ! download_file "$download_url" "$zip_dest"; then
       echo "error: failed to download tightship-antigravity-cli.zip from $download_url" >&2
       echo "hint: if you are running in a local repository clone, run cargo xtask build and pass --from-dir dist/antigravity-cli" >&2
@@ -493,15 +480,8 @@ if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
     source_dir="$TMP_DIR/extracted"
   fi
 
-  agy plugin install "$source_dir" || true
-
+  step "Installing tightship for Antigravity CLI" agy plugin install "$source_dir"
   plugin_target="$HOME/.gemini/config/plugins/tightship"
-  mkdir -p "$plugin_target"
-  if [ ! -f "$plugin_target/plugin.json" ] || [ -n "$FROM_DIR" ]; then
-    cp -R "$source_dir"/* "$plugin_target/"
-  fi
-  chmod +x "$plugin_target/bin/tightship" 2>/dev/null || true
-  find "$plugin_target/bin" -type f -exec chmod +x {} + 2>/dev/null || true
 
   # Write options.toml
   mkdir -p "$TIGHTSHIP_DATA"
@@ -510,18 +490,18 @@ if [ "$HARNESS" = "antigravity-cli" ] || [ "$HARNESS" = "all" ]; then
     printf "memory = %s\n" "$MEMORY"
     printf "status_line = %s\n" "$STATUS_LINE"
     if [ -n "$VAULT_FOLDER" ]; then
-      printf "vault_folder = \"%s\"\n" "$VAULT_FOLDER"
+      printf "vault_folder = \"%s\"\n" "$(printf '%s' "$VAULT_FOLDER" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
     fi
   } > "$OPTIONS_FILE"
 
   # Status line hook
   export TIGHTSHIP_DATA
   mkdir -p "$HOME/.gemini/antigravity-cli"
-  "$plugin_target/bin/tightship" hook status-line || true
+  step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
   # Vault init if requested
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
-    "$plugin_target/bin/tightship" vault init "$VAULT_FOLDER" || true
+    step "Creating the vault at $VAULT_FOLDER" "$plugin_target/bin/tightship" vault init "$VAULT_FOLDER"
   fi
 fi
 

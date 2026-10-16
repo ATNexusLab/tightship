@@ -5,7 +5,7 @@ pub fn run() -> Result<(), Failure> {
     if !options.memory {
         return Ok(());
     }
-    if super::vault_is_set() {
+    if options.vault_folder.is_some() {
         super::emit(super::CHECKPOINT)?;
     }
     Ok(())

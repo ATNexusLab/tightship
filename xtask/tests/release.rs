@@ -115,6 +115,7 @@ fn a_build_with_the_four_binaries_copies_them_without_compiling() {
 fn a_missing_binary_fails_and_leaves_no_plugin() {
     let repository = release_repository("0.1.0");
     fs::remove_file(repository.path("binaries/linux-arm64/tightship")).expect("the binary");
+    repository.write("dist/notes/kept.md", "not the build's\n");
 
     assert_fails_with(
         &run(&repository, &["build", "--binaries", "binaries"]),
@@ -122,6 +123,7 @@ fn a_missing_binary_fails_and_leaves_no_plugin() {
     );
     assert!(!repository.path("dist/claude-code").exists());
     assert!(!repository.path("dist/antigravity-cli").exists());
+    assert!(repository.path("dist/notes/kept.md").is_file());
 }
 
 #[test]

@@ -38,10 +38,6 @@ start, a space that holds about thirty.
 
 Nothing durable? Ignore this and carry on.";
 
-pub fn vault_is_set() -> bool {
-    crate::options::load().is_ok_and(|options| options.memory && options.vault_folder.is_some())
-}
-
 pub fn emit(text: &str) -> Result<(), Failure> {
     if text.is_empty() {
         return Ok(());

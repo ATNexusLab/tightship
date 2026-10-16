@@ -473,6 +473,7 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
 | `PACKAGE_PLUGIN_MISSING` | `1` | `cargo xtask package <tag>` runs when `dist/claude-code` or `dist/antigravity-cli` is missing | `"error: dist/<harness>/plugin.json is missing; run cargo xtask build --binaries <folder> first"` |
 | `PACKAGE_BINARY_MISSING` | `1` | `cargo xtask package <tag>` runs when any of the 4 platform binaries is missing in `dist/<harness>/bin/` | `"error: dist/<harness>/bin/<platform>/<binary> is missing; run cargo xtask build --binaries <folder> first"` |
 | `OPTIONS_TOML_INVALID` | `1` | `${TIGHTSHIP_DATA}/options.toml` exists and is not valid TOML or has a non-boolean `contract`, `memory`, or `status_line` | `"error: <path> is not valid TOML"` |
+| `OPTIONS_TOML_UNREADABLE` | `1` | `${TIGHTSHIP_DATA}/options.toml` exists and cannot be read | `"error: cannot read <path>: <io error>"` |
 | `CONTRACT_FILE_UNREADABLE` | `1` | `tightship hook contract <file>` cannot read `<file>` | `"error: cannot read <file>: <io error>"` |
 | `INSTALL_HARNESS_UNKNOWN` | `1` | `install.sh` or `install.ps1` receives an unknown `--harness` value | `"error: unknown harness <value>; expected claude-code, antigravity-cli, or all"` |
 | `INSTALL_CLAUDE_MISSING` | `1` | `claude-code` selected and `claude` is missing or `< 2.1.295` | `"error: claude 2.1.295 or later is required; found <version or 'not installed'>"` |
@@ -634,7 +635,7 @@ Applied to [docs/architecture/](../../architecture/README.md) and
 [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.md), marked M3, #59:
 
 - **ADR 0001 amended:** allows the cross-platform bootstrap installers (`install.sh` and `install.ps1` at
-  the repository root) and the Windows batch launcher (`tightship/launcher.cmd`, copied to
+  the repository root) and the Windows batch launcher (`harnesses/antigravity-cli/launcher.cmd`, copied to
   `bin/tightship.cmd`), because the installer runs before any binary is downloaded and Antigravity CLI on
   Windows invokes hooks via `cmd /c`.
 - **Building blocks:**
@@ -683,6 +684,6 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M3, #59:
 
 | # | Issue | Title | Scope | Acceptance criterion | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| 1 | #62 | Render `dist/antigravity-cli/` and pack `tightship-antigravity-cli.zip` in `xtask` | `harnesses/antigravity-cli/harness.toml` (new), `tightship/launcher.cmd` (new), `xtask/src/build.rs`, `xtask/src/build/antigravity_cli.rs` (new), `xtask/src/package.rs`, `xtask/tests/build.rs`, `xtask/tests/release.rs`, `.github/workflows/release.yml`, 8 files | Scenarios 1, 2, 3, and 13 | — |
+| 1 | #62 | Render `dist/antigravity-cli/` and pack `tightship-antigravity-cli.zip` in `xtask` | `harnesses/antigravity-cli/harness.toml` (new), `harnesses/antigravity-cli/launcher.cmd` (new), `xtask/src/build.rs`, `xtask/src/build/antigravity_cli.rs` (new), `xtask/src/package.rs`, `xtask/tests/build.rs`, `xtask/tests/release.rs`, `.github/workflows/release.yml`, 8 files | Scenarios 1, 2, 3, and 13 | — |
 | 2 | #63 | Support `options.toml`, `hook contract`, `injectSteps` JSON output, and `conversationId` in `tightship` | `tightship/src/main.rs`, `tightship/src/failure.rs`, `tightship/src/options.rs` (new), `tightship/src/vault.rs`, `tightship/src/hook.rs`, `tightship/src/hook/contract.rs` (new), `tightship/src/hook/start.rs`, `tightship/src/hook/checkpoint.rs`, `tightship/src/hook/prompt.rs`, `tightship/src/status/settings.rs`, `tightship/tests/hook.rs`, `tightship/tests/status.rs`, `tightship/tests/vault.rs`, 13 files | Scenarios 4, 5, 6, 7, 8, and 9 | 1 |
 | 3 | #64 | Add the unified interactive `install.sh` and `install.ps1` installers and the bilingual Antigravity CLI install guide | `install.sh` (new), `install.ps1` (new), `xtask/tests/install.rs` (new), `docs/install/antigravity-cli/` (14 new `.md` and `.pt-BR.md` files), `README.md`, `README.pt-BR.md`, `docs/README.md`, `zensical.toml`, `AGENTS.md`, 22 files | Scenarios 10, 11, and 12 | 2 |

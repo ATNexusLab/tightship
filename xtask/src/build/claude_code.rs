@@ -1,17 +1,15 @@
-use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::binary::Binary;
-use super::content::{Content, Kind, Piece, SupportingBody};
+use super::content::{Content, Kind, Piece};
 use super::contract::Part;
 use super::harness::Harness;
 use super::options::OptionsFile;
+use super::render;
 use super::staging;
-use super::tokens;
-use crate::diagnostics::naming;
 
 pub fn render(
     root: &Path,
@@ -41,19 +39,7 @@ pub fn render(
         };
         written.push((file, document(piece, harness)?.into_bytes()));
     }
-    for supporting in &content.supporting {
-        let bytes = match &supporting.body {
-            SupportingBody::Markdown(text) => {
-                resolve(text, &supporting.path, harness)?.into_bytes()
-            }
-            SupportingBody::Copied(bytes) => bytes.clone(),
-        };
-        let file = staging
-            .join("skills")
-            .join(&supporting.skill)
-            .join(&supporting.relative);
-        written.push((file, bytes));
-    }
+    written.extend(render::supporting_files(&staging, content, harness)?);
     for part in parts {
         let file = staging.join("contract").join(&part.file);
         written.push((file, part.text.clone().into_bytes()));
@@ -67,30 +53,14 @@ pub fn render(
         include_bytes!("../../../tightship/launcher.sh").to_vec(),
     ));
     let mut executables = vec![launcher];
-    for binary in binaries {
-        let file_name = binary.path.file_name().unwrap_or_default();
-        let copy = staging.join("bin").join(binary.platform).join(file_name);
-        let bytes = fs::read(&binary.path).map_err(naming(&binary.path))?;
-        written.push((copy.clone(), bytes));
-        executables.push(copy);
-    }
+    let binary_copies = render::binary_files(&staging, binaries)?;
+    executables.extend(binary_copies.iter().map(|(copy, _)| copy.clone()));
+    written.extend(binary_copies);
     staging::write_files(&written, &executables)?;
     Ok((staging, written.len()))
 }
 
 fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io::Result<String> {
-    #[derive(Deserialize)]
-    struct CargoManifest {
-        workspace: Workspace,
-    }
-    #[derive(Deserialize)]
-    struct Workspace {
-        package: Package,
-    }
-    #[derive(Deserialize)]
-    struct Package {
-        version: String,
-    }
     #[derive(Serialize)]
     struct Author<'harness> {
         name: &'harness str,
@@ -111,17 +81,14 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
         )]
         user_config: serde_json::Map<String, serde_json::Value>,
     }
-    let cargo_path = root.join("Cargo.toml");
-    let cargo_text = fs::read_to_string(&cargo_path).map_err(naming(&cargo_path))?;
-    let cargo: CargoManifest = toml::from_str(&cargo_text)
-        .map_err(|error| io::Error::other(format!("Cargo.toml: {}", error.message())))?;
+    let version = render::workspace_version(root)?;
     let mut user_config = serde_json::Map::new();
     if let Some(file) = options {
         for option in &file.declared {
             let mut setting = serde_json::json!({
                 "type": option.kind,
-                "title": resolve(&option.title, &file.path, harness)?,
-                "description": resolve(&option.description, &file.path, harness)?,
+                "title": render::resolve(&option.title, &file.path, harness)?,
+                "description": render::resolve(&option.description, &file.path, harness)?,
             });
             if !option.is_directory() {
                 setting["default"] = serde_json::Value::Bool(true);
@@ -132,7 +99,7 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
     let plugin = &harness.plugin;
     let manifest = PluginManifest {
         name: &plugin.name,
-        version: cargo.workspace.package.version,
+        version,
         description: &plugin.description,
         author: Author {
             name: &plugin.author,
@@ -299,18 +266,6 @@ fn document(piece: &Piece, harness: &Harness) -> io::Result<String> {
         document.push_str(&format!("{key}: {}\n", serde_json::Value::from(value)));
     }
     document.push_str("---\n");
-    document.push_str(&resolve(&piece.body, &piece.path, harness)?);
+    document.push_str(&render::resolve(&piece.body, &piece.path, harness)?);
     Ok(document)
-}
-
-fn resolve(text: &str, path: &str, harness: &Harness) -> io::Result<String> {
-    let (rendered, unresolved) = tokens::render(text, harness);
-    if unresolved.is_empty() {
-        Ok(rendered)
-    } else {
-        Err(io::Error::other(format!(
-            "{path}: rendered with unresolved tokens {}",
-            unresolved.join(", ")
-        )))
-    }
 }

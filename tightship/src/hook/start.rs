@@ -7,7 +7,7 @@ pub fn run() -> Result<(), Failure> {
     if !options.memory {
         return Ok(());
     }
-    let folder = match vault::folder() {
+    let folder = match vault::folder_from(&options) {
         Ok(folder) => folder,
         Err(Failure::VaultNotSet) => {
             return super::emit(

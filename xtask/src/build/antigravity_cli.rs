@@ -1,47 +1,15 @@
-use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::binary::Binary;
-use super::content::{Content, Kind, Piece, SupportingBody, split_front_matter};
+use super::content::{Content, Kind, Piece, split_front_matter};
 use super::contract::Part;
 use super::harness::Harness;
 use super::options::OptionsFile;
+use super::render;
 use super::staging;
-use super::tokens;
-use crate::diagnostics::naming;
-
-const LAUNCHER_SH: &str = r#"#!/bin/sh
-system=$(uname -s)
-machine=$(uname -m)
-case "$system $machine" in
-Darwin\ *) platform=macos ;;
-Linux\ x86_64) platform=linux-x64 ;;
-Linux\ aarch64 | Linux\ arm64) platform=linux-arm64 ;;
-MINGW*\ x86_64 | MSYS*\ x86_64 | CYGWIN*\ x86_64) platform=windows-x64 ;;
-MINGW*\ aarch64 | MSYS*\ aarch64 | CYGWIN*\ aarch64) platform=windows-x64 ;;
-MINGW*\ arm64 | MSYS*\ arm64 | CYGWIN*\ arm64) platform=windows-x64 ;;
-*) platform=unknown ;;
-esac
-
-binary="$(dirname "$0")/$platform/tightship"
-[ "$platform" = windows-x64 ] && binary="$binary.exe"
-if [ ! -f "$binary" ]; then
-  echo "error: tightship has no binary for $system $machine" >&2
-  exit 1
-fi
-[ -x "$binary" ] || chmod +x "$binary" "$0"
-
-plugin_dir="$(cd "$(dirname "$0")/.." && pwd)"
-export TIGHTSHIP_ROOT="${TIGHTSHIP_ROOT:-${PLUGIN_ROOT:-$plugin_dir}}"
-export TIGHTSHIP_DATA="${TIGHTSHIP_DATA:-${PLUGIN_DATA:-$HOME/.gemini/config/plugin_data/tightship}}"
-export TIGHTSHIP_SETTINGS="${TIGHTSHIP_SETTINGS:-${AGY_CONFIG_DIR:-$HOME/.gemini/antigravity-cli}/settings.json}"
-export TIGHTSHIP_HOOK_FORMAT="${TIGHTSHIP_HOOK_FORMAT:-inject-steps}"
-
-exec "$binary" "$@"
-"#;
 
 pub fn render(
     root: &Path,
@@ -67,19 +35,7 @@ pub fn render(
         written.push((file, document(piece, harness)?.into_bytes()));
     }
 
-    for supporting in &content.supporting {
-        let bytes = match &supporting.body {
-            SupportingBody::Markdown(text) => {
-                resolve(text, &supporting.path, harness)?.into_bytes()
-            }
-            SupportingBody::Copied(bytes) => bytes.clone(),
-        };
-        let file = staging
-            .join("skills")
-            .join(&supporting.skill)
-            .join(&supporting.relative);
-        written.push((file, bytes));
-    }
+    written.extend(render::supporting_files(&staging, content, harness)?);
 
     for part in parts {
         let file = staging.join("contract").join(&part.file);
@@ -98,25 +54,28 @@ pub fn render(
     }
 
     let launcher_posix = staging.join("bin/tightship");
-    written.push((launcher_posix.clone(), LAUNCHER_SH.as_bytes().to_vec()));
+    written.push((launcher_posix.clone(), launcher_sh().into_bytes()));
 
     let launcher_cmd = staging.join("bin/tightship.cmd");
     written.push((
         launcher_cmd.clone(),
-        include_bytes!("../../../tightship/launcher.cmd").to_vec(),
+        include_bytes!("../../../harnesses/antigravity-cli/launcher.cmd").to_vec(),
     ));
 
     let mut executables = vec![launcher_posix, launcher_cmd];
-    for binary in binaries {
-        let file_name = binary.path.file_name().unwrap_or_default();
-        let copy = staging.join("bin").join(binary.platform).join(file_name);
-        let bytes = fs::read(&binary.path).map_err(naming(&binary.path))?;
-        written.push((copy.clone(), bytes));
-        executables.push(copy);
-    }
+    let binary_copies = render::binary_files(&staging, binaries)?;
+    executables.extend(binary_copies.iter().map(|(copy, _)| copy.clone()));
+    written.extend(binary_copies);
 
     staging::write_files(&written, &executables)?;
     Ok((staging, written.len()))
+}
+
+fn launcher_sh() -> String {
+    let neutral = include_str!("../../../tightship/launcher.sh");
+    let (shebang, body) = neutral.split_once('\n').unwrap_or_default();
+    let environment = include_str!("../../../harnesses/antigravity-cli/launcher-env.sh");
+    format!("{shebang}\n{environment}{body}")
 }
 
 fn prepare_contract_part(part: &Part) -> String {
@@ -139,7 +98,7 @@ fn contract_skill(contract: &super::contract::Contract, harness: &Harness) -> io
         Some((_, body, _)) => body,
         None => &contract.text,
     };
-    let resolved = resolve(body, &contract.path, harness)?;
+    let resolved = render::resolve(body, &contract.path, harness)?;
     let mut document = String::from("---\n");
     document.push_str("name: \"contract\"\n");
     document.push_str("description: \"Reload the workflow's global working contract\"\n");
@@ -149,18 +108,6 @@ fn contract_skill(contract: &super::contract::Contract, harness: &Harness) -> io
 }
 
 fn manifest(root: &Path, harness: &Harness) -> io::Result<String> {
-    #[derive(Deserialize)]
-    struct CargoManifest {
-        workspace: Workspace,
-    }
-    #[derive(Deserialize)]
-    struct Workspace {
-        package: Package,
-    }
-    #[derive(Deserialize)]
-    struct Package {
-        version: String,
-    }
     #[derive(Serialize)]
     struct Author<'harness> {
         name: &'harness str,
@@ -174,14 +121,11 @@ fn manifest(root: &Path, harness: &Harness) -> io::Result<String> {
         repository: &'harness str,
         license: &'harness str,
     }
-    let cargo_path = root.join("Cargo.toml");
-    let cargo_text = fs::read_to_string(&cargo_path).map_err(naming(&cargo_path))?;
-    let cargo: CargoManifest = toml::from_str(&cargo_text)
-        .map_err(|error| io::Error::other(format!("Cargo.toml: {}", error.message())))?;
+    let version = render::workspace_version(root)?;
     let plugin = &harness.plugin;
     let manifest = PluginManifest {
         name: &plugin.name,
-        version: cargo.workspace.package.version,
+        version,
         description: &plugin.description,
         author: Author {
             name: &plugin.author,
@@ -293,18 +237,6 @@ fn document(piece: &Piece, harness: &Harness) -> io::Result<String> {
     }
 
     document.push_str("---\n");
-    document.push_str(&resolve(&piece.body, &piece.path, harness)?);
+    document.push_str(&render::resolve(&piece.body, &piece.path, harness)?);
     Ok(document)
-}
-
-fn resolve(text: &str, path: &str, harness: &Harness) -> io::Result<String> {
-    let (rendered, unresolved) = tokens::render(text, harness);
-    if unresolved.is_empty() {
-        Ok(rendered)
-    } else {
-        Err(io::Error::other(format!(
-            "{path}: rendered with unresolved tokens {}",
-            unresolved.join(", ")
-        )))
-    }
 }

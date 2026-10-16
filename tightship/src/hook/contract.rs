@@ -9,7 +9,7 @@ pub fn run(gate: Option<&str>, file: &Path) -> Result<(), Failure> {
         return Ok(());
     }
     if let Some(gate) = gate
-        && !crate::options::is_option_enabled(gate)?
+        && !options.is_enabled(gate)?
     {
         return Ok(());
     }

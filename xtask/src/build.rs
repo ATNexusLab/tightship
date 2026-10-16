@@ -8,6 +8,7 @@ mod identity;
 mod neutrality;
 mod options;
 mod references;
+mod render;
 mod staging;
 mod tokens;
 mod words;
@@ -22,16 +23,13 @@ use content::{Content, Kind};
 
 pub fn run(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure> {
     let built = build_plugin(root, prebuilt);
-    if built.is_err() {
-        let dist = root.join("dist");
-        if let Ok(entries) = fs::read_dir(&dist) {
-            for entry in entries.flatten() {
-                let name = entry.file_name().to_string_lossy().into_owned();
-                if name.starts_with('.') && name.ends_with(".tmp") {
-                    let _ = staging::remove_if_present(&entry.path());
-                } else if !name.starts_with('.') {
-                    let _ = staging::discard(root, &name);
-                }
+    if built.is_err()
+        && let Ok(entries) = fs::read_dir(root.join("harnesses"))
+    {
+        for entry in entries.flatten().filter(|entry| entry.path().is_dir()) {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if let Err(error) = staging::discard(root, &name) {
+                eprintln!("error: {error}");
             }
         }
     }

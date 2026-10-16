@@ -37,7 +37,7 @@ Install the tightship plugin for Claude Code, Antigravity CLI, or both.
 
 Options:
   -Harness <name>       Target harness: claude-code, antigravity-cli, or all
-  -Contract <mode>      Contract mode: strict, lenient, off, true, or false (default: strict)
+  -Contract <bool>      Enable the working contract: true or false (default: true)
   -Memory <bool>        Enable memory layer: true or false (default: true)
   -StatusLine <bool>    Enable status line: true or false (default: true)
   -VaultFolder <path>   Path to memory vault (e.g. ~/ai-memory)
@@ -91,6 +91,23 @@ $canPrompt = -not [Console]::IsInputRedirected
 if (-not $Yes -and -not $canPrompt) {
     Write-Stderr "error: standard input is not a terminal; pass --yes or provide required flags"
     exit 1
+}
+
+function ConvertTo-Bool([string]$source, [string]$value) {
+    if ($value -in @("true", "yes", "y", "on", "1")) { return "true" }
+    if ($value -in @("false", "no", "n", "off", "0")) { return "false" }
+    Write-Stderr "error: $source expects true or false; got `"$value`""
+    exit 1
+}
+
+function Invoke-Step([string]$description, [scriptblock]$command) {
+    Write-Host "> $description"
+    $global:LASTEXITCODE = 0
+    & $command
+    if ($LASTEXITCODE -ne 0) {
+        Write-Stderr "error: $description failed"
+        exit 1
+    }
 }
 
 function Prompt-User([string]$promptText, [string]$defaultVal) {
@@ -192,46 +209,30 @@ if (Test-Path $optionsFile) {
         if ($_ -match '^\s*contract\s*=\s*(.+)$') { $existingContract = $Matches[1].Trim(" '`"") }
         if ($_ -match '^\s*memory\s*=\s*(.+)$') { $existingMemory = $Matches[1].Trim(" '`"") }
         if ($_ -match '^\s*status_line\s*=\s*(.+)$') { $existingStatusLine = $Matches[1].Trim(" '`"") }
-        if ($_ -match '^\s*vault_folder\s*=\s*"([^"]*)"') { $existingVaultFolder = $Matches[1] }
+        if ($_ -match '^\s*vault_folder\s*=\s*"((?:[^"\\]|\\.)*)"') { $existingVaultFolder = $Matches[1] -replace '\\(.)', '$1' }
     }
 }
 
 # Contract
 if ($Contract) {
-    if ($Contract -in @("off", "false", "0")) {
-        $finalContract = "false"
-    } else {
-        $finalContract = "true"
-    }
+    $finalContract = ConvertTo-Bool "-Contract" $Contract
 } elseif ($Yes) {
     $finalContract = if ($existingContract) { $existingContract } else { "true" }
 } else {
     $def = if ($existingContract -eq "false") { "n" } else { "Y" }
     $ans = Prompt-User "Enable the working contract in every session? [Y/n]: " $def
-    if ($ans -in @("n", "N", "no", "false", "0")) {
-        $finalContract = "false"
-    } else {
-        $finalContract = "true"
-    }
+    $finalContract = ConvertTo-Bool "the answer" $ans
 }
 
 # Memory
 if ($Memory) {
-    if ($Memory -in @("off", "false", "0")) {
-        $finalMemory = "false"
-    } else {
-        $finalMemory = "true"
-    }
+    $finalMemory = ConvertTo-Bool "-Memory" $Memory
 } elseif ($Yes) {
     $finalMemory = if ($existingMemory) { $existingMemory } else { "true" }
 } else {
     $def = if ($existingMemory -eq "false") { "n" } else { "Y" }
     $ans = Prompt-User "Enable the memory layer (curated vault notes and handoffs)? [Y/n]: " $def
-    if ($ans -in @("n", "N", "no", "false", "0")) {
-        $finalMemory = "false"
-    } else {
-        $finalMemory = "true"
-    }
+    $finalMemory = ConvertTo-Bool "the answer" $ans
 }
 
 # Vault folder
@@ -241,7 +242,11 @@ if ($VaultFolder) {
     $finalVaultFolder = if ($existingVaultFolder) { $existingVaultFolder } else { "" }
 } else {
     if ($finalMemory -eq "true") {
-        $finalVaultFolder = Prompt-User "Vault folder path (for example ~/ai-memory, or leave empty to set later): " ""
+        if ($existingVaultFolder) {
+            $finalVaultFolder = Prompt-User "Vault folder path [$existingVaultFolder]: " $existingVaultFolder
+        } else {
+            $finalVaultFolder = Prompt-User "Vault folder path (for example ~/ai-memory, or leave empty to set later): " ""
+        }
     } else {
         $finalVaultFolder = if ($existingVaultFolder) { $existingVaultFolder } else { "" }
     }
@@ -260,32 +265,24 @@ if ($finalVaultFolder) {
 
 if ($expandedVault -and -not (Test-Path $expandedVault)) {
     if ($InitVault) {
-        $finalInitVault = ($InitVault -in @("true", "1", "yes", "y"))
+        $finalInitVault = (ConvertTo-Bool "-InitVault" $InitVault) -eq "true"
     } elseif ($Yes) {
         $finalInitVault = $false
     } else {
         $ans = Prompt-User "Vault folder $finalVaultFolder does not exist. Create it now with tightship vault init? [Y/n]: " "Y"
-        $finalInitVault = ($ans -notin @("n", "N", "no", "false", "0"))
+        $finalInitVault = (ConvertTo-Bool "the answer" $ans) -eq "true"
     }
 }
 
 # Status line
 if ($StatusLine) {
-    if ($StatusLine -in @("off", "false", "0")) {
-        $finalStatusLine = "false"
-    } else {
-        $finalStatusLine = "true"
-    }
+    $finalStatusLine = ConvertTo-Bool "-StatusLine" $StatusLine
 } elseif ($Yes) {
     $finalStatusLine = if ($existingStatusLine) { $existingStatusLine } else { "true" }
 } else {
     $def = if ($existingStatusLine -eq "false") { "n" } else { "Y" }
     $ans = Prompt-User "Enable tightship's status line (replaces your current statusLine and restores it when off)? [Y/n]: " $def
-    if ($ans -in @("n", "N", "no", "false", "0")) {
-        $finalStatusLine = "false"
-    } else {
-        $finalStatusLine = "true"
-    }
+    $finalStatusLine = ConvertTo-Bool "the answer" $ans
 }
 
 # Install: Claude Code
@@ -293,14 +290,8 @@ if ($Harness -eq "claude-code" -or $Harness -eq "all") {
     try { & claude plugin marketplace add DietrichGebert/ponytail } catch {}
     try { & claude plugin marketplace add ayghri/i-have-adhd } catch {}
     try { & claude plugin marketplace add blader/humanizer } catch {}
-    $isVersionSpecified = $PSBoundParameters.ContainsKey('Version')
-    $claudeSource = $FromDir
-    if (-not $claudeSource -and -not $isVersionSpecified -and (Test-Path (Join-Path $PSScriptRoot "dist\claude-code\.claude-plugin\plugin.json"))) {
-        $claudeSource = Join-Path $PSScriptRoot "dist\claude-code"
-    }
-
-    if ($claudeSource) {
-        try { & claude plugin marketplace add $claudeSource } catch {}
+    if ($FromDir) {
+        try { & claude plugin marketplace add $FromDir } catch {}
     } else {
         try { & claude plugin marketplace add ATNexusLab/tightship } catch {}
     }
@@ -314,27 +305,25 @@ if ($Harness -eq "claude-code" -or $Harness -eq "all") {
     if ($finalVaultFolder) {
         $claudeArgs += @("--config", "vault_folder=$finalVaultFolder")
     }
-    & claude @claudeArgs
+    Invoke-Step "Installing tightship for Claude Code" { & claude @claudeArgs }
 }
 
 # Install: Antigravity CLI
 if ($Harness -eq "antigravity-cli" -or $Harness -eq "all") {
-    try { & agy plugin install https://github.com/DietrichGebert/ponytail } catch {}
-    try { & agy plugin install https://github.com/ayghri/i-have-adhd } catch {}
+    Invoke-Step "Installing the ponytail companion" { & agy plugin install https://github.com/DietrichGebert/ponytail }
+    Invoke-Step "Installing the i-have-adhd companion" { & agy plugin install https://github.com/ayghri/i-have-adhd }
 
     $humanizerDir = Join-Path $userProfile ".gemini\config\skills\humanizer"
     if (-not (Test-Path $humanizerDir)) {
         New-Item -ItemType Directory -Force -Path $humanizerDir | Out-Null
     }
     $humanizerSkill = Join-Path $humanizerDir "SKILL.md"
-    Invoke-RestMethod -Uri "https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md" -OutFile $humanizerSkill -ErrorAction SilentlyContinue
+    Invoke-Step "Downloading the humanizer skill" { Invoke-RestMethod -Uri "https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md" -OutFile $humanizerSkill }
 
     $sourceDir = $null
     $tempZipFolder = $null
     if ($FromDir) {
         $sourceDir = $FromDir
-    } elseif (-not $isVersionSpecified -and (Test-Path (Join-Path $PSScriptRoot "dist\antigravity-cli\plugin.json"))) {
-        $sourceDir = Join-Path $PSScriptRoot "dist\antigravity-cli"
     } else {
         $tempZipFolder = Join-Path ([System.IO.Path]::GetTempPath()) ("tightship-" + [System.Guid]::NewGuid().ToString())
         New-Item -ItemType Directory -Force -Path $tempZipFolder | Out-Null
@@ -344,6 +333,7 @@ if ($Harness -eq "antigravity-cli" -or $Harness -eq "all") {
         } else {
             "https://github.com/ATNexusLab/tightship/releases/download/$Version/tightship-antigravity-cli.zip"
         }
+        Write-Host "> Downloading tightship-antigravity-cli.zip"
         try {
             Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
         } catch {
@@ -356,15 +346,8 @@ if ($Harness -eq "antigravity-cli" -or $Harness -eq "all") {
         $sourceDir = $extracted
     }
 
-    try { & agy plugin install $sourceDir } catch {}
-
+    Invoke-Step "Installing tightship for Antigravity CLI" { & agy plugin install $sourceDir }
     $pluginTarget = Join-Path $userProfile ".gemini\config\plugins\tightship"
-    if (-not (Test-Path $pluginTarget)) {
-        New-Item -ItemType Directory -Force -Path $pluginTarget | Out-Null
-    }
-    if ($sourceDir -and (Test-Path $sourceDir)) {
-        Copy-Item -Path "$sourceDir\*" -Destination $pluginTarget -Recurse -Force
-    }
 
     # Write options.toml
     if (-not (Test-Path $tightshipData)) {
@@ -376,7 +359,8 @@ memory = $finalMemory
 status_line = $finalStatusLine
 "@
     if ($finalVaultFolder) {
-        $tomlContent += "`nvault_folder = `"$finalVaultFolder`""
+        $escapedVaultFolder = $finalVaultFolder.Replace('\', '\\').Replace('"', '\"')
+        $tomlContent += "`nvault_folder = `"$escapedVaultFolder`""
     }
     Set-Content -Path $optionsFile -Value ($tomlContent + "`n") -Encoding utf8
 
@@ -385,17 +369,17 @@ status_line = $finalStatusLine
     $cmdLauncher = Join-Path $pluginTarget "bin\tightship.cmd"
     $shLauncher = Join-Path $pluginTarget "bin\tightship"
     if (Test-Path $cmdLauncher) {
-        try { & $cmdLauncher hook status-line } catch {}
-    } elseif (Test-Path $shLauncher) {
-        try { & sh $shLauncher hook status-line } catch {}
+        Invoke-Step "Applying the status line option" { & $cmdLauncher hook status-line }
+    } else {
+        Invoke-Step "Applying the status line option" { & sh $shLauncher hook status-line }
     }
 
     # Vault init
     if ($finalInitVault -and $finalVaultFolder) {
         if (Test-Path $cmdLauncher) {
-            try { & $cmdLauncher vault init $finalVaultFolder } catch {}
-        } elseif (Test-Path $shLauncher) {
-            try { & sh $shLauncher vault init $finalVaultFolder } catch {}
+            Invoke-Step "Creating the vault at $finalVaultFolder" { & $cmdLauncher vault init $finalVaultFolder }
+        } else {
+            Invoke-Step "Creating the vault at $finalVaultFolder" { & sh $shLauncher vault init $finalVaultFolder }
         }
     }
 

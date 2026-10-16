@@ -13,10 +13,14 @@ use std::io;
 use std::path::PathBuf;
 
 use crate::failure::Failure;
+use crate::options::Options;
 
 pub fn folder() -> Result<PathBuf, Failure> {
-    let options = crate::options::load()?;
-    let folder = options.vault_folder.ok_or(Failure::VaultNotSet)?;
+    folder_from(&crate::options::load()?)
+}
+
+pub fn folder_from(options: &Options) -> Result<PathBuf, Failure> {
+    let folder = options.vault_folder.clone().ok_or(Failure::VaultNotSet)?;
     if !folder.is_absolute() {
         return Err(Failure::VaultNotAbsolute(folder));
     }
