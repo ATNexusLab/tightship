@@ -35,3 +35,20 @@ M3, #59), which the harness keeps across an update:
 - While the user settings hold our status line, the record holds `on`, and `previous` when the adopter had a
   `statusLine`.
 - Turning the option off deletes the record.
+
+## Cursor CLI
+
+**Milestone:** M2, epic #58 · **Spec:** [ship for Cursor](../specs/cursor-plugin/ship-for-cursor.md)
+
+The Cursor editor has no status line. The CLI alone reads `statusLine` from `~/.cursor/cli-config.json`:
+
+```json
+{
+  "statusLine": { "type": "command", "command": "\"${CURSOR_PLUGIN_ROOT}/bin/tightship\" status-line render" }
+}
+```
+
+`tightship status-line enable` writes that entry after consent and saves the adopter's previous value in
+`$HOME/.cursor/tightship/status-line.json`, with the same `state` and `previous` shape as
+`status-line.json` above. FR-STL-01 to FR-STL-03 apply in the CLI only; the editor is out of scope for those
+criteria ([epic #58 spec](../specs/cursor-plugin/ship-for-cursor.md)).

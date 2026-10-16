@@ -3,6 +3,7 @@ pub mod binary;
 mod claude_code;
 mod content;
 mod contract;
+mod cursor;
 pub mod harness;
 mod identity;
 mod installer;
@@ -91,6 +92,7 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
             "antigravity-cli" => {
                 antigravity_cli::render(root, harness, &content, parts, &binaries)?
             }
+            "cursor" => cursor::render(root, harness, &content, parts, &binaries)?,
             unknown => {
                 return Err(Failure::Io(io::Error::other(format!(
                     "unknown harness \"{unknown}\""

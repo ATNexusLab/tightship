@@ -28,7 +28,12 @@ Usage: tightship vault path
        tightship vault handoff claim
        tightship status-line render
        tightship status-line enable
-       tightship status-line decline";
+       tightship status-line decline
+       tightship options set <name> <value>
+       tightship options list
+       tightship options reset
+       tightship options disabled <name>
+       tightship hook contract-part <file>";
 
 #[derive(Parser)]
 #[command(name = "tightship")]
@@ -45,6 +50,8 @@ enum Area {
     Hook(HookCommand),
     #[command(subcommand)]
     StatusLine(StatusLineCommand),
+    #[command(subcommand)]
+    Options(OptionsCommand),
 }
 
 #[derive(Subcommand)]
@@ -60,6 +67,9 @@ enum HookCommand {
     Checkpoint,
     Prompt,
     StatusLine,
+    ContractPart {
+        file: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -67,6 +77,14 @@ enum StatusLineCommand {
     Render,
     Enable,
     Decline,
+}
+
+#[derive(Subcommand)]
+enum OptionsCommand {
+    Set { name: String, value: String },
+    List,
+    Reset,
+    Disabled { name: String },
 }
 
 #[derive(Subcommand)]
@@ -121,9 +139,21 @@ fn main() -> ExitCode {
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
         Area::Hook(HookCommand::Prompt) => hook::prompt::run(),
         Area::Hook(HookCommand::StatusLine) => hook::status_line::run(),
+        Area::Hook(HookCommand::ContractPart { file }) => hook::contract_part::run(&file),
         Area::StatusLine(StatusLineCommand::Render) => status::render::run(),
         Area::StatusLine(StatusLineCommand::Enable) => status::settings::enable(),
         Area::StatusLine(StatusLineCommand::Decline) => status::settings::decline(),
+        Area::Options(OptionsCommand::Set { name, value }) => options::cursor_set(&name, &value),
+        Area::Options(OptionsCommand::List) => options::cursor_list(),
+        Area::Options(OptionsCommand::Reset) => options::cursor_reset(),
+        Area::Options(OptionsCommand::Disabled { name }) => {
+            match options::cursor_validate_name(&name).and_then(|()| options::cursor_boolean(&name))
+            {
+                Ok(true) => return ExitCode::from(1),
+                Ok(false) => Ok(()),
+                Err(failure) => Err(failure),
+            }
+        }
     };
     match ran {
         Ok(()) => ExitCode::SUCCESS,

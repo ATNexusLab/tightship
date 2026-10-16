@@ -43,11 +43,19 @@ pub enum Failure {
     StatusRecordInvalid(PathBuf),
     StatusRecordUnwritable(PathBuf, io::Error),
     OptionsInvalid(PathBuf),
+    OptionsJsonInvalid(PathBuf),
+    OptionsUnknown(String),
     OptionsUnreadable(PathBuf, io::Error),
     ContractFileUnreadable(PathBuf, io::Error),
     HookOutputUnreadable(PathBuf, io::Error),
     HookOutputInvalid(PathBuf),
     Usage(String),
+    OptionsIo(String),
+    OptionsInvalidValue(String),
+    PluginRootUnset,
+    ContractPartNameInvalid(String),
+    ContractPartMissing(PathBuf),
+    ContractPartUnreadable(PathBuf, io::Error),
 }
 
 impl fmt::Display for Failure {
@@ -197,6 +205,12 @@ impl fmt::Display for Failure {
             Self::OptionsInvalid(path) => {
                 write!(formatter, "{} is not valid TOML", path.display())
             }
+            Self::OptionsJsonInvalid(path) => {
+                write!(formatter, "{} is not valid JSON", path.display())
+            }
+            Self::OptionsUnknown(name) => {
+                write!(formatter, "unknown option \"{name}\"")
+            }
             Self::OptionsUnreadable(path, error) => {
                 write!(formatter, "cannot read {}: {error}", path.display())
             }
@@ -212,6 +226,25 @@ impl fmt::Display for Failure {
                 path.display()
             ),
             Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", crate::USAGE),
+            Self::OptionsIo(message) => write!(formatter, "{message}"),
+            Self::OptionsInvalidValue(name) => {
+                write!(formatter, "{name} must be true or false")
+            }
+            Self::PluginRootUnset => write!(
+                formatter,
+                "CURSOR_PLUGIN_ROOT is not set; hooks run only inside the plugin"
+            ),
+            Self::ContractPartNameInvalid(name) => {
+                write!(formatter, "contract part name {:?} is invalid", name)
+            }
+            Self::ContractPartMissing(path) => {
+                write!(formatter, "contract part {} is missing", path.display())
+            }
+            Self::ContractPartUnreadable(path, error) => write!(
+                formatter,
+                "cannot read contract part {}: {error}",
+                path.display()
+            ),
         }
     }
 }

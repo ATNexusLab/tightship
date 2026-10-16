@@ -1,5 +1,6 @@
 pub mod checkpoint;
 pub mod contract;
+pub mod contract_part;
 pub mod export;
 pub mod prompt;
 pub mod start;
@@ -38,6 +39,24 @@ standing fact the work needs before it knows to search: pinned notes are listed 
 start, a space that holds about thirty.
 
 Nothing durable? Ignore this and carry on.";
+
+pub fn emit_pre_compact(text: &str) -> Result<(), Failure> {
+    if cursor_hook() {
+        let payload = serde_json::json!({ "user_message": text });
+        println!(
+            "{}",
+            serde_json::to_string(&payload).map_err(|error| {
+                Failure::HookOutputInvalid(PathBuf::from(error.to_string()))
+            })?
+        );
+        return Ok(());
+    }
+    emit(text)
+}
+
+fn cursor_hook() -> bool {
+    env::var_os("CURSOR_PLUGIN_ROOT").is_some_and(|value| !value.is_empty())
+}
 
 pub fn emit(text: &str) -> Result<(), Failure> {
     if text.is_empty() {

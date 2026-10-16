@@ -1,8 +1,115 @@
 use std::env;
 use std::fs;
+use std::io;
 use std::path::{Path, PathBuf};
 
+use serde_json::Value;
+
 use crate::failure::Failure;
+
+pub const CURSOR_OPTION_NAMES: &[&str] = &["contract", "memory", "status_line", "vault_folder"];
+
+pub fn cursor_options_path() -> Result<PathBuf, Failure> {
+    let home = home_dir().ok_or_else(|| {
+        Failure::OptionsUnreadable(PathBuf::new(), {
+            io::Error::new(io::ErrorKind::NotFound, "HOME is not set")
+        })
+    })?;
+    Ok(home.join(".cursor").join("tightship").join("options.json"))
+}
+
+pub fn cursor_boolean(name: &str) -> Result<bool, Failure> {
+    let path = cursor_options_path()?;
+    if !path.is_file() {
+        return Ok(true);
+    }
+    let text = fs::read_to_string(&path)
+        .map_err(|error| Failure::OptionsUnreadable(path.clone(), error))?;
+    let value = serde_json::from_str::<Value>(&text)
+        .map_err(|_| Failure::OptionsJsonInvalid(path.clone()))?;
+    match value.get(name) {
+        None => Ok(true),
+        Some(Value::Bool(false)) => Ok(false),
+        Some(Value::Bool(true)) => Ok(true),
+        Some(_) => Err(Failure::OptionsJsonInvalid(path)),
+    }
+}
+
+pub fn cursor_validate_name(name: &str) -> Result<(), Failure> {
+    if CURSOR_OPTION_NAMES.contains(&name) {
+        Ok(())
+    } else {
+        Err(Failure::OptionsUnknown(name.to_owned()))
+    }
+}
+
+pub fn cursor_set(name: &str, value: &str) -> Result<(), Failure> {
+    cursor_validate_name(name)?;
+    let path = cursor_options_path()?;
+    let mut table = cursor_read_table(&path)?;
+    let display = if name == "vault_folder" {
+        let expanded = expand_tilde(Path::new(value.trim()));
+        let stored = expanded.to_string_lossy().into_owned();
+        table.insert(name.to_owned(), Value::String(stored.clone()));
+        stored
+    } else {
+        let enabled = parse_boolean_value(name, value)?;
+        table.insert(name.to_owned(), Value::Bool(enabled));
+        enabled.to_string()
+    };
+    cursor_write_table(&path, &table)?;
+    println!("Set {name} to {display}.");
+    Ok(())
+}
+
+pub fn cursor_list() -> Result<(), Failure> {
+    let path = cursor_options_path()?;
+    let table = cursor_read_table(&path)?;
+    let text = serde_json::to_string_pretty(&Value::Object(table))
+        .map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    println!("{text}");
+    Ok(())
+}
+
+pub fn cursor_reset() -> Result<(), Failure> {
+    let path = cursor_options_path()?;
+    if path.is_file() {
+        fs::remove_file(&path).map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    }
+    println!("Removed ~/.cursor/tightship/options.json.");
+    Ok(())
+}
+
+fn parse_boolean_value(name: &str, value: &str) -> Result<bool, Failure> {
+    match value {
+        "true" => Ok(true),
+        "false" => Ok(false),
+        _ => Err(Failure::OptionsInvalidValue(name.to_owned())),
+    }
+}
+
+fn cursor_read_table(path: &Path) -> Result<serde_json::Map<String, Value>, Failure> {
+    if !path.is_file() {
+        return Ok(serde_json::Map::new());
+    }
+    let text = fs::read_to_string(path).map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    let value = serde_json::from_str::<Value>(&text)
+        .map_err(|_| Failure::OptionsJsonInvalid(path.to_path_buf()))?;
+    match value {
+        Value::Object(table) => Ok(table),
+        _ => Err(Failure::OptionsJsonInvalid(path.to_path_buf())),
+    }
+}
+
+fn cursor_write_table(path: &Path, table: &serde_json::Map<String, Value>) -> Result<(), Failure> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    }
+    let text = serde_json::to_string_pretty(&Value::Object(table.clone()))
+        .map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    fs::write(path, format!("{text}\n")).map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    Ok(())
+}
 
 #[derive(Debug, Clone)]
 pub struct Options {
@@ -12,6 +119,7 @@ pub struct Options {
     pub vault_folder: Option<PathBuf>,
     file: PathBuf,
     table: toml::Table,
+    json: Option<serde_json::Map<String, Value>>,
 }
 
 impl Options {
@@ -19,6 +127,9 @@ impl Options {
         let variable = format!("TIGHTSHIP_{}", name.to_ascii_uppercase().replace('-', "_"));
         if let Some(value) = env::var_os(variable).filter(|value| !value.is_empty()) {
             return Ok(value != "false");
+        }
+        if let Some(table) = &self.json {
+            return json_boolean(table, name, &self.file);
         }
         match self.table.get(name) {
             Some(toml::Value::Boolean(value)) => Ok(*value),
@@ -28,30 +139,79 @@ impl Options {
     }
 }
 
+fn json_boolean(
+    table: &serde_json::Map<String, Value>,
+    name: &str,
+    file: &Path,
+) -> Result<bool, Failure> {
+    match table.get(name) {
+        None => Ok(true),
+        Some(Value::Bool(false)) => Ok(false),
+        Some(Value::Bool(true)) => Ok(true),
+        Some(_) => Err(Failure::OptionsJsonInvalid(file.to_path_buf())),
+    }
+}
+
+fn json_vault_folder(
+    table: &serde_json::Map<String, Value>,
+    file: &Path,
+) -> Result<Option<PathBuf>, Failure> {
+    match table.get("vault_folder") {
+        None => Ok(None),
+        Some(Value::String(value)) if value.trim().is_empty() => Ok(None),
+        Some(Value::String(value)) => Ok(Some(expand_tilde(Path::new(value.trim())))),
+        Some(_) => Err(Failure::OptionsJsonInvalid(file.to_path_buf())),
+    }
+}
+
 pub fn load() -> Result<Options, Failure> {
-    let file = env::var_os("TIGHTSHIP_DATA")
+    let data_dir = env::var_os("TIGHTSHIP_DATA")
         .filter(|value| !value.is_empty())
-        .map(|data| PathBuf::from(data).join("options.toml"))
+        .map(PathBuf::from);
+    let json_file = data_dir
+        .as_ref()
+        .map(|data| data.join("options.json"))
         .unwrap_or_default();
-    let table = if file.is_file() {
-        let text = fs::read_to_string(&file)
-            .map_err(|error| Failure::OptionsUnreadable(file.clone(), error))?;
-        text.parse::<toml::Table>()
-            .map_err(|_| Failure::OptionsInvalid(file.clone()))?
+    let toml_file = data_dir
+        .as_ref()
+        .map(|data| data.join("options.toml"))
+        .unwrap_or_else(|| PathBuf::from("options.toml"));
+
+    let (table, json, file) = if json_file.is_file() {
+        let text = fs::read_to_string(&json_file)
+            .map_err(|error| Failure::OptionsUnreadable(json_file.clone(), error))?;
+        let value = serde_json::from_str::<Value>(&text)
+            .map_err(|_| Failure::OptionsJsonInvalid(json_file.clone()))?;
+        let map = match value {
+            Value::Object(table) => table,
+            _ => return Err(Failure::OptionsJsonInvalid(json_file)),
+        };
+        (toml::Table::new(), Some(map), json_file)
+    } else if toml_file.is_file() {
+        let text = fs::read_to_string(&toml_file)
+            .map_err(|error| Failure::OptionsUnreadable(toml_file.clone(), error))?;
+        let table = text
+            .parse::<toml::Table>()
+            .map_err(|_| Failure::OptionsInvalid(toml_file.clone()))?;
+        (table, None, toml_file)
     } else {
-        toml::Table::new()
+        (toml::Table::new(), None, toml_file)
     };
 
-    let toml_vault_folder = match table.get("vault_folder") {
-        Some(toml::Value::String(value)) if value.trim().is_empty() => None,
-        Some(toml::Value::String(value)) => Some(expand_tilde(Path::new(value.trim()))),
-        Some(_) => return Err(Failure::OptionsInvalid(file)),
-        None => None,
+    let file_vault_folder = if let Some(map) = &json {
+        json_vault_folder(map, &file)?
+    } else {
+        match table.get("vault_folder") {
+            Some(toml::Value::String(value)) if value.trim().is_empty() => None,
+            Some(toml::Value::String(value)) => Some(expand_tilde(Path::new(value.trim()))),
+            Some(_) => return Err(Failure::OptionsInvalid(file.clone())),
+            None => None,
+        }
     };
     let vault_folder = env::var_os("TIGHTSHIP_VAULT")
         .filter(|value| !value.is_empty())
         .map(|value| expand_tilde(Path::new(&value)))
-        .or(toml_vault_folder);
+        .or(file_vault_folder);
 
     let mut options = Options {
         contract: true,
@@ -60,6 +220,7 @@ pub fn load() -> Result<Options, Failure> {
         vault_folder,
         file,
         table,
+        json,
     };
     options.contract = options.is_enabled("contract")?;
     options.memory = options.is_enabled("memory")?;

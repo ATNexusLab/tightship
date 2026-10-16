@@ -1,0 +1,8 @@
+{
+  "name": "cursor-hook-probe",
+  "version": "0.0.0",
+  "description": "Maintainer-only hook probe for epic #58 / issue #65. Not shipped to adopters.",
+  "author": {
+    "name": "ATNexusLab"
+  }
+}

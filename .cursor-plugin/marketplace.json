@@ -1,0 +1,22 @@
+{
+  "name": "tightship",
+  "owner": {
+    "name": "ATNexusLab"
+  },
+  "description": "Skills, a command per step of the development loop, and a read-only verifier",
+  "allowCrossMarketplaceDependenciesOn": [
+    "ponytail",
+    "i-have-adhd",
+    "humanizer"
+  ],
+  "plugins": [
+    {
+      "name": "tightship",
+      "source": {
+        "source": "archive",
+        "url": "https://github.com/ATNexusLab/tightship/releases/latest/download/tightship-cursor.zip"
+      },
+      "description": "Skills, a command per step of the development loop, and a read-only verifier"
+    }
+  ]
+}

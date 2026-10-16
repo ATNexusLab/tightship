@@ -112,6 +112,7 @@ pub fn stderr_of(output: &Output) -> String {
     String::from_utf8_lossy(&output.stderr).into_owned()
 }
 
+#[allow(dead_code)]
 pub fn assert_fails_with(output: &Output, line: &str) {
     let stderr = stderr_of(output);
     assert_eq!(output.status.code(), Some(1), "stderr: {stderr}");

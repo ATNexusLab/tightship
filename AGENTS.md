@@ -12,7 +12,7 @@ Rust in one Cargo workspace, with the canonical content in Markdown and TOML
   and the repository scan, run as `cargo xtask scan`.
   The toolchain is pinned in `rust-toolchain.toml`, and `rustup` installs it on the first `cargo` call.
 - The `tightship` crate: the binary the plugin ships, which `cargo xtask build` compiles for the machine that
-  builds into `dist/claude-code/bin/`.
+  builds into `dist/claude-code/bin/` and `dist/cursor/bin/`.
 - gitleaks 8.30.1 on the `PATH`, for `cargo xtask scan`.
 - PowerShell 7 (`pwsh`) on the `PATH`, for the installers' tests; the GitHub runners ship it.
 - `.identity-terms` at the root of each clone that builds, ignored by git: one line per name, email address,
@@ -44,14 +44,15 @@ before any binary is on the machine
 | Type checking | `cargo check --workspace --all-targets` | Type-checks the Rust workspace |
 | Formatting | `cargo fmt --all --check` | rustfmt defaults |
 | Build | `uvx zensical==0.0.70 build` | Builds the docs site into `site/` |
-| Build | `cargo xtask build` | Builds the plugins, with the `tightship` binary for this machine, into `dist/claude-code/` and `dist/antigravity-cli/`, and the installers into `dist/install.sh` and `dist/install.ps1` |
+| Build | `cargo xtask build` | Builds the plugins, with the `tightship` binary for this machine, into `dist/claude-code/`, `dist/cursor/`, and `dist/antigravity-cli/`, and the installers into `dist/install.sh` and `dist/install.ps1` |
 | Tests | `cargo test --workspace` | The build's, the package's, the scan's, the installer's, and the binary's scenarios, over fixtures in a temporary folder, each installer scenario against both `install.sh` and `install.ps1`; needs gitleaks 8.30.1 and `pwsh` |
 | Run | `uvx zensical==0.0.70 serve --open` | Serves the docs at `http://localhost:8000` |
-| Run | `claude --plugin-dir dist/claude-code` | Loads the built plugin in a session |
+| Run | `claude --plugin-dir dist/claude-code` | Loads the built Claude Code plugin in a session |
+| Run | `agent --plugin-dir dist/cursor` | Loads the built Cursor plugin in an interactive CLI session |
 | Run | `claude plugin marketplace add ./dist/claude-code`, then `claude plugin install tightship@tightship` | Installs the built plugin with its companions, once the catalogs `DietrichGebert/ponytail`, `ayghri/i-have-adhd`, and `blader/humanizer` are added |
 | Run | `agy plugin validate dist/antigravity-cli --strict` | Validates the built Antigravity CLI plugin |
 | Release | `cargo xtask build --binaries <folder>` | The plugins with the four prebuilt binaries of `<folder>`, as `macos/tightship`, `linux-x64/tightship`, `linux-arm64/tightship`, and `windows-x64/tightship.exe`, nothing compiled |
-| Release | `cargo xtask package <tag>` | Packs the plugins into `dist/tightship-claude-code.zip` and `dist/tightship-antigravity-cli.zip`, and writes `dist/marketplace.json`, and `dist/install.sh` and `dist/install.ps1` with the tag and the Antigravity CLI zip's `sha256`; the tag is `v` and the built version |
+| Release | `cargo xtask package <tag>` | Packs the plugins into `dist/tightship-claude-code.zip`, `dist/tightship-antigravity-cli.zip`, and `dist/tightship-cursor.zip`, writes `dist/marketplace.json` and `dist/cursor-marketplace.json`, and `dist/install.sh` and `dist/install.ps1` with the tag and the Antigravity CLI zip's `sha256`; the tag is `v` and the built version |
 
 At each pull request into `develop` or `main`, `.github/workflows/` runs only the gates its files call for:
 `rust.yml` the Rust gates on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git Bash) when the

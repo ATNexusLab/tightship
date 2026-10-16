@@ -6,6 +6,7 @@
 [![Rust](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/rust.yml?style=flat-square&label=rust)](https://github.com/ATNexusLab/tightship/actions/workflows/rust.yml)
 [![Scan](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/scan.yml?style=flat-square&label=scan)](https://github.com/ATNexusLab/tightship/actions/workflows/scan.yml)
 [![Claude Code 2.1.295+](https://img.shields.io/badge/Claude%20Code-2.1.295%2B-FF5A1F?style=flat-square)](docs/install/claude-code/README.pt-BR.md)
+[![Cursor 3.25.6+](https://img.shields.io/badge/Cursor-3.25.6%2B-121212?style=flat-square)](docs/install/cursor/README.pt-BR.md)
 [![Antigravity CLI 1.4.0+](https://img.shields.io/badge/Antigravity%20CLI-1.4.0%2B-4285F4?style=flat-square)](docs/install/antigravity-cli/README.pt-BR.md)
 [![Release](https://img.shields.io/github/v/release/ATNexusLab/tightship?include_prereleases&style=flat-square&label=release&color=121212)](https://github.com/ATNexusLab/tightship/releases)
 
@@ -69,7 +70,9 @@ irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1
 O instalador detecta seus CLIs e pergunta quais opções ligar. Os guias de instalação
 ([Claude Code](docs/install/claude-code/README.pt-BR.md),
 [Antigravity CLI](docs/install/antigravity-cli/README.pt-BR.md)) cobrem opções, atualizações, desinstalação
-e a migração da instalação anterior.
+e a migração da instalação anterior. Para o Cursor (3.25.6+, `agent` 2026.10.14+), siga o
+[guia de instalação do Cursor](docs/install/cursor/README.pt-BR.md); ele ainda não entra no instalador
+unificado.
 
 ## Harnesses
 
@@ -95,6 +98,7 @@ git clone https://github.com/ATNexusLab/tightship.git
 cd tightship
 cargo xtask build
 claude --plugin-dir dist/claude-code
+agent --plugin-dir dist/cursor
 ```
 
 O build precisa de um arquivo `.identity-terms` na raiz. O [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md)
@@ -106,7 +110,8 @@ O guia de instalação tem versão em português. O resto da documentação est�
 
 | Onde | O quê |
 | --- | --- |
-| [Guia de instalação](docs/install/claude-code/README.pt-BR.md) | Instalação, opções, atualizações, desinstalação, migração |
+| [Guia de instalação (Claude Code)](docs/install/claude-code/README.pt-BR.md) | Instalação, opções, atualizações, desinstalação, migração |
+| [Guia de instalação (Cursor)](docs/install/cursor/README.pt-BR.md) | Companheiros, instalação pelo marketplace, opções, desinstalação |
 | [Requisitos](docs/requirements/README.md) | A SRS versionada: cada requisito e seus critérios de aceite |
 | [Arquitetura](docs/architecture/README.md) | O mapa do sistema, nas seções do arc42 com diagramas C4 |
 | [Decisões](docs/decisions/README.md) | Os registros de decisão de arquitetura |

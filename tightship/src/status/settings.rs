@@ -26,7 +26,7 @@ pub fn enable() -> Result<(), Failure> {
     write_record(&data, &Record::On(settings.get("statusLine").cloned()))?;
     settings.insert(
         "statusLine".to_owned(),
-        serde_json::json!({ "type": "command", "command": command_for(&root) }),
+        serde_json::json!({ "type": "command", "command": command_for(&root, &settings_path) }),
     );
     if let Err(failure) = write_settings(&settings_path, &settings) {
         remove_record(&data)?;
@@ -71,7 +71,16 @@ pub fn is_ours(status_line: &Value) -> bool {
         })
 }
 
-pub fn command_for(root: &Path) -> String {
+pub fn cursor_cli_config(settings_path: &Path) -> bool {
+    settings_path
+        .file_name()
+        .is_some_and(|name| name == "cli-config.json")
+}
+
+pub fn command_for(root: &Path, settings_path: &Path) -> String {
+    if cursor_cli_config(settings_path) {
+        return "\"${CURSOR_PLUGIN_ROOT}/bin/tightship\" status-line render".to_owned();
+    }
     #[cfg(windows)]
     {
         let cmd = root.join("bin").join("tightship.cmd");

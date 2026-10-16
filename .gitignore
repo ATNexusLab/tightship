@@ -2,3 +2,4 @@ site/
 target/
 dist/
 .identity-terms
+.cursor-hook-probe/
