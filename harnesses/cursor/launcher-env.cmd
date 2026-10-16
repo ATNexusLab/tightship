@@ -12,6 +12,10 @@ if not defined TIGHTSHIP_DATA (
   set "TIGHTSHIP_DATA={{path:data}}"
 )
 
+if not defined TIGHTSHIP_SETTINGS (
+  set "TIGHTSHIP_SETTINGS={{path:config}}/cli-config.json"
+)
+
 if not defined TIGHTSHIP_HOOK_OUTPUT (
   set "TIGHTSHIP_HOOK_OUTPUT=%PLUGIN_DIR%\hook-output.json"
 )

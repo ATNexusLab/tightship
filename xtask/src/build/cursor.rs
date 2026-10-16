@@ -63,6 +63,9 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
         })
         .collect();
     let mut before_submit = session_start.clone();
+    if declares("status_line") {
+        session_start.push(json!({ "command": format!("{binary} hook status-line") }));
+    }
     if declares("memory") {
         let memory = format!("{binary} options disabled memory || {binary} hook start");
         let prompt = format!("{binary} options disabled memory || {binary} hook prompt");

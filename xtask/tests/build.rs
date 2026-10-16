@@ -724,6 +724,28 @@ fn cursor_grilling_skill_holds_no_claude_code_literals() {
 }
 
 #[test]
+fn cursor_session_start_includes_status_line_hook() {
+    let repository = cursor_repository(vec![(
+        "content/options.toml".to_owned(),
+        "[[options]]\nname = \"status_line\"\ntitle = \"Status line\"\ndescription = \"Status line\"\ntype = \"boolean\"\n".to_owned(),
+    )]);
+
+    assert_succeeds(&repository.run("build"));
+    let hooks: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(repository.path("dist/cursor/hooks/hooks.json")).expect("hooks"))
+            .expect("valid JSON");
+    let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
+    assert!(
+        hooks["hooks"]["sessionStart"]
+            .as_array()
+            .expect("sessionStart hooks")
+            .iter()
+            .any(|hook| hook["command"] == format!("{binary} hook status-line")),
+        "expected status-line hook in sessionStart: {hooks}"
+    );
+}
+
+#[test]
 fn cursor_verifier_agent_has_readonly_front_matter() {
     let verifier = canonical_content("content/agents/adversarial-verifier.md");
     let repository = cursor_repository(vec![(

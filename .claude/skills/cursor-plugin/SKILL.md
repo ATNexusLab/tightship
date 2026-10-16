@@ -132,8 +132,13 @@ shipped for both harnesses loads twice in Cursor.
 
 ## Status line
 
-None in the editor. The CLI runs the command of `statusLine` in `~/.cursor/cli-config.json` (**docs**, not
-probed).
+None in the editor. The CLI alone reads `statusLine` in `~/.cursor/cli-config.json` (same object shape as
+Claude Code: `type` `command`, `command` a shell string). tightship writes
+`"${CURSOR_PLUGIN_ROOT}/bin/tightship" status-line render` after consent; Cursor expands
+`${CURSOR_PLUGIN_ROOT}` when it runs the command, so the hook does not rewrite the path on update. State lives
+in `~/.cursor/tightship/status-line.json`; options in `~/.cursor/tightship/options.json`. A `sessionStart` hook
+runs `hook status-line` with `TIGHTSHIP_SETTINGS` pointing at `cli-config.json` (set in `launcher-env`).
+Uninstall: turn `status_line` off, run one session or `hook status-line`, then remove the plugin.
 
 ## Probing a behavior
 
@@ -150,4 +155,3 @@ probed).
 - Whether `beforeSubmitPrompt`'s `additional_context` reaches the agent in the CLI.
 - Whether `preToolUse` or `subagentStart` tells which subagent calls a tool, so a hook can deny edits to a
   read-only one.
-- The CLI's `statusLine` format and uninstall.

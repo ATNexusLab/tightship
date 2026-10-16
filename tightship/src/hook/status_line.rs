@@ -28,7 +28,7 @@ pub fn run() -> Result<(), Failure> {
         return settings::remove_record(&data);
     }
     if ours {
-        let command = Value::String(settings::command_for(&root));
+        let command = Value::String(settings::command_for(&root, &settings_path));
         let status_line = user_settings
             .get_mut("statusLine")
             .and_then(Value::as_object_mut);
@@ -45,7 +45,10 @@ pub fn run() -> Result<(), Failure> {
             settings::write_record(&data, &Record::On(user_settings.get("statusLine").cloned()))?;
             user_settings.insert(
                 "statusLine".to_owned(),
-                serde_json::json!({ "type": "command", "command": settings::command_for(&root) }),
+                serde_json::json!({
+                    "type": "command",
+                    "command": settings::command_for(&root, &settings_path),
+                }),
             );
             if let Err(failure) = settings::write_settings(&settings_path, &user_settings) {
                 settings::remove_record(&data)?;
