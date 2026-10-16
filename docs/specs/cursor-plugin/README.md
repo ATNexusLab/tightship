@@ -4,7 +4,7 @@ Epic [#58](https://github.com/ATNexusLab/tightship/issues/58), milestone M2, spr
 
 | Spec | Profile | Status |
 | --- | --- | --- |
-| [Ship the workflow as a Cursor plugin](ship-for-cursor.md) | API | closed |
+| [Ship the workflow as a Cursor plugin](ship-for-cursor.md) | API | published |
 
 Probe notes the maintainer collected while drafting this spec live in
 `.claude/skills/cursor-plugin/SKILL.md` on branch `feat/58-cursor-plugin`. The closed spec quotes only

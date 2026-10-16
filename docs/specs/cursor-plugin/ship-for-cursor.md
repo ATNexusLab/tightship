@@ -1,6 +1,6 @@
 # #58 — Ship the workflow as a Cursor plugin
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `harnesses/cursor/`, `xtask/`, `tightship/`, `docs/install/cursor/`
 > **Epic:** #58
@@ -380,16 +380,16 @@ And the exit code is 1
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Probe Cursor hooks on macOS and Linux | Maintainer probes only; update `.claude/skills/cursor-plugin/SKILL.md` | Documented in the skill; limit stays 10000 unless a probe forces a change request | — |
-| 2 | Write companion and marketplace install steps | `docs/install/cursor/companions.md`, rule 4 sentence in `install.md` | Scenario 2 | — |
-| 3 | Add harnesses/cursor/harness.toml and capability entries | `harnesses/cursor/`, neutrality check | Scenario 1 | — |
-| 4 | Render dist/cursor pieces and manifest | `xtask/src/build/cursor.rs`, `build.rs`, tests in `xtask/tests/build.rs` | Scenario 1 | 3 |
-| 5 | Pack contract and emit Cursor hooks | `xtask` contract + cursor hooks, `tightship hook contract-part`, tests | Scenarios 3, 4, 8 | 4 |
-| 6 | Options file and tightship options subcommands | `tightship/src/options/`, hook guards, `variables` in manifest | Scenarios 4, 8, 9, 10 | 4 |
-| 7 | Wire memory and handoff hooks for Cursor | `tightship/hook/*`, cursor `hooks.json`, tests | Scenario 5 | 5, 6 |
-| 8 | Install guide and try-it line in AGENTS.md | `docs/install/cursor/`, README | Scenario 2, 6 | 2, 4 |
-| 9 | CLI status line probe and enable/render path | `tightship/status-line`, docs, task 1 probe notes | Rule 9 | 6 |
-| 10 | Package tightship-cursor.zip and catalog | `xtask/package.rs`, `.github/workflows/release.yml`, root catalog | Release contract in rule 12 | 4, 7, 8, 9 |
-| 11 | Release checklist rows for Cursor | `docs/release/checklist.md`, NFR-FLEX-02.1 sign-off | Scenario 6 | 10 |
+| # | Title | Scope | Acceptance criterion | Depends on | Issue |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Probe Cursor hooks on macOS and Linux | Maintainer probes only; update `.claude/skills/cursor-plugin/SKILL.md` | Documented in the skill; limit stays 10000 unless a probe forces a change request | — | #65 |
+| 2 | Write companion and marketplace install steps | `docs/install/cursor/companions.md`, rule 4 sentence in `install.md` | Scenario 2 | — | #66 |
+| 3 | Add harnesses/cursor/harness.toml and capability entries | `harnesses/cursor/`, neutrality check | Scenario 1 | — | #67 |
+| 4 | Render dist/cursor pieces and manifest | `xtask/src/build/cursor.rs`, `build.rs`, tests in `xtask/tests/build.rs` | Scenario 1 | 3 | #68 |
+| 5 | Pack contract and emit Cursor hooks | `xtask` contract + cursor hooks, `tightship hook contract-part`, tests | Scenarios 3, 4, 8 | 4 | #69 |
+| 6 | Options file and tightship options subcommands | `tightship/src/options/`, hook guards, `variables` in manifest | Scenarios 4, 8, 9, 10 | 4 | #70 |
+| 7 | Wire memory and handoff hooks for Cursor | `tightship/hook/*`, cursor `hooks.json`, tests | Scenario 5 | 5, 6 | #71 |
+| 8 | Install guide and try-it line in AGENTS.md | `docs/install/cursor/`, README | Scenario 2, 6 | 2, 4 | #72 |
+| 9 | CLI status line probe and enable/render path | `tightship/status-line`, docs, task 1 probe notes | Rule 9 | 6 | #73 |
+| 10 | Package tightship-cursor.zip and catalog | `xtask/package.rs`, `.github/workflows/release.yml`, root catalog | Release contract in rule 12 | 4, 7, 8, 9 | #74 |
+| 11 | Release checklist rows for Cursor | `docs/release/checklist.md`, NFR-FLEX-02.1 sign-off | Scenario 6 | 10 | #75 |
