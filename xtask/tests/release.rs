@@ -17,9 +17,11 @@ const BINARIES: [&str; 4] = [
 ];
 
 fn release_repository(version: &str) -> Repository {
-    let harness_files = harness_files("antigravity-cli");
-    let mut files: Vec<(&str, String)> = harness_files
+    let antigravity = harness_files("antigravity-cli");
+    let cursor = harness_files("cursor");
+    let mut files: Vec<(&str, String)> = antigravity
         .iter()
+        .chain(cursor.iter())
         .map(|(path, text)| (path.as_str(), text.clone()))
         .collect();
     files.extend([
@@ -248,6 +250,51 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
         catalog["allowCrossMarketplaceDependenciesOn"],
         serde_json::json!(["ponytail", "i-have-adhd", "humanizer"])
     );
+
+    let cursor_bytes =
+        fs::read(repository.path("dist/tightship-cursor.zip")).expect("the cursor zip");
+    let cursor_sha256: String = Sha256::digest(&cursor_bytes)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains(&format!("sha256 (cursor): {cursor_sha256}"))
+    );
+
+    let mut cursor_archive =
+        ZipArchive::new(std::io::Cursor::new(cursor_bytes)).expect("a readable zip");
+    let mut cursor_modes = BTreeMap::new();
+    for index in 0..cursor_archive.len() {
+        let entry = cursor_archive.by_index(index).expect("an entry");
+        let mode = entry.unix_mode().expect("a unix mode") & 0o777;
+        cursor_modes.insert(entry.name().expect("a UTF-8 name").into_owned(), mode);
+    }
+    let mut cursor_expected = plugin_files(&repository, "cursor");
+    cursor_expected.retain(|file| file != ".cursor-plugin/marketplace.json");
+    assert_eq!(cursor_modes.keys().cloned().collect::<Vec<_>>(), cursor_expected);
+    assert!(
+        cursor_modes
+            .values()
+            .all(|mode| *mode == 0o755 || *mode == 0o644)
+    );
+
+    let cursor_catalog_text =
+        fs::read_to_string(repository.path("dist/cursor-marketplace.json")).expect("cursor catalog");
+    let cursor_catalog: serde_json::Value =
+        serde_json::from_str(&cursor_catalog_text).expect("valid JSON");
+    assert_eq!(
+        cursor_catalog["plugins"][0]["source"],
+        serde_json::json!({
+            "source": "archive",
+            "url": "https://github.com/ATNexusLab/tightship/releases/download/v1.0.0/tightship-cursor.zip",
+            "sha256": cursor_sha256,
+        })
+    );
+    assert_eq!(
+        cursor_catalog["allowCrossMarketplaceDependenciesOn"],
+        serde_json::json!(["ponytail", "i-have-adhd", "humanizer"])
+    );
 }
 
 #[test]
@@ -266,6 +313,8 @@ fn a_tag_other_than_the_version_fails_and_writes_nothing() {
             .exists()
     );
     assert!(!repository.path("dist/marketplace.json").exists());
+    assert!(!repository.path("dist/tightship-cursor.zip").exists());
+    assert!(!repository.path("dist/cursor-marketplace.json").exists());
     let installer =
         fs::read_to_string(repository.path("dist/install.sh")).expect("the built installer");
     assert!(installer.lines().any(|line| line == "RELEASE_TAG=\"\""));

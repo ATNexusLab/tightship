@@ -111,33 +111,43 @@ fn hook_command(part: &Part) -> String {
 
 fn catalog(harness: &Harness) -> io::Result<String> {
     #[derive(Serialize)]
-    struct CatalogEntry<'harness> {
+    struct Owner<'harness> {
         name: &'harness str,
-        #[serde(rename = "pluginRoot")]
-        plugin_root: String,
-        #[serde(rename = "marketplace")]
-        marketplace: String,
     }
     #[derive(Serialize)]
+    struct Entry<'harness> {
+        name: &'harness str,
+        source: &'static str,
+        description: &'harness str,
+    }
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
     struct Catalog<'harness> {
         name: &'harness str,
-        owner: Author<'harness>,
-        plugins: Vec<CatalogEntry<'harness>>,
-    }
-    #[derive(Serialize)]
-    struct Author<'harness> {
-        name: &'harness str,
+        owner: Owner<'harness>,
+        description: &'harness str,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        allow_cross_marketplace_dependencies_on: Vec<&'harness str>,
+        plugins: [Entry<'harness>; 1],
     }
     let plugin = &harness.plugin;
+    let mut marketplaces = Vec::new();
+    for companion in &harness.companions {
+        if !marketplaces.contains(&companion.marketplace.as_str()) {
+            marketplaces.push(companion.marketplace.as_str());
+        }
+    }
     let catalog = Catalog {
-        name: "tightship",
-        owner: Author {
+        name: &plugin.name,
+        owner: Owner {
             name: &plugin.author,
         },
-        plugins: vec![CatalogEntry {
+        description: &plugin.description,
+        allow_cross_marketplace_dependencies_on: marketplaces,
+        plugins: [Entry {
             name: &plugin.name,
-            plugin_root: "./".to_owned(),
-            marketplace: plugin.repository.clone(),
+            source: "./",
+            description: &plugin.description,
         }],
     };
     Ok(serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n")

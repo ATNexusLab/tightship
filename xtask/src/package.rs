@@ -13,7 +13,15 @@ use crate::build::scripts::pascal;
 use crate::diagnostics::{Diagnostic, naming};
 use crate::{Failure, stop_on_errors};
 
-const CATALOG: &str = "marketplace.json";
+const CLAUDE_CATALOG: &str = "marketplace.json";
+
+fn release_catalog_name(harness: &str) -> String {
+    if harness == "claude-code" {
+        CLAUDE_CATALOG.to_owned()
+    } else {
+        format!("{harness}-marketplace.json")
+    }
+}
 
 #[derive(Deserialize)]
 struct Manifest {
@@ -98,6 +106,7 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
     fs::create_dir_all(staging).map_err(naming(staging))?;
 
     let mut parts = Vec::new();
+    let mut catalogs = Vec::new();
     let mut values = vec![("release-tag".to_owned(), tag.to_owned(), true)];
     for (harness, manifest) in harnesses.iter().zip(&manifests) {
         let archive = format!("{}-{}.zip", harness.plugin.name, harness.name);
@@ -135,7 +144,15 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
 
         if let Some(catalog) = &harness.dist.catalog {
             let url = format!("{}/releases/download/{tag}/{archive}", manifest.repository);
-            write_catalog(&plugin.join(catalog), staging, &url, &sha256)?;
+            let release_catalog = release_catalog_name(&harness.name);
+            write_catalog(
+                &plugin.join(catalog),
+                staging,
+                &release_catalog,
+                &url,
+                &sha256,
+            )?;
+            catalogs.push(format!("dist/{release_catalog}"));
         }
         parts.push(format!("dist/{archive} ({} files)", files.len()));
         values.push((format!("{}-sha256", harness.name), sha256, false));
@@ -147,9 +164,15 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
         .zip(&values[1..])
         .map(|(harness, (_, sha256, _))| format!("sha256 ({}): {sha256}", harness.name))
         .collect();
+    let catalog_summary = if catalogs.is_empty() {
+        String::new()
+    } else {
+        format!(", {}", catalogs.join(", "))
+    };
     Ok(format!(
-        "Packed {}, dist/{CATALOG}, and the installers for {tag}.\n{}",
+        "Packed {}{}, and the installers for {tag}.\n{}",
         parts.join(", "),
+        catalog_summary,
         shas.join("\n")
     ))
 }
@@ -157,10 +180,11 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
 fn write_catalog(
     local_path: &Path,
     staging: &Path,
+    release_name: &str,
     url: &str,
     sha256: &str,
 ) -> Result<(), Failure> {
-    println!("> Writing {CATALOG}");
+    println!("> Writing {release_name}");
     let local_text = fs::read_to_string(local_path).map_err(naming(local_path))?;
     let mut catalog: serde_json::Value = serde_json::from_str(&local_text)
         .map_err(|error| io::Error::other(format!("{}: {error}", local_path.display())))?;
@@ -172,8 +196,7 @@ fn write_catalog(
         "url": url,
         "sha256": sha256,
     });
-    // shortcut: one release catalog named marketplace.json, name it per harness when a second harness declares [dist] catalog
-    let catalog_path = staging.join(CATALOG);
+    let catalog_path = staging.join(release_name);
     let catalog_text = serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n";
     fs::write(&catalog_path, catalog_text).map_err(naming(&catalog_path))?;
     Ok(())
