@@ -12,3 +12,4 @@ One folder per epic, one closed spec per feature, written by `/spec` before any 
 | [#6 Handoff](handoff/README.md) | [Hand a session off through the vault](handoff/hand-off-the-session.md) | published |
 | [#7 Status line](status-line/README.md) | [Show the workflow's status line, with the adopter's consent](status-line/show-the-status-line.md) | published |
 | [#8 Release M1](release-m1/README.md) | [Release the Claude Code plugin](release-m1/release-the-plugin.md) | published |
+| [#58 Cursor plugin](cursor-plugin/README.md) | [Ship the workflow as a Cursor plugin](cursor-plugin/ship-for-cursor.md) | closed |

@@ -26,13 +26,14 @@ The system shall pass every M1 acceptance criterion in Claude Code, from version
 
 ## NFR-FLEX-02 — Cursor is supported, editor and command line
 
-The system shall pass every functional acceptance criterion in Cursor's editor and in its command-line
-agent.
+The system shall pass every functional acceptance criterion in Cursor's editor from version 3.25.6 and in its
+command-line agent from version 2026.10.14, except the status-line criteria in the editor, which the harness
+cannot meet ([epic #58 spec](../../specs/cursor-plugin/ship-for-cursor.md)).
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | The maintainer uses both. |
-| Source | Maintainer, elicitation 2026-10-14 |
+| Rationale | The maintainer uses both. 3.25.6 and 2026.10.14 are the versions probed when epic #58 closed. |
+| Source | Maintainer, elicitation 2026-10-14; minimum versions by [epic #58](../../specs/cursor-plugin/ship-for-cursor.md) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M2 |
@@ -40,9 +41,11 @@ agent.
 
 **Acceptance criteria**
 
-- **NFR-FLEX-02.1** — 100% of the functional acceptance criteria pass in Cursor's editor, and 100% in its
-  command-line agent, each at its minimum supported version. A criterion one of them cannot meet is
-  settled by [OQ-07](../open-questions.md#oq-07) or [OQ-08](../open-questions.md#oq-08) before M2 starts.
+- **NFR-FLEX-02.1** — 100% of the functional acceptance criteria pass in Cursor's editor at 3.25.6 or later,
+  except FR-STL-01.1, FR-STL-02.1, and FR-STL-03.1, which pass in the command-line agent at 2026.10.14 or
+  later only.
+- **NFR-FLEX-02.2** — Hooks are not required under `agent -p`; criteria that need hooks are verified in the
+  editor or in an interactive CLI session ([epic #58](../../specs/cursor-plugin/ship-for-cursor.md)).
 
 <a id="nfr-flex-03"></a>
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.9.0 — 2026-10-16
+
+Editorial. The [spec of epic #58](../specs/cursor-plugin/ship-for-cursor.md) settles OQ-04, OQ-05, OQ-06, and
+OQ-08 for Cursor, and removes OQ-07.
+
+**Changed**
+
+- NFR-FLEX-02: minimum Cursor editor 3.25.6 and CLI 2026.10.14; FR-STL-01.1, FR-STL-02.1, and FR-STL-03.1
+  pass in the CLI only; NFR-FLEX-02.2 excludes `agent -p` from hook verification.
+- Overview: Cursor minimum versions and observed editor 3.25.6.
+
+**Removed**
+
+- OQ-07: answered by epic #58 (CLI loads plugins and hooks; exceptions in NFR-FLEX-02.2).
+
 ## 1.8.0 — 2026-10-15
 
 Two changes the maintainer approved in the planning of sprint 2. Cursor and Antigravity CLI are built in the

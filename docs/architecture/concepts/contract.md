@@ -30,3 +30,17 @@ already holds the copy placed before. A hook that fails costs only its own part;
 | Off | Any | Nothing from the contract |
 
 Every rule and error message: the [epic #4 spec](../../specs/contract/load-the-contract.md).
+
+## How it reaches a Cursor session
+
+**Milestone:** M2, epic #58
+
+Cursor injects hook stdout as JSON. Each contract part is a hook command that runs
+`${CURSOR_PLUGIN_ROOT}/bin/tightship hook contract-part <file>` and prints
+`{"additional_context":"<rendered part>"}`. Packing uses the same greedy split and `[contract] limit` as Claude
+Code, with the limit in `harnesses/cursor/harness.toml`.
+
+`sessionStart` runs once per conversation. `beforeSubmitPrompt` runs the same part hooks on every prompt while
+the contract option is on, so the whole contract is present after compaction too (FR-CTR-01.2).
+
+Every rule and error message: the [epic #58 spec](../../specs/cursor-plugin/ship-for-cursor.md).

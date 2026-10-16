@@ -1,7 +1,7 @@
 # Harness definitions
 
-**Lives in:** `harnesses/<harness>/harness.toml` · **Milestone:** M1, epic #1 (Claude Code); one more per
-milestone after it
+**Lives in:** `harnesses/<harness>/harness.toml` · **Milestone:** M1, epic #1 (Claude Code); M2, epic #58
+(Cursor); one more per milestone after that
 
 The per-harness place of
 [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.md): the only files that
