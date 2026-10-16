@@ -6,7 +6,11 @@ use std::fs;
 use common::{Sandbox, assert_fails_with, assert_succeeds, run, stderr_of, stdout_of};
 
 fn cursor_options_file(sandbox: &Sandbox, home: &str) -> std::path::PathBuf {
-    sandbox.path(home).join(".cursor/tightship/options.json")
+    sandbox
+        .path(home)
+        .join(".cursor")
+        .join("tightship")
+        .join("options.json")
 }
 
 fn with_home(sandbox: &Sandbox, home: &str) -> std::process::Command {

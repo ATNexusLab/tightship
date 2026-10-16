@@ -636,9 +636,20 @@ fn cursor_hook_output(sandbox: &Sandbox) -> PathBuf {
 }
 
 fn cursor_data_dir(sandbox: &Sandbox, home: &str) -> PathBuf {
-    let folder = sandbox.path(home).join(".cursor/tightship");
+    let folder = sandbox
+        .path(home)
+        .join(".cursor")
+        .join("tightship");
     fs::create_dir_all(&folder).expect("cursor data");
     folder
+}
+
+fn write_cursor_options_json(data: &Path, vault: &Path) {
+    let body = serde_json::json!({
+        "memory": true,
+        "vault_folder": vault.to_string_lossy(),
+    });
+    fs::write(data.join("options.json"), body.to_string()).expect("options.json");
 }
 
 #[test]
@@ -653,11 +664,7 @@ fn start_reads_the_vault_from_cursor_options_json() {
     );
     let vault = sandbox.path("vault");
     let data = cursor_data_dir(&sandbox, "adopter");
-    fs::write(
-        data.join("options.json"),
-        format!(r#"{{"memory":true,"vault_folder":"{}"}}"#, vault.display()),
-    )
-    .expect("options.json");
+    write_cursor_options_json(&data, &vault);
     let working_directory = project(&sandbox, "tightship");
     let mut command = sandbox.tightship(&["hook", "start"]);
     command
@@ -677,14 +684,7 @@ fn start_reads_the_vault_from_cursor_options_json() {
 fn checkpoint_on_cursor_emits_user_message_json() {
     let sandbox = Sandbox::new();
     let data = cursor_data_dir(&sandbox, "adopter-checkpoint");
-    fs::write(
-        data.join("options.json"),
-        format!(
-            r#"{{"memory":true,"vault_folder":"{}"}}"#,
-            sandbox.path("vault").display()
-        ),
-    )
-    .expect("options.json");
+    write_cursor_options_json(&data, &sandbox.path("vault"));
     fs::create_dir_all(sandbox.path("vault")).expect("vault");
     let mut command = sandbox.tightship(&["hook", "checkpoint"]);
     command
