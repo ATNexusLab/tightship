@@ -5,14 +5,14 @@
 O tightship é usado com três plugins de terceiros. O manifesto do plugin no Cursor não tem campo
 `dependencies`, então o editor e o CLI não instalam os companheiros por você.
 
-| Companheiro | O que traz |
-| --- | --- |
-| ponytail | Empurra o agente para o código mais simples que funciona: nada de abstração especulativa, a biblioteca padrão primeiro |
-| i-have-adhd | Molda as respostas para você agir sobre elas: a próxima ação primeiro, passos numerados, sem preâmbulo |
-| humanizer | Reescreve a prosa feita para pessoas, para que ela não pareça texto gerado |
+| Companheiro | Repositório | O que traz |
+| --- | --- | --- |
+| ponytail | `DietrichGebert/ponytail` | Empurra o agente para o código mais simples que funciona: nada de abstração especulativa, a biblioteca padrão primeiro |
+| i-have-adhd | `ayghri/i-have-adhd` | Molda as respostas para você agir sobre elas: a próxima ação primeiro, passos numerados, sem preâmbulo |
+| humanizer | `blader/humanizer` | Reescreve a prosa feita para pessoas, para que ela não pareça texto gerado |
 
-ponytail e i-have-adhd trazem só `.claude-plugin/`; o Cursor os carrega como **Imported** em
-`~/.cursor/plugins/local/`. O humanizer também traz `.cursor-plugin/`.
+ponytail e i-have-adhd trazem só `.claude-plugin/`, que o Cursor também lê: em `~/.cursor/plugins/local/`
+eles aparecem como **Local**, como o humanizer, que traz também `.cursor-plugin/`.
 
 ## Com o instalador unificado
 
@@ -21,7 +21,7 @@ tightship. Você não adiciona marketplaces nem roda comandos de instalação se
 
 ## Instalação manual
 
-Baixe o repositório de cada companheiro no GitHub, extraia e copie a árvore para
+Baixe do GitHub o repositório que a tabela indica para cada companheiro, extraia e copie a árvore para
 `~/.cursor/plugins/local/<nome>/` (por exemplo `~/.cursor/plugins/local/ponytail/`).
 
 Confira que cada um aparece como **Local** em Customize → Plugins antes de instalar o tightship.
