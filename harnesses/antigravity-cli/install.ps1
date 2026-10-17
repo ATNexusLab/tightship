@@ -13,7 +13,7 @@ function Resolve-AntigravityCliOptions {
     Join-Path $antigravityCliData "options.toml"
 }
 
-function Invoke-Tightship {
+function Invoke-AntigravityCliTightship {
     if ($env:OS -eq "Windows_NT") {
         & (Join-Path $antigravityCliPlugin "bin\tightship.cmd") @args
     } else {
@@ -78,10 +78,10 @@ status_line = $finalStatusLine
     Set-Content -Path (Resolve-AntigravityCliOptions) -Value ($tomlContent + "`n") -Encoding utf8
 
     $env:TIGHTSHIP_DATA = $antigravityCliData
-    Invoke-Step "Applying the status line option" { Invoke-Tightship hook status-line }
+    Invoke-Step "Applying the status line option" { Invoke-AntigravityCliTightship hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder) {
-        Invoke-Step "Creating the vault at $finalVaultFolder" { Invoke-Tightship vault init $finalVaultFolder }
+        Invoke-Step "Creating the vault at $finalVaultFolder" { Invoke-AntigravityCliTightship vault init $finalVaultFolder }
     }
 
     if ($tempZipFolder -and (Test-Path $tempZipFolder)) {

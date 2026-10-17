@@ -17,7 +17,7 @@ min-version = "2026.10.14"
 aliases = ["cursor"]
 
 [install.companion-steps.plugin]
-sh = 'install_cursor_companion {plugin} {repository}'
+sh = 'step "Installing the {plugin} companion" install_cursor_companion {plugin} {repository}'
 ps1 = 'Install-CursorCompanion {plugin} {repository}'
 
 [paths]

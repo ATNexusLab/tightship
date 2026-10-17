@@ -40,17 +40,14 @@ install_cursor_companion() {
   _work=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
   _zip="${_work}/${_name}.zip"
   _url="https://github.com/${_repo}/archive/refs/heads/main.zip"
-  step "Installing the ${_name} companion" sh -c "
-    set -e
-    if ! download_file '$_url' '$_zip'; then
-      _url_master='https://github.com/${_repo}/archive/refs/heads/master.zip'
-      download_file \"\$_url_master\" '$_zip'
-    fi
-    unzip -q '$_zip' -d '$_work'
-    _root=\$(find '$_work' -mindepth 1 -maxdepth 1 -type d ! -name '.*' | head -1)
-    mkdir -p '$_dest'
-    cp -R \"\${_root}/\". '$_dest/'
-  "
+  if ! download_file "$_url" "$_zip"; then
+    _url="https://github.com/${_repo}/archive/refs/heads/master.zip"
+    download_file "$_url" "$_zip"
+  fi
+  unzip -q "$_zip" -d "$_work"
+  _root=$(find "$_work" -mindepth 1 -maxdepth 1 -type d ! -name '.*' | head -1)
+  mkdir -p "$_dest"
+  cp -R "${_root}/." "$_dest/"
   rm -rf "$_work"
 }
 

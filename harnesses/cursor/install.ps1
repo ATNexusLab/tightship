@@ -14,7 +14,7 @@ function Resolve-CursorOptions {
     Join-Path $cursorData "options.json"
 }
 
-function Invoke-Tightship {
+function Invoke-CursorTightship {
     if ($env:OS -eq "Windows_NT") {
         & (Join-Path $cursorPlugin "bin\tightship.cmd") @args
     } else {
@@ -109,10 +109,10 @@ function Install-Cursor {
     if (-not (Test-Path $configDir)) {
         New-Item -ItemType Directory -Force -Path $configDir | Out-Null
     }
-    Invoke-Step "Applying the status line option" { Invoke-Tightship hook status-line }
+    Invoke-Step "Applying the status line option" { Invoke-CursorTightship hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder) {
-        Invoke-Step "Creating the vault at $finalVaultFolder" { Invoke-Tightship vault init $finalVaultFolder }
+        Invoke-Step "Creating the vault at $finalVaultFolder" { Invoke-CursorTightship vault init $finalVaultFolder }
     }
 
     if ($tempZipFolder -and (Test-Path $tempZipFolder)) {
