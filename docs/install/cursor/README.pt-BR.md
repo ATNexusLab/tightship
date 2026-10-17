@@ -16,7 +16,7 @@ Como instalar, configurar e remover o plugin tightship no editor Cursor e no age
 | Página | O que cobre |
 | --- | --- |
 | [Os companheiros](companions.pt-BR.md) | Os três plugins a instalar antes do tightship |
-| [Instalação](install.pt-BR.md) | Instalar o tightship pelo marketplace git |
+| [Instalação](install.pt-BR.md) | O instalador unificado e o caminho manual em pasta local |
 | [As opções](options.pt-BR.md) | `options.json`, o diálogo Configure e os comandos `tightship options` |
 | [Desinstalação](uninstall.pt-BR.md) | Remover o tightship, a pasta de opções e, se quiser, os companheiros |
 
@@ -30,4 +30,4 @@ agent --plugin-dir dist/cursor
 ```
 
 Ou copie `dist/cursor/` para `~/.cursor/plugins/local/tightship/`, recarregue a janela do editor e use o CLI
-com essa pasta. Quem instala pelo git deve seguir a [instalação](install.pt-BR.md).
+com essa pasta. Quem adota o plugin deve seguir a [instalação](install.pt-BR.md).

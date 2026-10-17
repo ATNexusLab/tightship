@@ -10,6 +10,14 @@ use zip::{CompressionMethod, System, ZipWriter};
 
 const RELEASE_TAG: &str = "v1.0.0";
 
+const AGENT_VERSION: &str = r#"#!/bin/sh
+if [ "$1" = "--version" ]; then
+    echo "agent 2026.10.16"
+    exit 0
+fi
+exit 0
+"#;
+
 const AGY_THAT_INSTALLS: &str = r#"#!/bin/sh
 if [ "$1" = "--version" ]; then
     echo "agy 1.4.0"
@@ -77,6 +85,10 @@ impl Installer {
     }
 }
 
+fn download_cache_name(url: &str) -> String {
+    url.replace("https://", "").replace('/', "_")
+}
+
 struct MockEnvironment {
     temp_dir: TempDir,
     bin_dir: PathBuf,
@@ -113,11 +125,16 @@ while [ $# -gt 0 ]; do
         *) url="$1"; shift ;;
     esac
 done
-source="{}/${{url##*/}}"
+key=$(printf '%s' "$url" | sed 's|https://||; s|/|_|g')
+source="{}/$key"
+if [ ! -f "$source" ]; then
+  source="{}/${{url##*/}}"
+fi
 [ -f "$source" ] || exit 22
 mkdir -p "$(dirname "$dest")"
 cp "$source" "$dest"
 "#,
+                environment.downloads_dir.display(),
                 environment.downloads_dir.display()
             ),
         );
@@ -206,7 +223,11 @@ cp "$source" "$dest"
         let downloads = quoted(&self.downloads_dir.to_string_lossy());
         let script = format!(
             "function Invoke-RestMethod([string]$Uri, [string]$OutFile) {{
-    $source = Join-Path {downloads} ($Uri.Split('/')[-1])
+    $key = ($Uri -replace '^https://','') -replace '/','_'
+    $source = Join-Path {downloads} $key
+    if (-not (Test-Path $source)) {{
+        $source = Join-Path {downloads} ($Uri.Split('/')[-1])
+    }}
     if (-not (Test-Path $source)) {{ throw \"404 $Uri\" }}
     New-Item -ItemType Directory -Force -Path (Split-Path $OutFile) | Out-Null
     Copy-Item $source $OutFile
@@ -303,6 +324,39 @@ fn from_dir() -> String {
         .to_str()
         .expect("valid utf-8 path")
         .to_owned()
+}
+
+fn cursor_from_dir() -> String {
+    repo_root()
+        .join("dist/cursor")
+        .to_str()
+        .expect("valid utf-8 path")
+        .to_owned()
+}
+
+fn companion_zip(plugin: &str) -> Vec<u8> {
+    let entry = format!("{plugin}-main/.claude-plugin/plugin.json");
+    let body = format!(r#"{{"name":"{plugin}"}}"#);
+    let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
+    let options = SimpleFileOptions::default()
+        .compression_method(CompressionMethod::Deflated)
+        .system(System::Unix)
+        .unix_permissions(0o644);
+    writer.start_file(&entry, options).expect("zip entry");
+    writer.write_all(body.as_bytes()).expect("zip body");
+    writer.finish().expect("zip").into_inner()
+}
+
+fn seed_companion_downloads(downloads: &Path) {
+    for (plugin, repo) in [
+        ("ponytail", "DietrichGebert/ponytail"),
+        ("i-have-adhd", "ayghri/i-have-adhd"),
+        ("humanizer", "blader/humanizer"),
+    ] {
+        let url = format!("https://github.com/{repo}/archive/refs/heads/main.zip");
+        let key = download_cache_name(&url);
+        fs::write(downloads.join(key), companion_zip(plugin)).expect("companion zip");
+    }
 }
 
 fn assert_exit(installer: Installer, output: &Output, code: i32) {
@@ -783,5 +837,69 @@ fn existing_options_are_preserved_on_update() {
             Some(r#"C:\Users\me "work"\ai-memory"#),
             "{installer:?}"
         );
+    }
+}
+
+#[test]
+fn scenario_12_interactive_and_flag_driven_install_cursor() {
+    for installer in INSTALLERS {
+        let env = MockEnvironment::new();
+        seed_companion_downloads(&env.downloads_dir);
+        env.add_mock_script("agent", AGENT_VERSION);
+
+        let from_dir = cursor_from_dir();
+        let output = env.run(
+            installer,
+            &[
+                "--harness",
+                "cursor",
+                "--contract",
+                "true",
+                "--memory",
+                "true",
+                "--status-line",
+                "true",
+                "--vault-folder",
+                "~/ai-memory",
+                "--from-dir",
+                &from_dir,
+                "--yes",
+            ],
+        );
+
+        assert_exit(installer, &output, 0);
+        assert!(
+            String::from_utf8_lossy(&output.stdout).contains("Installed tightship for Cursor."),
+            "{installer:?}"
+        );
+        let plugins = env.home_dir.join(".cursor/plugins/local");
+        assert!(plugins.join("ponytail/.claude-plugin/plugin.json").is_file(), "{installer:?}");
+        assert!(
+            plugins.join("i-have-adhd/.claude-plugin/plugin.json").is_file(),
+            "{installer:?}"
+        );
+        assert!(
+            plugins.join("humanizer/.claude-plugin/plugin.json").is_file(),
+            "{installer:?}"
+        );
+        assert!(
+            plugins
+                .join("tightship/.cursor-plugin/plugin.json")
+                .is_file(),
+            "{installer:?}"
+        );
+
+        let options_text = fs::read_to_string(env.home_dir.join(".cursor/tightship/options.json"))
+            .expect("read options.json");
+        let options: serde_json::Value =
+            serde_json::from_str(&options_text).expect("valid options.json");
+        assert_eq!(options["contract"], true, "{installer:?}");
+        assert_eq!(options["memory"], true, "{installer:?}");
+        assert_eq!(options["status_line"], true, "{installer:?}");
+        assert_eq!(options["vault_folder"], "~/ai-memory", "{installer:?}");
+
+        let settings_text =
+            fs::read_to_string(env.home_dir.join(".cursor/cli-config.json")).expect("cli-config");
+        assert!(settings_text.contains("statusLine"), "{installer:?}");
     }
 }

@@ -3,47 +3,33 @@
 English · [Português](companions.pt-BR.md)
 
 tightship is used with three third-party plugins. Cursor's plugin manifest has no `dependencies` field, so
-the editor and the CLI do not install companions for you. Add each catalog, install each companion, and
-confirm it shows **Installed** under Customize → Plugins before you follow
-[Installation](install.md).
+the editor and the CLI do not install companions for you.
 
-| Companion | Catalog | What it brings |
-| --- | --- | --- |
-| ponytail | `DietrichGebert/ponytail` | Pushes the agent toward the simplest code that works: no speculative abstraction, the standard library first |
-| i-have-adhd | `ayghri/i-have-adhd` | Shapes answers to be acted on: the next action first, numbered steps, no preamble |
-| humanizer | `blader/humanizer` | Rewrites prose meant for people so it does not read as generated text |
+| Companion | What it brings |
+| --- | --- |
+| ponytail | Pushes the agent toward the simplest code that works: no speculative abstraction, the standard library first |
+| i-have-adhd | Shapes answers to be acted on: the next action first, numbered steps, no preamble |
+| humanizer | Rewrites prose meant for people so it does not read as generated text |
+
+ponytail and i-have-adhd ship only `.claude-plugin/`; Cursor loads them as **Imported** when they sit under
+`~/.cursor/plugins/local/`. humanizer also ships `.cursor-plugin/`.
+
+## With the unified installer
+
+[Installation](install.md) installs all three companions into `~/.cursor/plugins/local/<name>/` before it
+installs tightship. You do not add marketplaces or run separate install commands.
+
+## Manual installation
+
+Download each companion's repository from GitHub, extract it, and copy the tree into
+`~/.cursor/plugins/local/<name>/` (for example `~/.cursor/plugins/local/ponytail/`).
+
+Confirm each one shows **Local** under Customize → Plugins before you install tightship.
 
 A companion you already had installed is reused, not installed a second time. No companion's version is
-pinned: you get each one's latest.
-
-## Add the catalogs
-
-Run once per repository, companions first, then tightship when you reach [Installation](install.md):
-
-```sh
-agent plugin marketplace add DietrichGebert/ponytail
-agent plugin marketplace add ayghri/i-have-adhd
-agent plugin marketplace add blader/humanizer
-agent plugin marketplace add ATNexusLab/tightship
-```
-
-In the editor, you can add the same git URLs from Customize → Plugins → marketplaces instead of the commands
-above.
-
-## Install the three companions
-
-After the catalogs are added, install only the companions (not tightship yet):
-
-```sh
-agent plugin install ponytail@ponytail
-agent plugin install i-have-adhd@i-have-adhd
-agent plugin install humanizer@humanizer
-```
-
-If a catalog is missing, the install fails or the plugin does not appear. Add the missing catalog and run the
-install again.
+pinned: you get each one's latest default branch.
 
 ## Check it
 
-Under Customize → Plugins, ponytail, i-have-adhd, and humanizer each show **Installed**. Only then continue
-with [Installation](install.md).
+Under Customize → Plugins, ponytail, i-have-adhd, and humanizer each show **Local**. Only then continue with
+[Installation](install.md).

@@ -1,4 +1,104 @@
+CURSOR_SHA256=""
+CURSOR_DATA="${TIGHTSHIP_DATA:-{{path:data}}}"
+
+check_cursor() {
+  if [ -z "$FROM_DIR" ] && [ -z "$RELEASE_TAG" ]; then
+    echo "error: this install.sh belongs to no release; run $REPOSITORY/releases/latest/download/install.sh, or pass --from-dir <folder>" >&2
+    exit 1
+  fi
+}
+
+options_file_cursor() {
+  printf '%s\n' "$CURSOR_DATA/options.json"
+}
+
+json_bool() {
+  if [ "$1" = "true" ]; then
+    printf 'true'
+  else
+    printf 'false'
+  fi
+}
+
+write_cursor_options() {
+  mkdir -p "$CURSOR_DATA"
+  _options="$CURSOR_DATA/options.json"
+  if [ -n "$VAULT_FOLDER" ]; then
+    _vault=$(printf '%s' "$VAULT_FOLDER" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')
+    printf '{\n  "contract": %s,\n  "memory": %s,\n  "status_line": %s,\n  "vault_folder": "%s"\n}\n' \
+      "$(json_bool "$CONTRACT")" "$(json_bool "$MEMORY")" "$(json_bool "$STATUS_LINE")" "$_vault" > "$_options"
+  else
+    printf '{\n  "contract": %s,\n  "memory": %s,\n  "status_line": %s\n}\n' \
+      "$(json_bool "$CONTRACT")" "$(json_bool "$MEMORY")" "$(json_bool "$STATUS_LINE")" > "$_options"
+  fi
+}
+
+install_cursor_companion() {
+  _name="$1"
+  _repo="$2"
+  _dest="{{path:plugins}}/${_name}"
+  _work=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
+  _zip="${_work}/${_name}.zip"
+  _url="https://github.com/${_repo}/archive/refs/heads/main.zip"
+  step "Installing the ${_name} companion" sh -c "
+    set -e
+    if ! download_file '$_url' '$_zip'; then
+      _url_master='https://github.com/${_repo}/archive/refs/heads/master.zip'
+      download_file \"\$_url_master\" '$_zip'
+    fi
+    unzip -q '$_zip' -d '$_work'
+    _root=\$(find '$_work' -mindepth 1 -maxdepth 1 -type d ! -name '.*' | head -1)
+    mkdir -p '$_dest'
+    cp -R \"\${_root}/\". '$_dest/'
+  "
+  rm -rf "$_work"
+}
+
+sync_cursor_plugin() {
+  _target="$1"
+  _source="$2"
+  mkdir -p "$_target"
+  cp -R "${_source}/." "$_target/"
+}
+
 install_cursor() {
-  echo "error: install Cursor from docs/install/cursor/install.md (marketplace and companions are manual)" >&2
-  exit 1
+  {{install:companions}}
+
+  source_dir=""
+  if [ -n "$FROM_DIR" ]; then
+    source_dir="$FROM_DIR"
+  else
+    TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
+    zip_dest="$TMP_DIR/tightship-cursor.zip"
+    download_url="$REPOSITORY/releases/download/$RELEASE_TAG/tightship-cursor.zip"
+    echo "> Downloading tightship-cursor.zip $RELEASE_TAG"
+    if ! download_file "$download_url" "$zip_dest"; then
+      echo "error: failed to download tightship-cursor.zip from $download_url" >&2
+      echo "hint: if you are running in a local repository clone, run cargo xtask build and pass --from-dir dist/cursor" >&2
+      exit 1
+    fi
+    echo "> Checking the sha256 of tightship-cursor.zip"
+    zip_sha256=$(sha256_of "$zip_dest") || exit 1
+    if [ "$zip_sha256" != "$CURSOR_SHA256" ]; then
+      echo "error: tightship-cursor.zip has sha256 $zip_sha256; $RELEASE_TAG published $CURSOR_SHA256" >&2
+      exit 1
+    fi
+    unzip -q "$zip_dest" -d "$TMP_DIR/extracted"
+    source_dir="$TMP_DIR/extracted"
+  fi
+
+  plugin_target="{{path:plugins}}/tightship"
+  step "Installing tightship for {{install:label}}" sync_cursor_plugin "$plugin_target" "$source_dir"
+
+  write_cursor_options
+
+  export TIGHTSHIP_DATA="$CURSOR_DATA"
+  export TIGHTSHIP_SETTINGS="{{path:config}}/cli-config.json"
+  export TIGHTSHIP_ROOT="$plugin_target"
+  mkdir -p "{{path:config}}"
+  step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
+
+  if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
+    step "Creating the vault at $VAULT_FOLDER" "$plugin_target/bin/tightship" vault init "$VAULT_FOLDER"
+  fi
 }

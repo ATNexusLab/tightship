@@ -25,18 +25,18 @@ nenhuma.
 ## 2. Remova o tightship
 
 ```sh
-agent plugin uninstall tightship@tightship
+rm -rf ~/.cursor/plugins/local/tightship
 rm -rf ~/.cursor/tightship
 ```
 
 No Windows no PowerShell:
 
 ```powershell
-agent plugin uninstall tightship@tightship
+Remove-Item -Recurse -Force "$HOME\.cursor\plugins\local\tightship"
 Remove-Item -Recurse -Force "$HOME\.cursor\tightship"
 ```
 
-Desinstalar pelo editor em Customize → Plugins equivale ao passo `agent plugin uninstall`.
+Remover o plugin em Customize → Plugins equivale quando ele está instalado como **Local**.
 
 ## 3. Remova os companheiros, se quiser
 
@@ -44,20 +44,9 @@ Você instalou ponytail, i-have-adhd e humanizer separadamente em [os companheir
 Remova-os só quando não os usar mais com outros plugins:
 
 ```sh
-agent plugin uninstall ponytail@ponytail
-agent plugin uninstall i-have-adhd@i-have-adhd
-agent plugin uninstall humanizer@humanizer
+rm -rf ~/.cursor/plugins/local/ponytail
+rm -rf ~/.cursor/plugins/local/i-have-adhd
+rm -rf ~/.cursor/plugins/local/humanizer
 ```
-
-## 4. Remova os catálogos
-
-```sh
-agent plugin marketplace remove tightship
-agent plugin marketplace remove ponytail
-agent plugin marketplace remove i-have-adhd
-agent plugin marketplace remove humanizer
-```
-
-Mantenha o catálogo de um companheiro se você ainda usa esse companheiro.
 
 O seu vault nunca é apagado.

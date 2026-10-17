@@ -2,33 +2,83 @@
 
 [English](install.md) · Português
 
-Conclua [os companheiros](companions.pt-BR.md) primeiro.
-
-Não rode um comando de workflow até ponytail, i-have-adhd e humanizer aparecerem como **Installed** em
-Customize → Plugins.
+Instale o tightship com o instalador interativo de um comando, ou siga cada passo manualmente.
 
 Não instale o tightship como plugin do Claude Code na mesma máquina. O Cursor pode carregar plugins do Claude
 Code como **Imported**, e as mesmas peças seriam carregadas duas vezes.
 
-Com os quatro catálogos já adicionados (companheiros primeiro, depois este repositório), instale o tightship:
+## Instalador de um comando
+
+Rode o instalador direto dos GitHub Releases. Ele detecta os CLIs instalados, pergunta suas opções, instala
+os companheiros e o tightship em `~/.cursor/plugins/local/`, grava seu `options.json` e configura a status
+line do CLI.
+
+No Linux e no macOS:
 
 ```sh
-agent plugin install tightship@tightship
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | \
+  sh -s -- --harness cursor
 ```
 
-No editor, você pode instalar em Customize → Plugins depois que os catálogos existirem.
+No Windows no PowerShell:
 
-A instalação não pede opção no shell. Hooks e o binário leem opções só em `~/.cursor/tightship/options.json`,
-não nos valores do Customize → Configure. Defina opções com [tightship options](options.pt-BR.md) depois da
-instalação.
+```powershell
+& ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) `
+  -Harness cursor -Yes
+```
+
+Para rodar sem prompts, passe as opções por flags:
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | \
+  sh -s -- --harness cursor --vault-folder ~/ai-memory --yes
+```
+
+Algumas contas Cursor bloqueiam pastas locais de plugin (`userLocal=false`). O instalador não altera essa
+política; peça ao administrador para permitir importação local de plugins, ou use uma conta Cursor pessoal.
+
+## Instalação manual
+
+Se preferir cada passo, conclua [os companheiros](companions.pt-BR.md) primeiro e depois:
+
+### 1. Baixe e instale o tightship
+
+Baixe `tightship-cursor.zip` do release mais recente, extraia e copie o conteúdo para
+`~/.cursor/plugins/local/tightship/`.
+
+### 2. Escreva suas opções
+
+Crie `~/.cursor/tightship/options.json`:
+
+```json
+{
+  "contract": true,
+  "memory": true,
+  "status_line": true,
+  "vault_folder": "~/ai-memory"
+}
+```
+
+Ou use [tightship options](options.pt-BR.md).
+
+### 3. Ative a status line do CLI
+
+```sh
+export TIGHTSHIP_DATA="$HOME/.cursor/tightship"
+export TIGHTSHIP_SETTINGS="$HOME/.cursor/cli-config.json"
+export TIGHTSHIP_ROOT="$HOME/.cursor/plugins/local/tightship"
+"$TIGHTSHIP_ROOT/bin/tightship" hook status-line
+```
+
+Recarregue a janela do editor depois de copiar a pasta do plugin.
 
 ## Confira
 
-Em Customize → Plugins, o tightship aparece como **Installed** com skills e comandos listados. ponytail,
-i-have-adhd e humanizer continuam instalados desde a etapa dos companheiros.
+Em Customize → Plugins, o tightship aparece como **Local** com skills e comandos listados. ponytail,
+i-have-adhd e humanizer também ficam em **Local**.
 
 Numa sessão interativa do `agent`, pergunte quais comandos slash estão disponíveis. A resposta deve listar
 `/spec` e os outros comandos do workflow.
 
 Depois de um `cargo xtask build` local, você pode confirmar o mesmo com `agent --plugin-dir dist/cursor` em
-vez da instalação pelo marketplace.
+vez do zip do release.

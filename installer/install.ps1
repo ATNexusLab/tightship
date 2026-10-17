@@ -212,11 +212,24 @@ foreach ($name in $selected) {
     if (-not $optionsFile -or -not (Test-Path $optionsFile)) {
         continue
     }
-    Get-Content $optionsFile | ForEach-Object {
-        if ($_ -match '^\s*contract\s*=\s*(.+)$') { $existingContract = $Matches[1].Trim(" '`"") }
-        if ($_ -match '^\s*memory\s*=\s*(.+)$') { $existingMemory = $Matches[1].Trim(" '`"") }
-        if ($_ -match '^\s*status_line\s*=\s*(.+)$') { $existingStatusLine = $Matches[1].Trim(" '`"") }
-        if ($_ -match '^\s*vault_folder\s*=\s*"((?:[^"\\]|\\.)*)"') { $existingVaultFolder = $Matches[1] -replace '\\(.)', '$1' }
+    $raw = Get-Content -Raw $optionsFile
+    if ($raw -match '\{') {
+        try {
+            $parsed = $raw | ConvertFrom-Json
+            if ($null -ne $parsed.contract) { $existingContract = [string]$parsed.contract }
+            if ($null -ne $parsed.memory) { $existingMemory = [string]$parsed.memory }
+            if ($null -ne $parsed.status_line) { $existingStatusLine = [string]$parsed.status_line }
+            if ($null -ne $parsed.vault_folder) { $existingVaultFolder = [string]$parsed.vault_folder }
+        } catch {
+            continue
+        }
+    } else {
+        Get-Content $optionsFile | ForEach-Object {
+            if ($_ -match '^\s*contract\s*=\s*(.+)$') { $existingContract = $Matches[1].Trim(" '`"") }
+            if ($_ -match '^\s*memory\s*=\s*(.+)$') { $existingMemory = $Matches[1].Trim(" '`"") }
+            if ($_ -match '^\s*status_line\s*=\s*(.+)$') { $existingStatusLine = $Matches[1].Trim(" '`"") }
+            if ($_ -match '^\s*vault_folder\s*=\s*"((?:[^"\\]|\\.)*)"') { $existingVaultFolder = $Matches[1] -replace '\\(.)', '$1' }
+        }
     }
 }
 
