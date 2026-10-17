@@ -873,13 +873,22 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
             "{installer:?}"
         );
         let plugins = env.home_dir.join(".cursor/plugins/local");
-        assert!(plugins.join("ponytail/.claude-plugin/plugin.json").is_file(), "{installer:?}");
         assert!(
-            plugins.join("i-have-adhd/.claude-plugin/plugin.json").is_file(),
+            plugins
+                .join("ponytail/.claude-plugin/plugin.json")
+                .is_file(),
             "{installer:?}"
         );
         assert!(
-            plugins.join("humanizer/.claude-plugin/plugin.json").is_file(),
+            plugins
+                .join("i-have-adhd/.claude-plugin/plugin.json")
+                .is_file(),
+            "{installer:?}"
+        );
+        assert!(
+            plugins
+                .join("humanizer/.claude-plugin/plugin.json")
+                .is_file(),
             "{installer:?}"
         );
         assert!(
