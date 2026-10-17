@@ -6,7 +6,7 @@ Policies that hold regardless of feature.
 
 ## BR-01 — Harness order and milestones
 
-Harness plugins are released one at a time, in this order, one milestone each:
+Harness plugins are released in this order, one milestone each:
 
 | Milestone | Harness |
 | --- | --- |
@@ -15,13 +15,13 @@ Harness plugins are released one at a time, in this order, one milestone each:
 | M3 | Antigravity CLI |
 | M4 | Codex |
 
-Work on a harness may run alongside work on the harness before it, but its plugin is released only after
-that harness's plugin.
+Work on a harness may run alongside work on the harness before it. Its plugin is never released before
+that harness's plugin, and the two may ship in the same release.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | Claude Code is where the workflow runs today, so it proves the canonical source first. Each later harness is released in its own turn; building two side by side keeps the order of the releases, which is what an adopter sees. |
-| Source | Maintainer, elicitation 2026-10-14; parallel work by change request [#56](https://github.com/ATNexusLab/tightship/issues/56) |
+| Rationale | Claude Code is where the workflow runs today, so it proves the canonical source first. A later harness never reaches an adopter ahead of the one before it. Building two side by side, or shipping them in one release, keeps that order, which is what an adopter sees. |
+| Source | Maintainer, elicitation 2026-10-14; parallel work by change request [#56](https://github.com/ATNexusLab/tightship/issues/56); one release for two harnesses by maintainer decision in [#84](https://github.com/ATNexusLab/tightship/pull/84) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |

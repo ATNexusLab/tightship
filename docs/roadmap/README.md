@@ -28,6 +28,7 @@ mechanism.
 
 The workflow installs and runs as a native Cursor plugin, in the editor and in the command-line agent.
 GitHub Milestone: [M2 — Cursor](https://github.com/ATNexusLab/tightship/milestone/2).
+Released in [v1.1.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.1.0) on 2026-10-16.
 
 | Epic | Issue | Covers |
 | --- | --- | --- |
@@ -42,12 +43,14 @@ already exist, and the spec settles what Cursor can and cannot do (OQ-04 to OQ-0
 
 The workflow installs and runs as a native Antigravity CLI plugin.
 GitHub Milestone: [M3 — Antigravity CLI](https://github.com/ATNexusLab/tightship/milestone/3).
+Released in [v1.1.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.1.0) on 2026-10-16.
 
 | Epic | Issue | Covers |
 | --- | --- | --- |
 | Antigravity CLI plugin | [#59](https://github.com/ATNexusLab/tightship/issues/59) | NFR-FLEX-03 |
 
-By [BR-01](../requirements/business-rules.md#br-01), it is built alongside M2 and released after it.
+By [BR-01](../requirements/business-rules.md#br-01), it is built alongside M2 and never released before
+it.
 
 ## Requirement coverage
 
