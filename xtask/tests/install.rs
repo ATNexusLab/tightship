@@ -335,16 +335,41 @@ fn cursor_from_dir() -> String {
 }
 
 fn companion_zip(plugin: &str) -> Vec<u8> {
-    let entry = format!("{plugin}-main/.claude-plugin/plugin.json");
-    let body = format!(r#"{{"name":"{plugin}"}}"#);
+    fn walk(folder: &Path, prefix: &str, files: &mut Vec<String>) {
+        for entry in fs::read_dir(folder).expect("a folder") {
+            let entry = entry.expect("an entry");
+            let relative = format!("{prefix}{}", entry.file_name().to_string_lossy());
+            if entry.file_type().expect("a file type").is_dir() {
+                walk(&entry.path(), &format!("{relative}/"), files);
+            } else {
+                files.push(relative);
+            }
+        }
+    }
+
+    let temp = tempfile::tempdir().expect("a temporary directory");
+    let root_name = format!("{plugin}-main");
+    let folder = temp.path().join(&root_name);
+    let manifest = folder.join(".claude-plugin/plugin.json");
+    fs::create_dir_all(manifest.parent().expect("manifest parent")).expect("companion folders");
+    fs::write(&manifest, format!(r#"{{"name":"{plugin}"}}"#)).expect("companion manifest");
+
+    let mut files = Vec::new();
+    walk(&folder, &format!("{root_name}/"), &mut files);
+    files.sort();
+
     let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
-    let options = SimpleFileOptions::default()
-        .compression_method(CompressionMethod::Deflated)
-        .system(System::Unix)
-        .unix_permissions(0o644);
-    writer.start_file(&entry, options).expect("zip entry");
-    writer.write_all(body.as_bytes()).expect("zip body");
-    writer.finish().expect("zip").into_inner()
+    for file in &files {
+        let options = SimpleFileOptions::default()
+            .compression_method(CompressionMethod::Deflated)
+            .system(System::Unix)
+            .unix_permissions(0o644);
+        writer.start_file(file, options).expect("a zip entry");
+        writer
+            .write_all(&fs::read(temp.path().join(file)).expect("a companion file"))
+            .expect("the zip entry");
+    }
+    writer.finish().expect("a zip").into_inner()
 }
 
 fn seed_companion_downloads(downloads: &Path) {
