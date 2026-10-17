@@ -10,8 +10,23 @@ function Test-Cursor {
     }
 }
 
-function Resolve-CursorOptions {
-    Join-Path $cursorData "options.json"
+function Read-CursorOptions {
+    $optionsFile = Join-Path $cursorData "options.json"
+    if (-not (Test-Path $optionsFile)) {
+        return $null
+    }
+    try {
+        $parsed = Get-Content -Raw $optionsFile | ConvertFrom-Json
+    } catch {
+        Write-Stderr "error: $optionsFile is not valid JSON"
+        exit 1
+    }
+    $options = [ordered]@{ contract = $null; memory = $null; status_line = $null; vault_folder = $null }
+    foreach ($name in "contract", "memory", "status_line") {
+        if ($null -ne $parsed.$name) { $options[$name] = ([string]$parsed.$name).ToLowerInvariant() }
+    }
+    if ($null -ne $parsed.vault_folder) { $options.vault_folder = [string]$parsed.vault_folder }
+    $options
 }
 
 function Invoke-CursorTightship {
@@ -35,7 +50,7 @@ function Write-CursorOptions {
         $table["vault_folder"] = $finalVaultFolder
     }
     $json = ($table | ConvertTo-Json -Depth 3) + "`n"
-    Set-Content -Path (Resolve-CursorOptions) -Value $json -Encoding utf8
+    Set-Content -Path (Join-Path $cursorData "options.json") -Value $json -Encoding utf8
 }
 
 function Install-CursorCompanion([string]$name, [string]$repository) {

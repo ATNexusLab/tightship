@@ -8,8 +8,17 @@ check_cursor() {
   fi
 }
 
-options_file_cursor() {
-  printf '%s\n' "$CURSOR_DATA/options.json"
+read_options_cursor() {
+  _options="$CURSOR_DATA/options.json"
+  [ -f "$_options" ] || return 0
+  if ! tr -d ' \t\r\n' < "$_options" | grep -q '^{.*}$'; then
+    echo "error: $_options is not valid JSON" >&2
+    exit 1
+  fi
+  existing_contract=$(sed -nE 's/.*"contract"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
+  existing_memory=$(sed -nE 's/.*"memory"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
+  existing_status_line=$(sed -nE 's/.*"status_line"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
+  existing_vault_folder=$(sed -nE 's/.*"vault_folder"[[:space:]]*:[[:space:]]*"((\\.|[^"\\])*)".*/\1/p' "$_options" | head -n1 | sed -E 's/\\(.)/\1/g')
 }
 
 json_bool() {

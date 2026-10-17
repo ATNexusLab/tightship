@@ -338,20 +338,7 @@ existing_status_line=""
 existing_vault_folder=""
 
 for harness in $SELECTED; do
-  OPTIONS_FILE=$(call_hook options_file "$harness")
-  if [ -n "$OPTIONS_FILE" ] && [ -f "$OPTIONS_FILE" ]; then
-    if grep -q '"contract"' "$OPTIONS_FILE" 2>/dev/null; then
-      existing_contract=$(sed -n 's/.*"contract"[[:space:]]*:[[:space:]]*\(true\|false\).*/\1/p' "$OPTIONS_FILE" | head -n1)
-      existing_memory=$(sed -n 's/.*"memory"[[:space:]]*:[[:space:]]*\(true\|false\).*/\1/p' "$OPTIONS_FILE" | head -n1)
-      existing_status_line=$(sed -n 's/.*"status_line"[[:space:]]*:[[:space:]]*\(true\|false\).*/\1/p' "$OPTIONS_FILE" | head -n1)
-      existing_vault_folder=$(sed -n 's/.*"vault_folder"[[:space:]]*:[[:space:]]*"\((\\.|[^"\\])*\)".*/\1/p' "$OPTIONS_FILE" | head -n1 | sed 's/\\(.)/\1/g')
-    else
-      existing_contract=$(grep -E '^[[:space:]]*contract[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*contract[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
-      existing_memory=$(grep -E '^[[:space:]]*memory[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*memory[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
-      existing_status_line=$(grep -E '^[[:space:]]*status_line[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*status_line[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
-      existing_vault_folder=$(grep -E '^[[:space:]]*vault_folder[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*vault_folder[[:space:]]*=[[:space:]]*//' | sed -E -e 's/^[[:space:]]*"((\\.|[^"\\])*)"[[:space:]]*$/\1/' -e 's/\\(.)/\1/g' || true)
-    fi
-  fi
+  call_hook read_options "$harness"
 done
 
 if [ -n "$CONTRACT_ARG" ]; then
