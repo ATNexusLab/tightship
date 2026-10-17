@@ -7,6 +7,7 @@ use serde_json::Value;
 use crate::failure::Failure;
 
 const OPTION_NAMES: &[&str] = &["contract", "memory", "status_line", "vault_folder"];
+const BYTE_ORDER_MARK: char = '\u{feff}';
 
 fn options_json() -> Result<PathBuf, Failure> {
     Ok(crate::variable("TIGHTSHIP_DATA")?.join("options.json"))
@@ -74,7 +75,7 @@ fn read_table(path: &Path) -> Result<serde_json::Map<String, Value>, Failure> {
         return Ok(serde_json::Map::new());
     }
     let text = fs::read_to_string(path).map_err(|error| Failure::OptionsIo(error.to_string()))?;
-    let value = serde_json::from_str::<Value>(&text)
+    let value = serde_json::from_str::<Value>(text.trim_start_matches(BYTE_ORDER_MARK))
         .map_err(|_| Failure::OptionsJsonInvalid(path.to_path_buf()))?;
     match value {
         Value::Object(table) => Ok(table),
@@ -161,7 +162,7 @@ pub fn load() -> Result<Options, Failure> {
     let (table, json, file) = if json_file.is_file() {
         let text = fs::read_to_string(&json_file)
             .map_err(|error| Failure::OptionsUnreadable(json_file.clone(), error))?;
-        let value = serde_json::from_str::<Value>(&text)
+        let value = serde_json::from_str::<Value>(text.trim_start_matches(BYTE_ORDER_MARK))
             .map_err(|_| Failure::OptionsJsonInvalid(json_file.clone()))?;
         let map = match value {
             Value::Object(table) => table,

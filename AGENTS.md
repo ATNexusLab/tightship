@@ -52,7 +52,7 @@ before any binary is on the machine
 | Run | `claude plugin marketplace add ./dist/claude-code`, then `claude plugin install tightship@tightship` | Installs the built plugin with its companions, once the catalogs `DietrichGebert/ponytail`, `ayghri/i-have-adhd`, and `blader/humanizer` are added |
 | Run | `agy plugin validate dist/antigravity-cli --strict` | Validates the built Antigravity CLI plugin |
 | Release | `cargo xtask build --binaries <folder>` | The plugins with the four prebuilt binaries of `<folder>`, as `macos/tightship`, `linux-x64/tightship`, `linux-arm64/tightship`, and `windows-x64/tightship.exe`, nothing compiled |
-| Release | `cargo xtask package <tag>` | Packs the plugins into `dist/tightship-claude-code.zip`, `dist/tightship-antigravity-cli.zip`, and `dist/tightship-cursor.zip`, writes `dist/marketplace.json` and `dist/cursor-marketplace.json`, and `dist/install.sh` and `dist/install.ps1` with the tag and the Antigravity CLI zip's `sha256`; the tag is `v` and the built version |
+| Release | `cargo xtask package <tag>` | Packs the plugins into `dist/tightship-claude-code.zip`, `dist/tightship-antigravity-cli.zip`, and `dist/tightship-cursor.zip`, writes `dist/marketplace.json` and `dist/cursor-marketplace.json`, and `dist/install.sh` and `dist/install.ps1` with the tag and the Antigravity CLI and Cursor zips' `sha256`; the tag is `v` and the built version |
 
 At each pull request into `develop` or `main`, `.github/workflows/` runs only the gates its files call for:
 `rust.yml` the Rust gates on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git Bash) when the

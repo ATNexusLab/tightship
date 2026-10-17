@@ -17,7 +17,7 @@ agent.
 | Page | What it covers |
 | --- | --- |
 | [The companions](companions.md) | The three plugins to install before tightship |
-| [Installation](install.md) | Installing tightship from the git marketplace |
+| [Installation](install.md) | The unified installer and a manual local-folder path |
 | [The options](options.md) | `options.json`, the Configure dialog, and the `tightship options` commands |
 | [Uninstall](uninstall.md) | Removing tightship, your options folder, and optional companion cleanup |
 
@@ -31,4 +31,4 @@ agent --plugin-dir dist/cursor
 ```
 
 Or copy `dist/cursor/` to `~/.cursor/plugins/local/tightship/`, reload the editor window, and use the CLI
-against that folder. Adopters who install from git should follow [Installation](install.md) instead.
+against that folder. Adopters should follow [Installation](install.md) instead.

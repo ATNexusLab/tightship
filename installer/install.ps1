@@ -208,16 +208,14 @@ $existingStatusLine = $null
 $existingVaultFolder = $null
 
 foreach ($name in $selected) {
-    $optionsFile = Invoke-Hook "Resolve-{0}Options" $name
-    if (-not $optionsFile -or -not (Test-Path $optionsFile)) {
+    $existing = Invoke-Hook "Read-{0}Options" $name
+    if (-not $existing) {
         continue
     }
-    Get-Content $optionsFile | ForEach-Object {
-        if ($_ -match '^\s*contract\s*=\s*(.+)$') { $existingContract = $Matches[1].Trim(" '`"") }
-        if ($_ -match '^\s*memory\s*=\s*(.+)$') { $existingMemory = $Matches[1].Trim(" '`"") }
-        if ($_ -match '^\s*status_line\s*=\s*(.+)$') { $existingStatusLine = $Matches[1].Trim(" '`"") }
-        if ($_ -match '^\s*vault_folder\s*=\s*"((?:[^"\\]|\\.)*)"') { $existingVaultFolder = $Matches[1] -replace '\\(.)', '$1' }
-    }
+    if ($existing.contract) { $existingContract = $existing.contract }
+    if ($existing.memory) { $existingMemory = $existing.memory }
+    if ($existing.status_line) { $existingStatusLine = $existing.status_line }
+    if ($existing.vault_folder) { $existingVaultFolder = $existing.vault_folder }
 }
 
 if ($Contract) {

@@ -23,18 +23,18 @@ That restores your previous `statusLine` in `~/.cursor/cli-config.json`, or remo
 ## 2. Remove tightship
 
 ```sh
-agent plugin uninstall tightship@tightship
+rm -rf ~/.cursor/plugins/local/tightship
 rm -rf ~/.cursor/tightship
 ```
 
 On Windows in PowerShell:
 
 ```powershell
-agent plugin uninstall tightship@tightship
+Remove-Item -Recurse -Force "$HOME\.cursor\plugins\local\tightship"
 Remove-Item -Recurse -Force "$HOME\.cursor\tightship"
 ```
 
-Uninstalling from the editor under Customize → Plugins is equivalent to the `agent plugin uninstall` step.
+Removing the plugin under Customize → Plugins is equivalent when it is installed as **Local**.
 
 ## 3. Optionally remove companions
 
@@ -42,20 +42,9 @@ You installed ponytail, i-have-adhd, and humanizer separately in [The companions
 only when you no longer use them with other plugins:
 
 ```sh
-agent plugin uninstall ponytail@ponytail
-agent plugin uninstall i-have-adhd@i-have-adhd
-agent plugin uninstall humanizer@humanizer
+rm -rf ~/.cursor/plugins/local/ponytail
+rm -rf ~/.cursor/plugins/local/i-have-adhd
+rm -rf ~/.cursor/plugins/local/humanizer
 ```
-
-## 4. Remove the catalogs
-
-```sh
-agent plugin marketplace remove tightship
-agent plugin marketplace remove ponytail
-agent plugin marketplace remove i-have-adhd
-agent plugin marketplace remove humanizer
-```
-
-Keep a companion's catalog if you still use that companion.
 
 Your vault is never touched.
