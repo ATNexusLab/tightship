@@ -45,7 +45,13 @@ install_cursor_companion() {
     download_file "$_url" "$_zip"
   fi
   unzip -q "$_zip" -d "$_work"
-  _root=$(find "$_work" -mindepth 1 -maxdepth 1 -type d ! -name '.*' | head -1)
+  if [ -d "${_work}/${_name}-main" ]; then
+    _root="${_work}/${_name}-main"
+  elif [ -d "${_work}/${_name}-master" ]; then
+    _root="${_work}/${_name}-master"
+  else
+    _root=$(find "$_work" -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '__MACOSX' | head -1)
+  fi
   mkdir -p "$_dest"
   cp -R "${_root}/." "$_dest/"
   rm -rf "$_work"

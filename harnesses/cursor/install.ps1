@@ -52,7 +52,9 @@ function Install-CursorCompanion([string]$name, [string]$repository) {
         }
         $extracted = Join-Path $work "extracted"
         Expand-Archive -Path $zipDest -DestinationPath $extracted -Force
-        $root = Get-ChildItem -Path $extracted -Directory | Select-Object -First 1
+        $root = Get-ChildItem -Path $extracted -Directory |
+            Where-Object { $_.Name -notlike '__MACOSX*' } |
+            Select-Object -First 1
         $dest = Join-Path "{{path:plugins}}" $name
         New-Item -ItemType Directory -Force -Path $dest | Out-Null
         Copy-Item -Path (Join-Path $root.FullName "*") -Destination $dest -Recurse -Force
