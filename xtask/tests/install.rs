@@ -372,6 +372,28 @@ fn companion_zip(plugin: &str) -> Vec<u8> {
     writer.finish().expect("a zip").into_inner()
 }
 
+#[test]
+#[cfg(unix)]
+fn companion_zip_unpacks_like_github_main_branch() {
+    let bytes = companion_zip("ponytail");
+    let temp = tempfile::tempdir().expect("a temporary directory");
+    let zip_path = temp.path().join("ponytail.zip");
+    fs::write(&zip_path, bytes).expect("write zip");
+    let status = Command::new("unzip")
+        .arg("-q")
+        .arg(&zip_path)
+        .arg("-d")
+        .arg(temp.path())
+        .status()
+        .expect("unzip runs");
+    assert!(status.success(), "unzip failed: {status:?}");
+    assert!(
+        temp.path()
+            .join("ponytail-main/.claude-plugin/plugin.json")
+            .is_file()
+    );
+}
+
 fn seed_companion_downloads(downloads: &Path) {
     for (plugin, repo) in [
         ("ponytail", "DietrichGebert/ponytail"),
@@ -917,9 +939,7 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
             "{installer:?}"
         );
         assert!(
-            plugins
-                .join("tightship/.cursor-plugin/plugin.json")
-                .is_file(),
+            plugins.join("tightship/commands/spec.md").is_file(),
             "{installer:?}"
         );
 

@@ -45,12 +45,21 @@ install_cursor_companion() {
     download_file "$_url" "$_zip"
   fi
   unzip -q "$_zip" -d "$_work"
+  _archive="${_repo##*/}"
   if [ -d "${_work}/${_name}-main" ]; then
     _root="${_work}/${_name}-main"
+  elif [ -d "${_work}/${_archive}-main" ]; then
+    _root="${_work}/${_archive}-main"
   elif [ -d "${_work}/${_name}-master" ]; then
     _root="${_work}/${_name}-master"
+  elif [ -d "${_work}/${_archive}-master" ]; then
+    _root="${_work}/${_archive}-master"
   else
     _root=$(find "$_work" -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '__MACOSX' | head -1)
+  fi
+  if [ -z "$_root" ] || [ ! -d "$_root" ]; then
+    echo "error: companion archive for ${_name} had no root folder" >&2
+    return 1
   fi
   mkdir -p "$_dest"
   cp -R "${_root}/." "$_dest/"
