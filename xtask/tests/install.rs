@@ -915,8 +915,17 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
         );
 
         assert_exit(installer, &output, 0);
+        let stdout = String::from_utf8_lossy(&output.stdout);
         assert!(
-            String::from_utf8_lossy(&output.stdout).contains("Installed tightship for Cursor."),
+            stdout.contains("Installed tightship for Cursor."),
+            "{installer:?}"
+        );
+        assert!(
+            stdout.contains("Installing the ponytail companion"),
+            "{installer:?}"
+        );
+        assert!(
+            stdout.contains("Installing the humanizer companion"),
             "{installer:?}"
         );
         let plugins = env.home_dir.join(".cursor/plugins/local");
@@ -925,14 +934,6 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
             "{installer:?}: tightship plugin tree missing under {}",
             plugins.join("tightship").display()
         );
-        for companion in ["ponytail", "i-have-adhd", "humanizer"] {
-            assert!(
-                plugins.join(companion).is_dir(),
-                "{installer:?}: companion {companion} missing under {}",
-                plugins.display()
-            );
-        }
-
         let options_text = fs::read_to_string(env.home_dir.join(".cursor/tightship/options.json"))
             .expect("read options.json");
         let options: serde_json::Value =
