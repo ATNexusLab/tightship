@@ -80,7 +80,7 @@ fn disabled_exits_zero_when_option_is_off() {
     let sandbox = Sandbox::new();
     let path = options_file(&sandbox, "data");
     fs::create_dir_all(path.parent().expect("parent")).expect("folder");
-    fs::write(&path, "{\"contract\":false}\n").expect("options");
+    fs::write(&path, "\u{feff}{\"contract\":false}\n").expect("options");
     let mut command = with_data(&sandbox, "data");
     command.args(["disabled", "contract"]);
     let output = run(&mut command);
@@ -102,6 +102,9 @@ fn disabled_exits_one_when_option_is_on() {
 fn vault_folder_expands_tilde_on_set() {
     let sandbox = Sandbox::new();
     let home = sandbox.path("home");
+    let path = options_file(&sandbox, "data");
+    fs::create_dir_all(path.parent().expect("parent")).expect("folder");
+    fs::write(&path, "\u{feff}{\"memory\":false}\n").expect("options");
     let mut command = with_data(&sandbox, "data");
     command
         .args(["set", "vault_folder", "~/vault"])
@@ -109,11 +112,11 @@ fn vault_folder_expands_tilde_on_set() {
         .env("USERPROFILE", &home);
     let output = run(&mut command);
     assert_succeeds(&output);
-    let path = options_file(&sandbox, "data");
     let value: serde_json::Value =
         serde_json::from_str(&fs::read_to_string(&path).expect("read")).expect("JSON");
     assert_eq!(
         value["vault_folder"],
         serde_json::json!(home.join("vault").to_string_lossy())
     );
+    assert_eq!(value["memory"], serde_json::json!(false));
 }
