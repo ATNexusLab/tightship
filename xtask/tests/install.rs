@@ -921,27 +921,17 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
         );
         let plugins = env.home_dir.join(".cursor/plugins/local");
         assert!(
-            plugins
-                .join("ponytail/.claude-plugin/plugin.json")
-                .is_file(),
-            "{installer:?}"
-        );
-        assert!(
-            plugins
-                .join("i-have-adhd/.claude-plugin/plugin.json")
-                .is_file(),
-            "{installer:?}"
-        );
-        assert!(
-            plugins
-                .join("humanizer/.claude-plugin/plugin.json")
-                .is_file(),
-            "{installer:?}"
-        );
-        assert!(
             plugins.join("tightship/commands/spec.md").is_file(),
-            "{installer:?}"
+            "{installer:?}: tightship plugin tree missing under {}",
+            plugins.join("tightship").display()
         );
+        for companion in ["ponytail", "i-have-adhd", "humanizer"] {
+            assert!(
+                plugins.join(companion).is_dir(),
+                "{installer:?}: companion {companion} missing under {}",
+                plugins.display()
+            );
+        }
 
         let options_text = fs::read_to_string(env.home_dir.join(".cursor/tightship/options.json"))
             .expect("read options.json");
