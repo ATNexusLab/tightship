@@ -60,8 +60,8 @@ Confirmed by the maintainer on 2026-10-16, verified against Antigravity CLI (`ag
    version is `1.4.0`. `cargo xtask build` renders `dist/antigravity-cli/` alongside
    `dist/claude-code/`, and `cargo xtask package <tag>` packs `dist/tightship-antigravity-cli.zip`
    alongside `dist/tightship-claude-code.zip` and `dist/marketplace.json`. Bilingual install guides live
-   in `docs/install/antigravity-cli/` (`.md` and `.pt-BR.md`), and the release is published only after
-   M2 (`BR-01`).
+   in `docs/install/antigravity-cli/` (`.md` and `.pt-BR.md`), and the release is never published
+   before M2 (`BR-01`).
 2. **Native plugin layout and commands as skills (`FR-SKL-01`, `FR-SKL-02`, `FR-SKL-03`).**
    `dist/antigravity-cli/plugin.json` and `dist/antigravity-cli/hooks.json` sit at the plugin root, which
    passes `agy plugin validate <dir> --strict`. Native Antigravity plugins have no `commands/` directory;
@@ -681,8 +681,8 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M3, #59:
 - **Automatic reload after `/compact` without calling the `contract` skill:** Antigravity CLI 1.4.0 has
   no post-compaction hook event (`SessionStart` fires only once at conversation start); the injected
   contract header instructs the agent to load the `contract` skill after compaction.
-- **Cutting the M3 release tag:** by `BR-01`, the M3 release tag is cut only after M2 (Cursor) is
-  released.
+- **Cutting the M3 release tag:** by `BR-01`, the M3 release tag is never cut before M2 (Cursor) is
+  released, and both may share one tag.
 
 ## Task Breakdown
 

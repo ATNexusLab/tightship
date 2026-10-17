@@ -49,7 +49,8 @@ Released in [v1.1.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.1.0
 | --- | --- | --- |
 | Antigravity CLI plugin | [#59](https://github.com/ATNexusLab/tightship/issues/59) | NFR-FLEX-03 |
 
-By [BR-01](../requirements/business-rules.md#br-01), it is built alongside M2 and released after it.
+By [BR-01](../requirements/business-rules.md#br-01), it is built alongside M2 and never released before
+it.
 
 ## Requirement coverage
 
