@@ -26,7 +26,7 @@ Baixe o repositório de cada companheiro no GitHub, extraia e copie a árvore pa
 
 Confira que cada um aparece como **Local** em Customize → Plugins antes de instalar o tightship.
 
-Um companheiro que você já tinha instalado é reaproveitado, não instalado de novo. A versão de nenhum
+Rodar o instalador de novo troca a pasta de cada companheiro por uma cópia nova. A versão de nenhum
 companheiro é fixada: você recebe a mais recente do branch padrão de cada um.
 
 ## Confira

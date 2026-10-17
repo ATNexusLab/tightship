@@ -26,7 +26,7 @@ Download each companion's repository from GitHub, extract it, and copy the tree 
 
 Confirm each one shows **Local** under Customize → Plugins before you install tightship.
 
-A companion you already had installed is reused, not installed a second time. No companion's version is
+Running the installer again replaces each companion's folder with a fresh copy. No companion's version is
 pinned: you get each one's latest default branch.
 
 ## Check it

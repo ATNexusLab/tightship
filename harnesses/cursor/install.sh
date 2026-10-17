@@ -70,6 +70,7 @@ install_cursor_companion() {
     echo "error: companion archive for ${_name} had no root folder" >&2
     return 1
   fi
+  rm -rf "$_dest"
   mkdir -p "$_dest" || return 1
   cp -R "${_root}/." "$_dest/" || return 1
   rm -rf "$_work"
@@ -78,6 +79,7 @@ install_cursor_companion() {
 sync_cursor_plugin() {
   _target="$1"
   _source="$2"
+  rm -rf "$_target"
   mkdir -p "$_target"
   cp -R "${_source}/." "$_target/"
 }

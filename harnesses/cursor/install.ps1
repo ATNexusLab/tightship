@@ -71,6 +71,9 @@ function Install-CursorCompanion([string]$name, [string]$repository) {
             Where-Object { $_.Name -notlike '__MACOSX*' } |
             Select-Object -First 1
         $dest = Join-Path "{{path:plugins}}" $name
+        if (Test-Path $dest) {
+            Remove-Item -Recurse -Force $dest
+        }
         New-Item -ItemType Directory -Force -Path $dest | Out-Null
         Copy-Item -Path (Join-Path $root.FullName "*") -Destination $dest -Recurse -Force
     }
@@ -111,9 +114,10 @@ function Install-Cursor {
     }
 
     Invoke-Step "Installing tightship for {{install:label}}" {
-        if (-not (Test-Path $cursorPlugin)) {
-            New-Item -ItemType Directory -Force -Path $cursorPlugin | Out-Null
+        if (Test-Path $cursorPlugin) {
+            Remove-Item -Recurse -Force $cursorPlugin
         }
+        New-Item -ItemType Directory -Force -Path $cursorPlugin | Out-Null
         Copy-Item -Path (Join-Path $sourceDir "*") -Destination $cursorPlugin -Recurse -Force
     }
 

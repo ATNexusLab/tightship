@@ -937,6 +937,15 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
         let env = MockEnvironment::new();
         seed_companion_downloads(&env.downloads_dir);
         env.add_mock_script("agent", AGENT_VERSION);
+        let plugins = env.home_dir.join(".cursor/plugins/local");
+        let removed_upstream = [
+            plugins.join("tightship/skills/removed/SKILL.md"),
+            plugins.join("ponytail/skills/removed/SKILL.md"),
+        ];
+        for stale in &removed_upstream {
+            fs::create_dir_all(stale.parent().expect("a parent")).expect("stale folder");
+            fs::write(stale, "stale\n").expect("stale skill");
+        }
 
         let from_dir = cursor_from_dir();
         let output = env.run(
@@ -964,7 +973,13 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
             stdout.contains("Installed tightship for Cursor."),
             "{installer:?}"
         );
-        let plugins = env.home_dir.join(".cursor/plugins/local");
+        for stale in &removed_upstream {
+            assert!(
+                !stale.exists(),
+                "{installer:?}: {} survived",
+                stale.display()
+            );
+        }
         for companion in ["ponytail", "i-have-adhd", "humanizer"] {
             assert!(
                 plugins
