@@ -78,14 +78,12 @@ sha256_of() {
 }
 
 download_file() {
-  _url="$1"
-  _dest="$2"
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$_url" -o "$_dest"
+    curl -fsSL "$1" -o "$2"
   elif command -v wget >/dev/null 2>&1; then
-    wget -qO "$_dest" "$_url"
+    wget -qO "$2" "$1"
   else
-    echo "error: neither curl nor wget is available to download $_url" >&2
+    echo "error: neither curl nor wget is available to download $1" >&2
     exit 1
   fi
 }

@@ -920,15 +920,16 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
             stdout.contains("Installed tightship for Cursor."),
             "{installer:?}"
         );
-        assert!(
-            stdout.contains("Installing the ponytail companion"),
-            "{installer:?}"
-        );
-        assert!(
-            stdout.contains("Installing the humanizer companion"),
-            "{installer:?}"
-        );
         let plugins = env.home_dir.join(".cursor/plugins/local");
+        for companion in ["ponytail", "i-have-adhd", "humanizer"] {
+            assert!(
+                plugins
+                    .join(companion)
+                    .join(".claude-plugin/plugin.json")
+                    .is_file(),
+                "{installer:?}: companion {companion} missing"
+            );
+        }
         assert!(
             plugins.join("tightship/commands/spec.md").is_file(),
             "{installer:?}: tightship plugin tree missing under {}",

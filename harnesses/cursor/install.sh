@@ -42,9 +42,9 @@ install_cursor_companion() {
   _url="https://github.com/${_repo}/archive/refs/heads/main.zip"
   if ! download_file "$_url" "$_zip"; then
     _url="https://github.com/${_repo}/archive/refs/heads/master.zip"
-    download_file "$_url" "$_zip"
+    download_file "$_url" "$_zip" || return 1
   fi
-  unzip -q "$_zip" -d "$_work"
+  unzip -q "$_zip" -d "$_work" || return 1
   _archive="${_repo##*/}"
   if [ -d "${_work}/${_name}-main" ]; then
     _root="${_work}/${_name}-main"
@@ -61,8 +61,8 @@ install_cursor_companion() {
     echo "error: companion archive for ${_name} had no root folder" >&2
     return 1
   fi
-  mkdir -p "$_dest"
-  cp -R "${_root}/." "$_dest/"
+  mkdir -p "$_dest" || return 1
+  cp -R "${_root}/." "$_dest/" || return 1
   rm -rf "$_work"
 }
 
