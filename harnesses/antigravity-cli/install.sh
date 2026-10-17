@@ -8,8 +8,13 @@ check_antigravity_cli() {
   fi
 }
 
-options_file_antigravity_cli() {
-  printf '%s\n' "$ANTIGRAVITY_CLI_DATA/options.toml"
+read_options_antigravity_cli() {
+  _options="$ANTIGRAVITY_CLI_DATA/options.toml"
+  [ -f "$_options" ] || return 0
+  existing_contract=$(grep -E '^[[:space:]]*contract[[:space:]]*=' "$_options" | sed -E 's/^[[:space:]]*contract[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' | tr '[:upper:]' '[:lower:]' || true)
+  existing_memory=$(grep -E '^[[:space:]]*memory[[:space:]]*=' "$_options" | sed -E 's/^[[:space:]]*memory[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' | tr '[:upper:]' '[:lower:]' || true)
+  existing_status_line=$(grep -E '^[[:space:]]*status_line[[:space:]]*=' "$_options" | sed -E 's/^[[:space:]]*status_line[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' | tr '[:upper:]' '[:lower:]' || true)
+  existing_vault_folder=$(grep -E '^[[:space:]]*vault_folder[[:space:]]*=' "$_options" | sed -E 's/^[[:space:]]*vault_folder[[:space:]]*=[[:space:]]*//' | sed -E -e 's/^[[:space:]]*"((\\.|[^"\\])*)"[[:space:]]*$/\1/' -e 's/\\(.)/\1/g' || true)
 }
 
 install_skill() {

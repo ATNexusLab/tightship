@@ -25,8 +25,8 @@ The Cursor editor has no status line. With the status line option on, the CLI al
 hands the binary that command, with `${CURSOR_PLUGIN_ROOT}` left for the CLI to expand, in
 `TIGHTSHIP_STATUS_LINE_COMMAND` (#78).
 
-Companion plugins have no `dependencies` field in Cursor's manifest. The install guide adds each companion
-marketplace from git before `tightship` (M2, #58).
+Companion plugins have no `dependencies` field in Cursor's manifest. The unified installer copies each
+companion into `~/.cursor/plugins/local/<name>/` before `tightship` (M2, #58; #85).
 
 **It never** gets edited. Every change goes to the canonical content or `harnesses/cursor/harness.toml`, then
 through the build.

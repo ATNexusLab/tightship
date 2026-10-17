@@ -5,11 +5,12 @@
 
 Runs when the maintainer pushes a tag `v<version>` on `main`. It builds the `tightship` binary on macOS, Linux,
 and Windows runners, then `cargo xtask build --binaries` packs the four binaries with the generated plugins and
-`cargo xtask package` writes `tightship-claude-code.zip`, `tightship-antigravity-cli.zip` (M3, #59), and the
-catalog `marketplace.json`, whose `archive` source names the Claude Code zip's URL for that tag and its
-`sha256`. It fills the tag and the Antigravity CLI zip's `sha256` into the `install.sh` and `install.ps1`
-(M3, #59) that the build assembled, and the installers check that `sha256` before installing the zip.
-It publishes the archives, the catalog, and the two installers as a pre-release.
+`cargo xtask package` writes `tightship-claude-code.zip`, `tightship-antigravity-cli.zip` (M3, #59), and
+`tightship-cursor.zip`, and the catalogs `marketplace.json` and `cursor-marketplace.json`, each with an
+`archive` source that names its own zip's URL for that tag and its `sha256`. It fills the tag and the `sha256`
+of the Antigravity CLI and Cursor zips into the `install.sh` and `install.ps1` (M3, #59; #85) that the build
+assembled, and the installers check that `sha256` before installing each zip.
+It publishes the archives, the catalogs, and the two installers as a pre-release.
 The targets and the packing are in [deployment](../deployment.md).
 
 The maintainer installs the pre-release on the three systems, runs the [release

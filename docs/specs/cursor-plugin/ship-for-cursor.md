@@ -42,9 +42,10 @@ sprint-2 plan in `docs/roadmap/`, and the five shape decisions confirmed in chat
 4. **Hook commands invoke the binary by path**, never through `sh`: `"${CURSOR_PLUGIN_ROOT}/bin/tightship"
    hook <subcommand>"`. On Windows, Cursor runs hooks through PowerShell 7; this form resolves `tightship.cmd`
    via `PATHEXT`. Shell wrappers that worked in Claude Code are invalid in Cursor on Windows.
-5. **Cursor's manifest has no `dependencies` field** (probed). The install guide requires adding each
-   companion marketplace from git before `tightship`, and states that the adopter must not run workflow
-   commands until ponytail, i-have-adhd, and humanizer each show **Installed** under Customize → Plugins.
+5. **Cursor's manifest has no `dependencies` field** (probed). The unified installer copies ponytail,
+   i-have-adhd, and humanizer into `~/.cursor/plugins/local/<name>/` before `tightship` (#85); the manual path
+   in the install guide copies them first, and each shows **Local** under Customize → Plugins before the
+   adopter runs a workflow command.
 6. **Options are not readable from the Configure dialog in hooks** (probed). The manifest still declares
    `variables` from `content/options.toml` for the editor UI, but hooks and the binary read option state only
    from `$HOME/.cursor/tightship/options.json`, which `tightship options` writes and the install guide explains.
@@ -90,7 +91,7 @@ sprint-2 plan in `docs/roadmap/`, and the five shape decisions confirmed in chat
 | `cargo xtask package <tag>` | Release | Yes | `tightship-claude-code.zip` and `tightship-cursor.zip`, and their catalogs |
 | Copy `dist/cursor/` to `~/.cursor/plugins/local/tightship/` | Maintainer | Yes | Local plugin for probes and try-it |
 | `agent --plugin-dir dist/cursor` | Maintainer / adopter | Yes | CLI loads the built plugin |
-| Install from git marketplace + companions | Adopter | Yes | Per install guide in `docs/install/cursor/` |
+| `install.sh --harness cursor` or `install.ps1 -Harness cursor` | Adopter | Yes | Companions, then tightship, into `~/.cursor/plugins/local/` |
 
 ### Request
 
@@ -200,10 +201,10 @@ N/A — local clone only.
 
 ### 4. Companions before workflow (FR-INS-02.2)
 
-- **When:** the adopter follows `docs/install/cursor/install.md`.
-- **Then:** they complete `docs/install/cursor/companions.md` first, and the install page states: "Do not run
-  a workflow command until ponytail, i-have-adhd, and humanizer each show **Installed** under Customize →
-  Plugins." (BR-04).
+- **When:** the adopter runs the unified installer for Cursor.
+- **Then:** ponytail, i-have-adhd, and humanizer are in `~/.cursor/plugins/local/<name>/` before tightship is,
+  and each shows **Local** under Customize → Plugins (BR-04). Without the installer,
+  `docs/install/cursor/companions.md` gives the same steps by hand.
 
 ### 5. Options file (FR-INS-03, FR-INS-04, FR-INS-05, FR-INS-06)
 
@@ -284,9 +285,9 @@ And dist/cursor/skills/grilling/SKILL.md holds no Claude Code literal
 ### Scenario 2 — Install companions then plugin (FR-INS-02.2)
 
 ```gherkin
-Given an adopter followed docs/install/cursor/companions.md
-When they install tightship from the marketplace
-Then ponytail, i-have-adhd, and humanizer are already installed
+Given an adopter runs the unified installer for Cursor
+When the installer finishes
+Then ponytail, i-have-adhd, and humanizer are in ~/.cursor/plugins/local/
 And tightship's skills and commands appear in Customize
 ```
 
@@ -379,7 +380,7 @@ And the exit code is 1
 - **Cloud Agents** hook gaps listed in Cursor docs — not a harness of BR-01 for this epic.
 - **Enforcing verifier read-only** in Cursor — platform limitation; instructions only.
 - **Status line in the editor** — no API; FR-STL in the editor is excluded by NFR-FLEX-02.1.
-- **Automatic install of companion dependencies** — no manifest field; FR-INS-02.2 uses the install guide.
+- **Companion dependencies installed by Cursor** — no manifest field; the unified installer copies them (#85).
 - **Codex and Antigravity CLI** — M3/M4 epics #59 and later.
 
 ## Task Breakdown

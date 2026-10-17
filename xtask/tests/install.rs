@@ -10,6 +10,14 @@ use zip::{CompressionMethod, System, ZipWriter};
 
 const RELEASE_TAG: &str = "v1.0.0";
 
+const AGENT_VERSION: &str = r#"#!/bin/sh
+if [ "$1" = "--version" ]; then
+    echo "agent 2026.10.16"
+    exit 0
+fi
+exit 0
+"#;
+
 const AGY_THAT_INSTALLS: &str = r#"#!/bin/sh
 if [ "$1" = "--version" ]; then
     echo "agy 1.4.0"
@@ -69,12 +77,20 @@ impl Installer {
         }
     }
 
-    fn release_lines(self) -> [&'static str; 2] {
+    fn release_lines(self) -> [&'static str; 3] {
         match self {
-            Installer::Sh => ["RELEASE_TAG=", "ANTIGRAVITY_CLI_SHA256="],
-            Installer::Pwsh => ["$ReleaseTag = ", "$AntigravityCliSha256 = "],
+            Installer::Sh => ["RELEASE_TAG=", "ANTIGRAVITY_CLI_SHA256=", "CURSOR_SHA256="],
+            Installer::Pwsh => [
+                "$ReleaseTag = ",
+                "$AntigravityCliSha256 = ",
+                "$CursorSha256 = ",
+            ],
         }
     }
+}
+
+fn download_cache_name(url: &str) -> String {
+    url.replace("https://", "").replace('/', "_")
 }
 
 struct MockEnvironment {
@@ -113,11 +129,16 @@ while [ $# -gt 0 ]; do
         *) url="$1"; shift ;;
     esac
 done
-source="{}/${{url##*/}}"
+key=$(printf '%s' "$url" | sed 's|https://||; s|/|_|g')
+source="{}/$key"
+if [ ! -f "$source" ]; then
+  source="{}/${{url##*/}}"
+fi
 [ -f "$source" ] || exit 22
 mkdir -p "$(dirname "$dest")"
 cp "$source" "$dest"
 "#,
+                environment.downloads_dir.display(),
                 environment.downloads_dir.display()
             ),
         );
@@ -157,14 +178,11 @@ cp "$source" "$dest"
         .expect("write mock shim");
     }
 
-    fn released(&self, installer: Installer, sha256: &str) -> PathBuf {
+    fn released(&self, installer: Installer, sha256s: &[&str]) -> PathBuf {
         let source = installer.built();
         let mut text = fs::read_to_string(&source).expect("read installer");
-        for (prefix, value) in installer
-            .release_lines()
-            .into_iter()
-            .zip([RELEASE_TAG, sha256])
-        {
+        let values = std::iter::once(RELEASE_TAG).chain(sha256s.iter().copied());
+        for (prefix, value) in installer.release_lines().into_iter().zip(values) {
             let empty = format!("{prefix}\"\"");
             assert!(text.contains(&empty), "{} lacks {empty}", installer.file());
             text = text.replacen(&empty, &format!("{prefix}\"{value}\""), 1);
@@ -206,7 +224,11 @@ cp "$source" "$dest"
         let downloads = quoted(&self.downloads_dir.to_string_lossy());
         let script = format!(
             "function Invoke-RestMethod([string]$Uri, [string]$OutFile) {{
-    $source = Join-Path {downloads} ($Uri.Split('/')[-1])
+    $key = ($Uri -replace '^https://','') -replace '/','_'
+    $source = Join-Path {downloads} $key
+    if (-not (Test-Path $source)) {{
+        $source = Join-Path {downloads} ($Uri.Split('/')[-1])
+    }}
     if (-not (Test-Path $source)) {{ throw \"404 $Uri\" }}
     New-Item -ItemType Directory -Force -Path (Split-Path $OutFile) | Out-Null
     Copy-Item $source $OutFile
@@ -305,6 +327,86 @@ fn from_dir() -> String {
         .to_owned()
 }
 
+fn cursor_from_dir() -> String {
+    repo_root()
+        .join("dist/cursor")
+        .to_str()
+        .expect("valid utf-8 path")
+        .to_owned()
+}
+
+fn companion_zip(plugin: &str) -> Vec<u8> {
+    fn walk(folder: &Path, prefix: &str, files: &mut Vec<String>) {
+        for entry in fs::read_dir(folder).expect("a folder") {
+            let entry = entry.expect("an entry");
+            let relative = format!("{prefix}{}", entry.file_name().to_string_lossy());
+            if entry.file_type().expect("a file type").is_dir() {
+                walk(&entry.path(), &format!("{relative}/"), files);
+            } else {
+                files.push(relative);
+            }
+        }
+    }
+
+    let temp = tempfile::tempdir().expect("a temporary directory");
+    let root_name = format!("{plugin}-main");
+    let folder = temp.path().join(&root_name);
+    let manifest = folder.join(".claude-plugin/plugin.json");
+    fs::create_dir_all(manifest.parent().expect("manifest parent")).expect("companion folders");
+    fs::write(&manifest, format!(r#"{{"name":"{plugin}"}}"#)).expect("companion manifest");
+
+    let mut files = Vec::new();
+    walk(&folder, &format!("{root_name}/"), &mut files);
+    files.sort();
+
+    let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
+    for file in &files {
+        let options = SimpleFileOptions::default()
+            .compression_method(CompressionMethod::Deflated)
+            .system(System::Unix)
+            .unix_permissions(0o644);
+        writer.start_file(file, options).expect("a zip entry");
+        writer
+            .write_all(&fs::read(temp.path().join(file)).expect("a companion file"))
+            .expect("the zip entry");
+    }
+    writer.finish().expect("a zip").into_inner()
+}
+
+#[test]
+#[cfg(unix)]
+fn companion_zip_unpacks_like_github_main_branch() {
+    let bytes = companion_zip("ponytail");
+    let temp = tempfile::tempdir().expect("a temporary directory");
+    let zip_path = temp.path().join("ponytail.zip");
+    fs::write(&zip_path, bytes).expect("write zip");
+    let status = Command::new("unzip")
+        .arg("-q")
+        .arg(&zip_path)
+        .arg("-d")
+        .arg(temp.path())
+        .status()
+        .expect("unzip runs");
+    assert!(status.success(), "unzip failed: {status:?}");
+    assert!(
+        temp.path()
+            .join("ponytail-main/.claude-plugin/plugin.json")
+            .is_file()
+    );
+}
+
+fn seed_companion_downloads(downloads: &Path) {
+    for (plugin, repo) in [
+        ("ponytail", "DietrichGebert/ponytail"),
+        ("i-have-adhd", "ayghri/i-have-adhd"),
+        ("humanizer", "blader/humanizer"),
+    ] {
+        let url = format!("https://github.com/{repo}/archive/refs/heads/main.zip");
+        let key = download_cache_name(&url);
+        fs::write(downloads.join(key), companion_zip(plugin)).expect("companion zip");
+    }
+}
+
 fn assert_exit(installer: Installer, output: &Output, code: i32) {
     assert_eq!(
         output.status.code(),
@@ -324,7 +426,7 @@ fn assert_fails_with(installer: Installer, output: &Output, message: &str) {
     );
 }
 
-fn release_zip() -> (Vec<u8>, String) {
+fn release_zip(harness: &str) -> (Vec<u8>, String) {
     fn walk(folder: &Path, prefix: &str, files: &mut Vec<String>) {
         for entry in fs::read_dir(folder).expect("a folder") {
             let entry = entry.expect("an entry");
@@ -337,7 +439,7 @@ fn release_zip() -> (Vec<u8>, String) {
         }
     }
     let mut files = Vec::new();
-    let folder = repo_root().join("dist/antigravity-cli");
+    let folder = repo_root().join("dist").join(harness);
     walk(&folder, "", &mut files);
     files.sort();
     let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
@@ -595,7 +697,7 @@ fn an_installer_outside_a_release_downloads_nothing() {
 
 #[test]
 fn a_released_installer_installs_the_zip_whose_sha256_it_carries() {
-    let (zip, sha256) = release_zip();
+    let (zip, sha256) = release_zip("antigravity-cli");
     for installer in INSTALLERS {
         let env = MockEnvironment::new();
         env.add_mock_script("agy", AGY_THAT_INSTALLS);
@@ -605,7 +707,7 @@ fn a_released_installer_installs_the_zip_whose_sha256_it_carries() {
         )
         .expect("the release download");
 
-        let released = env.released(installer, &sha256);
+        let released = env.released(installer, &[&sha256]);
         let output = env.run_script(
             installer,
             &released,
@@ -624,7 +726,7 @@ fn a_released_installer_installs_the_zip_whose_sha256_it_carries() {
 
 #[test]
 fn a_released_installer_refuses_a_zip_whose_sha256_differs() {
-    let (zip, sha256) = release_zip();
+    let (zip, sha256) = release_zip("antigravity-cli");
     let published = "0".repeat(64);
     for installer in INSTALLERS {
         let env = MockEnvironment::new();
@@ -635,7 +737,7 @@ fn a_released_installer_refuses_a_zip_whose_sha256_differs() {
         )
         .expect("the release download");
 
-        let released = env.released(installer, &published);
+        let released = env.released(installer, &[&published]);
         let output = env.run_script(
             installer,
             &released,
@@ -683,7 +785,7 @@ exit 0
         fs::create_dir_all(planted.join("bin")).expect("planted dist");
         fs::write(planted.join("plugin.json"), "{}").expect("planted plugin.json");
 
-        let released = env.released(installer, &"0".repeat(64));
+        let released = env.released(installer, &[&"0".repeat(64)]);
         let output = env.run_piped(
             installer,
             &released,
@@ -748,23 +850,117 @@ exit 3
 
 #[test]
 fn existing_options_are_preserved_on_update() {
+    let (antigravity_zip, antigravity_sha256) = release_zip("antigravity-cli");
+    let (cursor_zip, cursor_sha256) = release_zip("cursor");
+    let vault_folder = r#"C:\Users\me "work"\ai-memory"#;
     for installer in INSTALLERS {
         let env = MockEnvironment::new();
-        let options_dir = env.home_dir.join(".gemini/config/plugin_data/tightship");
-        fs::create_dir_all(&options_dir).expect("options dir");
+        let antigravity_options = env
+            .home_dir
+            .join(".gemini/config/plugin_data/tightship/options.toml");
+        let cursor_options = env.home_dir.join(".cursor/tightship/options.json");
+        fs::create_dir_all(antigravity_options.parent().expect("a parent")).expect("options dir");
+        fs::create_dir_all(cursor_options.parent().expect("a parent")).expect("options dir");
         fs::write(
-            options_dir.join("options.toml"),
+            &antigravity_options,
             "contract = false\nmemory = true\nstatus_line = true\nvault_folder = \"C:\\\\Users\\\\me \\\"work\\\"\\\\ai-memory\"\n",
         )
-        .expect("write options");
+        .expect("write options.toml");
+        fs::write(
+            &cursor_options,
+            serde_json::json!({
+                "contract": false,
+                "memory": true,
+                "status_line": true,
+                "vault_folder": vault_folder,
+            })
+            .to_string(),
+        )
+        .expect("write options.json");
+        fs::write(
+            env.downloads_dir.join("tightship-antigravity-cli.zip"),
+            &antigravity_zip,
+        )
+        .expect("the Antigravity CLI download");
+        fs::write(env.downloads_dir.join("tightship-cursor.zip"), &cursor_zip)
+            .expect("the Cursor download");
+        seed_companion_downloads(&env.downloads_dir);
         env.add_mock_script("agy", AGY_THAT_INSTALLS);
+        env.add_mock_script("agent", AGENT_VERSION);
+        env.add_mock_script(
+            "claude",
+            r#"#!/bin/sh
+if [ "$1" = "--version" ]; then
+    echo "claude 2.1.295"
+    exit 0
+fi
+echo "$@" >> "$HOME/claude-arguments"
+exit 0
+"#,
+        );
 
-        let from_dir = from_dir();
+        let released = env.released(installer, &[&antigravity_sha256, &cursor_sha256]);
+        let output = env.run_script(installer, &released, &["--harness", "all", "--yes"]);
+
+        assert_exit(installer, &output, 0);
+        let toml_text = fs::read_to_string(&antigravity_options).expect("read options.toml");
+        let toml_options: toml::Table = toml_text.parse().unwrap_or_else(|error| {
+            panic!("{installer:?}: options.toml is valid TOML ({error}): {toml_text}")
+        });
+        assert_eq!(
+            toml_options["contract"].as_bool(),
+            Some(false),
+            "{installer:?}"
+        );
+        assert_eq!(
+            toml_options["vault_folder"].as_str(),
+            Some(vault_folder),
+            "{installer:?}"
+        );
+        let json_text = fs::read_to_string(&cursor_options).expect("read options.json");
+        let json_options: serde_json::Value =
+            serde_json::from_str(&json_text).expect("valid options.json");
+        assert_eq!(json_options["contract"], false, "{installer:?}");
+        assert_eq!(json_options["vault_folder"], vault_folder, "{installer:?}");
+        let claude_arguments = fs::read_to_string(env.home_dir.join("claude-arguments"))
+            .expect("read claude arguments");
+        assert!(
+            claude_arguments.contains("contract=false"),
+            "{installer:?}: {claude_arguments}"
+        );
+    }
+}
+
+#[test]
+fn scenario_12_interactive_and_flag_driven_install_cursor() {
+    for installer in INSTALLERS {
+        let env = MockEnvironment::new();
+        seed_companion_downloads(&env.downloads_dir);
+        env.add_mock_script("agent", AGENT_VERSION);
+        let plugins = env.home_dir.join(".cursor/plugins/local");
+        let removed_upstream = [
+            plugins.join("tightship/skills/removed/SKILL.md"),
+            plugins.join("ponytail/skills/removed/SKILL.md"),
+        ];
+        for stale in &removed_upstream {
+            fs::create_dir_all(stale.parent().expect("a parent")).expect("stale folder");
+            fs::write(stale, "stale\n").expect("stale skill");
+        }
+
+        let from_dir = cursor_from_dir();
         let output = env.run(
             installer,
             &[
                 "--harness",
-                "antigravity-cli",
+                "cursor",
+                "--contract",
+                "true",
+                "--memory",
+                "true",
+                "--status-line",
+                "true",
+                "--vault-folder",
+                "~/ai-memory",
                 "--from-dir",
                 &from_dir,
                 "--yes",
@@ -772,16 +968,43 @@ fn existing_options_are_preserved_on_update() {
         );
 
         assert_exit(installer, &output, 0);
-        let options_text =
-            fs::read_to_string(options_dir.join("options.toml")).expect("read options.toml");
-        let options: toml::Table = options_text.parse().unwrap_or_else(|error| {
-            panic!("{installer:?}: options.toml is valid TOML ({error}): {options_text}")
-        });
-        assert_eq!(options["contract"].as_bool(), Some(false), "{installer:?}");
-        assert_eq!(
-            options["vault_folder"].as_str(),
-            Some(r#"C:\Users\me "work"\ai-memory"#),
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            stdout.contains("Installed tightship for Cursor."),
             "{installer:?}"
         );
+        for stale in &removed_upstream {
+            assert!(
+                !stale.exists(),
+                "{installer:?}: {} survived",
+                stale.display()
+            );
+        }
+        for companion in ["ponytail", "i-have-adhd", "humanizer"] {
+            assert!(
+                plugins
+                    .join(companion)
+                    .join(".claude-plugin/plugin.json")
+                    .is_file(),
+                "{installer:?}: companion {companion} missing"
+            );
+        }
+        assert!(
+            plugins.join("tightship/commands/spec.md").is_file(),
+            "{installer:?}: tightship plugin tree missing under {}",
+            plugins.join("tightship").display()
+        );
+        let options_text = fs::read_to_string(env.home_dir.join(".cursor/tightship/options.json"))
+            .expect("read options.json");
+        let options: serde_json::Value =
+            serde_json::from_str(&options_text).expect("valid options.json");
+        assert_eq!(options["contract"], true, "{installer:?}");
+        assert_eq!(options["memory"], true, "{installer:?}");
+        assert_eq!(options["status_line"], true, "{installer:?}");
+        assert_eq!(options["vault_folder"], "~/ai-memory", "{installer:?}");
+
+        let settings_text =
+            fs::read_to_string(env.home_dir.join(".cursor/cli-config.json")).expect("cli-config");
+        assert!(settings_text.contains("statusLine"), "{installer:?}");
     }
 }

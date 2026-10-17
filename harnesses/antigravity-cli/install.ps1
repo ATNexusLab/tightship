@@ -9,11 +9,22 @@ function Test-AntigravityCli {
     }
 }
 
-function Resolve-AntigravityCliOptions {
-    Join-Path $antigravityCliData "options.toml"
+function Read-AntigravityCliOptions {
+    $optionsFile = Join-Path $antigravityCliData "options.toml"
+    if (-not (Test-Path $optionsFile)) {
+        return $null
+    }
+    $options = [ordered]@{ contract = $null; memory = $null; status_line = $null; vault_folder = $null }
+    Get-Content $optionsFile | ForEach-Object {
+        if ($_ -match '^\s*contract\s*=\s*(.+)$') { $options.contract = $Matches[1].Trim(" '`"").ToLowerInvariant() }
+        if ($_ -match '^\s*memory\s*=\s*(.+)$') { $options.memory = $Matches[1].Trim(" '`"").ToLowerInvariant() }
+        if ($_ -match '^\s*status_line\s*=\s*(.+)$') { $options.status_line = $Matches[1].Trim(" '`"").ToLowerInvariant() }
+        if ($_ -match '^\s*vault_folder\s*=\s*"((?:[^"\\]|\\.)*)"') { $options.vault_folder = $Matches[1] -replace '\\(.)', '$1' }
+    }
+    $options
 }
 
-function Invoke-Tightship {
+function Invoke-AntigravityCliTightship {
     if ($env:OS -eq "Windows_NT") {
         & (Join-Path $antigravityCliPlugin "bin\tightship.cmd") @args
     } else {
@@ -75,13 +86,13 @@ status_line = $finalStatusLine
         $escapedVaultFolder = $finalVaultFolder.Replace('\', '\\').Replace('"', '\"')
         $tomlContent += "`nvault_folder = `"$escapedVaultFolder`""
     }
-    Set-Content -Path (Resolve-AntigravityCliOptions) -Value ($tomlContent + "`n") -Encoding utf8
+    Set-Content -Path (Join-Path $antigravityCliData "options.toml") -Value ($tomlContent + "`n") -Encoding utf8
 
     $env:TIGHTSHIP_DATA = $antigravityCliData
-    Invoke-Step "Applying the status line option" { Invoke-Tightship hook status-line }
+    Invoke-Step "Applying the status line option" { Invoke-AntigravityCliTightship hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder) {
-        Invoke-Step "Creating the vault at $finalVaultFolder" { Invoke-Tightship vault init $finalVaultFolder }
+        Invoke-Step "Creating the vault at $finalVaultFolder" { Invoke-AntigravityCliTightship vault init $finalVaultFolder }
     }
 
     if ($tempZipFolder -and (Test-Path $tempZipFolder)) {

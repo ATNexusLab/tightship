@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.10.0 — 2026-10-17
+
+Cursor and Antigravity CLI shipped together in v1.1.0. The maintainer approved the release in
+[#84](https://github.com/ATNexusLab/tightship/pull/84), and BR-01 now allows it.
+
+**Changed**
+
+- BR-01: a harness's plugin is never released before the plugin of the harness ahead of it, and both may
+  ship in the same release. Before, the later plugin was released only after the earlier one.
+
 ## 1.9.0 — 2026-10-16
 
 Turning the `status_line` option on is the adopter's consent, by change request

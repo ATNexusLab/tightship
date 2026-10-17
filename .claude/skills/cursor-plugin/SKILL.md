@@ -48,7 +48,9 @@ E2E probe) or from the editor under Customize → Plugins. Install companions be
 ## Loading a plugin to test it
 
 - **Editor and CLI:** copy the plugin to `~/.cursor/plugins/local/<name>/`. The editor shows it as **Local**
-  under Customize → Plugins, after a reload. The CLI loads it too.
+  under Customize → Plugins, after a reload. The CLI loads it too. The unified installer (`install.sh` /
+  `install.ps1 --harness cursor`) downloads the release zip and each companion repository into the same
+  `local/` tree (probed 2026-10-17 for tightship and a companion with only `.claude-plugin/`).
 - **CLI only:** `agent --plugin-dir <folder>`.
 - **Non-interactive:** `agent -p --trust "<prompt>"`. `-p` skips some hooks (below), so confirm a hook's
   behavior in an interactive session too.

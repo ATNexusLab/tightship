@@ -78,14 +78,12 @@ sha256_of() {
 }
 
 download_file() {
-  _url="$1"
-  _dest="$2"
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$_url" -o "$_dest"
+    curl -fsSL "$1" -o "$2"
   elif command -v wget >/dev/null 2>&1; then
-    wget -qO "$_dest" "$_url"
+    wget -qO "$2" "$1"
   else
-    echo "error: neither curl nor wget is available to download $_url" >&2
+    echo "error: neither curl nor wget is available to download $1" >&2
     exit 1
   fi
 }
@@ -340,13 +338,7 @@ existing_status_line=""
 existing_vault_folder=""
 
 for harness in $SELECTED; do
-  OPTIONS_FILE=$(call_hook options_file "$harness")
-  if [ -n "$OPTIONS_FILE" ] && [ -f "$OPTIONS_FILE" ]; then
-    existing_contract=$(grep -E '^[[:space:]]*contract[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*contract[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
-    existing_memory=$(grep -E '^[[:space:]]*memory[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*memory[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
-    existing_status_line=$(grep -E '^[[:space:]]*status_line[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*status_line[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' || true)
-    existing_vault_folder=$(grep -E '^[[:space:]]*vault_folder[[:space:]]*=' "$OPTIONS_FILE" | sed -E 's/^[[:space:]]*vault_folder[[:space:]]*=[[:space:]]*//' | sed -E -e 's/^[[:space:]]*"((\\.|[^"\\])*)"[[:space:]]*$/\1/' -e 's/\\(.)/\1/g' || true)
-  fi
+  call_hook read_options "$harness"
 done
 
 if [ -n "$CONTRACT_ARG" ]; then
