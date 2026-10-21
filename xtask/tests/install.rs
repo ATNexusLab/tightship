@@ -504,6 +504,25 @@ fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
             plugins.join("tightship/plugin.json").is_file(),
             "{installer:?}"
         );
+        let hooks: serde_json::Value = serde_json::from_str(
+            &fs::read_to_string(plugins.join("tightship/hooks.json")).expect("read hooks.json"),
+        )
+        .expect("valid hooks.json");
+        let launcher = if cfg!(windows) {
+            r"bin\tightship "
+        } else {
+            "bin/tightship "
+        };
+        assert!(
+            hooks["tightship"]["PreInvocation"][0]["command"]
+                .as_str()
+                .is_some_and(|command| command.starts_with(launcher)),
+            "{installer:?}: {hooks}"
+        );
+        assert!(
+            !plugins.join("tightship/hooks.windows.json").exists(),
+            "{installer:?}"
+        );
         assert!(
             env.home_dir
                 .join(".gemini/config/skills/humanizer/SKILL.md")

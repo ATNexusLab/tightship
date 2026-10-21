@@ -73,6 +73,14 @@ function Install-AntigravityCli {
     }
 
     Invoke-Step "Installing tightship for {{install:label}}" { & agy plugin install $sourceDir }
+    $windowsHooks = Join-Path $antigravityCliPlugin "hooks.windows.json"
+    if (Test-Path $windowsHooks) {
+        if ($env:OS -eq "Windows_NT") {
+            Move-Item -Force -Path $windowsHooks -Destination (Join-Path $antigravityCliPlugin "hooks.json")
+        } else {
+            Remove-Item -Force -Path $windowsHooks
+        }
+    }
 
     if (-not (Test-Path $antigravityCliData)) {
         New-Item -ItemType Directory -Force -Path $antigravityCliData | Out-Null

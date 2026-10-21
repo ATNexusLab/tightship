@@ -1,19 +1,18 @@
 # tightship binary
 
 **Lives in:** `tightship/` · **Technology:** Rust · **Milestone:** M1, from epic #5; epic #6 adds the handoff;
-M3, epic #59 adds `hook contract`, `options.toml`, and `injectSteps` output
+M3, epic #59 adds `options.toml` and `injectSteps` output
 
 The one program the plugin ships, with a subcommand per function. Epic #5 builds the first two:
 
 | Subcommand | Run by | Does |
 | --- | --- | --- |
-| `tightship hook contract [--gate <option>] <file>` | The plugin's `SessionStart` hooks in Antigravity CLI (M3, #59) | Prints one rendered contract part unless `contract` or `<option>` is `false` |
 | `tightship hook start\|export\|checkpoint\|prompt` | The plugin's hooks | Puts the [memory](../concepts/memory.md) context and the checkpoints in the session, and exports the vault's folder to it |
 | `tightship vault path\|init\|search\|new\|lint\|sync` | The agent, through its shell | Reads, writes, lints, and syncs the adopter's vault, and creates one from the template |
 | `tightship vault handoff release\|claim` | The agent, through the command `handoff` (M1, #6) | Writes the project's handoff, or prints and removes it; never runs git |
 | `tightship hook status-line` | The plugin's hook, at `startup` | Writes the [status line](../concepts/status-line.md) into the user settings while its option is on, follows the plugin's folder, or puts the previous one back (M1, #7; #55) |
 | `tightship status-line render` | Claude Code, Cursor's CLI, and Antigravity CLI, as the status line | Prints the baseline's two rows for the session's JSON (M1, #7; M2, #58; M3, #59) |
-| `tightship hook contract-part <file>` | The plugin's hooks in Cursor (M2, #58) | Prints one packed contract part from `${TIGHTSHIP_ROOT}/contract/` unless its option is `false` |
+| `tightship hook contract-part <file>` | The plugin's hooks in Cursor (M2, #58) and Antigravity CLI (#89) | Prints one packed contract part from `${TIGHTSHIP_ROOT}/contract/` unless its option is `false` |
 | `tightship options set\|list\|reset\|disabled` | The adopter, and Cursor's hook lines (M2, #58) | Edits `${TIGHTSHIP_DATA}/options.json`; `disabled` exits 0 when the option is `false` |
 
 The binary reads `TIGHTSHIP_*` variables, which the hook lines or the launcher of each harness set from that

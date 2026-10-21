@@ -77,12 +77,13 @@ Confirmed by the maintainer on 2026-10-16, verified against Antigravity CLI (`ag
    Because `SessionStart` in `agy` fires once when a conversation starts and not after `/compact`, the
    build also writes `dist/antigravity-cli/skills/contract/SKILL.md` and appends a reload line to the
    injected contract header so the agent reloads `skills/contract/SKILL.md` after compaction.
-4. **Options stored in `${PLUGIN_DATA}/options.toml` (`FR-INS-03`, `FR-INS-04`, `FR-INS-05`).**
+4. **Options stored in the plugin's data folder, `options.toml` (`FR-INS-03`, `FR-INS-04`, `FR-INS-05`).**
    `agy plugin validate --strict` rejects `userConfig` in `plugin.json` and `agy` sets no
-   `CLAUDE_PLUGIN_OPTION_*` variables, but `agy` sets `PLUGIN_DATA`
-   (`~/.gemini/config/plugin_data/tightship`) and `PLUGIN_ROOT` (`~/.gemini/config/plugins/tightship`)
-   and preserves `PLUGIN_DATA` across updates. The adopter's options (`contract`, `memory`,
-   `status_line`, `vault_folder`) live in `${PLUGIN_DATA}/options.toml`. The `tightship` binary reads
+   `CLAUDE_PLUGIN_OPTION_*` variables. It preserves the plugin's data folder,
+   `~/.gemini/config/plugin_data/tightship`, across updates, but gives a hook neither `PLUGIN_DATA` nor
+   `PLUGIN_ROOT` (probed in 1.4.2, #89): the launchers fall back to that folder and to their own parent.
+   The adopter's options (`contract`, `memory`, `status_line`, `vault_folder`) live in
+   `options.toml` there. The `tightship` binary reads
    `${TIGHTSHIP_DATA}/options.toml` whenever the corresponding `TIGHTSHIP_*` environment variable is not
    set, and the Antigravity launchers (`bin/tightship` and `bin/tightship.cmd`) set `TIGHTSHIP_ROOT`,
    `TIGHTSHIP_DATA`, and `TIGHTSHIP_SETTINGS` when invoked by hooks or by the agent's `run_command` tool.
@@ -255,42 +256,21 @@ model: inherit
 ---
 ```
 
-- `hooks.json`:
+- `hooks.json`, with `bin\tightship` in `hooks.windows.json` (#89):
 
 ```json
 {
-  "SessionStart": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "\"${PLUGIN_ROOT}/bin/tightship\" hook contract \"${PLUGIN_ROOT}/contract/part-1.md\""
-        },
-        {
-          "type": "command",
-          "command": "\"${PLUGIN_ROOT}/bin/tightship\" hook contract --gate memory \"${PLUGIN_ROOT}/contract/memory.md\""
-        },
-        {
-          "type": "command",
-          "command": "\"${PLUGIN_ROOT}/bin/tightship\" hook start"
-        },
-        {
-          "type": "command",
-          "command": "\"${PLUGIN_ROOT}/bin/tightship\" hook status-line"
-        }
-      ]
-    }
-  ],
-  "PreInvocation": [
-    {
-      "hooks": [
-        {
-          "type": "command",
-          "command": "\"${PLUGIN_ROOT}/bin/tightship\" hook prompt"
-        }
-      ]
-    }
-  ]
+  "tightship": {
+    "SessionStart": [
+      { "type": "command", "command": "bin/tightship hook contract-part part-1.md" },
+      { "type": "command", "command": "bin/tightship hook contract-part memory.md" },
+      { "type": "command", "command": "bin/tightship hook start" },
+      { "type": "command", "command": "bin/tightship hook status-line" }
+    ],
+    "PreInvocation": [
+      { "type": "command", "command": "bin/tightship hook prompt" }
+    ]
+  }
 }
 ```
 
@@ -400,10 +380,12 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
 - **When:** `tightship hook status-line` or `tightship status-line enable` writes `statusLine` into
   `TIGHTSHIP_SETTINGS`.
 - On Windows (`cfg!(windows)`), `settings::command_for(root)` formats
-  `"<root>\\bin\\tightship.cmd" status-line render` when `<root>\bin\tightship.cmd` exists, and
-  `sh "<root>/bin/tightship" status-line render` otherwise; `settings::is_ours` matches both
-  `/bin/tightship" status-line render` and `\bin\tightship.cmd" status-line render` (as well as
-  `/bin/tightship.cmd" status-line render`).
+  `<root>\bin\tightship.cmd status-line render`, unquoted, when `<root>\bin\tightship.cmd` exists: Go
+  escapes every `"` as `\"` under `cmd /c`, which `cmd` cannot read (#89). A path with a space or one of
+  `& ^ ( ) % ! ; = ,` becomes its 8.3 short name, read from `cmd /u`; when none avoids them the hook
+  fails and names the path. Otherwise it formats
+  `sh "<root>/bin/tightship" status-line render`. `settings::is_ours` matches the launcher or the binary,
+  quoted or not, after `sh` or not, with `/` or `\` between folders.
 
 ### 7. Unified interactive installer (`FR-INS-01`..`03`, `FR-STL-02`, `BR-04`)
 

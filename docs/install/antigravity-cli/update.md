@@ -33,6 +33,13 @@ curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/tigh
   -o tightship.zip
 unzip -q tightship.zip -d extracted
 agy plugin install extracted
+rm -f ~/.gemini/config/plugins/tightship/hooks.windows.json
+```
+
+In Git Bash on Windows, replace the last line with the Windows hooks:
+
+```sh
+mv -f ~/.gemini/config/plugins/tightship/hooks.windows.json ~/.gemini/config/plugins/tightship/hooks.json
 ```
 
 ## Updating companions

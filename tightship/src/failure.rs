@@ -46,7 +46,6 @@ pub enum Failure {
     OptionsJsonInvalid(PathBuf),
     OptionsUnknown(String),
     OptionsUnreadable(PathBuf, io::Error),
-    ContractFileUnreadable(PathBuf, io::Error),
     HookOutputUnreadable(PathBuf, io::Error),
     HookOutputInvalid(PathBuf),
     Usage(String),
@@ -211,9 +210,6 @@ impl fmt::Display for Failure {
                 write!(formatter, "unknown option \"{name}\"")
             }
             Self::OptionsUnreadable(path, error) => {
-                write!(formatter, "cannot read {}: {error}", path.display())
-            }
-            Self::ContractFileUnreadable(path, error) => {
                 write!(formatter, "cannot read {}: {error}", path.display())
             }
             Self::HookOutputUnreadable(path, error) => {

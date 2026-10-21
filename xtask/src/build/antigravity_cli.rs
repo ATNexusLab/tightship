@@ -49,8 +49,13 @@ pub fn render(
         written.push((skill_file, skill_content.into_bytes()));
     }
 
-    if let Some(hooks) = hooks(parts, content.options.as_ref())? {
-        written.push((staging.join("hooks.json"), hooks.into_bytes()));
+    for (file, launcher) in [
+        ("hooks.json", "bin/tightship"),
+        ("hooks.windows.json", r"bin\tightship"),
+    ] {
+        if let Some(hooks) = hooks(parts, content.options.as_ref(), launcher)? {
+            written.push((staging.join(file), hooks.into_bytes()));
+        }
     }
 
     written.extend(render::harness_files(root, &staging, harness)?);
@@ -117,40 +122,28 @@ fn manifest(root: &Path, harness: &Harness) -> io::Result<String> {
     Ok(serde_json::to_string_pretty(&manifest).map_err(io::Error::other)? + "\n")
 }
 
-fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<String>> {
+fn hooks(
+    parts: &[Part],
+    options: Option<&OptionsFile>,
+    launcher: &str,
+) -> io::Result<Option<String>> {
     let declares =
         |name| options.is_some_and(|file| file.declared.iter().any(|option| option.name == name));
-    let mut session_hooks = Vec::new();
-
-    for part in parts {
-        let command = match &part.gate {
-            Some(gate) => format!(
-                "\"${{PLUGIN_ROOT}}/bin/tightship\" hook contract --gate {gate} \"${{PLUGIN_ROOT}}/contract/{}\"",
-                part.file
-            ),
-            None => format!(
-                "\"${{PLUGIN_ROOT}}/bin/tightship\" hook contract \"${{PLUGIN_ROOT}}/contract/{}\"",
-                part.file
-            ),
-        };
-        session_hooks.push(serde_json::json!({
+    let command = |arguments: String| {
+        serde_json::json!({
             "type": "command",
-            "command": command,
-        }));
-    }
-
+            "command": format!("{launcher} {arguments}"),
+        })
+    };
+    let mut session_hooks: Vec<serde_json::Value> = parts
+        .iter()
+        .map(|part| command(format!("hook contract-part {}", part.file)))
+        .collect();
     if declares("memory") {
-        session_hooks.push(serde_json::json!({
-            "type": "command",
-            "command": "\"${PLUGIN_ROOT}/bin/tightship\" hook start",
-        }));
+        session_hooks.push(command("hook start".to_owned()));
     }
-
     if declares("status_line") {
-        session_hooks.push(serde_json::json!({
-            "type": "command",
-            "command": "\"${PLUGIN_ROOT}/bin/tightship\" hook status-line",
-        }));
+        session_hooks.push(command("hook status-line".to_owned()));
     }
 
     let mut events = serde_json::Map::new();
@@ -160,14 +153,10 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
             serde_json::Value::Array(session_hooks),
         );
     }
-
     if declares("memory") {
         events.insert(
             "PreInvocation".to_owned(),
-            serde_json::json!([{
-                "type": "command",
-                "command": "\"${PLUGIN_ROOT}/bin/tightship\" hook prompt",
-            }]),
+            serde_json::json!([command("hook prompt".to_owned())]),
         );
     }
 
