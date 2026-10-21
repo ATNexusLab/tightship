@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.11.0 — 2026-10-20
+
+The vault grew faster than anything removed notes from it, by change request
+[#118](https://github.com/ATNexusLab/tightship/issues/118): the maintainer's vault went from 213 notes to
+418 in the 19 days after a manual prune, 307 of its 417 notes were written at the agent's initiative, and 41
+notes waiting to move into a repository were never moved.
+
+**Added**
+
+- FR-MEM-01.4: the session start lists the project's notes waiting to move into a repository, as debts.
+- FR-MEM-12, Notes expire: each sync removes the notes past their type's lifetime, except pinned notes, notes
+  the user stated, decisions, preferences, and handoffs.
+- FR-MEM-13, The vault's rules follow the plugin: a delimited block of the vault's `AGENTS.md` follows the
+  installed template, and the text outside it is left alone.
+
+**Changed**
+
+- FR-MEM-01 also places the notes waiting to move into a repository in the session's context.
+- FR-MEM-02 places the checkpoint only right after a compaction.
+- FR-MEM-10.1 checks a compaction instead of prompts, since a prompt no longer brings a checkpoint.
+
+**Retired**
+
+- FR-MEM-02.1: a checkpoint at a prompt interval made the agent write notes that fail the vault's rules.
+
 ## 1.10.0 — 2026-10-17
 
 Cursor and Antigravity CLI shipped together in v1.1.0. The maintainer approved the release in

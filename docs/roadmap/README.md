@@ -80,6 +80,8 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | FR-MEM-09 | #5, and #60 for FR-MEM-09.2 | M1, M2 |
 | FR-MEM-10 | #5 | M1 |
 | FR-MEM-11 | #5 | M1 |
+| FR-MEM-12 | — | M4 |
+| FR-MEM-13 | — | M4 |
 | FR-STL-01 | #7 | M1 |
 | FR-STL-02 | #7 | M1 |
 | FR-STL-03 | #7 | M1 |
