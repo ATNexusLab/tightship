@@ -18,8 +18,14 @@ M3, #59), never a project's or a folder's:
 }
 ```
 
+On Windows the command is `<plugin folder>\bin\tightship.cmd status-line render`, with no quotes, because
+Antigravity CLI runs it under `cmd /c` with every `"` escaped. A path with a space or one of
+`& ^ ( ) % ! ; = ,` is written as its 8.3 short name; when none avoids them, the hook fails and names the
+path (#89).
+
 It is ours while its `command` runs the plugin's `bin/tightship`, `bin/tightship.cmd`, or
-`bin/<platform>/tightship[.exe]` with `status-line render`, with `/` or `\` between folders (M3, #59; #55).
+`bin/<platform>/tightship[.exe]` with `status-line render`, with `/` or `\` between folders, quoted or not,
+after `sh` or not (M3, #59; #55; #89).
 Every other key of the file keeps its value and its order.
 
 ## `status-line.json`

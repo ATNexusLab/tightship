@@ -42,6 +42,7 @@ pub enum Failure {
     SettingsUnwritable(PathBuf, io::Error),
     StatusRecordInvalid(PathBuf),
     StatusRecordUnwritable(PathBuf, io::Error),
+    StatusLinePathUnreadable(PathBuf),
     OptionsInvalid(PathBuf),
     OptionsJsonInvalid(PathBuf),
     OptionsUnknown(String),
@@ -198,6 +199,11 @@ impl fmt::Display for Failure {
             Self::StatusRecordUnwritable(path, error) => write!(
                 formatter,
                 "cannot write the status line record {}: {error}",
+                path.display()
+            ),
+            Self::StatusLinePathUnreadable(path) => write!(
+                formatter,
+                "the status line cannot run {}: cmd reads a space or one of & ^ ( ) % ! ; = , in its path, and no 8.3 short name avoids it; move the plugin to a folder without them",
                 path.display()
             ),
             Self::OptionsInvalid(path) => {
