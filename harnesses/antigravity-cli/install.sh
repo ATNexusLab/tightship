@@ -51,6 +51,12 @@ install_antigravity_cli() {
 
   step "Installing tightship for {{install:label}}" agy plugin install "$source_dir"
   plugin_target="{{path:plugins}}/tightship"
+  if [ -f "$plugin_target/hooks.windows.json" ]; then
+    case "$(uname -s)" in
+    MINGW* | MSYS* | CYGWIN*) mv -f "$plugin_target/hooks.windows.json" "$plugin_target/hooks.json" ;;
+    *) rm -f "$plugin_target/hooks.windows.json" ;;
+    esac
+  fi
 
   mkdir -p "$ANTIGRAVITY_CLI_DATA"
   {

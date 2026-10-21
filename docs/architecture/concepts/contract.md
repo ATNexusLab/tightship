@@ -26,9 +26,9 @@ already holds the copy placed before. A hook that fails costs only its own part;
 ## How it reaches an Antigravity CLI session (M3, #59)
 
 Antigravity CLI truncates each `rules/*.md` file at 24,000 bytes and loads `rules/` unconditionally. Instead,
-`hooks.json` runs `tightship hook contract` at `SessionStart` for `contract/part-1.md` and
-`contract/memory.md` (with `[contract] limit = 100000`), which reads `${TIGHTSHIP_DATA}/options.toml` and
-prints each enabled file wrapped in `{"injectSteps":[{"systemMessage":{"systemMessage":"..."}}]}`. Because
+`hooks.json` runs `tightship hook contract-part` at `SessionStart` for `part-1.md` and `memory.md` (with
+`[contract] limit = 100000`), which reads `${TIGHTSHIP_DATA}/options.toml` and prints each enabled file
+wrapped in `{"injectSteps":[{"systemMessage":{"systemMessage":"..."}}]}`. Because
 `SessionStart` in Antigravity CLI fires only once at conversation start, the build also writes
 `skills/contract/SKILL.md` and prepends a line to `contract/part-1.md` instructing the agent to load the
 `contract` skill after `/compact`.

@@ -365,17 +365,18 @@ fn scenario_4_session_start_injects_contract_and_memory_as_inject_steps_json() {
         "---\nid: mem-0002\ntype: handoff\nproject: tightship\nwhy: next session picks up here\npinned: true\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-14\n---\n\n# Handoff\n\n**Goal:** ship plugin\n**Done:** options\n**Next step:** tests\n**Open decisions:** none\n**Repo state:** clean\n",
     );
     let working_directory = project(&sandbox, "tightship");
-    let part_1 = sandbox.write(
+    sandbox.write(
         "contract/part-1.md",
         "# Contract (1/2)\nRule 1: Always verify.\n",
     );
-    let memory_md = sandbox.write(
+    sandbox.write(
         "contract/memory.md",
         "# Memory (2/2)\nRule 2: Keep the vault.\n",
     );
 
-    let mut contract_cmd = sandbox.tightship(&["hook", "contract", part_1.to_str().unwrap()]);
+    let mut contract_cmd = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
     contract_cmd
+        .env("TIGHTSHIP_ROOT", sandbox.path(""))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
         .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut contract_cmd);
@@ -387,14 +388,9 @@ fn scenario_4_session_start_injects_contract_and_memory_as_inject_steps_json() {
         "# Contract (1/2)\nRule 1: Always verify.\n"
     );
 
-    let mut memory_cmd = sandbox.tightship(&[
-        "hook",
-        "contract",
-        "--gate",
-        "memory",
-        memory_md.to_str().unwrap(),
-    ]);
+    let mut memory_cmd = sandbox.tightship(&["hook", "contract-part", "memory.md"]);
     memory_cmd
+        .env("TIGHTSHIP_ROOT", sandbox.path(""))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
         .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut memory_cmd);
@@ -435,11 +431,12 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
         ),
     );
     let working_directory = project(&sandbox, "tightship");
-    let part_1 = sandbox.write("contract/part-1.md", "# Contract (1/2)\nRule 1\n");
-    let memory_md = sandbox.write("contract/memory.md", "# Memory (2/2)\nRule 2\n");
+    sandbox.write("contract/part-1.md", "# Contract (1/2)\nRule 1\n");
+    sandbox.write("contract/memory.md", "# Memory (2/2)\nRule 2\n");
 
-    let mut contract_cmd = sandbox.tightship(&["hook", "contract", part_1.to_str().unwrap()]);
+    let mut contract_cmd = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
     contract_cmd
+        .env("TIGHTSHIP_ROOT", sandbox.path(""))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
         .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut contract_cmd);
@@ -450,14 +447,9 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
         "# Contract (1/2)\nRule 1\n"
     );
 
-    let mut memory_cmd = sandbox.tightship(&[
-        "hook",
-        "contract",
-        "--gate",
-        "memory",
-        memory_md.to_str().unwrap(),
-    ]);
+    let mut memory_cmd = sandbox.tightship(&["hook", "contract-part", "memory.md"]);
     memory_cmd
+        .env("TIGHTSHIP_ROOT", sandbox.path(""))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
         .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut memory_cmd);
@@ -482,22 +474,18 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     assert_eq!(stdout_of(&output), "");
 
     sandbox.write("data/options.toml", "contract = false\n");
-    let mut contract_cmd1 = sandbox.tightship(&["hook", "contract", part_1.to_str().unwrap()]);
+    let mut contract_cmd1 = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
     contract_cmd1
+        .env("TIGHTSHIP_ROOT", sandbox.path(""))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
         .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut contract_cmd1);
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
 
-    let mut contract_cmd2 = sandbox.tightship(&[
-        "hook",
-        "contract",
-        "--gate",
-        "memory",
-        memory_md.to_str().unwrap(),
-    ]);
+    let mut contract_cmd2 = sandbox.tightship(&["hook", "contract-part", "memory.md"]);
     contract_cmd2
+        .env("TIGHTSHIP_ROOT", sandbox.path(""))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
         .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
     let output = run(&mut contract_cmd2);
@@ -559,16 +547,18 @@ fn scenario_7_prompt_checkpoint_fires_on_every_10th_pre_invocation_using_convers
 }
 
 #[test]
-fn hook_contract_unreadable_file_fails_with_contract_file_unreadable() {
+fn contract_part_missing_file_fails_naming_it() {
     let sandbox = Sandbox::new();
-    let nonexistent = sandbox.path("nonexistent.md");
-    let mut command = sandbox.tightship(&["hook", "contract", nonexistent.to_str().unwrap()]);
+    let mut command = sandbox.tightship(&["hook", "contract-part", "part-9.md"]);
+    command.env("TIGHTSHIP_ROOT", sandbox.path(""));
     let output = run(&mut command);
     assert_eq!(output.status.code(), Some(1));
-    let stderr = stderr_of(&output);
-    assert!(
-        stderr.starts_with(&format!("error: cannot read {}: ", nonexistent.display())),
-        "{stderr}"
+    assert_eq!(
+        stderr_of(&output),
+        format!(
+            "error: contract part {} is missing\n",
+            sandbox.path("contract/part-9.md").display()
+        )
     );
 }
 

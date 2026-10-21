@@ -42,11 +42,11 @@ pub enum Failure {
     SettingsUnwritable(PathBuf, io::Error),
     StatusRecordInvalid(PathBuf),
     StatusRecordUnwritable(PathBuf, io::Error),
+    StatusLinePathUnreadable(PathBuf),
     OptionsInvalid(PathBuf),
     OptionsJsonInvalid(PathBuf),
     OptionsUnknown(String),
     OptionsUnreadable(PathBuf, io::Error),
-    ContractFileUnreadable(PathBuf, io::Error),
     HookOutputUnreadable(PathBuf, io::Error),
     HookOutputInvalid(PathBuf),
     Usage(String),
@@ -201,6 +201,11 @@ impl fmt::Display for Failure {
                 "cannot write the status line record {}: {error}",
                 path.display()
             ),
+            Self::StatusLinePathUnreadable(path) => write!(
+                formatter,
+                "the status line cannot run {}: cmd reads a space or one of & ^ ( ) % ! ; = , in its path, and no 8.3 short name avoids it; move the plugin to a folder without them",
+                path.display()
+            ),
             Self::OptionsInvalid(path) => {
                 write!(formatter, "{} is not valid TOML", path.display())
             }
@@ -211,9 +216,6 @@ impl fmt::Display for Failure {
                 write!(formatter, "unknown option \"{name}\"")
             }
             Self::OptionsUnreadable(path, error) => {
-                write!(formatter, "cannot read {}: {error}", path.display())
-            }
-            Self::ContractFileUnreadable(path, error) => {
                 write!(formatter, "cannot read {}: {error}", path.display())
             }
             Self::HookOutputUnreadable(path, error) => {

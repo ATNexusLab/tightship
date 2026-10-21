@@ -27,7 +27,7 @@ pub fn run() -> Result<(), Failure> {
         }
         return settings::remove_record(&data);
     }
-    let command = Value::String(settings::command_for(&root));
+    let command = Value::String(settings::command_for(&root)?);
     if ours {
         let status_line = user_settings
             .get_mut("statusLine")
