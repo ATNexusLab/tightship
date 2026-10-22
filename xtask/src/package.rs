@@ -103,6 +103,12 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
     }
     stop_on_errors(&mut diagnostics)?;
 
+    match fs::remove_dir_all(staging) {
+        Err(error) if error.kind() != io::ErrorKind::NotFound => {
+            return Err(naming(staging)(error).into());
+        }
+        _ => {}
+    }
     fs::create_dir_all(staging).map_err(naming(staging))?;
 
     let mut parts = Vec::new();

@@ -133,9 +133,11 @@ fn a_missing_binary_fails_and_leaves_no_plugin() {
 fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
     let repository = release_repository("1.0.0");
     assert_succeeds(&run(&repository, &["build", "--binaries", "binaries"]));
+    repository.write("dist/.package.tmp/stray.txt", "left by a killed run\n");
 
     let output = run(&repository, &["package", "v1.0.0"]);
     assert_succeeds(&output);
+    assert!(!repository.path("dist/stray.txt").exists());
     let bytes = fs::read(repository.path("dist/tightship-claude-code.zip")).expect("the zip");
     let sha256: String = Sha256::digest(&bytes)
         .iter()
