@@ -334,6 +334,35 @@ fn an_identity_term_in_a_shipped_file_fails_without_printing_it() {
 }
 
 #[test]
+fn an_identity_term_in_an_installer_fragment_fails_without_printing_it() {
+    let repository = Repository::with(&[
+        piece("content/skills/grilling/SKILL.md", "Grill.\n"),
+        (
+            "installer/install.sh",
+            "#!/bin/sh\n{{fragments}}\n".to_owned(),
+        ),
+        (
+            "harnesses/claude-code/install.sh",
+            "install_claude_code() {\n  echo ghost-handle-0451\n}\n".to_owned(),
+        ),
+    ]);
+    repository.write(".identity-terms", "Ghost-Handle-0451\n");
+
+    let output = repository.run("build");
+    assert_fails_with(
+        &output,
+        "error: dist/install.sh:3: holds an identity term of the maintainer",
+    );
+    assert!(
+        !stderr_of(&output)
+            .to_lowercase()
+            .contains("ghost-handle-0451")
+    );
+    assert!(!repository.path("dist/install.sh").exists());
+    assert!(!repository.path("dist/claude-code").exists());
+}
+
+#[test]
 fn a_file_named_with_an_identity_term_fails_without_printing_it() {
     let repository = Repository::with(&[
         piece("content/skills/grilling/SKILL.md", "Grill.\n"),

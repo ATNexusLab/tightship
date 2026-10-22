@@ -85,6 +85,7 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
         }
     };
 
+    let terms = identity::terms(root, &mut diagnostics)?;
     let mut rendered = Vec::new();
     for (harness, parts) in harnesses.iter().zip(&contract_parts) {
         println!("> Rendering {} into dist/{}/", harness.name, harness.name);
@@ -100,18 +101,26 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
                 ))));
             }
         };
-        println!("> Scanning dist/{}/ for identity terms", harness.name);
-        identity::check(
-            root,
-            &staging,
-            &format!("dist/{}", harness.name),
-            &mut diagnostics,
-        )?;
+        if let Some(terms) = &terms {
+            println!("> Scanning dist/{}/ for identity terms", harness.name);
+            identity::check_folder(
+                &staging,
+                &format!("dist/{}", harness.name),
+                terms,
+                &mut diagnostics,
+            )?;
+        }
         rendered.push((harness, staging, files));
     }
-    stop_on_errors(&mut diagnostics)?;
     println!("> Assembling the installers");
     let installers = installer::assemble(root, &harnesses)?;
+    if let Some(terms) = &terms {
+        println!("> Scanning the installers for identity terms");
+        for (file, text) in &installers {
+            identity::check_text(text, &format!("dist/{file}"), terms, &mut diagnostics);
+        }
+    }
+    stop_on_errors(&mut diagnostics)?;
 
     let mut summaries = Vec::new();
     for (harness, staging, files) in &rendered {
