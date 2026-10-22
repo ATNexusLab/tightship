@@ -44,8 +44,8 @@ generated.
 ## How a change moves
 
 ```text
-/requirements → /bootstrap → /sprint plan → grilling → /spec → /epic
-      → plan → tests → code → gates green → /audit → /closeout → commit → PR
+/requirements → /bootstrap → /sprint plan → /spec → /epic
+      →  grilling  → tests → code → gates green → /audit → /closeout → commit → PR
 ```
 
 Every requirement has an ID. A spec cites the IDs it covers. An epic and its sub-issues come from the
