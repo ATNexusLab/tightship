@@ -579,6 +579,24 @@ fn a_companion_without_a_marketplace_fails_and_leaves_no_plugin() {
 }
 
 #[test]
+fn a_plugin_file_on_a_rendered_path_fails_and_leaves_no_plugin() {
+    let repository = Repository::with(&[
+        piece("content/commands/epic.md", "Open the epic.\n"),
+        (
+            "harnesses/claude-code/plugin/skills/epic/SKILL.md",
+            "A copied file.\n".to_owned(),
+        ),
+    ]);
+    fs::create_dir_all(repository.path("dist/claude-code")).expect("a previous build");
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: dist/claude-code/skills/epic/SKILL.md: two sources write this file",
+    );
+    assert!(!repository.path("dist/claude-code").exists());
+}
+
+#[test]
 fn no_companion_and_no_option_leave_out_their_keys() {
     let repository = Repository::with(&[
         piece("content/commands/epic.md", "Open the epic.\n"),

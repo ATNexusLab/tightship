@@ -46,7 +46,7 @@ pub fn render(
     }
     written.extend(render::harness_files(root, &staging, harness)?);
     written.extend(render::binary_files(&staging, binaries)?);
-    staging::write_files(&staging, &written)?;
+    staging::write_files(&staging, &harness.name, &written)?;
     Ok((staging, written.len()))
 }
 

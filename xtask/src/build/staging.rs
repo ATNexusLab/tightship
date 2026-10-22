@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -15,7 +16,21 @@ pub fn remove_if_present(folder: &Path) -> io::Result<()> {
     }
 }
 
-pub fn write_files(staging: &Path, files: &[(PathBuf, Vec<u8>)]) -> io::Result<()> {
+pub fn write_files(
+    staging: &Path,
+    harness_name: &str,
+    files: &[(PathBuf, Vec<u8>)],
+) -> io::Result<()> {
+    let mut paths = HashSet::new();
+    for (file, _) in files {
+        if !paths.insert(file) {
+            let relative = file.strip_prefix(staging).map_err(io::Error::other)?;
+            let path = relative.to_string_lossy().replace('\\', "/");
+            return Err(io::Error::other(format!(
+                "dist/{harness_name}/{path}: two sources write this file"
+            )));
+        }
+    }
     let bin = staging.join("bin");
     for (file, bytes) in files {
         if let Some(folder) = file.parent() {

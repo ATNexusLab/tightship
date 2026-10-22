@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 use super::binary::Binary;
-use super::content::{Content, Kind, Piece, SupportingBody};
+use super::content::{self, Content, Kind, Piece, SupportingBody};
 use super::harness::Harness;
 use super::options::OptionsFile;
 use super::scripts::{self, Shell};
@@ -200,22 +200,13 @@ pub fn harness_files(
     }
     let plugin = folder.join("plugin");
     if plugin.is_dir() {
-        copy_tree(&plugin, staging, &mut files)?;
-    }
-    Ok(files)
-}
-
-fn copy_tree(source: &Path, target: &Path, files: &mut Vec<(PathBuf, Vec<u8>)>) -> io::Result<()> {
-    for entry in fs::read_dir(source).map_err(naming(source))? {
-        let entry = entry?;
-        let copy = target.join(entry.file_name());
-        if entry.file_type()?.is_dir() {
-            copy_tree(&entry.path(), &copy, files)?;
-        } else {
-            files.push((copy, fs::read(entry.path()).map_err(naming(&entry.path()))?));
+        for file in content::files_under(&plugin)? {
+            let relative = file.strip_prefix(&plugin).map_err(io::Error::other)?;
+            let bytes = fs::read(&file).map_err(naming(&file))?;
+            files.push((staging.join(relative), bytes));
         }
     }
-    Ok(())
+    Ok(files)
 }
 
 pub fn binary_files(staging: &Path, binaries: &[Binary]) -> io::Result<Vec<(PathBuf, Vec<u8>)>> {
