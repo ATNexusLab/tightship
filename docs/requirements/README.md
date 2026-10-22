@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 1.10.0 · **Date:** 2026-10-17 · [Changelog](CHANGELOG.md)
+**Version:** 1.11.0 · **Date:** 2026-10-20 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -73,6 +73,8 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-MEM-09](functional/memory.md#fr-mem-09) | Vault location is the adopter's choice | Must | approved | M1 |
 | [FR-MEM-10](functional/memory.md#fr-mem-10) | Memory can be turned off | Must | approved | M1 |
 | [FR-MEM-11](functional/memory.md#fr-mem-11) | Sync the vault | Must | approved | M1 |
+| [FR-MEM-12](functional/memory.md#fr-mem-12) | Notes expire | Must | approved | M4 |
+| [FR-MEM-13](functional/memory.md#fr-mem-13) | The vault's rules follow the plugin | Must | approved | M4 |
 | [FR-STL-01](functional/status-line.md#fr-stl-01) | Status line on opt-in | Must | approved | M1 |
 | [FR-STL-02](functional/status-line.md#fr-stl-02) | The status line option is the consent | Must | approved | M1 |
 | [FR-STL-03](functional/status-line.md#fr-stl-03) | Turning it off restores the previous setting | Should | approved | M1 |
