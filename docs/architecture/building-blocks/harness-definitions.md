@@ -28,5 +28,6 @@ may name a harness. Each one holds:
 lives here.
 
 **To change it safely:** a capability added to the content needs an entry in every harness's file, or the
-build fails. Adding a harness adds a folder and a renderer, and leaves `content/` untouched
-([NFR-FLEX-07](../../requirements/non-functional/flexibility.md#nfr-flex-07)).
+build fails. So does a `[plugin] repository` that differs from another harness's, since the installers take
+it from one harness and `package` from each (#111). Adding a harness adds a folder and a renderer, and
+leaves `content/` untouched ([NFR-FLEX-07](../../requirements/non-functional/flexibility.md#nfr-flex-07)).
