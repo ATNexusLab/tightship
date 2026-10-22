@@ -822,9 +822,10 @@ fn cursor_verifier_agent_has_readonly_front_matter() {
         fs::read_to_string(repository.path("dist/cursor/agents/adversarial-verifier.md"))
             .expect("rendered verifier");
     assert!(
-        rendered.contains("readonly: true\n") || rendered.contains("readonly: \"true\"\n"),
+        rendered.contains("readonly: true\n"),
         "expected readonly: true in front matter:\n{rendered}"
     );
+    assert!(!rendered.contains("readonly: \"true\""));
     assert!(rendered.contains("tools: \"Read, Grep, Glob, Shell\"\n"));
     assert!(rendered.contains("You are an adversarial verifier."));
 }

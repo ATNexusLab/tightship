@@ -148,8 +148,8 @@ fn document(piece: &Piece, harness: &Harness) -> io::Result<String> {
         .as_ref()
         .and_then(|front_matter| front_matter.access.as_deref())
         == Some("read-only");
-    let agent_fields: &[(&str, &str)] = if read_only {
-        &[("readonly", "true")]
+    let agent_fields: &[(&str, serde_json::Value)] = if read_only {
+        &[("readonly", serde_json::Value::Bool(true))]
     } else {
         &[]
     };

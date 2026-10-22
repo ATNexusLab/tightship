@@ -113,7 +113,7 @@ pub fn option_settings(
 pub fn document(
     piece: &Piece,
     harness: &Harness,
-    agent_fields: &[(&str, &str)],
+    agent_fields: &[(&str, serde_json::Value)],
 ) -> io::Result<String> {
     let front_matter = piece.front_matter.as_ref().ok_or_else(|| {
         io::Error::other(format!(
@@ -122,19 +122,25 @@ pub fn document(
         ))
     })?;
     let mut fields = vec![
-        ("name", piece.name.as_str()),
-        ("description", front_matter.description.as_str()),
+        ("name", serde_json::Value::from(piece.name.as_str())),
+        (
+            "description",
+            serde_json::Value::from(front_matter.description.as_str()),
+        ),
     ];
     if let Some(hint) = &front_matter.argument_hint {
-        fields.push(("argument-hint", hint));
+        fields.push(("argument-hint", serde_json::Value::from(hint.as_str())));
     }
     if piece.kind == Kind::Agent {
-        fields.push(("tools", &harness.access.read_only));
+        fields.push((
+            "tools",
+            serde_json::Value::from(harness.access.read_only.as_str()),
+        ));
         fields.extend_from_slice(agent_fields);
     }
     let mut document = String::from("---\n");
     for (key, value) in fields {
-        document.push_str(&format!("{key}: {}\n", serde_json::Value::from(value)));
+        document.push_str(&format!("{key}: {value}\n"));
     }
     document.push_str("---\n");
     document.push_str(&resolve(&piece.body, &piece.path, harness)?);
