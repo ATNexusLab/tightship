@@ -301,23 +301,23 @@ to that remote.
 > As an adopter, I want a note that nobody revised in its lifetime removed from the vault, so that the
 > vault keeps only what is still worth reading.
 
-The system shall remove from the vault, at each sync, every note whose type's lifetime has passed since
-the note was last updated, except pinned notes, notes the user stated, decisions, preferences, and handoffs.
+The system shall remove from the vault, at each sync, every note whose lifetime has passed since the note
+was last updated, except pinned notes, notes the user stated, decisions, preferences, and handoffs.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | Nothing removes a note unless a person prunes by hand, and pruning by hand did not hold: the maintainer's vault went from 213 notes to 418 in the 19 days after a prune. A lifetime by type is how [akitaonrails/ai-memory](https://github.com/akitaonrails/ai-memory) and the tools it surveys age notes, with no new field per note. |
+| Rationale | Nothing removes a note unless a person prunes by hand, and pruning by hand did not hold: the maintainer's vault went from 213 notes to 418 in the 19 days after a prune. What the user states and decides stays, and what the agent wrote on its own decays, as the episodic memory of [akitaonrails/ai-memory](https://github.com/akitaonrails/ai-memory) does, with no new field per note. One lifetime for every note that can expire: of the 323 such notes in the maintainer's vault on 2026-10-22, 306 were under 30 days old, so a longer lifetime for one type would keep the noise for months. |
 | Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M4 |
-| Since | v1.11.0 |
+| Since | v1.11.0, changed in v2.0.0 |
 
 **Acceptance criteria**
 
-- **FR-MEM-12.1** — Given a note whose type's lifetime has passed since it was last updated, when the
-  adopter syncs, then the vault and its remote no longer hold it, and the vault's git history does.
-- **FR-MEM-12.2** — Given a note past its type's lifetime that is pinned, stated by the user, a decision,
+- **FR-MEM-12.1** — Given a note whose lifetime has passed since it was last updated, when the adopter
+  syncs, then the vault and its remote no longer hold it, and the vault's git history does.
+- **FR-MEM-12.2** — Given a note past its lifetime that is pinned, stated by the user, a decision,
   a preference, or a handoff, when the adopter syncs, then the vault still holds it.
 - **FR-MEM-12.3** — Given a note rewritten in place before its lifetime passed, when the adopter syncs
   after the date the old version would have expired, then the vault still holds it.

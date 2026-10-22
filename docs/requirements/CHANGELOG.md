@@ -1,5 +1,36 @@
 # Changelog
 
+## 2.0.0 — 2026-10-22
+
+The contract and the repository's `AGENTS.md` made every convention a law, by change request
+[#118](https://github.com/ATNexusLab/tightship/issues/118): the agent argued against the maintainer's own
+decisions, defended a folder of 20 files as required, and carried 25,418 characters of contract into every
+session, most of it for one step of the workflow. The vault's notes now expire by one lifetime, since 306 of
+the 323 notes that can expire in the maintainer's vault were under 30 days old.
+
+**Added**
+
+- FR-CTR-06, Hard lines and conventions: the contract separates the two, and the adopter's decision in the
+  session overrides a convention.
+- FR-CTR-07, The contract holds only what every task needs: a rule of one step lives in that step's skill or
+  command.
+- FR-SKL-04, The bootstrap writes a lean repository contract: the `AGENTS.md` holds only what every task
+  needs and the repository does not show, with the architecture as the current shape.
+- FR-SKL-05, The bootstrap writes project skills: each procedure of one area or step goes to
+  `.agents/skills/`, reachable from every supported harness.
+- NFR-PERF-03, Contract size: at most 8,000 characters with every option on.
+
+**Changed**
+
+- FR-MEM-12 removes the notes past one lifetime, the same for every note that can expire, instead of a
+  lifetime per type.
+- FR-CTR-03.2 checks the contract's memory rules, since the baseline no longer bounds the contract.
+
+**Retired**
+
+- FR-CTR-04: carrying every baseline rule over made each convention a law. FR-CTR-06 and FR-CTR-07 decide
+  what the contract holds.
+
 ## 1.11.0 — 2026-10-20
 
 The vault grew faster than anything removed notes from it, by change request

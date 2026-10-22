@@ -81,7 +81,7 @@ On Windows, run every command in Git Bash.
 | FR-CTR-02.2 | Manual: with `contract` off, `/tightship:closeout` runs | | | |
 | FR-CTR-03.1 | Manual: with `memory` off, the contract in the session holds no rule that names the vault. Test: `xtask/tests/contract.rs` `the_hooks_honor_the_options` | | | |
 | FR-CTR-03.2 | Manual: with both on, the contract holds its **Memory** section | | | |
-| FR-CTR-04.1 | Manual: every rule of the baseline's contract is in `content/`, or in the epic #4 spec's list of personal and changed rules | | | |
+| FR-CTR-04.1 | Retired in requirements 2.0.0 | | | |
 | FR-CTR-05.1 | Manual: `without-the-contract.md` names every skill and command whose text in `content/` names the contract or one of its sections | | | |
 
 ## Memory
