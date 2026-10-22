@@ -6,11 +6,12 @@ use jiff::civil::Date;
 
 use super::note::{self, NewNote};
 use crate::failure::Failure;
+use crate::project;
 
 #[derive(Args)]
 pub struct Arguments {
     #[arg(long)]
-    scope: String,
+    scope: Option<String>,
     #[arg(long = "type")]
     kind: String,
     #[arg(long)]
@@ -28,17 +29,18 @@ pub struct Arguments {
 }
 
 pub fn run(arguments: &Arguments) -> Result<(), Failure> {
-    let scope = &arguments.scope;
-    let scope_length = scope.chars().count();
-    let components: Vec<Component> = Path::new(scope).components().collect();
-    let is_one_folder = matches!(components[..], [Component::Normal(_)]);
-    if !(1..=100).contains(&scope_length)
-        || scope.contains(['/', '\\'])
-        || scope.starts_with('.')
-        || scope.contains(char::is_control)
-        || !is_one_folder
-    {
-        return Err(Failure::NoteScopeInvalid);
+    if let Some(scope) = &arguments.scope {
+        let scope_length = scope.chars().count();
+        let components: Vec<Component> = Path::new(scope).components().collect();
+        let is_one_folder = matches!(components[..], [Component::Normal(_)]);
+        if !(1..=100).contains(&scope_length)
+            || scope.contains(['/', '\\'])
+            || scope.starts_with('.')
+            || scope.contains(char::is_control)
+            || !is_one_folder
+        {
+            return Err(Failure::NoteScopeInvalid);
+        }
     }
     if !["preference", "decision", "gotcha", "project"].contains(&arguments.kind.as_str()) {
         return Err(Failure::NoteTypeInvalid);
@@ -73,10 +75,14 @@ pub fn run(arguments: &Arguments) -> Result<(), Failure> {
     let body = note::read_body()?;
 
     let vault = super::folder()?;
+    let scope = match &arguments.scope {
+        Some(scope) => project::normalize(scope),
+        None => project::scope(&vault)?,
+    };
     let relative = note::write(
         &vault,
         &NewNote {
-            scope,
+            scope: &scope,
             kind: &arguments.kind,
             title: &title,
             why: &why,

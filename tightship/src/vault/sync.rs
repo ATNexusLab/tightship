@@ -75,7 +75,7 @@ pub fn run() -> Result<(), Failure> {
         return Err(Failure::SyncConflict(vault, paths));
     }
     let notes = note::read_all(&vault)?;
-    let renames = colliding(&notes, &local);
+    let renames = colliding(&notes, &local, note::highest_id(&vault, &notes)?);
     if !renames.is_empty() {
         println!("> Renumbering colliding ids");
         renumber(&vault, &renames)?;
@@ -109,17 +109,17 @@ fn is_under_way(vault: &Path) -> Result<bool, Failure> {
 fn colliding<'notes>(
     notes: &'notes [Note],
     local: &HashSet<PathBuf>,
+    mut highest: u64,
 ) -> Vec<(&'notes Note, String)> {
-    let taken: HashSet<&str> = notes
+    let mut taken: HashSet<&str> = notes
         .iter()
         .filter(|note| !local.contains(&note.path))
         .map(|note| note.field("id"))
-        .filter(|id| !id.is_empty())
         .collect();
-    let mut highest = note::highest_id(notes);
     notes
         .iter()
-        .filter(|note| local.contains(&note.path) && taken.contains(note.field("id")))
+        .filter(|note| local.contains(&note.path) && !note.field("id").is_empty())
+        .filter(|note| !taken.insert(note.field("id")))
         .map(|note| {
             highest += 1;
             (note, format!("mem-{highest:04}"))

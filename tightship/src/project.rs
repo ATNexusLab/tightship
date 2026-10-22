@@ -11,11 +11,7 @@ pub fn scope(vault: &Path) -> Result<String, Failure> {
         .ancestors()
         .find(|folder| folder.join(".git").exists())
         .unwrap_or(&working_directory);
-    let folder_name = top.file_name().unwrap_or_default().to_string_lossy();
-    let name = folder_name
-        .to_lowercase()
-        .trim_start_matches('.')
-        .to_owned();
+    let name = normalize(&top.file_name().unwrap_or_default().to_string_lossy());
     let scopes = scope_folders(vault)?;
     if scopes.contains(&name) {
         return Ok(name);
@@ -29,6 +25,10 @@ pub fn scope(vault: &Path) -> Result<String, Failure> {
         })
         .max_by_key(String::len);
     Ok(prefix.unwrap_or(name))
+}
+
+pub fn normalize(name: &str) -> String {
+    name.to_lowercase().trim_start_matches('.').to_owned()
 }
 
 fn scope_folders(vault: &Path) -> Result<Vec<String>, Failure> {

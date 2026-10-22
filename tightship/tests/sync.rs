@@ -16,17 +16,21 @@ fn sync(sandbox: &Sandbox, vault: &Path) -> Output {
         .envs(IDENTITY))
 }
 
-fn note_text(id: &str, body: &str) -> String {
+fn note_text(scope: &str, id: &str, body: &str) -> String {
     format!(
-        "---\nid: {id}\ntype: gotcha\nproject: all\nwhy: the {id} why costs real time\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-01\n---\n\n# A note\n\n{body}\n"
+        "---\nid: {id}\ntype: gotcha\nproject: {scope}\nwhy: the {id} why costs real time\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-01\n---\n\n# A note\n\n{body}\n"
     )
 }
 
 fn write_note(sandbox: &Sandbox, clone: &str, stem: &str, body: &str) -> PathBuf {
+    write_scoped(sandbox, clone, "all", stem, body)
+}
+
+fn write_scoped(sandbox: &Sandbox, clone: &str, scope: &str, stem: &str, body: &str) -> PathBuf {
     let id = &stem[..8];
     sandbox.write(
-        &format!("{clone}/notes/all/{stem}.md"),
-        &note_text(id, body),
+        &format!("{clone}/notes/{scope}/{stem}.md"),
+        &note_text(scope, id, body),
     )
 }
 
@@ -56,7 +60,18 @@ fn machines(sandbox: &Sandbox, first: &str) -> (PathBuf, PathBuf, PathBuf) {
 }
 
 fn remote_files(sandbox: &Sandbox, remote: &Path) -> String {
-    git(sandbox, remote, &["ls-tree", "-r", "--name-only", "main"])
+    git(
+        sandbox,
+        remote,
+        &[
+            "-c",
+            "core.quotePath=false",
+            "ls-tree",
+            "-r",
+            "--name-only",
+            "main",
+        ],
+    )
 }
 
 #[test]
@@ -146,7 +161,7 @@ fn a_conflict_stops_in_the_rebase_and_the_resolution_is_pushed() {
         ),
     );
 
-    let resolution = note_text("mem-0001", "A's fact. B's fact.");
+    let resolution = note_text("all", "mem-0001", "A's fact. B's fact.");
     fs::write(&conflicting, &resolution).expect("the resolution");
     git(&sandbox, &a, &["add", "notes/all/mem-0001-x.md"]);
     git(
@@ -166,14 +181,22 @@ fn a_conflict_stops_in_the_rebase_and_the_resolution_is_pushed() {
 }
 
 #[test]
-fn an_id_taken_on_both_machines_is_renumbered_with_its_links() {
+fn an_id_taken_on_both_machines_or_twice_locally_is_renumbered_with_its_links() {
     let sandbox = Sandbox::new();
     let (remote, a, b) = machines(&sandbox, "mem-0631-base");
-    write_note(&sandbox, "b", "mem-0632-from-b", "From B.");
+    write_scoped(&sandbox, "b", "orçamento", "mem-0632-from-b", "From B.");
     commit(&sandbox, &b, "vault: b");
     git(&sandbox, &b, &["push", "--quiet"]);
-    write_note(&sandbox, "a", "mem-0632-from-a", "From A.");
+    write_scoped(&sandbox, "a", "orçamento", "mem-0632-from-a", "From A.");
     write_note(&sandbox, "a", "mem-0633-links", "See [[mem-0632-from-a]].");
+    write_note(&sandbox, "a", "mem-0635-first", "Written first.");
+    write_scoped(
+        &sandbox,
+        "a",
+        "orçamento",
+        "mem-0635-second",
+        "Written at once.",
+    );
     commit(&sandbox, &a, "vault: a");
 
     let synced = sync(&sandbox, &a);
@@ -181,20 +204,24 @@ fn an_id_taken_on_both_machines_is_renumbered_with_its_links() {
     assert_succeeds(&synced);
     assert_eq!(
         stdout_of(&synced),
-        "> Recording local changes\n> Fetching the remote\n> Rebasing local commits on the remote\n> Renumbering colliding ids\nmem-0632 → mem-0634 notes/all/mem-0634-from-a.md\n> Pushing\nsynced: 2 pushed, 1 pulled\n"
+        "> Recording local changes\n> Fetching the remote\n> Rebasing local commits on the remote\n> Renumbering colliding ids\n\
+         mem-0632 → mem-0636 notes/orçamento/mem-0636-from-a.md\n\
+         mem-0635 → mem-0637 notes/orçamento/mem-0637-second.md\n\
+         > Pushing\nsynced: 2 pushed, 1 pulled\n"
     );
     let renamed =
-        fs::read_to_string(a.join("notes/all/mem-0634-from-a.md")).expect("the renamed note");
-    assert!(renamed.lines().any(|line| line == "id: mem-0634"));
+        fs::read_to_string(a.join("notes/orçamento/mem-0636-from-a.md")).expect("the renamed note");
+    assert!(renamed.lines().any(|line| line == "id: mem-0636"));
     let links =
         fs::read_to_string(a.join("notes/all/mem-0633-links.md")).expect("the linking note");
-    assert!(links.contains("[[mem-0634-from-a]]"));
+    assert!(links.contains("[[mem-0636-from-a]]"));
     assert_succeeds(&run(sandbox
         .tightship(&["vault", "lint"])
         .env("TIGHTSHIP_VAULT", &a)));
     assert_eq!(
         remote_files(&sandbox, &remote),
-        "notes/all/mem-0631-base.md\nnotes/all/mem-0632-from-b.md\nnotes/all/mem-0633-links.md\nnotes/all/mem-0634-from-a.md"
+        "notes/all/mem-0631-base.md\nnotes/all/mem-0633-links.md\nnotes/all/mem-0635-first.md\n\
+         notes/orçamento/mem-0632-from-b.md\nnotes/orçamento/mem-0636-from-a.md\nnotes/orçamento/mem-0637-second.md"
     );
 }
 

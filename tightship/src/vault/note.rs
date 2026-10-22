@@ -1,9 +1,10 @@
 use std::ffi::OsString;
-use std::fs::{self, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::{self, IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
+use crate::git;
 
 pub struct Note {
     pub path: PathBuf,
@@ -141,7 +142,8 @@ pub fn read_body() -> Result<String, Failure> {
 }
 
 pub fn write(vault: &Path, note: &NewNote) -> Result<PathBuf, Failure> {
-    let id = next_id(&read_all(vault)?);
+    let _lock = lock(vault)?;
+    let id = format!("mem-{:04}", highest_id(vault, &read_all(vault)?)? + 1);
     let slug = slug(note.title);
     let file_name = if slug.is_empty() {
         format!("{id}.md")
@@ -175,28 +177,67 @@ pub fn slug(title: &str) -> String {
     words.join("-").chars().take(60).collect()
 }
 
-pub fn highest_id(notes: &[Note]) -> u64 {
-    notes
-        .iter()
-        .map(|note| note.id_order().0)
-        .filter(|number| *number != u64::MAX)
-        .max()
-        .unwrap_or(0)
+fn lock(vault: &Path) -> Result<File, Failure> {
+    let name = "tightship-new.lock";
+    let path = match git::run(vault, &["rev-parse", "--git-path", name]) {
+        Ok(path) => vault.join(path.trim()),
+        Err(_) => vault.join(format!(".{name}")),
+    };
+    let unwritable = |error| Failure::NoteUnwritable(path.clone(), error);
+    let file = OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(&path)
+        .map_err(unwritable)?;
+    file.lock().map_err(unwritable)?;
+    Ok(file)
 }
 
-pub fn next_id(notes: &[Note]) -> String {
-    format!("mem-{:04}", highest_id(notes) + 1)
+pub fn highest_id(vault: &Path, notes: &[Note]) -> Result<u64, Failure> {
+    let files = markdown_files(vault, &vault.join("notes"))?;
+    let from_names = files
+        .iter()
+        .filter_map(|file| file.file_stem())
+        .map(|stem| stem.to_string_lossy().into_owned());
+    let from_fields = notes.iter().map(|note| note.field("id").to_owned());
+    Ok(from_names
+        .chain(from_fields)
+        .filter_map(|name| name.strip_prefix("mem-")?.split('-').next()?.parse().ok())
+        .max()
+        .unwrap_or(0))
 }
 
 pub fn read_all(vault: &Path) -> Result<Vec<Note>, Failure> {
-    let files = markdown_files(vault, &vault.join("notes"))?;
     let mut notes = Vec::new();
-    for relative in files {
-        let text = fs::read_to_string(vault.join(&relative))
-            .map_err(|error| Failure::NoteUnreadable(relative.clone(), error))?;
+    for (relative, text) in texts(vault)? {
         notes.extend(Note::parse(relative, &text));
     }
     Ok(notes)
+}
+
+pub fn unclosed(vault: &Path) -> Result<Vec<PathBuf>, Failure> {
+    let mut files = Vec::new();
+    for (relative, text) in texts(vault)? {
+        let opens = text
+            .lines()
+            .next()
+            .is_some_and(|line| line.trim_end() == "---");
+        if opens && Note::parse(relative.clone(), &text).is_none() {
+            files.push(relative);
+        }
+    }
+    Ok(files)
+}
+
+fn texts(vault: &Path) -> Result<Vec<(PathBuf, String)>, Failure> {
+    let mut texts = Vec::new();
+    for relative in markdown_files(vault, &vault.join("notes"))? {
+        let text = fs::read_to_string(vault.join(&relative))
+            .map_err(|error| Failure::NoteUnreadable(relative.clone(), error))?;
+        texts.push((relative, text));
+    }
+    Ok(texts)
 }
 
 pub fn markdown_files(vault: &Path, folder: &Path) -> Result<Vec<PathBuf>, Failure> {

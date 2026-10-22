@@ -20,7 +20,7 @@ pub const USAGE: &str = "\
 Usage: tightship vault path
        tightship vault init <folder>
        tightship vault search [--everywhere] <term>...
-       tightship vault new --scope <project|all> --type <preference|decision|gotcha|project>
+       tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project>
                            --title <title> --why <line> --source <user|session|repo>
                            [--tags <a,b>] [--pin] [--created <YYYY-MM-DD>] < body
        tightship vault lint

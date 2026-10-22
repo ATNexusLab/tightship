@@ -17,7 +17,8 @@ folder they set; the plugin never copies it elsewhere.
 
 A note is a `.md` file under `notes/` that opens with a `---` line and closes its front matter with another.
 Any other file there, such as an `index.md` an older tool generated, is not a note: the session start, the
-search, and the lint leave it out.
+search, and the lint leave it out. The lint reports a file that opens with `---` and never closes its front
+matter, and its file name still holds its `id`.
 
 ## A note
 
@@ -26,7 +27,7 @@ characters. Front matter, one `key: value` per line, a list as `[a, b]`:
 
 | Field | Type | Required | Domain | Written by |
 | --- | --- | --- | --- | --- |
-| `id` | string | Yes | `mem-` and four or more digits, unique in the vault | `tightship vault new`, the highest number plus one |
+| `id` | string | Yes | `mem-` and four or more digits, unique in the vault | `tightship vault new`, the highest number of the ids and file names plus one, under a lock |
 | `type` | string | Yes | `preference`, `decision`, `gotcha`, `project`, or `handoff` | The agent; `handoff` only through `tightship vault handoff release` (#6) |
 | `project` | string | Yes | The scope; equal to the note's folder | The agent |
 | `why` | string | Yes | At least 5 words: what not knowing the note would cost | The agent |

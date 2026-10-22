@@ -60,12 +60,13 @@ qualify. `why` states the consequence, never the topic:
 One step. Allocate nothing by hand — the tool stamps the id and the dates:
 
 ```bash
-tightship vault new --scope <project|all> --type <preference|decision|gotcha|project> \
+tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project> \
   --title "..." --why "..." --tags a,b --source <user|session|repo> <<'EOF'
 <body in Markdown>
 EOF
 ```
 
+Leave out `--scope` for a note on the project you are in; pass `--scope all` for one that holds in every project.
 The type follows the gate: a rule the user stated is `preference`, a decision is `decision`, a trap is `gotcha`,
 a project fact is `project`. Then tell the user in one line what landed: `memory: <title> → notes/<scope>/<file>`.
 They veto after the fact; do not interrupt the work to ask first.

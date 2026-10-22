@@ -27,7 +27,7 @@ seemed interesting. The test is the `why` field — if you cannot write in one l
 it would cost later, it does not qualify.
 
 To write one (single step, then tell the user in one line what landed):
-  tightship vault new --scope <project|all> --type <preference|decision|gotcha|project> \\
+  tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project> \\
     --title \"...\" --why \"...\" --tags a,b --source <user|session|repo> <<'EOF'
   <body>
   EOF
