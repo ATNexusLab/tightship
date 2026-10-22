@@ -464,6 +464,26 @@ fn cursor_repository(extra: Vec<(String, String)>) -> Repository {
 }
 
 #[test]
+fn harnesses_naming_different_repositories_fail() {
+    let (path, epic) = piece("content/commands/epic.md", "Open the epic.\n");
+    let repository = cursor_repository(vec![(path.to_owned(), epic)]);
+    let manifest = repository.path("harnesses/cursor/harness.toml");
+    let text = fs::read_to_string(&manifest).expect("the cursor harness");
+    repository.write(
+        "harnesses/cursor/harness.toml",
+        &text.replace(
+            "repository = \"https://github.com/ATNexusLab/tightship\"",
+            "repository = \"https://github.com/fork/tightship\"",
+        ),
+    );
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: the harnesses name different repositories: claude-code \"https://github.com/ATNexusLab/tightship\", cursor \"https://github.com/fork/tightship\"; use one",
+    );
+}
+
+#[test]
 fn the_manifest_lists_the_companions_and_the_options_and_the_catalog_allows_them() {
     let repository = Repository::with(&[
         piece("content/commands/epic.md", "Open the epic.\n"),
