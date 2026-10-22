@@ -26,7 +26,7 @@ pub fn render(
         manifest(root, harness, content.options.as_ref())?.into_bytes(),
     )];
     if let Some(file) = &harness.dist.catalog {
-        written.push((staging.join(file), catalog(harness)?.into_bytes()));
+        written.push((staging.join(file), render::catalog(harness)?.into_bytes()));
     }
     for piece in &content.pieces {
         let file = match piece.kind {
@@ -109,51 +109,6 @@ fn hook_command(part: &Part) -> String {
     format!("{} || {}", guards.join(" || "), hook)
 }
 
-fn catalog(harness: &Harness) -> io::Result<String> {
-    #[derive(Serialize)]
-    struct Owner<'harness> {
-        name: &'harness str,
-    }
-    #[derive(Serialize)]
-    struct Entry<'harness> {
-        name: &'harness str,
-        source: &'static str,
-        description: &'harness str,
-    }
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
-    struct Catalog<'harness> {
-        name: &'harness str,
-        owner: Owner<'harness>,
-        description: &'harness str,
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        allow_cross_marketplace_dependencies_on: Vec<&'harness str>,
-        plugins: [Entry<'harness>; 1],
-    }
-    let plugin = &harness.plugin;
-    let mut marketplaces = Vec::new();
-    for companion in &harness.companions {
-        let marketplace = companion.marketplace(&harness.name)?;
-        if !marketplaces.contains(&marketplace) {
-            marketplaces.push(marketplace);
-        }
-    }
-    let catalog = Catalog {
-        name: &plugin.name,
-        owner: Owner {
-            name: &plugin.author,
-        },
-        description: &plugin.description,
-        allow_cross_marketplace_dependencies_on: marketplaces,
-        plugins: [Entry {
-            name: &plugin.name,
-            source: "./",
-            description: &plugin.description,
-        }],
-    };
-    Ok(serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n")
-}
-
 fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io::Result<String> {
     #[derive(Serialize)]
     struct Author<'harness> {
@@ -171,20 +126,7 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
         variables: serde_json::Map<String, serde_json::Value>,
     }
     let version = render::workspace_version(root)?;
-    let mut variables = serde_json::Map::new();
-    if let Some(file) = options {
-        for option in &file.declared {
-            let mut setting = serde_json::json!({
-                "type": option.kind,
-                "title": render::resolve(&option.title, &file.path, harness)?,
-                "description": render::resolve(&option.description, &file.path, harness)?,
-            });
-            if !option.is_directory() {
-                setting["default"] = serde_json::Value::Bool(true);
-            }
-            variables.insert(option.name.clone(), setting);
-        }
-    }
+    let variables = render::option_settings(options, harness)?;
     let plugin = &harness.plugin;
     let manifest = PluginManifest {
         name: &plugin.name,
@@ -201,30 +143,15 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
 }
 
 fn document(piece: &Piece, harness: &Harness) -> io::Result<String> {
-    let front_matter = piece.front_matter.as_ref().ok_or_else(|| {
-        io::Error::other(format!(
-            "{}: rendered with invalid front matter",
-            piece.path
-        ))
-    })?;
-    let mut fields = vec![
-        ("name", piece.name.as_str()),
-        ("description", front_matter.description.as_str()),
-    ];
-    if let Some(hint) = &front_matter.argument_hint {
-        fields.push(("argument-hint", hint));
-    }
-    if piece.kind == Kind::Agent {
-        fields.push(("tools", &harness.access.read_only));
-        if front_matter.access.as_deref() == Some("read-only") {
-            fields.push(("readonly", "true"));
-        }
-    }
-    let mut document = String::from("---\n");
-    for (key, value) in fields {
-        document.push_str(&format!("{key}: {}\n", serde_json::Value::from(value)));
-    }
-    document.push_str("---\n");
-    document.push_str(&render::resolve(&piece.body, &piece.path, harness)?);
-    Ok(document)
+    let read_only = piece
+        .front_matter
+        .as_ref()
+        .and_then(|front_matter| front_matter.access.as_deref())
+        == Some("read-only");
+    let agent_fields: &[(&str, &str)] = if read_only {
+        &[("readonly", "true")]
+    } else {
+        &[]
+    };
+    render::document(piece, harness, agent_fields)
 }
