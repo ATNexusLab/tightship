@@ -47,7 +47,7 @@ Released in [v1.1.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.1.0
 
 | Epic | Issue | Covers |
 | --- | --- | --- |
-| Antigravity CLI plugin | [#59](https://github.com/ATNexusLab/tightship/issues/59) | NFR-FLEX-03 |
+| Antigravity CLI plugin | [#59](https://github.com/ATNexusLab/tightship/issues/59) | NFR-FLEX-03, FR-INS-09 |
 
 By [BR-01](../requirements/business-rules.md#br-01), it is built alongside M2 and never released before
 it.
@@ -97,6 +97,7 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | FR-INS-06 | #3 | M1 |
 | FR-INS-07 | #8 | M1 |
 | FR-INS-08 | #8 | M1 |
+| FR-INS-09 | #59 | M3 |
 | NFR-FLEX-01 | #8 | M1 |
 | NFR-FLEX-02 | #58 | M2 |
 | NFR-FLEX-03 | #59 | M3 |

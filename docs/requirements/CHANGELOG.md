@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.1.0 — 2026-10-22
+
+The unified installer was shipped by [#64](https://github.com/ATNexusLab/tightship/issues/64) with no
+requirement behind it, and FR-INS-01 still promised an install with no script. The maintainer requires every
+harness to install through it, none by hand.
+
+**Added**
+
+- FR-INS-09, One installer for every harness: `install.sh` and `install.ps1` install the plugin in every
+  supported harness, from the first release that ships it.
+
+**Changed**
+
+- FR-INS-01's story no longer promises an install with no script.
+
 ## 2.0.0 — 2026-10-22
 
 The contract and the repository's `AGENTS.md` made every convention a law, by change request

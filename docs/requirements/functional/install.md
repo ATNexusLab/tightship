@@ -9,7 +9,7 @@ How the plugin is installed, configured, updated, removed, and how the pre-plugi
 ## FR-INS-01 — Install through the harness's plugin mechanism
 
 > As an adopter, I want to install the workflow the way my harness installs any plugin, so that I need no
-> script and no manual copy.
+> manual copy.
 
 The system shall be installable from this repository with the harness's own plugin commands.
 
@@ -198,3 +198,29 @@ options, update, uninstall, and migration.
 
 - **FR-INS-08.1** — Given a supported harness, when the adopter opens its guide, then it holds a section
   for each of the six subjects.
+
+<a id="fr-ins-09"></a>
+
+## FR-INS-09 — One installer for every harness
+
+> As an adopter, I want one installer to set the workflow up in any harness it supports, so that no harness
+> leaves me a step to do by hand.
+
+The system shall install the plugin in every supported harness through the unified `install.sh` and
+`install.ps1`, from the first release that ships that harness, including a harness whose own CLI has no
+install command.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | A harness the installer sends to the docs for a manual install is one the adopter sets up alone, and gets wrong. When the harness's CLI cannot install a plugin, the installer takes another route, such as extracting the plugin into the harness's local plugin folder. |
+| Source | Maintainer, 2026-10-16 |
+| Priority | Must |
+| Status | approved |
+| Milestone | M3 |
+| Since | v2.1.0 |
+
+**Acceptance criteria**
+
+- **FR-INS-09.1** — Given a machine with a supported harness and without the workflow, when the adopter
+  runs `install.sh` or `install.ps1` and picks that harness, then the plugin is installed in it with no
+  step left to the adopter.

@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 2.0.0 · **Date:** 2026-10-22 · [Changelog](CHANGELOG.md)
+**Version:** 2.1.0 · **Date:** 2026-10-22 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -90,6 +90,7 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-INS-06](functional/install.md#fr-ins-06) | Uninstall leaves nothing behind | Should | approved | M1 |
 | [FR-INS-07](functional/install.md#fr-ins-07) | Guided migration from the pre-plugin install | Must | approved | M1 |
 | [FR-INS-08](functional/install.md#fr-ins-08) | Install guide per harness | Must | approved | M1 |
+| [FR-INS-09](functional/install.md#fr-ins-09) | One installer for every harness | Must | approved | M3 |
 | [NFR-FLEX-01](non-functional/flexibility.md#nfr-flex-01) | Claude Code is supported | Must | approved | M1 |
 | [NFR-FLEX-02](non-functional/flexibility.md#nfr-flex-02) | Cursor is supported, editor and command line | Must | approved | M2 |
 | [NFR-FLEX-03](non-functional/flexibility.md#nfr-flex-03) | Antigravity CLI is supported | Must | approved | M3 |
