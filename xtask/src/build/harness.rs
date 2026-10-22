@@ -88,6 +88,8 @@ impl Install {
 #[serde(deny_unknown_fields)]
 pub struct ContractTable {
     pub limit: usize,
+    #[serde(rename = "compaction-notice")]
+    pub compaction_notice: Option<String>,
 }
 
 #[derive(Deserialize)]

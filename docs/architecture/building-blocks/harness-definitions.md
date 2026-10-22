@@ -21,6 +21,8 @@ may name a harness. Each one holds:
 - The denylist the neutrality check applies, across every harness in `harnesses/`, to the canonical content
   and to the binary's sources in `tightship/src/` (#78).
 - `[contract] limit`: the most characters one hook may put in the context (M1, #4).
+- `[contract] compaction-notice`, optional: a line the build puts under the title of the contract's first
+  part, counted against the limit, for a harness whose hooks do not fire after a compaction (#109).
 
 **It never** holds a piece's text. A sentence that only one harness needs is a capability, and its text
 lives here.

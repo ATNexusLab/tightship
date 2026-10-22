@@ -223,6 +223,28 @@ fn a_section_too_long_fails_and_leaves_no_plugin() {
 }
 
 #[test]
+fn the_compaction_notice_counts_against_the_limit() {
+    let repository = Repository::with(&[
+        contract(
+            "",
+            &format!("# Working Contract\n\n## A\n\n{}\n", "a".repeat(9967)),
+        ),
+        (
+            "harnesses/claude-code/harness.toml",
+            HARNESS.replace(
+                "[contract]\nlimit = 10000\n",
+                "[contract]\nlimit = 10000\ncompaction-notice = \"Reload it.\"\n",
+            ),
+        ),
+    ]);
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: content/contract.md:3: the section \"A\" renders to 10012 characters with its title; claude-code takes at most 10000 per hook",
+    );
+}
+
+#[test]
 fn a_gated_file_too_long_fails() {
     let memory = format!("## Memory\n\n{}", "a".repeat(6000));
     let vault = format!("## Vault\n\n{}", "b".repeat(6000));
