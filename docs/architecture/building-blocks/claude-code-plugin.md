@@ -16,8 +16,8 @@ Its first hooks carry the [contract](../concepts/contract.md): `hooks/hooks.json
 of `contract/` at `SessionStart`, each printing its part unless its options are off (M1, #4).
 
 Its `bin/` holds the [tightship binary](tightship-binary.md) and its launcher, and its memory hooks run it at
-`SessionStart` and on each prompt, unless the memory option is off (M1, #5). The manifest declares
-`vault_folder`, a `directory` setting with no default, next to the options.
+`SessionStart`, unless the memory option is off (M1, #5); none runs on a prompt since M4 (#118). The manifest
+declares `vault_folder`, a `directory` setting with no default, next to the options.
 
 One more `SessionStart` hook, on `startup`, runs `tightship hook status-line` whatever the status line option's
 state, since turning the option off is what puts the adopter's status line back. A plugin cannot set

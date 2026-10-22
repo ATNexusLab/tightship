@@ -13,8 +13,9 @@ maintains (M2, #58).
 `hooks/hooks.json` uses camelCase events. The [contract](../concepts/contract.md) reaches the agent through
 `sessionStart` and `beforeSubmitPrompt` hooks that run `${CURSOR_PLUGIN_ROOT}/bin/tightship hook contract-part`
 and print JSON with `additional_context`, the shape of the plugin's `hook-output.json` (M2, #58). Memory
-hooks run the same binary subcommands as in Claude Code, mapped to `sessionStart`, `beforeSubmitPrompt`, and
-`preCompact`; the `preCompact` checkpoint prints `user_message`, the shape of `checkpoint-output.json` (#78).
+hooks run the same binary subcommands as in Claude Code, mapped to `sessionStart` and `preCompact`, and
+`beforeSubmitPrompt` carries only the contract since M4 (#118); the `preCompact` checkpoint prints
+`user_message`, the shape of `checkpoint-output.json` (#78).
 
 `bin/` holds the [tightship binary](tightship-binary.md), its `.cmd` launcher on Windows, and the four release
 targets. Hook commands call the binary by path, never through `sh`, because Cursor runs hooks through PowerShell

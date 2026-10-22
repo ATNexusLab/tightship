@@ -11,7 +11,7 @@ folder they set; the plugin never copies it elsewhere.
 
 ```text
 <vault folder>/
-  AGENTS.md             the vault's rules, from the template
+  AGENTS.md             the plugin's rules block, then the adopter's own text (M4, #118)
   notes/<scope>/        one note per file; <scope> is a project's name or all
 ```
 
@@ -40,6 +40,20 @@ characters. Front matter, one `key: value` per line, a list as `[a, b]`:
 
 The body opens with `# <title>`. A `[[<stem>]]` in it links another note by its file name without `.md`.
 
+## A note's lifetime
+
+Since M4 (#118). A note of `type` `gotcha` or `project`, whose `source` is not `user` and that is not pinned,
+is removed by `tightship vault sync` once more than 30 days separate its `updated` from the machine's date. A
+note with no valid `updated` never expires. In every note that stays, a `[[link]]` to it becomes plain text,
+and that note's `updated` does not change.
+
+## The rules block
+
+Since M4 (#118). The vault's `AGENTS.md` holds the template the installed binary embeds between the lines
+`<!-- tightship:rules:start -->` and `<!-- tightship:rules:end -->`. `vault init` writes the block alone, and
+each sync rewrites it when it is missing or differs, putting it at the top of a file without markers. The text
+outside the markers is the adopter's, and never changes.
+
 ## A handoff
 
 A note of type `handoff`, written only by `tightship vault handoff release` (M1, #6). Its front matter is `id`,
@@ -63,5 +77,4 @@ two sessions that claim at once, only one gets each handoff.
 
 | What | Where | Lifetime |
 | --- | --- | --- |
-| The prompt count of the checkpoint | `checkpoints/<session>` in the plugin's data folder: one integer | Deleted after 7 days without a prompt, and with the plugin on uninstall |
 | The vault's folder for the agent's shell | One `export TIGHTSHIP_VAULT='<folder>'` line in the session's environment file | The session's |

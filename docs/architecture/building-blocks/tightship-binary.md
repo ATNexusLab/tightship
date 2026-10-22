@@ -7,8 +7,8 @@ The one program the plugin ships, with a subcommand per function. Epic #5 builds
 
 | Subcommand | Run by | Does |
 | --- | --- | --- |
-| `tightship hook start\|export\|checkpoint\|prompt` | The plugin's hooks | Puts the [memory](../concepts/memory.md) context and the checkpoints in the session, and exports the vault's folder to it |
-| `tightship vault path\|init\|search\|new\|lint\|sync` | The agent, through its shell | Reads, writes, lints, and syncs the adopter's vault, and creates one from the template |
+| `tightship hook start\|export\|checkpoint` | The plugin's hooks | Puts the [memory](../concepts/memory.md) context and the checkpoint in the session, and exports the vault's folder to it; `hook prompt` is gone since M4 (#118) |
+| `tightship vault path\|init\|search\|new\|lint\|sync` | The agent, through its shell | Reads, writes, lints, and syncs the adopter's vault, and creates one from the template; the sync also expires notes and keeps the rules block (M4, #118) |
 | `tightship vault handoff release\|claim` | The agent, through the command `handoff` (M1, #6) | Writes the project's handoff, or removes it and prints what it removed; never runs git |
 | `tightship hook status-line` | The plugin's hook, at `startup` | Writes the [status line](../concepts/status-line.md) into the user settings while its option is on, follows the plugin's folder, or puts the previous one back (M1, #7; #55) |
 | `tightship status-line render` | Claude Code, Cursor's CLI, and Antigravity CLI, as the status line | Prints the baseline's two rows for the session's JSON (M1, #7; M2, #58; M3, #59) |
