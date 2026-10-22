@@ -1,9 +1,9 @@
 # Curate the vault
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `tightship/`, `content/vault-template/`, `xtask/`
-> **Epic:** —
+> **Epic:** #120
 > **Requirements:** FR-MEM-01, FR-MEM-02, FR-MEM-12, FR-MEM-13
 > **Sprint:** — (outside any sprint, by the maintainer's decision on 2026-10-22)
 
@@ -440,9 +440,9 @@ Then the context that follows holds the checkpoint
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Place the checkpoint only after a compaction | `tightship/src/hook/prompt.rs` (deleted), `tightship/src/hook.rs`, `tightship/src/main.rs`, `tightship/tests/hook.rs` (2 prompt tests removed), `xtask/src/build/claude_code.rs`, `xtask/src/build/cursor.rs`, `xtask/src/build/antigravity_cli.rs`, `xtask/tests/contract.rs`, `xtask/tests/cursor_contract.rs`, `xtask/tests/antigravity_cli_contract.rs`, `xtask/tests/install.rs`, `docs/architecture/` (runtime, memory and security concepts, 4 building blocks), `docs/data-model/vault.md`, `docs/data-model/access-patterns.md`, about 19 files | Scenarios 1 and 2 by tests; 14's checkpoint part in sessions | — |
-| 2 | List the project's debts at session start | `tightship/src/vault/context.rs`, `tightship/src/vault/note.rs` (tags, destination), `tightship/tests/hook.rs`, `docs/architecture/` (runtime, memory concept), `docs/data-model/access-patterns.md`, about 6 files | Scenarios 3 to 5 by tests; 14's debt part in sessions | 1 |
-| 3 | Expire notes at each sync | `tightship/src/vault/expire.rs` (new), `tightship/src/vault/sync.rs`, `tightship/src/vault.rs`, `tightship/src/vault/note.rs` (title), `tightship/src/failure.rs` (`NoteUnremovable`), `tightship/src/vault/handoff.rs` (the rename), `tightship/tests/sync.rs`, `content/vault-template/AGENTS.md` (Lifetime), `docs/architecture/concepts/memory.md`, `docs/data-model/vault.md`, `docs/data-model/access-patterns.md`, about 11 files | Scenarios 6 to 10, and 13's expiry part, by tests | 1 |
-| 4 | Keep the vault's rules block at each sync | `tightship/src/vault/rules.rs` (new), `tightship/src/vault/sync.rs`, `tightship/src/vault/init.rs`, `tightship/src/vault.rs`, `tightship/src/failure.rs` (`RulesBlockBroken`), `tightship/tests/sync.rs`, `tightship/tests/vault.rs`, `content/vault-template/AGENTS.md` (the opening lines, the debts line), `docs/architecture/concepts/memory.md`, `docs/data-model/vault.md`, about 10 files | Scenarios 11 and 12, and 13's block part, by tests | 3 |
+| # | Issue | Title | Scope | Acceptance criterion | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| 1 | #121 | Place the checkpoint only after a compaction | `tightship/src/hook/prompt.rs` (deleted), `tightship/src/hook.rs`, `tightship/src/main.rs`, `tightship/tests/hook.rs` (2 prompt tests removed), `xtask/src/build/claude_code.rs`, `xtask/src/build/cursor.rs`, `xtask/src/build/antigravity_cli.rs`, `xtask/tests/contract.rs`, `xtask/tests/cursor_contract.rs`, `xtask/tests/antigravity_cli_contract.rs`, `xtask/tests/install.rs`, `docs/architecture/` (runtime, memory and security concepts, 4 building blocks), `docs/data-model/vault.md`, `docs/data-model/access-patterns.md`, about 19 files | Scenarios 1 and 2 by tests; 14's checkpoint part in sessions | — |
+| 2 | #122 | List the project's debts at session start | `tightship/src/vault/context.rs`, `tightship/src/vault/note.rs` (tags, destination), `tightship/tests/hook.rs`, `docs/architecture/` (runtime, memory concept), `docs/data-model/access-patterns.md`, about 6 files | Scenarios 3 to 5 by tests; 14's debt part in sessions | 1 |
+| 3 | #123 | Expire notes at each sync | `tightship/src/vault/expire.rs` (new), `tightship/src/vault/sync.rs`, `tightship/src/vault.rs`, `tightship/src/vault/note.rs` (title), `tightship/src/failure.rs` (`NoteUnremovable`), `tightship/src/vault/handoff.rs` (the rename), `tightship/tests/sync.rs`, `content/vault-template/AGENTS.md` (Lifetime), `docs/architecture/concepts/memory.md`, `docs/data-model/vault.md`, `docs/data-model/access-patterns.md`, about 11 files | Scenarios 6 to 10, and 13's expiry part, by tests | 1 |
+| 4 | #124 | Keep the vault's rules block at each sync | `tightship/src/vault/rules.rs` (new), `tightship/src/vault/sync.rs`, `tightship/src/vault/init.rs`, `tightship/src/vault.rs`, `tightship/src/failure.rs` (`RulesBlockBroken`), `tightship/tests/sync.rs`, `tightship/tests/vault.rs`, `content/vault-template/AGENTS.md` (the opening lines, the debts line), `docs/architecture/concepts/memory.md`, `docs/data-model/vault.md`, about 10 files | Scenarios 11 and 12, and 13's block part, by tests | 3 |

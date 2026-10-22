@@ -1,9 +1,9 @@
 # Split the contract into hard lines, conventions, and skills
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `content/`, `harnesses/`, `xtask/`, and this repository's own `AGENTS.md`
-> **Epic:** —
+> **Epic:** #120
 > **Requirements:** FR-CTR-06, FR-CTR-07, NFR-PERF-03, FR-SKL-04, FR-SKL-05, BR-05
 > **Sprint:** — (outside any sprint, by the maintainer's decision on 2026-10-22)
 
@@ -446,8 +446,8 @@ repository that the agent writes through the bootstrap command.
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Split the contract into hard lines and conventions, and move each step's rules to its piece | `content/contract.md`, `content/skills/delivery/SKILL.md` (new), `content/skills/frontend-architecture/SKILL.md`, `content/skills/testing-contract/SKILL.md`, `content/skills/security-audit/SKILL.md`, `content/skills/project-docs/SKILL.md`, `content/skills/technical-writing/SKILL.md`, `content/commands/closeout.md`, `content/commands/spec.md`, `content/commands/epic.md`, `content/commands/sprint.md`, `content/commands/pr-review.md`, `content/commands/audit.md`, `xtask/src/build/contract.rs` (rule 4), `xtask/tests/contract.rs`, `xtask/tests/build.rs` (the count of pieces), `docs/install/claude-code/without-the-contract.md` and `.pt-BR.md`, `docs/install/antigravity-cli/without-the-contract.md` and `.pt-BR.md`, `docs/architecture/concepts/contract.md`, `docs/architecture/building-blocks/build.md`, `docs/architecture/building-blocks/canonical-content.md`, `docs/release/checklist.md`, about 24 files, in two stages: the contract with `delivery` and the build check, then the other pieces and the docs | Scenarios 1 to 4 by tests; 5 and 6 in sessions | — |
-| 2 | Write a lean repository contract and project skills from the bootstrap | `content/commands/bootstrap.md`, `harnesses/claude-code/harness.toml`, `harnesses/cursor/harness.toml`, `harnesses/antigravity-cli/harness.toml`, `xtask/tests/` (the capability check of each harness), `docs/architecture/building-blocks/canonical-content.md`, `docs/architecture/README.md`, about 7 files | Scenarios 7 to 9 in sessions | 1 |
-| 3 | Run the new bootstrap on this repository | `AGENTS.md`, `.agents/skills/gates/SKILL.md` (new), `.agents/skills/release/SKILL.md` (new), `.agents/skills/cursor-plugin/SKILL.md` (moved from `.claude/skills/`), the pointers in `.claude/skills/`, about 6 files | Scenario 10 | 2 |
+| # | Issue | Title | Scope | Acceptance criterion | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| 1 | #125 | Split the contract into hard lines and conventions, and move each step's rules to its piece | `content/contract.md`, `content/skills/delivery/SKILL.md` (new), `content/skills/frontend-architecture/SKILL.md`, `content/skills/testing-contract/SKILL.md`, `content/skills/security-audit/SKILL.md`, `content/skills/project-docs/SKILL.md`, `content/skills/technical-writing/SKILL.md`, `content/commands/closeout.md`, `content/commands/spec.md`, `content/commands/epic.md`, `content/commands/sprint.md`, `content/commands/pr-review.md`, `content/commands/audit.md`, `xtask/src/build/contract.rs` (rule 4), `xtask/tests/contract.rs`, `xtask/tests/build.rs` (the count of pieces), `docs/install/claude-code/without-the-contract.md` and `.pt-BR.md`, `docs/install/antigravity-cli/without-the-contract.md` and `.pt-BR.md`, `docs/architecture/concepts/contract.md`, `docs/architecture/building-blocks/build.md`, `docs/architecture/building-blocks/canonical-content.md`, `docs/release/checklist.md`, about 24 files, in two stages: the contract with `delivery` and the build check, then the other pieces and the docs | Scenarios 1 to 4 by tests; 5 and 6 in sessions | — |
+| 2 | #126 | Write a lean repository contract and project skills from the bootstrap | `content/commands/bootstrap.md`, `harnesses/claude-code/harness.toml`, `harnesses/cursor/harness.toml`, `harnesses/antigravity-cli/harness.toml`, `xtask/tests/` (the capability check of each harness), `docs/architecture/building-blocks/canonical-content.md`, `docs/architecture/README.md`, about 7 files | Scenarios 7 to 9 in sessions | 1 |
+| 3 | #127 | Run the new bootstrap on this repository | `AGENTS.md`, `.agents/skills/gates/SKILL.md` (new), `.agents/skills/release/SKILL.md` (new), `.agents/skills/cursor-plugin/SKILL.md` (moved from `.claude/skills/`), the pointers in `.claude/skills/`, about 6 files | Scenario 10 | 2 |

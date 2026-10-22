@@ -64,13 +64,13 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | FR-CTR-03 | #4 | M1 |
 | FR-CTR-04 | #4, retired in 2.0.0 | M1 |
 | FR-CTR-05 | #8 | M1 |
-| FR-CTR-06 | — | M4 |
-| FR-CTR-07 | — | M4 |
+| FR-CTR-06 | #120 | M4 |
+| FR-CTR-07 | #120 | M4 |
 | FR-SKL-01 | #2 | M1 |
 | FR-SKL-02 | #2 | M1 |
 | FR-SKL-03 | #1 | M1 |
-| FR-SKL-04 | — | M4 |
-| FR-SKL-05 | — | M4 |
+| FR-SKL-04 | #120 | M4 |
+| FR-SKL-05 | #120 | M4 |
 | FR-VER-01 | #2 | M1 |
 | FR-VER-02 | #2 | M1 |
 | FR-MEM-01 | #5 | M1 |
@@ -84,8 +84,8 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | FR-MEM-09 | #5, and #60 for FR-MEM-09.2 | M1, M2 |
 | FR-MEM-10 | #5 | M1 |
 | FR-MEM-11 | #5 | M1 |
-| FR-MEM-12 | — | M4 |
-| FR-MEM-13 | — | M4 |
+| FR-MEM-12 | #120 | M4 |
+| FR-MEM-13 | #120 | M4 |
 | FR-STL-01 | #7 | M1 |
 | FR-STL-02 | #7 | M1 |
 | FR-STL-03 | #7 | M1 |
@@ -110,7 +110,7 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | NFR-REL-01 | #5 | M1 |
 | NFR-PERF-01 | #5 | M1 |
 | NFR-PERF-02 | #5 | M1 |
-| NFR-PERF-03 | — | M4 |
+| NFR-PERF-03 | #120 | M4 |
 | BR-01 | #8 | M1 |
 | BR-02 | #1 | M1 |
 | BR-03 | #1 | M1 |
