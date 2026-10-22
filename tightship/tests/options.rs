@@ -99,6 +99,22 @@ fn disabled_exits_one_when_option_is_on() {
 }
 
 #[test]
+fn disabled_rejects_vault_folder_as_a_usage_error() {
+    let sandbox = Sandbox::new();
+    let path = options_file(&sandbox, "data");
+    fs::create_dir_all(path.parent().expect("parent")).expect("folder");
+    fs::write(&path, "{\"vault_folder\":\"/notes\"}\n").expect("options");
+    let mut command = with_data(&sandbox, "data");
+    command.args(["disabled", "vault_folder"]);
+    let output = run(&mut command);
+    assert_fails_with(
+        &output,
+        "error: vault_folder is a folder, not an on/off option",
+    );
+    assert!(stderr_of(&output).contains("Usage:"));
+}
+
+#[test]
 fn vault_folder_expands_tilde_on_set() {
     let sandbox = Sandbox::new();
     let home = sandbox.path("home");

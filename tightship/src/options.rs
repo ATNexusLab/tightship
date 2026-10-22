@@ -15,6 +15,11 @@ fn options_json() -> Result<PathBuf, Failure> {
 
 pub fn disabled(name: &str) -> Result<bool, Failure> {
     validate_name(name)?;
+    if name == "vault_folder" {
+        return Err(Failure::Usage(
+            "vault_folder is a folder, not an on/off option".to_owned(),
+        ));
+    }
     Ok(!load()?.is_enabled(name)?)
 }
 

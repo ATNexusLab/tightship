@@ -56,22 +56,16 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
     let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
     let mut session_start: Vec<serde_json::Value> = parts
         .iter()
-        .map(|part| {
-            json!({
-                "command": hook_command(part),
-            })
-        })
+        .map(|part| json!({ "command": format!("{binary} hook contract-part {}", part.file) }))
         .collect();
     let mut before_submit = session_start.clone();
     if declares("status_line") {
         session_start.push(json!({ "command": format!("{binary} hook status-line") }));
     }
     if declares("memory") {
-        let memory = format!("{binary} options disabled memory || {binary} hook start");
-        let prompt = format!("{binary} options disabled memory || {binary} hook prompt");
-        let checkpoint = format!("{binary} options disabled memory || {binary} hook checkpoint");
-        session_start.push(json!({ "command": memory }));
-        before_submit.push(json!({ "command": prompt }));
+        session_start.push(json!({ "command": format!("{binary} hook start") }));
+        before_submit.push(json!({ "command": format!("{binary} hook prompt") }));
+        let checkpoint = format!("{binary} hook checkpoint");
         let body = json!({
             "version": 1,
             "hooks": {
@@ -97,16 +91,6 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
     Ok(Some(
         serde_json::to_string_pretty(&body).map_err(io::Error::other)? + "\n",
     ))
-}
-
-fn hook_command(part: &Part) -> String {
-    let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
-    let mut guards = vec![format!("{binary} options disabled contract")];
-    if let Some(gate) = &part.gate {
-        guards.push(format!("{binary} options disabled {gate}"));
-    }
-    let hook = format!("{binary} hook contract-part {}", part.file);
-    format!("{} || {}", guards.join(" || "), hook)
 }
 
 fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io::Result<String> {

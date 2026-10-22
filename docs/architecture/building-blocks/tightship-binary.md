@@ -13,7 +13,7 @@ The one program the plugin ships, with a subcommand per function. Epic #5 builds
 | `tightship hook status-line` | The plugin's hook, at `startup` | Writes the [status line](../concepts/status-line.md) into the user settings while its option is on, follows the plugin's folder, or puts the previous one back (M1, #7; #55) |
 | `tightship status-line render` | Claude Code, Cursor's CLI, and Antigravity CLI, as the status line | Prints the baseline's two rows for the session's JSON (M1, #7; M2, #58; M3, #59) |
 | `tightship hook contract-part <file>` | The plugin's hooks in Cursor (M2, #58) and Antigravity CLI (#89) | Prints one packed contract part from `${TIGHTSHIP_ROOT}/contract/` unless its option is `false` |
-| `tightship options set\|list\|reset\|disabled` | The adopter, and Cursor's hook lines (M2, #58) | Edits `${TIGHTSHIP_DATA}/options.json`; `disabled` exits 0 when the option is `false` |
+| `tightship options set\|list\|reset\|disabled` | The adopter | Edits `${TIGHTSHIP_DATA}/options.json`; `disabled` exits 0 when the option is `false`, and rejects `vault_folder`, which is no on/off option (#99) |
 
 The binary reads `TIGHTSHIP_*` variables, which the hook lines or the launcher of each harness set from that
 harness's own, and falls back to `${TIGHTSHIP_DATA}/options.toml` when an option variable is unset (M3, #59),
