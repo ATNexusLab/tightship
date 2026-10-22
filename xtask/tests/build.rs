@@ -149,6 +149,29 @@ fn a_malformed_token_fails() {
 }
 
 #[test]
+fn a_broken_token_fails() {
+    let repository = Repository::with(&[
+        piece(
+            "content/skills/planning/SKILL.md",
+            &on_line(7, "Load {{skill:\ngrilling}} first."),
+        ),
+        piece(
+            "content/commands/spec.md",
+            &on_line(9, "Load {{skill:grilling} first."),
+        ),
+    ]);
+
+    let output = repository.run("build");
+    for line in [
+        "error: content/skills/planning/SKILL.md:7: \"{{skill:\" is not a token; write {{<kind>:<name>}} on one line",
+        "error: content/skills/planning/SKILL.md:8: \"grilling}}\" is not a token; write {{<kind>:<name>}} on one line",
+        "error: content/commands/spec.md:9: \"{{skill:grilling}\" is not a token; write {{<kind>:<name>}} on one line",
+    ] {
+        assert_fails_with(&output, line);
+    }
+}
+
+#[test]
 fn a_literal_reference_fails() {
     let repository = Repository::with(&[
         piece("content/commands/spec.md", "Write the spec.\n"),
