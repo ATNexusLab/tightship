@@ -98,6 +98,7 @@ struct MockEnvironment {
     bin_dir: PathBuf,
     home_dir: PathBuf,
     downloads_dir: PathBuf,
+    system_temp_dir: PathBuf,
 }
 
 impl MockEnvironment {
@@ -106,7 +107,8 @@ impl MockEnvironment {
         let bin_dir = temp_dir.path().join("bin");
         let home_dir = temp_dir.path().join("home");
         let downloads_dir = temp_dir.path().join("downloads");
-        for folder in [&bin_dir, &home_dir, &downloads_dir] {
+        let system_temp_dir = temp_dir.path().join("tmp");
+        for folder in [&bin_dir, &home_dir, &downloads_dir, &system_temp_dir] {
             fs::create_dir_all(folder).expect("a mock folder");
         }
         fs::write(downloads_dir.join("SKILL.md"), "humanizer\n").expect("the humanizer download");
@@ -115,6 +117,7 @@ impl MockEnvironment {
             bin_dir,
             home_dir,
             downloads_dir,
+            system_temp_dir,
         };
         environment.add_mock_script(
             "curl",
@@ -199,6 +202,9 @@ cp "$source" "$dest"
             .env("HOME", &self.home_dir)
             .env("USERPROFILE", &self.home_dir)
             .env("PATH", self.isolated_path())
+            .env("TMPDIR", &self.system_temp_dir)
+            .env("TEMP", &self.system_temp_dir)
+            .env("TMP", &self.system_temp_dir)
             .stdin(Stdio::null());
         for variable in [
             "TIGHTSHIP_ROOT",
@@ -218,6 +224,7 @@ cp "$source" "$dest"
             .iter()
             .map(|argument| match argument.strip_prefix("--") {
                 Some(name) => Installer::Pwsh.flag(name),
+                None if argument.starts_with('-') => argument.to_string(),
                 None => quoted(argument),
             })
             .collect();
@@ -233,7 +240,8 @@ cp "$source" "$dest"
     New-Item -ItemType Directory -Force -Path (Split-Path $OutFile) | Out-Null
     Copy-Item $source $OutFile
 }}
-& {invocation} {}",
+& {invocation} {}
+exit $LASTEXITCODE",
             arguments.join(" ")
         );
         self.command("pwsh", working_dir)
@@ -689,7 +697,10 @@ fn non_interactive_without_yes_fails_with_standard_input_error() {
         assert_fails_with(
             installer,
             &output,
-            "error: standard input is not a terminal; pass --yes or provide required flags",
+            &format!(
+                "error: standard input is not a terminal; pass {} or provide required flags",
+                installer.flag("yes")
+            ),
         );
     }
 }
@@ -947,7 +958,114 @@ exit 0
             claude_arguments.contains("contract=false"),
             "{installer:?}: {claude_arguments}"
         );
+        let leftovers: Vec<_> = fs::read_dir(&env.system_temp_dir)
+            .expect("read the system temp folder")
+            .collect();
+        assert!(leftovers.is_empty(), "{installer:?}: {leftovers:?}");
     }
+}
+
+#[test]
+fn both_installers_take_help_and_a_harness_name_in_any_case() {
+    for installer in INSTALLERS {
+        let env = MockEnvironment::new();
+        env.add_mock_script("agy", AGY_THAT_INSTALLS);
+
+        let help = env.run_script(installer, &installer.built(), &["-h"]);
+        assert_exit(installer, &help, 0);
+        assert!(
+            String::from_utf8_lossy(&help.stdout)
+                .starts_with(&format!("Usage: {}", installer.file())),
+            "{installer:?}: {}",
+            String::from_utf8_lossy(&help.stdout)
+        );
+
+        let from_dir = from_dir();
+        let output = env.run(
+            installer,
+            &[
+                "--harness",
+                "Antigravity-CLI",
+                "--from-dir",
+                &from_dir,
+                "--yes",
+            ],
+        );
+        assert_exit(installer, &output, 0);
+        assert!(
+            String::from_utf8_lossy(&output.stdout)
+                .contains("Installed tightship for Antigravity CLI."),
+            "{installer:?}: {}",
+            String::from_utf8_lossy(&output.stdout)
+        );
+    }
+}
+
+#[test]
+fn init_vault_expands_the_tilde() {
+    for installer in INSTALLERS {
+        let env = MockEnvironment::new();
+        env.add_mock_script("agy", AGY_THAT_INSTALLS);
+        let working_dir = tempfile::tempdir().expect("a temporary directory");
+
+        let from_dir = from_dir();
+        let output = env.run_piped(
+            installer,
+            &installer.built(),
+            working_dir.path(),
+            &[
+                "--harness",
+                "antigravity-cli",
+                "--vault-folder",
+                "~/v",
+                "--init-vault",
+                "true",
+                "--from-dir",
+                &from_dir,
+                "--yes",
+            ],
+        );
+
+        assert_exit(installer, &output, 0);
+        assert!(env.home_dir.join("v").is_dir(), "{installer:?}");
+        assert_eq!(
+            fs::read_dir(working_dir.path())
+                .expect("read the working folder")
+                .count(),
+            0,
+            "{installer:?}"
+        );
+    }
+}
+
+#[test]
+fn a_failed_install_through_iex_leaves_the_session_open() {
+    let env = MockEnvironment::new();
+
+    let output = env
+        .command("pwsh", &repo_root())
+        .args([
+            "-NoProfile",
+            "-Command",
+            &format!(
+                "Invoke-Expression (Get-Content -Raw {}); \"still here $ErrorActionPreference\"",
+                quoted(&Installer::Pwsh.built().to_string_lossy())
+            ),
+        ])
+        .output()
+        .expect("pwsh executes");
+
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains(
+            "error: standard input is not a terminal; pass -Yes or provide required flags"
+        ),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        String::from_utf8_lossy(&output.stdout).trim_end(),
+        "still here Continue"
+    );
 }
 
 #[test]

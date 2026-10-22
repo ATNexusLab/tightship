@@ -280,6 +280,7 @@ prompt_read() {
   fi
 }
 
+HARNESS=$(printf '%s' "$HARNESS" | tr '[:upper:]' '[:lower:]')
 if [ -n "$HARNESS" ]; then
   case "$HARNESS" in
     all|both)
@@ -312,7 +313,7 @@ else
     SELECTED="$default_selection"
   else
     all_number=$((count + 1))
-    choice=$(prompt_read "Install tightship for: $menu[$all_number] All (default: $(labels_of $default_selection)): " "")
+    choice=$(prompt_read "Install tightship for: $menu[$all_number] All (default: $(labels_of $default_selection)): " "" | tr '[:upper:]' '[:lower:]')
     case "$choice" in
       "")
         SELECTED="$default_selection"
@@ -410,13 +411,14 @@ else
   STATUS_LINE=$(to_bool "the answer" "$ans")
 fi
 
-TMP_DIR=""
+WORK_DIR=""
 cleanup() {
-  if [ -n "$TMP_DIR" ] && [ -d "$TMP_DIR" ]; then
-    rm -rf "$TMP_DIR"
+  if [ -n "$WORK_DIR" ] && [ -d "$WORK_DIR" ]; then
+    rm -rf "$WORK_DIR"
   fi
 }
 trap cleanup EXIT INT TERM
+WORK_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
 
 for harness in $SELECTED; do
   "install_$(harness_field "$harness" id)"

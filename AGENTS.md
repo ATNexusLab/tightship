@@ -103,3 +103,6 @@ translation in the same commit.
 - Zensical parses Markdown with Python-Markdown: a list right under a paragraph line, with no blank line
   between, renders as plain text with literal hyphens, while GitHub shows a list. The lint rule MD032
   catches it.
+- `install.ps1` and its harness parts fail with `throw "error: …"`, never `exit`: under `irm … | iex`,
+  `exit` closes the adopter's terminal. The one `catch` at the top prints the message as a plain line, since pwsh's
+  own rendering wraps it across decorated lines, and exits 1 only when the installer runs as a file.

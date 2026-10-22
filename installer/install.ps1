@@ -1,5 +1,4 @@
 param(
-    [Alias("h")]
     [string]$Harness,
 
     [string]$Contract,
@@ -17,13 +16,22 @@ param(
     [Alias("y")]
     [switch]$Yes,
 
+    [Alias("h")]
     [switch]$Help
 )
 
-$ErrorActionPreference = "Stop"
-
 $ReleaseTag = ""
 $Repository = "{{repository}}"
+
+& {
+$callerEnvironment = @{}
+foreach ($variable in "TIGHTSHIP_DATA", "TIGHTSHIP_SETTINGS", "TIGHTSHIP_ROOT") {
+    $callerEnvironment[$variable] = [Environment]::GetEnvironmentVariable($variable)
+}
+$workDir = Join-Path ([System.IO.Path]::GetTempPath()) ("tightship-" + [System.Guid]::NewGuid().ToString())
+
+try {
+$ErrorActionPreference = "Stop"
 
 if ($Help) {
     Write-Output @"
@@ -40,13 +48,9 @@ Options:
   -InitVault <bool>     Initialize missing vault folder with tightship vault init (default: false)
   -FromDir <path>       Install from a local directory instead of downloading this installer's release
   -Yes, -y              Accept defaults without interactive prompts
-  -Help                 Show this help message
+  -Help, -h             Show this help message
 "@
-    exit 0
-}
-
-function Write-Stderr([string]$Message) {
-    [Console]::Error.WriteLine($Message)
+    return
 }
 
 function Compare-Semver([string]$v1, [string]$v2) {
@@ -80,15 +84,13 @@ function Extract-Version([string]$text) {
 
 $canPrompt = -not [Console]::IsInputRedirected
 if (-not $Yes -and -not $canPrompt) {
-    Write-Stderr "error: standard input is not a terminal; pass --yes or provide required flags"
-    exit 1
+    throw "error: standard input is not a terminal; pass -Yes or provide required flags"
 }
 
 function ConvertTo-Bool([string]$source, [string]$value) {
     if ($value -in @("true", "yes", "y", "on", "1")) { return "true" }
     if ($value -in @("false", "no", "n", "off", "0")) { return "false" }
-    Write-Stderr "error: $source expects true or false; got `"$value`""
-    exit 1
+    throw "error: $source expects true or false; got `"$value`""
 }
 
 function Invoke-Step([string]$description, [scriptblock]$command) {
@@ -96,8 +98,7 @@ function Invoke-Step([string]$description, [scriptblock]$command) {
     $global:LASTEXITCODE = 0
     & $command
     if ($LASTEXITCODE -ne 0) {
-        Write-Stderr "error: $description failed"
-        exit 1
+        throw "error: $description failed"
     }
 }
 
@@ -121,14 +122,12 @@ function Assert-Version([string]$name) {
     $command = $Harnesses[$name].Command
     $minimum = $Harnesses[$name].MinVersion
     if (-not (Get-Command $command -ErrorAction SilentlyContinue)) {
-        Write-Stderr "error: $command $minimum or later is required; found not installed"
-        exit 1
+        throw "error: $command $minimum or later is required; found not installed"
     }
     $raw = & $command --version 2>&1 | Out-String
     $ver = Extract-Version $raw
     if ((Compare-Semver $ver $minimum) -lt 0) {
-        Write-Stderr "error: $command $minimum or later is required; found $ver"
-        exit 1
+        throw "error: $command $minimum or later is required; found $ver"
     }
 }
 
@@ -165,8 +164,7 @@ if ($Harness) {
     } else {
         $found = Find-Harness $value
         if (-not $found) {
-            Write-Stderr "error: unknown harness $Harness; expected {{harness-choices}}"
-            exit 1
+            throw "error: unknown harness $Harness; expected {{harness-choices}}"
         }
         $selected = @($found)
     }
@@ -285,8 +283,25 @@ if ($StatusLine) {
     $finalStatusLine = ConvertTo-Bool "the answer" $ans
 }
 
+New-Item -ItemType Directory -Force -Path $workDir | Out-Null
 foreach ($name in $selected) {
     & "Install-$($Harnesses[$name].Id)"
 }
 
 Write-Output "Installed tightship for $(Join-Labels $selected)."
+$global:LASTEXITCODE = 0
+} catch {
+    [Console]::Error.WriteLine($_.Exception.Message)
+    $global:LASTEXITCODE = 1
+    if ($PSCommandPath) {
+        exit 1
+    }
+} finally {
+    foreach ($variable in $callerEnvironment.Keys) {
+        [Environment]::SetEnvironmentVariable($variable, $callerEnvironment[$variable])
+    }
+    if (Test-Path $workDir) {
+        Remove-Item -Recurse -Force $workDir
+    }
+}
+}

@@ -5,8 +5,7 @@ $cursorSettings = "{{path:config}}/cli-config.json"
 
 function Test-Cursor {
     if (-not $FromDir -and -not $ReleaseTag) {
-        Write-Stderr "error: this install.ps1 belongs to no release; run $Repository/releases/latest/download/install.ps1, or pass -FromDir <folder>"
-        exit 1
+        throw "error: this install.ps1 belongs to no release; run $Repository/releases/latest/download/install.ps1, or pass -FromDir <folder>"
     }
 }
 
@@ -18,8 +17,7 @@ function Read-CursorOptions {
     try {
         $parsed = Get-Content -Raw $optionsFile | ConvertFrom-Json
     } catch {
-        Write-Stderr "error: $optionsFile is not valid JSON"
-        exit 1
+        throw "error: $optionsFile is not valid JSON"
     }
     $options = [ordered]@{ contract = $null; memory = $null; status_line = $null; vault_folder = $null }
     foreach ($name in "contract", "memory", "status_line") {
@@ -54,7 +52,7 @@ function Write-CursorOptions {
 }
 
 function Install-CursorCompanion([string]$name, [string]$repository) {
-    $work = Join-Path ([System.IO.Path]::GetTempPath()) ("tightship-$name-" + [System.Guid]::NewGuid().ToString())
+    $work = Join-Path $workDir "companion-$name"
     New-Item -ItemType Directory -Force -Path $work | Out-Null
     $zipDest = Join-Path $work "$name.zip"
     $url = "https://github.com/$repository/archive/refs/heads/main.zip"
@@ -77,9 +75,6 @@ function Install-CursorCompanion([string]$name, [string]$repository) {
         New-Item -ItemType Directory -Force -Path $dest | Out-Null
         Copy-Item -Path (Join-Path $root.FullName "*") -Destination $dest -Recurse -Force
     }
-    if (Test-Path $work) {
-        Remove-Item -Recurse -Force $work -ErrorAction SilentlyContinue
-    }
 }
 
 function Install-Cursor {
@@ -90,7 +85,7 @@ function Install-Cursor {
     if ($FromDir) {
         $sourceDir = $FromDir
     } else {
-        $tempZipFolder = Join-Path ([System.IO.Path]::GetTempPath()) ("tightship-" + [System.Guid]::NewGuid().ToString())
+        $tempZipFolder = Join-Path $workDir "cursor"
         New-Item -ItemType Directory -Force -Path $tempZipFolder | Out-Null
         $zipDest = Join-Path $tempZipFolder "tightship-cursor.zip"
         $downloadUrl = "$Repository/releases/download/$ReleaseTag/tightship-cursor.zip"
@@ -98,15 +93,12 @@ function Install-Cursor {
         try {
             Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
         } catch {
-            Write-Stderr "error: failed to download tightship-cursor.zip from $downloadUrl"
-            Write-Stderr "hint: if you are running in a local repository clone, run cargo xtask build and pass -FromDir dist\cursor"
-            exit 1
+            throw "error: failed to download tightship-cursor.zip from $downloadUrl`nhint: if you are running in a local repository clone, run cargo xtask build and pass -FromDir dist\cursor"
         }
         Write-Host "> Checking the sha256 of tightship-cursor.zip"
         $zipSha256 = (Get-FileHash -Algorithm SHA256 -Path $zipDest).Hash.ToLowerInvariant()
         if ($zipSha256 -ne $CursorSha256) {
-            Write-Stderr "error: tightship-cursor.zip has sha256 $zipSha256; $ReleaseTag published $CursorSha256"
-            exit 1
+            throw "error: tightship-cursor.zip has sha256 $zipSha256; $ReleaseTag published $CursorSha256"
         }
         $extracted = Join-Path $tempZipFolder "extracted"
         Expand-Archive -Path $zipDest -DestinationPath $extracted -Force
@@ -133,10 +125,6 @@ function Install-Cursor {
     Invoke-Step "Applying the status line option" { Invoke-CursorTightship hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder) {
-        Invoke-Step "Creating the vault at $finalVaultFolder" { Invoke-CursorTightship vault init $finalVaultFolder }
-    }
-
-    if ($tempZipFolder -and (Test-Path $tempZipFolder)) {
-        Remove-Item -Recurse -Force $tempZipFolder -ErrorAction SilentlyContinue
+        Invoke-Step "Creating the vault at $expandedVault" { Invoke-CursorTightship vault init $expandedVault }
     }
 }

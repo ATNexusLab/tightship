@@ -46,7 +46,8 @@ install_cursor_companion() {
   _name="$1"
   _repo="$2"
   _dest="{{path:plugins}}/${_name}"
-  _work=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
+  _work="$WORK_DIR/companion-${_name}"
+  mkdir -p "$_work"
   _zip="${_work}/${_name}.zip"
   _url="https://github.com/${_repo}/archive/refs/heads/main.zip"
   if ! download_file "$_url" "$_zip"; then
@@ -73,7 +74,6 @@ install_cursor_companion() {
   rm -rf "$_dest"
   mkdir -p "$_dest" || return 1
   cp -R "${_root}/." "$_dest/" || return 1
-  rm -rf "$_work"
 }
 
 sync_cursor_plugin() {
@@ -91,8 +91,9 @@ install_cursor() {
   if [ -n "$FROM_DIR" ]; then
     source_dir="$FROM_DIR"
   else
-    TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
-    zip_dest="$TMP_DIR/tightship-cursor.zip"
+    download_dir="$WORK_DIR/cursor"
+    mkdir -p "$download_dir"
+    zip_dest="$download_dir/tightship-cursor.zip"
     download_url="$REPOSITORY/releases/download/$RELEASE_TAG/tightship-cursor.zip"
     echo "> Downloading tightship-cursor.zip $RELEASE_TAG"
     if ! download_file "$download_url" "$zip_dest"; then
@@ -106,8 +107,8 @@ install_cursor() {
       echo "error: tightship-cursor.zip has sha256 $zip_sha256; $RELEASE_TAG published $CURSOR_SHA256" >&2
       exit 1
     fi
-    unzip -q "$zip_dest" -d "$TMP_DIR/extracted"
-    source_dir="$TMP_DIR/extracted"
+    unzip -q "$zip_dest" -d "$download_dir/extracted"
+    source_dir="$download_dir/extracted"
   fi
 
   plugin_target="{{path:plugins}}/tightship"
@@ -122,6 +123,6 @@ install_cursor() {
   step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
-    step "Creating the vault at $VAULT_FOLDER" "$plugin_target/bin/tightship" vault init "$VAULT_FOLDER"
+    step "Creating the vault at $expanded_vault" "$plugin_target/bin/tightship" vault init "$expanded_vault"
   fi
 }

@@ -30,8 +30,9 @@ install_antigravity_cli() {
   if [ -n "$FROM_DIR" ]; then
     source_dir="$FROM_DIR"
   else
-    TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
-    zip_dest="$TMP_DIR/tightship-antigravity-cli.zip"
+    download_dir="$WORK_DIR/antigravity-cli"
+    mkdir -p "$download_dir"
+    zip_dest="$download_dir/tightship-antigravity-cli.zip"
     download_url="$REPOSITORY/releases/download/$RELEASE_TAG/tightship-antigravity-cli.zip"
     echo "> Downloading tightship-antigravity-cli.zip $RELEASE_TAG"
     if ! download_file "$download_url" "$zip_dest"; then
@@ -45,8 +46,8 @@ install_antigravity_cli() {
       echo "error: tightship-antigravity-cli.zip has sha256 $zip_sha256; $RELEASE_TAG published $ANTIGRAVITY_CLI_SHA256" >&2
       exit 1
     fi
-    unzip -q "$zip_dest" -d "$TMP_DIR/extracted"
-    source_dir="$TMP_DIR/extracted"
+    unzip -q "$zip_dest" -d "$download_dir/extracted"
+    source_dir="$download_dir/extracted"
   fi
 
   step "Installing tightship for {{install:label}}" agy plugin install "$source_dir"
@@ -73,6 +74,6 @@ install_antigravity_cli() {
   step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
-    step "Creating the vault at $VAULT_FOLDER" "$plugin_target/bin/tightship" vault init "$VAULT_FOLDER"
+    step "Creating the vault at $expanded_vault" "$plugin_target/bin/tightship" vault init "$expanded_vault"
   fi
 }
