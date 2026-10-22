@@ -56,7 +56,8 @@ next session, on another machine or harness, starts blind on work already in fli
 | `**Repo state:**` | The branch, clean or the dirty files, and each unpushed commit as `<short hash> <subject>` |
 
 A release removes the scope's other handoffs. Two machines that release before syncing leave two until the
-next claim, which prints and removes both.
+next claim, which removes both and prints them. A claim prints only the handoffs it removed itself, so of
+two sessions that claim at once, only one gets each handoff.
 
 ## Outside the vault
 

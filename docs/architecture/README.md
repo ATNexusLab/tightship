@@ -91,8 +91,9 @@ scope's earlier ones, and run `tightship vault sync` to push it. The project's r
 ([memory](concepts/memory.md)).
 
 **The adopter claims a handoff** (M1, #6). The command `handoff claim` has the agent sync the vault, run
-`tightship vault handoff claim`, which prints and removes the scope's handoffs, sync again, and compare each
-handoff with the repository after a `git fetch`. It shows the next step and the open decisions, and waits.
+`tightship vault handoff claim`, which removes each of the scope's handoffs and prints the ones it removed, so
+two sessions that claim at once never both take one, sync again, and compare each handoff with the
+repository after a `git fetch`. It shows the next step and the open decisions, and waits.
 
 **Session start: the status line** (M1, #7; M3, #59). On `startup`, `tightship hook status-line` runs whatever
 the status line option's state. With the option on, it saves the adopter's `statusLine` in the plugin's data

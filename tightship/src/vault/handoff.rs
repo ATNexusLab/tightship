@@ -1,4 +1,5 @@
 use std::fs;
+use std::io;
 use std::path::Path;
 
 use clap::Subcommand;
@@ -89,25 +90,26 @@ fn claim() -> Result<(), Failure> {
     let vault = super::folder()?;
     let scope = project::scope(&vault)?;
     let notes = note::read_all(&vault)?;
-    let handoffs = in_scope(&notes, &scope);
-    if handoffs.is_empty() {
-        println!("no handoff for {scope}");
-        return Ok(());
+    let mut claimed = 0;
+    for handoff in in_scope(&notes, &scope) {
+        match fs::remove_file(vault.join(&handoff.path)) {
+            Err(error) if error.kind() == io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(Failure::HandoffUnremovable(handoff.path.clone(), error)),
+            Ok(()) => {}
+        }
+        if claimed > 0 {
+            println!();
+        }
+        println!(
+            "# Handoff — {scope} · {} · {}\n\n{}",
+            handoff.field("id"),
+            handoff.age(),
+            handoff.body
+        );
+        claimed += 1;
     }
-    let sections: Vec<String> = handoffs
-        .iter()
-        .map(|handoff| {
-            format!(
-                "# Handoff — {scope} · {} · {}\n\n{}\n",
-                handoff.field("id"),
-                handoff.age(),
-                handoff.body
-            )
-        })
-        .collect();
-    print!("{}", sections.join("\n"));
-    for handoff in handoffs {
-        remove(&vault, &handoff.path)?;
+    if claimed == 0 {
+        println!("no handoff for {scope}");
     }
     Ok(())
 }
