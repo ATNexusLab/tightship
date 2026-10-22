@@ -106,3 +106,6 @@ translation in the same commit.
 - `install.ps1` and its harness parts fail with `throw "error: …"`, never `exit`: under `irm … | iex`,
   `exit` closes the adopter's terminal. The one `catch` at the top prints the message as a plain line, since pwsh's
   own rendering wraps it across decorated lines, and exits 1 only when the installer runs as a file.
+- A sentence a command tells the agent to say comes back paraphrased unless the instruction says "word for
+  word". A placeholder in it is written `\<scope\>`: MD033 rejects a bare `<scope>` in prose, and one in
+  backticks reaches the reply with its backticks.
