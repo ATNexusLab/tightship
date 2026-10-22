@@ -336,7 +336,7 @@ fn an_unreadable_vault_or_note_or_data_folder_fails_with_exit_1() {
             r#"{"session_id":"abc"}"#,
         ),
         &format!(
-            "error: cannot write the checkpoint counter {}: Not a directory (os error 20)",
+            "error: cannot write {}: Not a directory (os error 20)",
             sandbox.path("data/checkpoints/abc").display()
         ),
     );
@@ -503,6 +503,18 @@ fn scenario_6_malformed_options_toml_fails_without_blocking_the_session() {
     start_cmd
         .current_dir(&working_directory)
         .env("TIGHTSHIP_DATA", sandbox.path("data"));
+    let output = run(&mut start_cmd);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(
+        stderr_of(&output),
+        format!(
+            "error: {} has an invalid value for contract\n",
+            options_file.display()
+        )
+    );
+
+    sandbox.write("data/options.toml", "contract = \n");
     let output = run(&mut start_cmd);
 
     assert_eq!(output.status.code(), Some(1));

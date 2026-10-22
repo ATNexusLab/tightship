@@ -44,6 +44,7 @@ pub enum Failure {
     StatusRecordUnwritable(PathBuf, io::Error),
     StatusLinePathUnreadable(PathBuf),
     OptionsInvalid(PathBuf),
+    OptionsValueInvalid(PathBuf, String),
     OptionsJsonInvalid(PathBuf),
     OptionsUnknown(String),
     OptionsUnreadable(PathBuf, io::Error),
@@ -87,11 +88,9 @@ impl fmt::Display for Failure {
                 "cannot write the session's environment file {}: {error}",
                 file.display()
             ),
-            Self::DataUnwritable(counter, error) => write!(
-                formatter,
-                "cannot write the checkpoint counter {}: {error}",
-                counter.display()
-            ),
+            Self::DataUnwritable(path, error) => {
+                write!(formatter, "cannot write {}: {error}", path.display())
+            }
             Self::InitNoGit => write!(
                 formatter,
                 "git is not installed; a vault is a git repository, so nothing was created"
@@ -204,6 +203,11 @@ impl fmt::Display for Failure {
             Self::StatusLinePathUnreadable(path) => write!(
                 formatter,
                 "the status line cannot run {}: cmd reads a space or one of & ^ ( ) % ! ; = , in its path, and no 8.3 short name avoids it; move the plugin to a folder without them",
+                path.display()
+            ),
+            Self::OptionsValueInvalid(path, name) => write!(
+                formatter,
+                "{} has an invalid value for {name}",
                 path.display()
             ),
             Self::OptionsInvalid(path) => {

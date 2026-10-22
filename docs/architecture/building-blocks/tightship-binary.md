@@ -17,9 +17,10 @@ The one program the plugin ships, with a subcommand per function. Epic #5 builds
 
 The binary reads `TIGHTSHIP_*` variables, which the hook lines or the launcher of each harness set from that
 harness's own, and falls back to `${TIGHTSHIP_DATA}/options.toml` when an option variable is unset (M3, #59),
-so it names no harness, plus `COLUMNS`, the terminal's width, for the status line (M1, #7). When
-`TIGHTSHIP_HOOK_OUTPUT` names a JSON file, non-empty hook output fills that file's `"{text}"` slot, and the
-binary prints the filled JSON; the harness folder ships that file (M3, #59). The memory checkpoint takes its
+or to no file at all when `TIGHTSHIP_DATA` is unset (#90), so it names no harness, plus `COLUMNS`, the
+terminal's width, for the status line (M1, #7). When `TIGHTSHIP_HOOK_OUTPUT` names a JSON file, non-empty
+hook output fills that file's `"{text}"` slot, and the binary prints the filled JSON; the harness folder
+ships that file (M3, #59). The memory checkpoint takes its
 shape from `TIGHTSHIP_CHECKPOINT_OUTPUT` when it is set. `TIGHTSHIP_STATUS_LINE_COMMAND` replaces the status
 line command the binary writes into the settings, and `status-line render` strips `TIGHTSHIP_MODEL_PREFIX`
 from the model's name (#78). `cargo xtask build` fails when a harness's neutrality term appears in
