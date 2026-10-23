@@ -77,7 +77,7 @@ fn start_lists_the_pinned_notes_of_the_project_then_all() {
              Scope `tightship` and `all`. Before non-trivial work, search them for the subsystem and the task:\n\
              `tightship vault search <term> <term>` — one line per match, its `why` stating\n\
              what not knowing it costs. Open one at `{vault}/<path>`. Rules: `{vault}/AGENTS.md`.\n\
-             Listed below, only the pinned notes. A hint to verify against the repo, never truth.\n\
+             Listed below, the project's debts and the pinned notes. A hint to verify against the repo, never truth.\n\
              Write with `tightship vault new --help`.\n\n\
              ## Scope — tightship\n\n\
              - [[mem-0002-a-note]] (2026-10-01) — the mem-0002 why costs real time\n\n\
@@ -142,6 +142,83 @@ fn start_cuts_the_pinned_notes_at_the_cap() {
         stdout.ends_with(&format!(
             "[{} pinned notes cut at the 9000-character cap — `tightship vault lint` names the scope]\n",
             40 - listed
+        )),
+        "{stdout}"
+    );
+}
+
+#[test]
+fn start_lists_the_project_debts_ahead_of_the_pinned_notes() {
+    let sandbox = Sandbox::new();
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0001",
+        "pinned: true\n",
+        "Pinned here.",
+    );
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0003",
+        "tags: [build, to-repo]\npinned: true\n",
+        "No destination.",
+    );
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0002",
+        "tags: [to-repo]\n",
+        "The fact.\n\n**Moves to:** AGENTS.md",
+    );
+    note(&sandbox, "all", "mem-0004", "tags: [to-repo]\n", "Nowhere.");
+    let working_directory = project(&sandbox, "tightship");
+
+    let output = run(&mut hook(&sandbox, "start", &working_directory));
+
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    assert!(
+        stdout.contains(
+            "\n\n## Debts — move into this repo\n\n\
+             Move each into the file it names, in this work's commit, and delete the note.\n\n\
+             - [[mem-0002-a-note]] → AGENTS.md\n\
+             - [[mem-0003-a-note]] — the mem-0003 why costs real time\n\n\
+             ## Scope — tightship\n\n\
+             - [[mem-0001-a-note]] (2026-10-01) — the mem-0001 why costs real time\n\n\
+             [1 more notes in these scopes — `tightship vault search <terms>`]\n"
+        ),
+        "{stdout}"
+    );
+    assert_eq!(stdout.matches("mem-0003-a-note").count(), 1, "{stdout}");
+    assert!(!stdout.contains("mem-0004"), "{stdout}");
+}
+
+#[test]
+fn start_cuts_the_debts_at_the_cap() {
+    let sandbox = Sandbox::new();
+    for number in 1..=400 {
+        sandbox.write(
+            &format!("vault/notes/tightship/mem-{number:04}-debt.md"),
+            &format!(
+                "---\nid: mem-{number:04}\ntype: project\nproject: tightship\nwhy: {}\ntags: [to-repo]\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-01\n---\n\nA fact.\n",
+                "w".repeat(100)
+            ),
+        );
+    }
+    let working_directory = project(&sandbox, "tightship");
+
+    let output = run(&mut hook(&sandbox, "start", &working_directory));
+
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    assert!(stdout.encode_utf16().count() <= 9000, "{}", stdout.len());
+    let listed = stdout.matches("- [[mem-").count();
+    assert!(listed > 0 && listed < 400, "{listed}");
+    assert!(
+        stdout.ends_with(&format!(
+            "[{} debts cut at the 9000-character cap — tightship vault search to-repo]\n",
+            400 - listed
         )),
         "{stdout}"
     );

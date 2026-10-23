@@ -285,8 +285,8 @@ conforming or an explicit ADR.
 
 The vault is the adopter's git repository of notes, shared across harnesses and machines; `tightship vault
 path` resolves its location. Rules: the vault's own `AGENTS.md`. Memory is a hint to verify against the
-repo, never truth. The session start lists only the pinned notes; every other note I reach with `tightship
-vault search`, never by bulk-loading.
+repo, never truth. The session start lists the project's debts and the pinned notes; every other note I
+reach with `tightship vault search`, never by bulk-loading.
 
 - **Four things enter, nothing else**: a rule you stated · a decision plus its why that outlives the task ·
   a trap that cost real time and will recur · a project fact that lives in no repo. If I cannot write in

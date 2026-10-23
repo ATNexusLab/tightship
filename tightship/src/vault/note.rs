@@ -24,6 +24,22 @@ impl Note {
         self.field("pinned") == "true"
     }
 
+    pub fn is_debt(&self) -> bool {
+        self.field("tags")
+            .trim_start_matches('[')
+            .trim_end_matches(']')
+            .split(',')
+            .any(|tag| tag.trim() == "to-repo")
+    }
+
+    pub fn destination(&self) -> Option<&str> {
+        self.body
+            .lines()
+            .rev()
+            .find_map(|line| line.strip_prefix("**Moves to:**"))
+            .map(str::trim)
+    }
+
     pub fn stem(&self) -> String {
         self.path
             .file_stem()
