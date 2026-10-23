@@ -58,36 +58,29 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
         .iter()
         .map(|part| json!({ "command": format!("{binary} hook contract-part {}", part.file) }))
         .collect();
-    let mut before_submit = session_start.clone();
+    let before_submit = session_start.clone();
     if declares("status_line") {
         session_start.push(json!({ "command": format!("{binary} hook status-line") }));
     }
-    if declares("memory") {
+    let memory = declares("memory");
+    if memory {
         session_start.push(json!({ "command": format!("{binary} hook start") }));
-        before_submit.push(json!({ "command": format!("{binary} hook prompt") }));
-        let checkpoint = format!("{binary} hook checkpoint");
-        let body = json!({
-            "version": 1,
-            "hooks": {
-                "sessionStart": session_start,
-                "beforeSubmitPrompt": before_submit,
-                "preCompact": [{ "command": checkpoint }],
-            },
-        });
-        return Ok(Some(
-            serde_json::to_string_pretty(&body).map_err(io::Error::other)? + "\n",
-        ));
     }
     if session_start.is_empty() {
         return Ok(None);
     }
-    let body = json!({
-        "version": 1,
-        "hooks": {
-            "sessionStart": session_start,
-            "beforeSubmitPrompt": before_submit,
-        },
-    });
+    let mut events = serde_json::Map::new();
+    events.insert("sessionStart".to_owned(), session_start.into());
+    if !before_submit.is_empty() {
+        events.insert("beforeSubmitPrompt".to_owned(), before_submit.into());
+    }
+    if memory {
+        events.insert(
+            "preCompact".to_owned(),
+            json!([{ "command": format!("{binary} hook checkpoint") }]),
+        );
+    }
+    let body = json!({ "version": 1, "hooks": events });
     Ok(Some(
         serde_json::to_string_pretty(&body).map_err(io::Error::other)? + "\n",
     ))

@@ -522,7 +522,7 @@ fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
             "bin/tightship "
         };
         assert!(
-            hooks["tightship"]["PreInvocation"][0]["command"]
+            hooks["tightship"]["SessionStart"][0]["command"]
                 .as_str()
                 .is_some_and(|command| command.starts_with(launcher)),
             "{installer:?}: {hooks}"

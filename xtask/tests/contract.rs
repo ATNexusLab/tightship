@@ -108,9 +108,6 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
                         "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
                     }],
                 }],
-                "UserPromptSubmit": [{
-                    "hooks": [memory_hook("TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" ", "prompt")],
-                }],
             },
         })
     );
@@ -166,15 +163,10 @@ fn the_hooks_honor_the_options() {
         .expect("the SessionStart groups")
         .iter()
         .take(4)
-        .chain(
-            hooks["hooks"]["UserPromptSubmit"]
-                .as_array()
-                .expect("the UserPromptSubmit groups"),
-        )
         .skip(1)
         .map(|group| group["hooks"][0]["command"].as_str().expect("a command"))
         .collect();
-    assert_eq!(memory_lines.len(), 4);
+    assert_eq!(memory_lines.len(), 3);
     for line in &memory_lines {
         assert_eq!(run(line, &memory_off), "", "{line}");
     }

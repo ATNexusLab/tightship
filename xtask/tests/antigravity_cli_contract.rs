@@ -68,7 +68,6 @@ fn the_hooks_name_the_launcher_relative_to_the_plugin_folder_without_quotes() {
                         command("hook start"),
                         command("hook status-line"),
                     ],
-                    "PreInvocation": [command("hook prompt")],
                 }
             }),
             "{file}"

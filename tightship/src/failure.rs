@@ -9,7 +9,6 @@ pub enum Failure {
     VaultUnreadable(PathBuf, io::Error),
     NoteUnreadable(PathBuf, io::Error),
     EnvUnwritable(PathBuf, io::Error),
-    DataUnwritable(PathBuf, io::Error),
     InitNoGit,
     InitNotEmpty(PathBuf),
     InitUnwritable(PathBuf, io::Error),
@@ -88,9 +87,6 @@ impl fmt::Display for Failure {
                 "cannot write the session's environment file {}: {error}",
                 file.display()
             ),
-            Self::DataUnwritable(path, error) => {
-                write!(formatter, "cannot write {}: {error}", path.display())
-            }
             Self::InitNoGit => write!(
                 formatter,
                 "git is not installed; a vault is a git repository, so nothing was created"

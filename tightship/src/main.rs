@@ -58,7 +58,6 @@ enum HookCommand {
     Start,
     Export,
     Checkpoint,
-    Prompt,
     StatusLine,
     ContractPart { file: String },
 }
@@ -130,7 +129,6 @@ fn main() -> ExitCode {
         Area::Hook(HookCommand::Start) => hook::start::run(),
         Area::Hook(HookCommand::Export) => hook::export::run(),
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
-        Area::Hook(HookCommand::Prompt) => hook::prompt::run(),
         Area::Hook(HookCommand::StatusLine) => hook::status_line::run(),
         Area::Hook(HookCommand::ContractPart { file }) => hook::contract_part::run(&file),
         Area::StatusLine(StatusLineCommand::Render) => status::render::run(),

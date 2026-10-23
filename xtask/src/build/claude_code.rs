@@ -135,8 +135,7 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
             ),
         }])
     };
-    let memory = declares("memory");
-    if memory {
+    if declares("memory") {
         let env_file = "TIGHTSHIP_ENV_FILE=\"$CLAUDE_ENV_FILE\" ";
         session_start.extend([
             serde_json::json!({
@@ -167,14 +166,6 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
     }
     let mut events = serde_json::Map::new();
     events.insert("SessionStart".to_owned(), session_start.into());
-    if memory {
-        events.insert(
-            "UserPromptSubmit".to_owned(),
-            serde_json::json!([{
-                "hooks": memory_hook("TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" ", "prompt"),
-            }]),
-        );
-    }
     let hooks = serde_json::json!({ "hooks": events });
     Ok(Some(
         serde_json::to_string_pretty(&hooks).map_err(io::Error::other)? + "\n",

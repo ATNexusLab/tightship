@@ -1,12 +1,11 @@
 #[allow(dead_code)]
 mod common;
 
-use std::fs::{self, File};
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::{Duration, SystemTime};
 
-use common::{Sandbox, assert_succeeds, note, run, stderr_of, stdout_of, with_stdin};
+use common::{Sandbox, assert_succeeds, note, run, stderr_of, stdout_of};
 
 fn project(sandbox: &Sandbox, name: &str) -> PathBuf {
     let folder = sandbox.path(name);
@@ -246,37 +245,12 @@ fn export_writes_the_vault_to_the_environment_and_prints_nothing() {
 }
 
 #[test]
-fn prompt_prints_the_checkpoint_every_10_prompts_and_sweeps_stale_counters() {
+fn prompt_is_no_longer_a_subcommand() {
     let sandbox = Sandbox::new();
-    fs::create_dir_all(sandbox.path("vault")).expect("the vault");
-    let stale = sandbox.write("data/checkpoints/old-session", "3");
-    File::options()
-        .write(true)
-        .open(&stale)
-        .expect("the stale counter")
-        .set_modified(SystemTime::now() - Duration::from_secs(8 * 24 * 60 * 60))
-        .expect("an old modification time");
 
-    let printed: Vec<u32> = (1..=20)
-        .filter(|_| {
-            let output = with_stdin(
-                &mut hook(&sandbox, "prompt", &sandbox.path("")),
-                r#"{"session_id":"abc"}"#,
-            );
-            assert_succeeds(&output);
-            !stdout_of(&output).is_empty()
-        })
-        .collect();
+    let output = run(&mut hook(&sandbox, "prompt", &sandbox.path("")));
 
-    assert_eq!(printed, [10, 20]);
-    let counter = fs::read_to_string(sandbox.path("data/checkpoints/abc")).expect("the counter");
-    assert_eq!(counter, "20");
-    assert!(!stale.exists());
-    assert_succeeds(&with_stdin(
-        &mut hook(&sandbox, "prompt", &sandbox.path("")),
-        r#"{"session_id":"x/y"}"#,
-    ));
-    assert!(sandbox.path("data/checkpoints/x-y").exists());
+    common::assert_fails_with(&output, "error: unknown subcommand prompt");
 }
 
 #[test]
@@ -465,14 +439,6 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
 
-    let mut prompt_cmd = sandbox.tightship(&["hook", "prompt"]);
-    prompt_cmd
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
-    let output = with_stdin(&mut prompt_cmd, r#"{"conversationId":"conv-1"}"#);
-    assert_succeeds(&output);
-    assert_eq!(stdout_of(&output), "");
-
     sandbox.write("data/options.toml", "contract = false\n");
     let mut contract_cmd1 = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
     contract_cmd1
@@ -522,40 +488,6 @@ fn scenario_6_malformed_options_toml_fails_without_blocking_the_session() {
         stderr_of(&output),
         format!("error: {} is not valid TOML\n", options_file.display())
     );
-}
-
-#[test]
-fn scenario_7_prompt_checkpoint_fires_on_every_10th_pre_invocation_using_conversation_id() {
-    let sandbox = Sandbox::new();
-    let vault = sandbox.path("vault");
-    sandbox.write(
-        "data/options.toml",
-        &format!("memory = true\nvault_folder = '{}'\n", vault.display()),
-    );
-
-    for call in 1..=10 {
-        let mut prompt_cmd = sandbox.tightship(&["hook", "prompt"]);
-        prompt_cmd
-            .env("TIGHTSHIP_DATA", sandbox.path("data"))
-            .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
-        let output = with_stdin(&mut prompt_cmd, r#"{"conversationId":"conv-42"}"#);
-        assert_succeeds(&output);
-        let stdout = stdout_of(&output);
-        if call < 10 {
-            assert_eq!(stdout, "", "call {call} must output 0 bytes");
-        } else {
-            let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
-            let msg = json["injectSteps"][0]["systemMessage"]["systemMessage"]
-                .as_str()
-                .unwrap();
-            assert!(
-                msg.starts_with(
-                    "MEMORY CHECKPOINT — did anything this session become a durable fact?"
-                ),
-                "{msg}"
-            );
-        }
-    }
 }
 
 #[test]

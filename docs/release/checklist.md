@@ -91,7 +91,7 @@ On Windows, run every command in Git Bash.
 | FR-MEM-01.1 | Manual: a pinned note in the project's scope is listed at session start. Test: `tightship/tests/hook.rs` `start_lists_the_pinned_notes_of_the_project_then_all` | | | |
 | FR-MEM-01.2 | Manual: after `/tightship:handoff release`, a new session shows the handoff's body. Test: `tightship/tests/hook.rs` `start_shows_the_handoff_apart_from_the_pinned_notes` | | | |
 | FR-MEM-01.3 | Test: `tightship/tests/hook.rs` `start_takes_the_scope_whose_name_prefixes_the_project_folder` | | | |
-| FR-MEM-02.1 | Manual: the 10th prompt of a session shows the checkpoint. Test: `tightship/tests/hook.rs` `prompt_prints_the_checkpoint_every_10_prompts_and_sweeps_stale_counters` | | | |
+| FR-MEM-02.1 | Retired. Manual: 10 prompts of a session show no checkpoint. Test: `tightship/tests/hook.rs` `prompt_is_no_longer_a_subcommand` | | | |
 | FR-MEM-02.2 | Manual: right after `/compact`, the context holds the checkpoint. Test: `tightship/tests/hook.rs` `checkpoint_prints_the_checkpoint_only_with_a_vault` | | | |
 | FR-MEM-03.1 | Test: `tightship/tests/vault.rs` `search_lists_the_project_scope_first` | | | |
 | FR-MEM-03.2 | Test: `tightship/tests/vault.rs` `search_lists_the_project_scope_first` | | | |
@@ -106,7 +106,7 @@ On Windows, run every command in Git Bash.
 | FR-MEM-08.1 | Manual: step 3's vault is a git repository with the template's `AGENTS.md` and no note. Test: `tightship/tests/vault.rs` `init_creates_a_vault_from_the_template` | | | |
 | FR-MEM-08.2 | Test: `tightship/tests/vault.rs` `init_into_a_folder_that_holds_files_changes_nothing` | | | |
 | FR-MEM-09.1 | Manual: with `vault_folder` set to step 3's folder, `tightship vault path` prints it, and a new note lands there. Test: `tightship/tests/vault.rs` `path_prints_the_folder_the_adopter_set` | | | |
-| FR-MEM-10.1 | Manual: with `memory` off, the session start lists no note and the 10th prompt shows no checkpoint | | | |
+| FR-MEM-10.1 | Manual: with `memory` off, the session start lists no note and `/compact` shows no checkpoint | | | |
 | FR-MEM-10.2 | Manual: with `memory` off, `/tightship:handoff release` says memory is off, and the vault is unchanged | | | |
 | FR-MEM-11.1 | Manual: `tightship vault sync` against a bare remote with a note on each side; both hold both. Test: `tightship/tests/sync.rs` `sync_takes_the_remote_notes_and_pushes_the_local_ones` | | | |
 | FR-MEM-11.2 | Test: `tightship/tests/sync.rs` `a_conflict_stops_in_the_rebase_and_the_resolution_is_pushed` | | | |

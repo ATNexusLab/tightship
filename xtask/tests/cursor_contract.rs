@@ -110,7 +110,6 @@ fn cursor_contract_hooks_call_contract_part_on_session_start_and_every_prompt() 
     let part = format!("{binary} hook contract-part part-1.md");
     let memory_part = format!("{binary} hook contract-part memory.md");
     let memory_start = format!("{binary} hook start");
-    let memory_prompt = format!("{binary} hook prompt");
     let memory_checkpoint = format!("{binary} hook checkpoint");
     assert_eq!(hooks["version"], serde_json::json!(1));
     assert_eq!(
@@ -125,8 +124,7 @@ fn cursor_contract_hooks_call_contract_part_on_session_start_and_every_prompt() 
         hooks["hooks"]["beforeSubmitPrompt"],
         serde_json::json!([
             { "command": part },
-            { "command": memory_part },
-            { "command": memory_prompt }
+            { "command": memory_part }
         ])
     );
     assert_eq!(

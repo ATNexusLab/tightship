@@ -130,27 +130,11 @@ fn hooks(
         session_hooks.push(command("hook status-line".to_owned()));
     }
 
-    let mut events = serde_json::Map::new();
-    if !session_hooks.is_empty() {
-        events.insert(
-            "SessionStart".to_owned(),
-            serde_json::Value::Array(session_hooks),
-        );
-    }
-    if declares("memory") {
-        events.insert(
-            "PreInvocation".to_owned(),
-            serde_json::json!([command("hook prompt".to_owned())]),
-        );
-    }
-
-    if events.is_empty() {
+    if session_hooks.is_empty() {
         return Ok(None);
     }
 
-    let mut root = serde_json::Map::new();
-    root.insert("tightship".to_owned(), serde_json::Value::Object(events));
-    let hooks = serde_json::Value::Object(root);
+    let hooks = serde_json::json!({ "tightship": { "SessionStart": session_hooks } });
     Ok(Some(
         serde_json::to_string_pretty(&hooks).map_err(io::Error::other)? + "\n",
     ))
