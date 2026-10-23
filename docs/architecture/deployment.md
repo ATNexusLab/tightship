@@ -70,9 +70,9 @@ every system when the memory option is on.
 
 ## Delivery
 
-The gates in `AGENTS.md` run on the maintainer's machine, and on the three systems at each pull request
-in the [gate pipeline](building-blocks/gate-pipeline.md) (M1, #8). A release is cut from `main` by a tag
-the maintainer pushes when they decide to release; the [release
-pipeline](building-blocks/release-pipeline.md) publishes it as a pre-release, and the maintainer promotes
+The gates of `.agents/skills/gates/SKILL.md` run on the maintainer's machine, and on the three systems at
+each pull request in the [gate pipeline](building-blocks/gate-pipeline.md) (M1, #8). A release is cut from
+`main` by a tag the maintainer pushes when they decide to release; the
+[release pipeline](building-blocks/release-pipeline.md) publishes it as a pre-release, and the maintainer promotes
 it after the [release checklist](../release/checklist.md) passes on macOS, Linux, and Windows (M1, #8;
 M3, #59).

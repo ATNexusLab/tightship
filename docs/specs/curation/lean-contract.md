@@ -169,7 +169,7 @@ Each harness gains the capability `project-skill-pointer`:
 
 | Harness | Value |
 | --- | --- |
-| Claude Code | "For each project skill, `.claude/skills/<name>/SKILL.md` with the same `name` and `description` and the body: Read `.agents/skills/<name>/SKILL.md` and follow it. Claude Code reads no `.agents/skills/`." |
+| Claude Code | "For each project skill, `.claude/skills/<name>/SKILL.md` with the same `name` and `description`, a `# <name>` heading, and the line: Read `.agents/skills/<name>/SKILL.md` and follow it. Claude Code reads no `.agents/skills/`." |
 | Cursor | "Nothing more: Cursor reads `.agents/skills/`." |
 | Antigravity CLI | "Nothing more: Antigravity CLI reads `.agents/skills/`." |
 
