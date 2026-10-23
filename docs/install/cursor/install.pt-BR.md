@@ -31,7 +31,7 @@ Cada pergunta já começa no padrão, então apertar Enter em todas instala com 
 ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Install no resumo:
 
 ```text
-┌  tightship v1.1.1
+┌  tightship v1.2.0
 │
 │  Options
 ◇  Load the working contract in every session?

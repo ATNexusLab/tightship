@@ -53,6 +53,9 @@ Brazilian Portuguese `<file>.pt-BR.md` next to them, updated in the same commit 
 - A sentence a command tells the agent to say comes back paraphrased unless the instruction says "word for
   word". A placeholder in it is written `\<scope\>`: MD033 rejects a bare `<scope>`, and backticks reach the
   reply.
+- macOS runs `install.sh` with bash 3.2, which in a UTF-8 locale reads a non-ASCII byte as part of a
+  variable name: `"$var│"` expands an unset variable. A variable right before a non-ASCII character is
+  written `${var}`.
 
 ## Project skills
 
