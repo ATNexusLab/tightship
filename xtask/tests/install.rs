@@ -359,7 +359,7 @@ exit $LASTEXITCODE",
                 started.elapsed() < Duration::from_secs(90),
                 "{installer:?}: stuck after {answered} answers:
 {}",
-                String::from_utf8_lossy(&output)
+                output.escape_ascii()
             );
             if let Ok(chunk) = receiver.recv_timeout(Duration::from_millis(50)) {
                 output.extend(chunk);
