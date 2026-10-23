@@ -17,6 +17,12 @@ title = "Status line"
 description = "Show the workflow's status line under the prompt"
 
 [[options]]
+name = "auto_update"
+type = "boolean"
+title = "Auto-update"
+description = "Install each new tightship release by itself, and say so at the next session"
+
+[[options]]
 name = "vault_folder"
 type = "directory"
 title = "Vault folder"

@@ -66,6 +66,9 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
     if memory {
         session_start.push(json!({ "command": format!("{binary} hook start") }));
     }
+    if declares("auto_update") {
+        session_start.push(json!({ "command": format!("{binary} hook update") }));
+    }
     if session_start.is_empty() {
         return Ok(None);
     }

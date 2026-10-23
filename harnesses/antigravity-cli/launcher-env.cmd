@@ -8,6 +8,14 @@ if not defined TIGHTSHIP_ROOT (
   )
 )
 
+if not defined TIGHTSHIP_MANIFEST (
+  set "TIGHTSHIP_MANIFEST=%TIGHTSHIP_ROOT%\plugin.json"
+)
+
+if not defined TIGHTSHIP_HARNESS (
+  set "TIGHTSHIP_HARNESS=antigravity-cli"
+)
+
 if not defined TIGHTSHIP_DATA (
   if defined PLUGIN_DATA (
     set "TIGHTSHIP_DATA=%PLUGIN_DATA%"

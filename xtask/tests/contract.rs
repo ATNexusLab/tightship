@@ -37,7 +37,7 @@ fn built_with_memory_gated() -> Repository {
             "[gated]\nMemory = \"memory\"\n",
             "# Working Contract\n\nThe preamble.\n\n## A\n\nRule A.\n\n## Memory\n\nUse the notes.\n\n## B\n\nRule B.\n\n### B.1\n\nA detail.\n\n## C\n\n```sh\n## not a heading\n```\n",
         ),
-        options(&["contract", "memory", "status_line"]),
+        options(&["contract", "memory", "status_line", "auto_update"]),
     ]);
     assert_succeeds(&repository.run("build"));
     repository
@@ -107,6 +107,12 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
                         "type": "command",
                         "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
                     }],
+                }, {
+                    "matcher": "startup",
+                    "hooks": [{
+                        "type": "command",
+                        "command": "TIGHTSHIP_AUTO_UPDATE=\"$CLAUDE_PLUGIN_OPTION_AUTO_UPDATE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_MANIFEST=\"${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook marketplace-auto-update",
+                    }],
                 }],
             },
         })
@@ -173,6 +179,36 @@ fn the_hooks_honor_the_options() {
     assert!(!repository.path("env-file").exists());
     assert!(!repository.path("data").exists());
     assert!(run(memory_lines[0], &[]).starts_with("# Vault — curated cross-harness memory\n"));
+}
+
+#[test]
+fn the_marketplace_hook_writes_auto_update_in_the_user_settings() {
+    let repository = built_with_memory_gated();
+    let hooks: serde_json::Value =
+        serde_json::from_str(&read(&repository, "dist/claude-code/hooks/hooks.json"))
+            .expect("valid JSON");
+    let command = hooks["hooks"]["SessionStart"]
+        .as_array()
+        .expect("the SessionStart groups")
+        .last()
+        .and_then(|group| group["hooks"][0]["command"].as_str())
+        .expect("the marketplace hook");
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(command)
+        .env("CLAUDE_PLUGIN_ROOT", repository.path("dist/claude-code"))
+        .env("CLAUDE_CONFIG_DIR", repository.path("claude"))
+        .env("CLAUDE_PLUGIN_OPTION_AUTO_UPDATE", "false")
+        .output()
+        .expect("sh runs");
+
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let settings: serde_json::Value =
+        serde_json::from_str(&read(&repository, "claude/settings.json")).expect("JSON settings");
+    assert_eq!(
+        settings["extraKnownMarketplaces"]["tightship"]["autoUpdate"],
+        serde_json::json!(false)
+    );
 }
 
 #[test]

@@ -161,6 +161,15 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
             }],
         }));
     }
+    if declares("auto_update") {
+        session_start.push(serde_json::json!({
+            "matcher": "startup",
+            "hooks": [{
+                "type": "command",
+                "command": "TIGHTSHIP_AUTO_UPDATE=\"$CLAUDE_PLUGIN_OPTION_AUTO_UPDATE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_MANIFEST=\"${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook marketplace-auto-update",
+            }],
+        }));
+    }
     if session_start.is_empty() {
         return Ok(None);
     }

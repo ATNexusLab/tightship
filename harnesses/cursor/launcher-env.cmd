@@ -8,6 +8,14 @@ if not defined TIGHTSHIP_ROOT (
   )
 )
 
+if not defined TIGHTSHIP_MANIFEST (
+  set "TIGHTSHIP_MANIFEST=%TIGHTSHIP_ROOT%\.cursor-plugin\plugin.json"
+)
+
+if not defined TIGHTSHIP_HARNESS (
+  set "TIGHTSHIP_HARNESS=cursor"
+)
+
 if not defined TIGHTSHIP_DATA (
   set "TIGHTSHIP_DATA={{path:data}}"
 )

@@ -129,6 +129,9 @@ fn hooks(
     if declares("status_line") {
         session_hooks.push(command("hook status-line".to_owned()));
     }
+    if declares("auto_update") {
+        session_hooks.push(command("hook update".to_owned()));
+    }
 
     if session_hooks.is_empty() {
         return Ok(None);
