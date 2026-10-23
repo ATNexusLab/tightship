@@ -57,6 +57,26 @@ pub enum Failure {
     ContractPartNameInvalid(String),
     ContractPartMissing(PathBuf),
     ContractPartUnreadable(PathBuf, io::Error),
+    ManifestInvalid(PathBuf),
+    UpdateToolMissing(&'static str),
+    UpdateDownloadFailed(String, String),
+    UpdateReleaseInvalid(String),
+    UpdateNoArchive {
+        tag: String,
+        harness: String,
+    },
+    UpdateChecksumFailed(String, String),
+    UpdateIntegrity {
+        archive: String,
+        actual: String,
+        tag: String,
+        expected: String,
+    },
+    UpdateExtractFailed(String, String),
+    UpdateArchiveUnsafe(String, String),
+    UpdateApplyFailed(PathBuf, io::Error),
+    UpdateStateUnwritable(PathBuf, io::Error),
+    UpdateStartFailed(io::Error),
 }
 
 impl fmt::Display for Failure {
@@ -254,6 +274,57 @@ impl fmt::Display for Failure {
                 "cannot read contract part {}: {error}",
                 path.display()
             ),
+            Self::ManifestInvalid(path) => write!(
+                formatter,
+                "{} is not a plugin manifest with a name, a version, and a repository",
+                path.display()
+            ),
+            Self::UpdateToolMissing(tool) => {
+                write!(formatter, "{tool} is not on PATH, and the update needs it")
+            }
+            Self::UpdateDownloadFailed(url, message) => {
+                write!(formatter, "cannot download {url}: {message}")
+            }
+            Self::UpdateReleaseInvalid(url) => write!(
+                formatter,
+                "{url} is not a release description tightship can read"
+            ),
+            Self::UpdateNoArchive { tag, harness } => {
+                write!(formatter, "the release {tag} has no archive for {harness}")
+            }
+            Self::UpdateChecksumFailed(archive, message) => {
+                write!(
+                    formatter,
+                    "cannot compute the sha256 of {archive}: {message}"
+                )
+            }
+            Self::UpdateIntegrity {
+                archive,
+                actual,
+                tag,
+                expected,
+            } => write!(
+                formatter,
+                "{archive} has sha256 {actual}, and the release {tag} published {expected}; nothing changed"
+            ),
+            Self::UpdateExtractFailed(archive, message) => {
+                write!(formatter, "cannot extract {archive}: {message}")
+            }
+            Self::UpdateArchiveUnsafe(archive, entry) => write!(
+                formatter,
+                "{archive} holds {entry}, which is not a plain file; nothing changed"
+            ),
+            Self::UpdateApplyFailed(path, error) => write!(
+                formatter,
+                "cannot replace {}: {error}; every file was put back",
+                path.display()
+            ),
+            Self::UpdateStateUnwritable(path, error) => {
+                write!(formatter, "cannot write {}: {error}", path.display())
+            }
+            Self::UpdateStartFailed(error) => {
+                write!(formatter, "cannot start the update: {error}")
+            }
         }
     }
 }

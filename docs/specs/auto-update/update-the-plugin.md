@@ -195,7 +195,8 @@ file or a folder, such as a symbolic link, fails with `UPDATE_ARCHIVE_UNSAFE` be
 The release's files replace the plugin folder's:
 
 1. Each file of the plugin folder, outside `.update/` and other than `*.tightship-old`, is renamed to
-   `<file>.tightship-old`.
+   `<file>.tightship-old`. A file inside a top-level folder whose name starts with a dot, such as `.git/` or
+   a marketplace's catalog, is renamed only when the release carries a file at its path; otherwise it stays.
 2. Each file of `.update/` is renamed to its place, its folders created first.
 3. A rename that fails puts back, in reverse order, every rename done before it, and fails with
    `UPDATE_APPLY_FAILED`.
@@ -256,6 +257,7 @@ Every message goes to stderr, prefixed by `error:` and a space, and exits 1.
 | `UPDATE_DOWNLOAD_FAILED` | `1` | Rule 8: the download tool exits non-zero | "`` cannot download <url>: <the tool's message> ``" |
 | `UPDATE_RELEASE_INVALID` | `1` | `latest.json` breaks its table | "`` <url> is not a release description tightship can read ``" |
 | `UPDATE_NO_ARCHIVE` | `1` | `assets` has no entry for `TIGHTSHIP_HARNESS` | "`` the release <tag> has no archive for <harness> ``" |
+| `UPDATE_CHECKSUM_FAILED` | `1` | Rule 8: the checksum tool exits non-zero or prints no sha256 | "`` cannot compute the sha256 of <archive>: <the tool's message> ``" |
 | `UPDATE_INTEGRITY` | `1` | Rule 7 | "`` <archive> has sha256 <actual>, and the release <tag> published <expected>; nothing changed ``" |
 | `UPDATE_EXTRACT_FAILED` | `1` | Rule 8: the extract tool exits non-zero | "`` cannot extract <archive>: <the tool's message> ``" |
 | `UPDATE_ARCHIVE_UNSAFE` | `1` | Rule 9 | "`` <archive> holds <entry>, which is not a plain file; nothing changed ``" |

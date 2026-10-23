@@ -7,7 +7,13 @@ use serde_json::Value;
 
 use crate::failure::Failure;
 
-const OPTION_NAMES: &[&str] = &["contract", "memory", "status_line", "vault_folder"];
+const OPTION_NAMES: &[&str] = &[
+    "contract",
+    "memory",
+    "status_line",
+    "auto_update",
+    "vault_folder",
+];
 const BYTE_ORDER_MARK: char = '\u{feff}';
 
 fn options_json() -> Result<PathBuf, Failure> {
@@ -117,6 +123,7 @@ pub struct Options {
     pub contract: bool,
     pub memory: bool,
     pub status_line: bool,
+    pub auto_update: bool,
     pub vault_folder: Option<PathBuf>,
     file: PathBuf,
     table: serde_json::Map<String, Value>,
@@ -175,6 +182,7 @@ pub fn load() -> Result<Options, Failure> {
         contract: true,
         memory: true,
         status_line: true,
+        auto_update: true,
         vault_folder,
         file,
         table,
@@ -182,6 +190,7 @@ pub fn load() -> Result<Options, Failure> {
     options.contract = options.is_enabled("contract")?;
     options.memory = options.is_enabled("memory")?;
     options.status_line = options.is_enabled("status_line")?;
+    options.auto_update = options.is_enabled("auto_update")?;
     Ok(options)
 }
 

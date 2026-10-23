@@ -1,8 +1,10 @@
 pub mod checkpoint;
 pub mod contract_part;
 pub mod export;
+pub mod marketplace_auto_update;
 pub mod start;
 pub mod status_line;
+pub mod update;
 
 use std::env;
 use std::fs::{self, OpenOptions};

@@ -4,6 +4,7 @@ mod hook;
 mod options;
 mod project;
 mod status;
+mod update;
 mod vault;
 
 use std::env;
@@ -32,7 +33,8 @@ Usage: tightship vault path
        tightship options list
        tightship options reset
        tightship options disabled <name>
-       tightship hook contract-part <file>";
+       tightship hook contract-part <file>
+       tightship update";
 
 #[derive(Parser)]
 #[command(name = "tightship")]
@@ -51,6 +53,7 @@ enum Area {
     StatusLine(StatusLineCommand),
     #[command(subcommand)]
     Options(OptionsCommand),
+    Update,
 }
 
 #[derive(Subcommand)]
@@ -60,6 +63,8 @@ enum HookCommand {
     Checkpoint,
     StatusLine,
     ContractPart { file: String },
+    Update,
+    MarketplaceAutoUpdate,
 }
 
 #[derive(Subcommand)]
@@ -131,6 +136,9 @@ fn main() -> ExitCode {
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
         Area::Hook(HookCommand::StatusLine) => hook::status_line::run(),
         Area::Hook(HookCommand::ContractPart { file }) => hook::contract_part::run(&file),
+        Area::Hook(HookCommand::Update) => hook::update::run(),
+        Area::Hook(HookCommand::MarketplaceAutoUpdate) => hook::marketplace_auto_update::run(),
+        Area::Update => update::run(),
         Area::StatusLine(StatusLineCommand::Render) => status::render::run(),
         Area::Options(OptionsCommand::Set { name, value }) => options::set(&name, &value),
         Area::Options(OptionsCommand::List) => options::list(),
