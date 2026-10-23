@@ -13,16 +13,15 @@ of the Antigravity CLI and Cursor zips into the `install.sh` and `install.ps1` (
 assembled, and the installers check that `sha256` before installing each zip. It also writes `latest.json`,
 with the version, the tag, and each zip with its `sha256`, which the plugin's self-update reads from the latest
 release (M4, FR-INS-10, [ADR 0003](../../decisions/0003-the-plugin-updates-itself-from-github-releases.md)).
-It publishes the archives, the catalogs, `latest.json`, and the two installers as a pre-release.
+It publishes the archives, the catalogs, `latest.json`, and the two installers as the latest release.
 The targets and the packing are in [deployment](../deployment.md).
 
-The maintainer installs the pre-release on the three systems, runs the [release
-checklist](../../release/checklist.md), and promotes it to the latest release, whose catalog URL the
-install guide gives.
+The [release checklist](../../release/checklist.md) runs on a build of `develop` on the three systems before
+the merge into `main`; the merge is the promotion.
 
 **It never** publishes a tag on a commit outside `main`, which its first job stops before any build; never
 runs on a push of a branch or on a pull request, which the [gate pipeline](gate-pipeline.md)
-covers; never commits to the repository; and never makes a release the latest by itself.
+covers; and never commits to the repository.
 
 **To change it safely:** the jobs, the package, and their errors are in the
 [epic #8 spec](../../specs/release-m1/release-the-plugin.md) and the

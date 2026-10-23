@@ -52,7 +52,7 @@ well as git.
 | --- | --- | --- |
 | Download | A tampered or truncated archive | The sha256 published in `latest.json` is checked before any file moves. A mismatch changes nothing, and the next session tells the adopter. |
 | Download | A downgrade to an older release with a known flaw | Only a version greater than the installed one is applied. |
-| Download | A pre-release reaches adopters | `releases/latest` never points at a pre-release. A release reaches adopters only after the maintainer promotes it. |
+| Download | An untested release reaches adopters | A release exists only once `develop` passes the release checklist and is merged into `main`, the one branch `release.yml` publishes from. |
 | Transport | A downgrade to cleartext | `curl` runs with `--proto =https,file`, and `powershell` forces TLS 1.2. The repository comes from the plugin's own manifest, which only someone who can already change the plugin can edit. |
 | Archive | A path that escapes the plugin folder, or a symbolic link | After extraction every entry must be a regular file or folder inside the staging folder. Anything else stops the update before a file moves. |
 | Apply | A half-applied update leaves a broken plugin | Each file is renamed aside before the new one takes its place. One failed rename rolls back every rename before it. |
@@ -65,7 +65,7 @@ controls the repository. Signing releases is out of scope for this decision.
 
 ## Consequences
 
-- A promoted release reaches Cursor and Antigravity CLI within a day of the adopter's next session, and Claude
+- A published release reaches Cursor and Antigravity CLI within a day of the adopter's next session, and Claude
   Code within its own auto-update cycle.
 - The next session says what changed, once, and asks nothing.
 - The binary now runs `curl` and `unzip` on macOS and Linux, and `powershell` on Windows. A missing tool fails

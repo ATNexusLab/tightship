@@ -44,7 +44,7 @@ flags), installs the three companions and `tightship`, and writes the options (M
 plugin's catalog, and runs `claude plugin install tightship@tightship`. Claude Code installs the three
 companions as the plugin's dependencies. The catalog committed at the repository root,
 `.claude-plugin/marketplace.json`, has an `archive` source at the latest release's zip, with no `sha256`, so an
-update arrives through the `version` of the promoted release's `plugin.json` and no release changes the file
+update arrives through the `version` of the latest release's `plugin.json` and no release changes the file
 (M1, #8, #48). The adopter chooses the [options](concepts/options.md) in the dialog of `/plugin install`, or
 with `--config <name>=false` on the shell's install, and changes them later with `/plugin configure` or `claude
 plugin configure`. With `auto_update` on, the plugin's `startup` hook turns on Claude Code's auto-update for
@@ -59,7 +59,7 @@ the plugin's data folder, and the companions it installed.
 extracts `tightship-antigravity-cli.zip` and runs `agy plugin install`, writes
 `~/.gemini/config/plugin_data/tightship/options.toml`, and runs `tightship hook status-line`. The adopter
 changes options later by editing `options.toml` or rerunning the installer. With `auto_update` on, the plugin
-updates itself from the latest promoted release; a rerun of the installer or `agy plugin install` also updates
+updates itself from the latest release; a rerun of the installer or `agy plugin install` also updates
 it, and the installer is what updates the companions. Before uninstalling, the adopter sets
 `status_line = false` in `options.toml` and runs `tightship hook status-line` (or opens one session) to
 restore their previous `statusLine`, then removes `~/.gemini/config/plugins/tightship` and
@@ -77,6 +77,6 @@ every system when the memory option is on.
 The gates of `.agents/skills/gates/SKILL.md` run on the maintainer's machine, and on the three systems at
 each pull request in the [gate pipeline](building-blocks/gate-pipeline.md) (M1, #8). A release is cut when
 the maintainer merges a new version of `Cargo.toml` into `main`; the
-[release pipeline](building-blocks/release-pipeline.md) publishes it as a pre-release, and the maintainer promotes
-it after the [release checklist](../release/checklist.md) passes on macOS, Linux, and Windows (M1, #8;
+[release pipeline](building-blocks/release-pipeline.md) publishes it as the latest release. The merge waits
+for the [release checklist](../release/checklist.md) to pass on `develop` on macOS, Linux, and Windows (M1, #8;
 M3, #59).

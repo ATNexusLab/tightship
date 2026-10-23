@@ -152,7 +152,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$TAG" --verify-tag --prerelease \
+          gh release create "$TAG" --verify-tag --latest \
             --title "tightship $TAG" --generate-notes \
             dist/tightship-claude-code.zip dist/tightship-antigravity-cli.zip dist/tightship-cursor.zip \
             dist/marketplace.json dist/cursor-marketplace.json dist/latest.json dist/install.sh dist/install.ps1

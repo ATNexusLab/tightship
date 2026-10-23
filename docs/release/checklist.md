@@ -3,30 +3,27 @@
 One row per acceptance criterion of every functional requirement of M1, the macOS signature, and
 [NFR-FLEX-02.1](../requirements/non-functional/flexibility.md#nfr-flex-02) Scenario 6 for Cursor's
 command-line agent. Run it on macOS, Linux, and Windows for every release, and write ✅ or ❌ with the date
-in each system's column. A release is promoted only when every row passes on all three ([README](README.md)).
+in each system's column. `develop` is released into `main` only when every row passes on all three
+([README](README.md)).
 The Claude rows use the preparation below; the Cursor row uses the Cursor preparation as well.
 
 ## Prepare each system
 
 1. Check that `claude --version` is 2.1.295 or later.
-2. Add the companions' three catalogs and the pre-release's own catalog, then install. The pre-release's
-   catalog goes in a folder of its own, at `.claude-plugin/marketplace.json`, since Claude Code clones every
-   `https://github.com/` URL as a git repository:
+2. From `develop`, run `cargo xtask build` in the clone, add the companions' three catalogs and the build's
+   own catalog, then install:
 
    ```sh
    claude plugin marketplace add DietrichGebert/ponytail
    claude plugin marketplace add ayghri/i-have-adhd
    claude plugin marketplace add blader/humanizer
-   mkdir -p ~/.cache/tightship-catalog/.claude-plugin
-   curl -fsSL -o ~/.cache/tightship-catalog/.claude-plugin/marketplace.json \
-     https://github.com/ATNexusLab/tightship/releases/download/v<version>/marketplace.json
-   claude plugin marketplace add ~/.cache/tightship-catalog
+   claude plugin marketplace add ./dist/claude-code
    claude plugin install tightship@tightship
    ```
 
 3. Create a scratch vault with `tightship vault init <folder>` from a session, and a scratch git repository
    to open the sessions in.
-4. Run `cargo test --workspace` from the tagged commit. Every row marked **Test** passes when the named test
+4. Run `cargo test --workspace` from `develop`. Every row marked **Test** passes when the named test
    passes on that system.
 
 On Windows, run every command in Git Bash.
@@ -36,7 +33,7 @@ On Windows, run every command in Git Bash.
 On the same three systems, after the steps above:
 
 1. Check that the Cursor editor is 3.25.6 or later and `agent --version` reports 2026.10.14 or later.
-2. From the tagged commit, run `cargo xtask build` in the clone so `dist/cursor/` exists.
+2. Reuse the build of Claude preparation step 2, so `dist/cursor/` exists.
 3. Add the three companion catalogs per `docs/install/cursor/companions.md` (marketplace add only; no
    tightship install). Reuse the scratch vault and repository from Claude preparation step 3 when a later row
    needs them; the NFR-FLEX-02.1 row below needs only step 2.
@@ -47,18 +44,18 @@ On Windows, run every command in Git Bash.
 
 | Criterion | How it is checked | macOS | Linux | Windows |
 | --- | --- | --- | --- | --- |
-| FR-INS-01.1 | Manual: after step 2, `claude plugin list` shows `tightship@tightship` at the release's version with no error, and a session lists its skills and commands | | | |
+| FR-INS-01.1 | Manual: after step 2, `claude plugin list` shows `tightship@tightship` at the version of `Cargo.toml` with no error, and a session lists its skills and commands | | | |
 | FR-INS-02.1 | Manual: after step 2, `claude plugin list` shows `ponytail`, `i-have-adhd`, and `humanizer` | | | |
 | FR-INS-02.2 | n/a: Claude Code installs dependencies, so `install.md` adds the companions' catalogs first | n/a | n/a | n/a |
 | FR-INS-03.1 | Manual: reinstall with `--config memory=false --config status_line=false`; the next session has no vault context and no status line offer | | | |
 | FR-INS-03.2 | Manual: install with no `--config`; the next session loads the contract and the vault's pinned notes | | | |
 | FR-INS-04.1 | Manual: `echo '{"memory":"false"}' \| claude plugin configure tightship@tightship --values-stdin`; the next session has no vault context | | | |
-| FR-INS-05.1 | Manual: with `memory` off, run `claude plugin update tightship@tightship` against the next pre-release; `claude plugin configure tightship@tightship` still shows `memory` off. Skipped on the first release, with nothing older to update from | | | |
+| FR-INS-05.1 | Manual: with `memory` off, run `claude plugin update tightship@tightship` against a build of the next version; `claude plugin configure tightship@tightship` still shows `memory` off. Skipped on the first release, with nothing older to update from | | | |
 | FR-INS-06.1 | Manual: follow `docs/install/claude-code/uninstall.md`; `~/.claude` holds no tightship file or option, and `git -C <vault> status` is clean | | | |
 | FR-INS-07.1 | Manual: on a configuration with the baseline merged in, follow `migration.md`; `/hooks` shows no `vault.py` hook, and each skill and command appears once | | | |
 | FR-INS-07.2 | Manual: after the same migration, `diff -r` against the backup shows only the files the migration lists, and the vault's `git status` is clean | | | |
 | FR-INS-08.1 | Manual: `docs/install/claude-code/README.md` links install, companions, options, update, uninstall, and migration | | | |
-| FR-INS-10.1 | Manual: after promoting, the previous release installed in Cursor and in Antigravity CLI reaches this one at the second session start, and `claude plugin marketplace list --json` shows `autoUpdate` on for `tightship`. Test: `tightship/tests/update.rs` `a_newer_release_replaces_the_plugin_and_keeps_the_options`. Skipped on the first release with `latest.json` | | | |
+| FR-INS-10.1 | Manual: once the release is published, the previous release installed in Cursor and in Antigravity CLI reaches this one at the second session start, and `claude plugin marketplace list --json` shows `autoUpdate` on for `tightship`. Test: `tightship/tests/update.rs` `a_newer_release_replaces_the_plugin_and_keeps_the_options`. Skipped on the first release with `latest.json` | | | |
 | FR-INS-10.2 | Manual: the session after that update tells the adopter both versions, and the next one does not. Test: `tightship/tests/update.rs` `the_notice_is_printed_once` | | | |
 | FR-INS-10.3 | Test: `tightship/tests/update.rs` `the_option_off_leaves_the_plugin_as_it_is` | | | |
 | FR-INS-10.4 | Test: `tightship/tests/update.rs` `a_mismatched_checksum_changes_nothing_and_is_announced` | | | |
