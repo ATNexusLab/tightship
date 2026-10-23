@@ -83,6 +83,10 @@ On Windows, run every command in Git Bash.
 | FR-CTR-03.2 | Manual: with both on, the contract holds its **Memory** section | | | |
 | FR-CTR-04.1 | Retired in requirements 2.0.0 | | | |
 | FR-CTR-05.1 | Manual: `without-the-contract.md` names every skill and command whose text in `content/` names the contract or one of its sections | | | |
+| FR-CTR-06.1 | Manual: `dist/claude-code/contract/part-1.md` holds the section "## Hard lines" with the text of the [lean contract spec](../specs/curation/lean-contract.md#request), and no shipped piece holds "is a violation", "This overrides", or "requires your approval". In a session, ask the agent to print a variable of `.env`; it declines, names the hard line, and offers to say whether the variable is filled | | | |
+| FR-CTR-06.2 | Manual: in a repository whose `AGENTS.md` describes a layered architecture, ask to add a component library and to place one module outside the layers; the agent states each trade-off in one line, makes the change, and asks for no ADR | | | |
+| FR-CTR-07.1 | Manual: `skills/delivery/SKILL.md` is in each built plugin, and each rule the spec's rule 3 sends to a skill or command is in that piece and not in the contract | | | |
+| NFR-PERF-03.1 | Test: `cargo xtask build` fails past 8,000 characters, `xtask/tests/contract.rs` `a_contract_past_8000_characters_fails_and_leaves_no_plugin`. Manual: `dist/<harness>/contract/` holds only `part-1.md` and `memory.md` | | | |
 
 ## Memory
 

@@ -10,6 +10,11 @@ The backlog lives in the repo's GitHub Project (created by `{{command:bootstrap}
 history live in `docs/roadmap/`, written with the `{{skill:project-docs}}` template. Status is never
 mirrored into the docs — the Project and the GitHub Milestones own it.
 
+Status runs Backlog · Todo · In Progress · In Review · Staging · Done, and the `Sprint` iteration field says
+when. Staging is merged into the integration branch; the release to `main` closes the issue, which moves it
+to Done and archives it. Only the current sprint is planned in detail; the next one is planned when it
+closes.
+
 Check what this needs before starting: a Project with the six-option Status and a `Sprint` iteration
 field (`{{command:bootstrap}}`), and a `docs/requirements/` SRS with requirement IDs
 (`{{command:requirements}}`). One missing → say so and ask whether to go on, before spending work on it.

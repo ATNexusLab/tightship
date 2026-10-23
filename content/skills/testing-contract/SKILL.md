@@ -5,9 +5,21 @@ description = "Use before writing or changing a test — whether the change earn
 
 # Testing Contract
 
-Whether a test exists and which ones the suite holds is decided in the global contract's **Testing**
-section. This skill is how to write them. The runner, assertion style, and file layout come from the
-repo's own `AGENTS.md` and its existing tests — match what is there.
+Whether a test exists, which ones the suite holds, and how to write them. The runner, assertion style, and
+file layout come from the repo's own `AGENTS.md` and its existing tests — match what is there.
+
+## What earns a test
+
+- **A test exists only when the change alters behavior someone observes and that can break silently** —
+  logic, a business rule, data flow, authorization, a bugfix. Then it comes before the code. Color, style,
+  layout, copy, renames, config, docs, wiring, and dependency bumps get no test, and no justification.
+- **The suite holds the happy path of each operation, the denial on a protected one, and one test per
+  real regression.** A speculative edge, a redundant case, or a generic guard re-tested per route: none.
+- **Revise before adding.** The existing test that covers the behavior is modified; what is neither happy
+  path nor regression is deleted. A new test only when no existing one can absorb the case.
+- **Nothing outside the repo's runner**, which is the one its config sets, never invented. A repo without
+  one gets no test file. Throwaway checks — mutants, verification scripts, self-checks — run in a scratch
+  folder and never stay in the tree.
 
 ## Method
 
