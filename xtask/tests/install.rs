@@ -1,6 +1,6 @@
 use std::ffi::OsString;
 use std::fs;
-use std::io::{Cursor, Read, Write};
+use std::io::{Cursor, ErrorKind, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 use std::sync::mpsc;
@@ -329,14 +329,27 @@ exit $LASTEXITCODE",
         let (sender, receiver) = mpsc::channel();
         std::thread::spawn(move || {
             let mut buffer = [0u8; 4096];
-            while let Ok(read @ 1..) = reader.read(&mut buffer) {
-                if sender.send(buffer[..read].to_vec()).is_err() {
-                    break;
+            let end = loop {
+                match reader.read(&mut buffer) {
+                    Ok(0) => break "end of file".to_string(),
+                    Ok(read) => {
+                        if sender.send(buffer[..read].to_vec()).is_err() {
+                            return;
+                        }
+                    }
+                    Err(error) if error.kind() == ErrorKind::Interrupted => {}
+                    Err(error) => break error.to_string(),
                 }
-            }
+            };
+            let _ = sender.send(format!("\n[the terminal closed: {end}]").into_bytes());
         });
+        let find = |bytes: &[u8], needle: &[u8]| {
+            bytes
+                .windows(needle.len())
+                .position(|window| window == needle)
+        };
 
-        let mut screen = String::new();
+        let mut output = Vec::new();
         let mut consumed = 0;
         let mut answered = 0;
         let mut cursor_replies = 0;
@@ -345,17 +358,22 @@ exit $LASTEXITCODE",
             assert!(
                 started.elapsed() < Duration::from_secs(90),
                 "{installer:?}: stuck after {answered} answers:
-{screen}"
+{}",
+                String::from_utf8_lossy(&output)
             );
             if let Ok(chunk) = receiver.recv_timeout(Duration::from_millis(50)) {
-                screen.push_str(&String::from_utf8_lossy(&chunk));
+                output.extend(chunk);
             }
-            while cursor_replies < screen.matches("\x1b[6n").count() {
+            let cursor_queries = output
+                .windows(4)
+                .filter(|window| *window == b"\x1b[6n")
+                .count();
+            while cursor_replies < cursor_queries {
                 writer.write_all(b"\x1b[1;1R").expect("a cursor reply");
                 cursor_replies += 1;
             }
             if let Some((prompt, keys)) = answers.get(answered)
-                && let Some(position) = screen[consumed..].find(prompt)
+                && let Some(position) = find(&output[consumed..], prompt.as_bytes())
             {
                 consumed += position + prompt.len();
                 std::thread::sleep(Duration::from_millis(150));
@@ -365,11 +383,12 @@ exit $LASTEXITCODE",
             }
             if let Some(status) = child.try_wait().expect("the installer's status") {
                 while let Ok(chunk) = receiver.recv_timeout(Duration::from_millis(300)) {
-                    screen.push_str(&String::from_utf8_lossy(&chunk));
+                    output.extend(chunk);
                 }
                 break status;
             }
         };
+        let screen = String::from_utf8_lossy(&output).into_owned();
         assert_eq!(
             answered,
             answers.len(),

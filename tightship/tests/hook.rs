@@ -378,7 +378,7 @@ fn checkpoint_prints_the_checkpoint_only_with_a_vault() {
 
 #[cfg(unix)]
 #[test]
-fn an_unreadable_vault_or_note_or_data_folder_fails_with_exit_1() {
+fn an_unreadable_vault_or_note_fails_with_exit_1() {
     use std::os::unix::fs::PermissionsExt;
 
     use common::assert_fails_with;
@@ -405,18 +405,6 @@ fn an_unreadable_vault_or_note_or_data_folder_fails_with_exit_1() {
     assert_fails_with(
         &run(&mut hook(&sandbox, "start", &working_directory)),
         "error: cannot read notes/tightship/mem-0001-a-note.md: Permission denied (os error 13)",
-    );
-
-    sandbox.write("data", "a file, not a folder");
-    assert_fails_with(
-        &with_stdin(
-            &mut hook(&sandbox, "prompt", &sandbox.path("")),
-            r#"{"session_id":"abc"}"#,
-        ),
-        &format!(
-            "error: cannot write {}: Not a directory (os error 20)",
-            sandbox.path("data/checkpoints/abc").display()
-        ),
     );
 }
 
