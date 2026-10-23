@@ -6,6 +6,7 @@ pub mod lint;
 pub mod new;
 pub mod note;
 pub mod path;
+pub mod rules;
 pub mod search;
 pub mod sync;
 

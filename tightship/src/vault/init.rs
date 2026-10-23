@@ -22,11 +22,7 @@ pub fn run(folder: &Path) -> Result<(), Failure> {
         return Err(Failure::InitNotEmpty(folder.to_path_buf()));
     }
     fs::create_dir_all(folder.join("notes").join("all")).map_err(unwritable)?;
-    fs::write(
-        folder.join("AGENTS.md"),
-        include_str!("../../../content/vault-template/AGENTS.md"),
-    )
-    .map_err(unwritable)?;
+    fs::write(folder.join("AGENTS.md"), super::rules::block()).map_err(unwritable)?;
     git::run(folder, &["init", "--quiet"])
         .map_err(|message| Failure::InitGitFailed(folder.to_path_buf(), message))?;
     let absolute = path::absolute(folder).map_err(unwritable)?;

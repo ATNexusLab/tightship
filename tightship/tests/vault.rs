@@ -12,7 +12,11 @@ use common::{
     Sandbox, assert_fails_with, assert_succeeds, note, run, stderr_of, stdout_of, with_stdin,
 };
 
-const TEMPLATE: &str = include_str!("../../content/vault-template/AGENTS.md");
+const BLOCK: &str = concat!(
+    "<!-- tightship:rules:start -->\n",
+    include_str!("../../content/vault-template/AGENTS.md"),
+    "<!-- tightship:rules:end -->\n"
+);
 
 #[test]
 fn init_creates_a_vault_from_the_template() {
@@ -26,7 +30,7 @@ fn init_creates_a_vault_from_the_template() {
     assert!(stdout_of(&output).starts_with(&format!("Created the vault at {folder}. Commit it,")));
     assert_eq!(
         fs::read_to_string(vault.join("AGENTS.md")).expect("AGENTS.md"),
-        TEMPLATE
+        BLOCK
     );
     let notes = fs::read_dir(vault.join("notes/all")).expect("notes/all/");
     assert_eq!(notes.count(), 0);

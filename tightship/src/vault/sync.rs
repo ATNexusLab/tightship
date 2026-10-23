@@ -4,8 +4,8 @@ use std::path::{Path, PathBuf};
 
 use jiff::Zoned;
 
-use super::expire;
 use super::note::{self, Note};
+use super::{expire, rules};
 use crate::failure::Failure;
 use crate::git;
 
@@ -29,6 +29,7 @@ pub fn run() -> Result<(), Failure> {
     let remotes = step(&vault, "fetch", &["remote"])?;
     let Some(remote) = remotes.lines().next() else {
         let expired = expire(&vault)?;
+        update_rules(&vault)?;
         println!("kept local — the vault has no git remote; {expired} expired");
         return Ok(());
     };
@@ -85,6 +86,7 @@ pub fn run() -> Result<(), Failure> {
         renumber(&vault, &renames)?;
     }
     let expired = expire(&vault)?;
+    update_rules(&vault)?;
     println!("> Pushing");
     let pushed = step(
         &vault,
@@ -111,6 +113,18 @@ fn expire(vault: &Path) -> Result<usize, Failure> {
         )?;
     }
     Ok(expired)
+}
+
+fn update_rules(vault: &Path) -> Result<(), Failure> {
+    if rules::run(vault)? {
+        step(vault, "commit", &["add", "AGENTS.md"])?;
+        step(
+            vault,
+            "commit",
+            &["commit", "--quiet", "-m", "vault: update the rules"],
+        )?;
+    }
+    Ok(())
 }
 
 fn step(vault: &Path, name: &'static str, arguments: &[&str]) -> Result<String, Failure> {

@@ -1,5 +1,8 @@
 # Vault — cross-harness memory
 
+This block belongs to the plugin: `tightship vault sync` rewrites it to the installed template. Your own
+rules go below it, outside the markers.
+
 This vault is the single curated memory shared by every coding agent across machines. It syncs through a
 private git repo and lives in the folder each machine set; `tightship vault path` prints it. It stores only
 what is NOT derivable from a repo, its git history, or its docs.
@@ -88,7 +91,8 @@ rest — they hold the words the body does not.
 
 A fact that belongs in a repo the current work cannot reach yet is written with the tag `to-repo` and a last
 line `**Moves to:** <file in that repo>`. It is a debt: the next work in that repo moves the content there, in
-that work's commit, and deletes the note.
+that work's commit, and deletes the note. Session start lists the project's debts, each with where it
+moves.
 
 ### Lifetime
 

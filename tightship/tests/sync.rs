@@ -12,6 +12,12 @@ use common::{
     IDENTITY, Sandbox, assert_fails_with, assert_succeeds, commit, git, run, stderr_of, stdout_of,
 };
 
+const BLOCK: &str = concat!(
+    "<!-- tightship:rules:start -->\n",
+    include_str!("../../content/vault-template/AGENTS.md"),
+    "<!-- tightship:rules:end -->\n"
+);
+
 fn sync(sandbox: &Sandbox, vault: &Path) -> Output {
     run(sandbox
         .tightship(&["vault", "sync"])
@@ -61,6 +67,7 @@ fn machines(sandbox: &Sandbox, first: &str) -> (PathBuf, PathBuf, PathBuf) {
         &["clone", "--quiet", "remote.git", "a"],
     );
     git(sandbox, &a, &["symbolic-ref", "HEAD", "refs/heads/main"]);
+    sandbox.write("a/AGENTS.md", BLOCK);
     write_note(sandbox, "a", first, "One fact.");
     commit(sandbox, &a, "vault: start");
     git(sandbox, &a, &["push", "--quiet", "-u", "origin", "main"]);
@@ -106,7 +113,7 @@ fn sync_takes_the_remote_notes_and_pushes_the_local_ones() {
     assert!(a.join("notes/all/mem-0002-b.md").is_file());
     assert_eq!(
         remote_files(&sandbox, &remote),
-        "notes/all/mem-0001-x.md\nnotes/all/mem-0002-b.md\nnotes/all/mem-0003-a.md"
+        "AGENTS.md\nnotes/all/mem-0001-x.md\nnotes/all/mem-0002-b.md\nnotes/all/mem-0003-a.md"
     );
     assert_eq!(
         git(&sandbox, &a, &["log", "-1", "--format=%s"]),
@@ -153,6 +160,7 @@ fn a_vault_with_no_remote_is_committed_kept_local_and_expired() {
     for (stem, front) in &kept {
         write_dated(&sandbox, "vault", stem, front, "# A note\n\nOne fact.");
     }
+    sandbox.write("vault/AGENTS.md", "# My rules\n");
     write_dated(
         &sandbox,
         "vault",
@@ -167,7 +175,7 @@ fn a_vault_with_no_remote_is_committed_kept_local_and_expired() {
     assert_eq!(
         stdout_of(&synced),
         "> Recording local changes\n> Removing expired notes\nexpired notes/all/mem-0007-old.md (updated 2025-01-01)\n\
-         kept local — the vault has no git remote; 1 expired\n"
+         > Updating the vault's rules\nkept local — the vault has no git remote; 1 expired\n"
     );
     assert_eq!(kept.len(), 6);
     for (stem, _) in &kept {
@@ -179,7 +187,7 @@ fn a_vault_with_no_remote_is_committed_kept_local_and_expired() {
     assert!(!vault.join("notes/all/mem-0007-old.md").exists());
     assert_eq!(
         git(&sandbox, &vault, &["log", "--format=%s"]),
-        "vault: expire notes\nvault: sync"
+        "vault: update the rules\nvault: expire notes\nvault: sync"
     );
     assert_eq!(git(&sandbox, &vault, &["status", "--porcelain"]), "");
 }
@@ -242,7 +250,7 @@ fn an_expired_note_and_its_links_leave_the_vault_and_the_remote() {
     );
     assert_eq!(
         remote_files(&sandbox, &remote),
-        "notes/all/mem-0001-x.md\nnotes/all/mem-0003-links.md\nnotes/all/mem-0004-thirty.md\nnotes/all/mem-0005-revised.md"
+        "AGENTS.md\nnotes/all/mem-0001-x.md\nnotes/all/mem-0003-links.md\nnotes/all/mem-0004-thirty.md\nnotes/all/mem-0005-revised.md"
     );
     assert_eq!(
         git(
@@ -358,7 +366,7 @@ fn an_id_taken_on_both_machines_or_twice_locally_is_renumbered_with_its_links() 
         .env("TIGHTSHIP_VAULT", &a)));
     assert_eq!(
         remote_files(&sandbox, &remote),
-        "notes/all/mem-0631-base.md\nnotes/all/mem-0633-links.md\nnotes/all/mem-0635-first.md\n\
+        "AGENTS.md\nnotes/all/mem-0631-base.md\nnotes/all/mem-0633-links.md\nnotes/all/mem-0635-first.md\n\
          notes/orçamento/mem-0632-from-b.md\nnotes/orçamento/mem-0636-from-a.md\nnotes/orçamento/mem-0637-second.md"
     );
 }
@@ -404,4 +412,80 @@ fn no_upstream_and_a_remote_out_of_reach_fail_with_the_next_step() {
         "{}",
         stderr_of(&unreachable)
     );
+}
+
+#[test]
+fn the_rules_block_reaches_an_older_vault_and_stays() {
+    let sandbox = Sandbox::new();
+    let vault = sandbox.path("vault");
+    git(
+        &sandbox,
+        &sandbox.path("."),
+        &["init", "--quiet", "-b", "main", "vault"],
+    );
+    let rules = sandbox.write("vault/AGENTS.md", "# My rules\n");
+
+    let first = sync(&sandbox, &vault);
+
+    assert_succeeds(&first);
+    assert_eq!(
+        stdout_of(&first),
+        "> Recording local changes\n> Updating the vault's rules\n\
+         kept local — the vault has no git remote; 0 expired\n"
+    );
+    let updated = format!("{BLOCK}\n# My rules\n");
+    assert_eq!(fs::read_to_string(&rules).expect("AGENTS.md"), updated);
+    assert_eq!(
+        git(&sandbox, &vault, &["log", "--format=%s"]),
+        "vault: update the rules\nvault: sync"
+    );
+
+    let second = sync(&sandbox, &vault);
+
+    assert_succeeds(&second);
+    assert!(!stdout_of(&second).contains("> Updating the vault's rules"));
+    assert_eq!(fs::read_to_string(&rules).expect("AGENTS.md"), updated);
+
+    sandbox.write(
+        "vault/AGENTS.md",
+        "# My rules\r\n<!-- tightship:rules:start -->\r\nAn older template.\r\n<!-- tightship:rules:end -->\r\n# My rules\r\n",
+    );
+
+    assert_succeeds(&sync(&sandbox, &vault));
+    assert_eq!(
+        fs::read_to_string(&rules).expect("AGENTS.md"),
+        format!("# My rules\r\n{BLOCK}# My rules\r\n")
+    );
+
+    let checked_out = BLOCK.replace('\n', "\r\n");
+    sandbox.write("vault/AGENTS.md", &checked_out);
+    commit(&sandbox, &vault, "vault: a CRLF checkout");
+
+    let unchanged = sync(&sandbox, &vault);
+
+    assert_succeeds(&unchanged);
+    assert!(!stdout_of(&unchanged).contains("> Updating the vault's rules"));
+    assert_eq!(fs::read_to_string(&rules).expect("AGENTS.md"), checked_out);
+
+    fs::remove_file(&rules).expect("AGENTS.md removed");
+
+    assert_succeeds(&sync(&sandbox, &vault));
+    assert_eq!(fs::read_to_string(&rules).expect("AGENTS.md"), BLOCK);
+}
+
+#[test]
+fn a_broken_rules_block_stops_before_the_push() {
+    let sandbox = Sandbox::new();
+    let (remote, a, _) = machines(&sandbox, "mem-0001-x");
+    let before = git(&sandbox, &remote, &["rev-parse", "main"]);
+    sandbox.write(
+        "a/AGENTS.md",
+        "<!-- tightship:rules:start -->\n# My rules\n",
+    );
+
+    assert_fails_with(
+        &sync(&sandbox, &a),
+        "error: the vault's AGENTS.md must hold one <!-- tightship:rules:start --> line followed by one <!-- tightship:rules:end --> line; fix it by hand, then run `tightship vault sync` again",
+    );
+    assert_eq!(git(&sandbox, &remote, &["rev-parse", "main"]), before);
 }

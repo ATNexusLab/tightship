@@ -35,6 +35,7 @@ pub enum Failure {
     },
     SyncConflict(PathBuf, Vec<String>),
     SyncGitFailed(PathBuf, &'static str, String),
+    RulesBlockBroken,
     StatusInputInvalid(String),
     VariableNotSet(&'static str),
     SettingsUnreadable(PathBuf, io::Error),
@@ -167,6 +168,12 @@ impl fmt::Display for Failure {
                 formatter,
                 "git {step} failed in {}: {message}",
                 vault.display()
+            ),
+            Self::RulesBlockBroken => write!(
+                formatter,
+                "the vault's AGENTS.md must hold one {} line followed by one {} line; fix it by hand, then run `tightship vault sync` again",
+                crate::vault::rules::START,
+                crate::vault::rules::END
             ),
             Self::StatusInputInvalid(message) => write!(
                 formatter,
