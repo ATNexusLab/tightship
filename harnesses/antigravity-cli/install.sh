@@ -70,7 +70,6 @@ install_antigravity_cli() {
   } > "$ANTIGRAVITY_CLI_DATA/options.toml"
 
   export TIGHTSHIP_DATA="$ANTIGRAVITY_CLI_DATA"
-  mkdir -p "{{path:config}}"
   step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then

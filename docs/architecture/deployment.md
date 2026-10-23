@@ -22,8 +22,8 @@ The archive of a harness holds its generated plugin and the `tightship` binary f
 | Windows x64 | `.exe`; Windows arm64 runs it emulated |
 
 `bin/tightship` is a `sh` launcher that picks the binary for the machine, and `bin/tightship.cmd` is a Windows
-batch launcher for harnesses such as Antigravity CLI that run hooks under `cmd /c` on Windows (M3, #59). Until
-epic #8, `cargo xtask build` compiles only the target of the machine that builds (M1, #5). On macOS, the
+batch launcher that every plugin ships, for PowerShell, cmd, and hooks run under `cmd /c` (M3, #59, #116).
+Until epic #8, `cargo xtask build` compiles only the target of the machine that builds (M1, #5). On macOS, the
 binary carries the linker's ad-hoc signature only; epic #8 tests that it runs from an archive Claude Code
 downloaded.
 

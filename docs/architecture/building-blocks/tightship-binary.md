@@ -26,8 +26,9 @@ hook's input, when it is set. `TIGHTSHIP_STATUS_LINE_COMMAND` replaces the statu
 writes into the settings, and `status-line render` strips `TIGHTSHIP_MODEL_PREFIX` from the model's name (#78).
 `cargo xtask build` fails when a harness's neutrality term appears in `tightship/src/`.
 
-`bin/tightship` is a `sh` launcher (and `bin/tightship.cmd` is a Windows batch launcher for harnesses that run
-hooks under `cmd /c`, M3, #59) that runs `bin/<platform>/tightship` for the machine, among `macos`,
+`bin/tightship` is a `sh` launcher (and `bin/tightship.cmd` is a Windows batch launcher that PowerShell, cmd,
+and hooks under `cmd /c` find, M3, #59, #116) that runs `bin/<platform>/tightship` for the machine, among
+`macos`,
 `linux-x64`, `linux-arm64`, and `windows-x64`. The plugin's `bin/` is on the `PATH` of the agent's shell tool,
 so a piece calls `tightship` by name. Until epic #8, `cargo xtask build` compiles only the platform of the
 machine that builds. From epic #8, Windows on arm64 runs the `windows-x64` binary emulated, the hooks and the

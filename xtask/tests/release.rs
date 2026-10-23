@@ -170,6 +170,7 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
             "bin/linux-x64/tightship",
             "bin/macos/tightship",
             "bin/tightship",
+            "bin/tightship.cmd",
             "bin/windows-x64/tightship.exe",
         ]
     );

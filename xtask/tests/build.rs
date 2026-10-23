@@ -564,6 +564,11 @@ fn the_launcher_runs_the_binary_built_for_this_machine() {
     fs::create_dir(&vault).expect("a vault folder");
 
     assert_succeeds(&repository.run("build"));
+    assert!(
+        repository
+            .path("dist/claude-code/bin/tightship.cmd")
+            .is_file()
+    );
     let output = Command::new("sh")
         .arg(repository.path("dist/claude-code/bin/tightship"))
         .args(["vault", "path"])

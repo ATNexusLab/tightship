@@ -118,10 +118,6 @@ function Install-Cursor {
     $env:TIGHTSHIP_DATA = $cursorData
     $env:TIGHTSHIP_SETTINGS = $cursorSettings
     $env:TIGHTSHIP_ROOT = $cursorPlugin
-    $configDir = Split-Path $cursorSettings -Parent
-    if (-not (Test-Path $configDir)) {
-        New-Item -ItemType Directory -Force -Path $configDir | Out-Null
-    }
     Invoke-Step "Applying the status line option" { Invoke-CursorTightship hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder) {

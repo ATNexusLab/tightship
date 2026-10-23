@@ -119,7 +119,6 @@ install_cursor() {
   export TIGHTSHIP_DATA="$CURSOR_DATA"
   export TIGHTSHIP_SETTINGS="{{path:config}}/cli-config.json"
   export TIGHTSHIP_ROOT="$plugin_target"
-  mkdir -p "{{path:config}}"
   step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
