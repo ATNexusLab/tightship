@@ -19,8 +19,8 @@ function Read-CursorOptions {
     } catch {
         throw "error: $optionsFile is not valid JSON"
     }
-    $options = [ordered]@{ contract = $null; memory = $null; status_line = $null; vault_folder = $null }
-    foreach ($name in "contract", "memory", "status_line") {
+    $options = [ordered]@{ contract = $null; memory = $null; status_line = $null; auto_update = $null; vault_folder = $null }
+    foreach ($name in "contract", "memory", "status_line", "auto_update") {
         if ($null -ne $parsed.$name) { $options[$name] = ([string]$parsed.$name).ToLowerInvariant() }
     }
     if ($null -ne $parsed.vault_folder) { $options.vault_folder = [string]$parsed.vault_folder }
@@ -43,6 +43,7 @@ function Write-CursorOptions {
         contract    = ($finalContract -eq "true")
         memory      = ($finalMemory -eq "true")
         status_line = ($finalStatusLine -eq "true")
+        auto_update = ($finalAutoUpdate -eq "true")
     }
     if ($finalVaultFolder) {
         $table["vault_folder"] = $finalVaultFolder

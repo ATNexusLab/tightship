@@ -17,8 +17,14 @@ min-version = "2.1.295"
 aliases = ["claude"]
 
 [install.companion-steps.plugin]
-sh = "quietly claude plugin marketplace add {repository}"
-ps1 = "try { & claude plugin marketplace add {repository} *> $null } catch {}"
+sh = """
+quietly claude plugin marketplace add {repository}
+quietly claude plugin marketplace update {marketplace}
+quietly claude plugin update {plugin}@{marketplace}"""
+ps1 = """
+try { & claude plugin marketplace add {repository} *> $null } catch {}
+try { & claude plugin marketplace update {marketplace} *> $null } catch {}
+try { & claude plugin update {plugin}@{marketplace} *> $null } catch {}"""
 
 [references]
 skill = "{plugin}:{name}"

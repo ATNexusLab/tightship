@@ -15,6 +15,7 @@ Options:
   --contract <bool>      Enable the working contract: true or false (default: true)
   --memory <bool>        Enable memory layer: true or false (default: true)
   --status-line <bool>   Enable status line: true or false (default: true)
+  --auto-update <bool>   Install each new release by itself: true or false (default: true)
   --vault-folder <path>  Path to memory vault (e.g. ~/ai-memory)
   --init-vault <bool>    Initialize missing vault folder with tightship vault init (default: false)
   --from-dir <path>      Install from a local directory instead of downloading this installer's release
@@ -217,6 +218,7 @@ HARNESS=""
 CONTRACT_ARG=""
 MEMORY_ARG=""
 STATUS_LINE_ARG=""
+AUTO_UPDATE_ARG=""
 VAULT_FOLDER_ARG=""
 INIT_VAULT_ARG=""
 FROM_DIR=""
@@ -254,6 +256,14 @@ while [ $# -gt 0 ]; do
       ;;
     --status-line=*)
       STATUS_LINE_ARG="${1#*=}"
+      shift
+      ;;
+    --auto-update)
+      AUTO_UPDATE_ARG="$2"
+      shift 2
+      ;;
+    --auto-update=*)
+      AUTO_UPDATE_ARG="${1#*=}"
       shift
       ;;
     --vault-folder)
@@ -599,6 +609,7 @@ done
 existing_contract=""
 existing_memory=""
 existing_status_line=""
+existing_auto_update=""
 existing_vault_folder=""
 
 for harness in $SELECTED; do
@@ -621,7 +632,7 @@ yes_no() {
   fi
 }
 
-if [ "$YES" -eq 0 ] && { [ -z "$CONTRACT_ARG" ] || [ -z "$MEMORY_ARG" ] || [ -z "$STATUS_LINE_ARG" ]; }; then
+if [ "$YES" -eq 0 ] && { [ -z "$CONTRACT_ARG" ] || [ -z "$MEMORY_ARG" ] || [ -z "$STATUS_LINE_ARG" ] || [ -z "$AUTO_UPDATE_ARG" ]; }; then
   section "Options"
 fi
 
@@ -656,6 +667,17 @@ else
     "Replaces your statusLine and restores it when off. $(kept_default "$existing_status_line" "$(yes_no "$existing_status_line")")" \
     "${existing_status_line:-true}"
   STATUS_LINE="$ANSWER"
+fi
+
+if [ -n "$AUTO_UPDATE_ARG" ]; then
+  AUTO_UPDATE=$(to_bool --auto-update "$AUTO_UPDATE_ARG")
+elif [ "$YES" -eq 1 ]; then
+  AUTO_UPDATE="${existing_auto_update:-true}"
+else
+  ask_confirm "Keep tightship updated automatically?" \
+    "Installs each new release by itself and says so at the next session. $(kept_default "$existing_auto_update" "$(yes_no "$existing_auto_update")")" \
+    "${existing_auto_update:-true}"
+  AUTO_UPDATE="$ANSWER"
 fi
 
 if [ -n "$VAULT_FOLDER_ARG" ]; then
@@ -716,6 +738,7 @@ summary_row "Contract" "$(on_off "$CONTRACT")"
 summary_row "Memory" "$(on_off "$MEMORY")"
 summary_row "Vault" "$vault_summary"
 summary_row "Status line" "$(on_off "$STATUS_LINE")"
+summary_row "Auto-update" "$(on_off "$AUTO_UPDATE")"
 printf '%s\n' "│"
 
 if [ "$YES" -eq 0 ]; then

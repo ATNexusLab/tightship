@@ -13,6 +13,7 @@ read_options_antigravity_cli() {
   existing_contract=$(grep -E '^[[:space:]]*contract[[:space:]]*=' "$_options" | sed -E 's/^[[:space:]]*contract[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' | tr '[:upper:]' '[:lower:]' || true)
   existing_memory=$(grep -E '^[[:space:]]*memory[[:space:]]*=' "$_options" | sed -E 's/^[[:space:]]*memory[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' | tr '[:upper:]' '[:lower:]' || true)
   existing_status_line=$(grep -E '^[[:space:]]*status_line[[:space:]]*=' "$_options" | sed -E 's/^[[:space:]]*status_line[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' | tr '[:upper:]' '[:lower:]' || true)
+  existing_auto_update=$(grep -E '^[[:space:]]*auto_update[[:space:]]*=' "$_options" | sed -E 's/^[[:space:]]*auto_update[[:space:]]*=[[:space:]]*//' | tr -d '"'\'' ' | tr '[:upper:]' '[:lower:]' || true)
   existing_vault_folder=$(grep -E '^[[:space:]]*vault_folder[[:space:]]*=' "$_options" | sed -E 's/^[[:space:]]*vault_folder[[:space:]]*=[[:space:]]*//' | sed -E -e 's/^[[:space:]]*"((\\.|[^"\\])*)"[[:space:]]*$/\1/' -e 's/\\(.)/\1/g' || true)
 }
 
@@ -59,6 +60,7 @@ install_antigravity_cli() {
     printf "contract = %s\n" "$CONTRACT"
     printf "memory = %s\n" "$MEMORY"
     printf "status_line = %s\n" "$STATUS_LINE"
+    printf "auto_update = %s\n" "$AUTO_UPDATE"
     if [ -n "$VAULT_FOLDER" ]; then
       printf "vault_folder = \"%s\"\n" "$(printf '%s' "$VAULT_FOLDER" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
     fi

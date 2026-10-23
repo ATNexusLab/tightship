@@ -7,6 +7,8 @@ param(
 
     [string]$StatusLine,
 
+    [string]$AutoUpdate,
+
     [string]$VaultFolder,
 
     [string]$InitVault,
@@ -55,6 +57,7 @@ Options:
   -Contract <bool>      Enable the working contract: true or false (default: true)
   -Memory <bool>        Enable memory layer: true or false (default: true)
   -StatusLine <bool>    Enable status line: true or false (default: true)
+  -AutoUpdate <bool>    Install each new release by itself: true or false (default: true)
   -VaultFolder <path>   Path to memory vault (e.g. ~/ai-memory)
   -InitVault <bool>     Initialize missing vault folder with tightship vault init (default: false)
   -FromDir <path>       Install from a local directory instead of downloading this installer's release
@@ -372,6 +375,7 @@ foreach ($name in $selected) {
 $existingContract = $null
 $existingMemory = $null
 $existingStatusLine = $null
+$existingAutoUpdate = $null
 $existingVaultFolder = $null
 
 foreach ($name in $selected) {
@@ -382,6 +386,7 @@ foreach ($name in $selected) {
     if ($existing.contract) { $existingContract = $existing.contract }
     if ($existing.memory) { $existingMemory = $existing.memory }
     if ($existing.status_line) { $existingStatusLine = $existing.status_line }
+    if ($existing.auto_update) { $existingAutoUpdate = $existing.auto_update }
     if ($existing.vault_folder) { $existingVaultFolder = $existing.vault_folder }
 }
 
@@ -393,7 +398,7 @@ function Get-DefaultHint([string]$existing) {
     return "Default: $label."
 }
 
-if ($interactive -and (-not $Contract -or -not $Memory -or -not $StatusLine)) {
+if ($interactive -and (-not $Contract -or -not $Memory -or -not $StatusLine -or -not $AutoUpdate)) {
     Write-Section "Options"
 }
 
@@ -419,6 +424,14 @@ if ($StatusLine) {
     $finalStatusLine = if ($existingStatusLine) { $existingStatusLine } else { "true" }
 } else {
     $finalStatusLine = Read-Confirm "Show tightship's status line?" "Replaces your statusLine and restores it when off. $(Get-DefaultHint $existingStatusLine)" $existingStatusLine
+}
+
+if ($AutoUpdate) {
+    $finalAutoUpdate = ConvertTo-Bool "-AutoUpdate" $AutoUpdate
+} elseif (-not $interactive) {
+    $finalAutoUpdate = if ($existingAutoUpdate) { $existingAutoUpdate } else { "true" }
+} else {
+    $finalAutoUpdate = Read-Confirm "Keep tightship updated automatically?" "Installs each new release by itself and says so at the next session. $(Get-DefaultHint $existingAutoUpdate)" $existingAutoUpdate
 }
 
 if ($VaultFolder) {
@@ -476,6 +489,7 @@ Write-Row "Contract" (Format-OnOff $finalContract)
 Write-Row "Memory" (Format-OnOff $finalMemory)
 Write-Row "Vault" $vaultSummary
 Write-Row "Status line" (Format-OnOff $finalStatusLine)
+Write-Row "Auto-update" (Format-OnOff $finalAutoUpdate)
 Write-Host "│"
 
 if ($interactive -and (Read-Confirm "Install with these choices?" "" "true" "Install" "Cancel") -ne "true") {

@@ -86,6 +86,10 @@ fn companion_steps(harness: &Harness, shell: Shell) -> Option<String> {
         Some(
             template
                 .replace("{plugin}", &companion.plugin)
+                .replace(
+                    "{marketplace}",
+                    companion.marketplace.as_deref().unwrap_or_default(),
+                )
                 .replace("{repository}", &companion.repository),
         )
     });

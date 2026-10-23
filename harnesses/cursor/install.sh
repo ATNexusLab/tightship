@@ -16,6 +16,7 @@ read_options_cursor() {
   existing_contract=$(sed -nE 's/.*"contract"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
   existing_memory=$(sed -nE 's/.*"memory"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
   existing_status_line=$(sed -nE 's/.*"status_line"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
+  existing_auto_update=$(sed -nE 's/.*"auto_update"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
   existing_vault_folder=$(sed -nE 's/.*"vault_folder"[[:space:]]*:[[:space:]]*"((\\.|[^"\\])*)".*/\1/p' "$_options" | head -n1 | sed -E 's/\\(.)/\1/g')
 }
 
@@ -32,11 +33,11 @@ write_cursor_options() {
   _options="$CURSOR_DATA/options.json"
   if [ -n "$VAULT_FOLDER" ]; then
     _vault=$(printf '%s' "$VAULT_FOLDER" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')
-    printf '{\n  "contract": %s,\n  "memory": %s,\n  "status_line": %s,\n  "vault_folder": "%s"\n}\n' \
-      "$(json_bool "$CONTRACT")" "$(json_bool "$MEMORY")" "$(json_bool "$STATUS_LINE")" "$_vault" > "$_options"
+    printf '{\n  "contract": %s,\n  "memory": %s,\n  "status_line": %s,\n  "auto_update": %s,\n  "vault_folder": "%s"\n}\n' \
+      "$(json_bool "$CONTRACT")" "$(json_bool "$MEMORY")" "$(json_bool "$STATUS_LINE")" "$(json_bool "$AUTO_UPDATE")" "$_vault" > "$_options"
   else
-    printf '{\n  "contract": %s,\n  "memory": %s,\n  "status_line": %s\n}\n' \
-      "$(json_bool "$CONTRACT")" "$(json_bool "$MEMORY")" "$(json_bool "$STATUS_LINE")" > "$_options"
+    printf '{\n  "contract": %s,\n  "memory": %s,\n  "status_line": %s,\n  "auto_update": %s\n}\n' \
+      "$(json_bool "$CONTRACT")" "$(json_bool "$MEMORY")" "$(json_bool "$STATUS_LINE")" "$(json_bool "$AUTO_UPDATE")" > "$_options"
   fi
 }
 

@@ -681,6 +681,7 @@ fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
         assert!(options_text.contains("contract = true"), "{installer:?}");
         assert!(options_text.contains("memory = true"), "{installer:?}");
         assert!(options_text.contains("status_line = true"), "{installer:?}");
+        assert!(options_text.contains("auto_update = true"), "{installer:?}");
         assert!(
             options_text.contains(r#"vault_folder = "~/ai-memory""#),
             "{installer:?}"
@@ -1028,7 +1029,7 @@ fn existing_options_are_preserved_on_update() {
         fs::create_dir_all(cursor_options.parent().expect("a parent")).expect("options dir");
         fs::write(
             &antigravity_options,
-            "contract = false\nmemory = true\nstatus_line = true\nvault_folder = \"C:\\\\Users\\\\me \\\"work\\\"\\\\ai-memory\"\n",
+            "contract = false\nmemory = true\nstatus_line = true\nauto_update = false\nvault_folder = \"C:\\\\Users\\\\me \\\"work\\\"\\\\ai-memory\"\n",
         )
         .expect("write options.toml");
         fs::write(
@@ -1037,6 +1038,7 @@ fn existing_options_are_preserved_on_update() {
                 "contract": false,
                 "memory": true,
                 "status_line": true,
+                "auto_update": false,
                 "vault_folder": vault_folder,
             })
             .to_string(),
@@ -1078,6 +1080,11 @@ exit 0
             "{installer:?}"
         );
         assert_eq!(
+            toml_options["auto_update"].as_bool(),
+            Some(false),
+            "{installer:?}"
+        );
+        assert_eq!(
             toml_options["vault_folder"].as_str(),
             Some(vault_folder),
             "{installer:?}"
@@ -1086,17 +1093,89 @@ exit 0
         let json_options: serde_json::Value =
             serde_json::from_str(&json_text).expect("valid options.json");
         assert_eq!(json_options["contract"], false, "{installer:?}");
+        assert_eq!(json_options["auto_update"], false, "{installer:?}");
         assert_eq!(json_options["vault_folder"], vault_folder, "{installer:?}");
         let claude_arguments = fs::read_to_string(env.home_dir.join("claude-arguments"))
             .expect("read claude arguments");
-        assert!(
-            claude_arguments.contains("contract=false"),
-            "{installer:?}: {claude_arguments}"
-        );
+        for kept in ["contract=false", "auto_update=false"] {
+            assert!(
+                claude_arguments.contains(kept),
+                "{installer:?}: {claude_arguments}"
+            );
+        }
         let leftovers: Vec<_> = fs::read_dir(&env.system_temp_dir)
             .expect("read the system temp folder")
             .collect();
         assert!(leftovers.is_empty(), "{installer:?}: {leftovers:?}");
+    }
+}
+
+#[test]
+fn a_rerun_updates_the_installed_claude_code_plugin_and_keeps_its_options() {
+    for installer in INSTALLERS {
+        let env = MockEnvironment::new();
+        env.add_mock_script(
+            "claude",
+            r#"#!/bin/sh
+if [ "$1" = "--version" ]; then
+    echo "claude 2.1.295"
+    exit 0
+fi
+echo "$@" >> "$HOME/claude-arguments"
+case "$*" in
+    "plugin list --json")
+        echo '[{"id": "tightship@tightship", "version": "1.1.1"}]'
+        ;;
+    "plugin configure tightship@tightship --json")
+        printf '%s\n' '{"schema": {"contract": {"default": true}}, "inputs": {"contract": "false", "memory": "true", "status_line": "true", "vault_folder": "C:\\Users\\me \"work\""}}'
+        ;;
+    "plugin configure tightship@tightship --values-stdin")
+        cat > "$HOME/claude-values"
+        ;;
+esac
+exit 0
+"#,
+        );
+
+        let from_dir = from_dir();
+        let output = env.run(
+            installer,
+            &["--harness", "claude-code", "--from-dir", &from_dir, "--yes"],
+        );
+
+        assert_exit(installer, &output, 0);
+        let claude_arguments = fs::read_to_string(env.home_dir.join("claude-arguments"))
+            .expect("read claude arguments");
+        for called in [
+            "plugin marketplace update ponytail",
+            "plugin update ponytail@ponytail",
+            "plugin marketplace update tightship",
+            "plugin update tightship@tightship",
+        ] {
+            assert!(
+                claude_arguments.lines().any(|line| line == called),
+                "{installer:?}: {called} was not called: {claude_arguments}"
+            );
+        }
+        assert!(
+            !claude_arguments.contains("plugin install"),
+            "{installer:?}: {claude_arguments}"
+        );
+        let values: serde_json::Value = serde_json::from_str(
+            &fs::read_to_string(env.home_dir.join("claude-values")).expect("read the values"),
+        )
+        .expect("JSON values");
+        assert_eq!(
+            values,
+            serde_json::json!({
+                "contract": "false",
+                "memory": "true",
+                "status_line": "true",
+                "auto_update": "true",
+                "vault_folder": r#"C:\Users\me "work""#,
+            }),
+            "{installer:?}"
+        );
     }
 }
 
@@ -1138,6 +1217,7 @@ exit 0
                 ("Load the working contract in every session?", "\r"),
                 ("Turn on the memory layer?", "\r"),
                 ("Show tightship's status line?", "\r"),
+                ("Keep tightship updated automatically?", "\r"),
                 ("Where is your vault?", "\r"),
                 ("Install with these choices?", "\r"),
             ],
@@ -1179,7 +1259,7 @@ exit 0
         )
         .expect("read options.toml");
         let toml_options: toml::Table = toml_text.parse().expect("valid options.toml");
-        for option in ["contract", "memory", "status_line"] {
+        for option in ["contract", "memory", "status_line", "auto_update"] {
             assert_eq!(
                 toml_options[option].as_bool(),
                 Some(true),
@@ -1194,7 +1274,7 @@ exit 0
             .expect("read options.json");
         let json_options: serde_json::Value =
             serde_json::from_str(&json_text).expect("valid options.json");
-        for option in ["contract", "memory", "status_line"] {
+        for option in ["contract", "memory", "status_line", "auto_update"] {
             assert_eq!(json_options[option], true, "{installer:?}: {json_text}");
         }
     }
@@ -1373,6 +1453,7 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
         assert_eq!(options["contract"], true, "{installer:?}");
         assert_eq!(options["memory"], true, "{installer:?}");
         assert_eq!(options["status_line"], true, "{installer:?}");
+        assert_eq!(options["auto_update"], true, "{installer:?}");
         assert_eq!(options["vault_folder"], "~/ai-memory", "{installer:?}");
 
         let settings_text =

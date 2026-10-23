@@ -13,11 +13,12 @@ function Read-AntigravityCliOptions {
     if (-not (Test-Path $optionsFile)) {
         return $null
     }
-    $options = [ordered]@{ contract = $null; memory = $null; status_line = $null; vault_folder = $null }
+    $options = [ordered]@{ contract = $null; memory = $null; status_line = $null; auto_update = $null; vault_folder = $null }
     Get-Content $optionsFile | ForEach-Object {
         if ($_ -match '^\s*contract\s*=\s*(.+)$') { $options.contract = $Matches[1].Trim(" '`"").ToLowerInvariant() }
         if ($_ -match '^\s*memory\s*=\s*(.+)$') { $options.memory = $Matches[1].Trim(" '`"").ToLowerInvariant() }
         if ($_ -match '^\s*status_line\s*=\s*(.+)$') { $options.status_line = $Matches[1].Trim(" '`"").ToLowerInvariant() }
+        if ($_ -match '^\s*auto_update\s*=\s*(.+)$') { $options.auto_update = $Matches[1].Trim(" '`"").ToLowerInvariant() }
         if ($_ -match '^\s*vault_folder\s*=\s*"((?:[^"\\]|\\.)*)"') { $options.vault_folder = $Matches[1] -replace '\\(.)', '$1' }
     }
     $options
@@ -87,6 +88,7 @@ function Install-AntigravityCli {
 contract = $finalContract
 memory = $finalMemory
 status_line = $finalStatusLine
+auto_update = $finalAutoUpdate
 "@
     if ($finalVaultFolder) {
         $escapedVaultFolder = $finalVaultFolder.Replace('\', '\\').Replace('"', '\"')
