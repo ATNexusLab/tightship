@@ -2,30 +2,56 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
 
 permissions:
   contents: read
 
+concurrency:
+  group: release
+
 jobs:
-  main-only:
+  tag:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
     steps:
       - name: actions/checkout v7.0.1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          fetch-depth: 0
           persist-credentials: false
 
-      - name: Check that the tag is on main
+      - name: Tag the version of Cargo.toml
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-            echo "::error::$GITHUB_REF_NAME is not on main; release only from a tag on main"
+          version=$(sed -n '/^\[workspace.package\]/,/^\[/s/^version = "\(.*\)"$/\1/p' Cargo.toml)
+          if [ -z "$version" ]; then
+            echo "::error::no version under [workspace.package] in Cargo.toml"
             exit 1
           fi
+          tag="v$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "$tag is already released; nothing to publish"
+            exit 0
+          fi
+          if tagged=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" -q .object.sha 2>/dev/null); then
+            if [ "$tagged" != "$GITHUB_SHA" ]; then
+              echo "::error::$tag already tags $tagged, not $GITHUB_SHA; delete the tag or set a new version"
+              exit 1
+            fi
+          else
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA" >/dev/null
+            echo "Tagged $GITHUB_SHA as $tag"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
   build:
-    needs: main-only
+    needs: tag
+    if: needs.tag.outputs.tag != ''
     strategy:
       matrix:
         include:
@@ -87,12 +113,13 @@ jobs:
           if-no-files-found: error
 
   pack:
-    needs: build
+    needs: [tag, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     env:
       USER: ""
+      TAG: ${{ needs.tag.outputs.tag }}
     steps:
       - name: actions/checkout v7.0.1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -119,13 +146,13 @@ jobs:
         run: cargo xtask build --binaries binaries
 
       - name: cargo xtask package
-        run: cargo xtask package "$GITHUB_REF_NAME"
+        run: cargo xtask package "$TAG"
 
       - name: gh release create
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" --verify-tag --prerelease \
-            --title "tightship $GITHUB_REF_NAME" --generate-notes \
+          gh release create "$TAG" --verify-tag --prerelease \
+            --title "tightship $TAG" --generate-notes \
             dist/tightship-claude-code.zip dist/tightship-antigravity-cli.zip dist/tightship-cursor.zip \
             dist/marketplace.json dist/cursor-marketplace.json dist/latest.json dist/install.sh dist/install.ps1

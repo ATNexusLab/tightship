@@ -5,13 +5,14 @@ description: Use when cutting a release of the plugins — the tag, what release
 
 # Release
 
-A release is cut only when the maintainer asks for it. It starts from `develop` merged into `main` as a merge
-commit, and a tag `v<version>` pushed on `main`, where `<version>` is the built version.
+A release is cut only when the maintainer asks for it. It starts from the version set in `Cargo.toml` and
+`develop` merged into `main` as a merge commit.
 
-The tag runs `release.yml`: its first job fails when the tagged commit is not on `main`, before anything is
-built. Then it builds the binary for the four platforms, then the two commands below, and
-publishes the zips, catalogs, and installers as a pre-release. It is the only workflow with
-`contents: write`, on its pack job.
+Every push to `main` runs `release.yml`: its first job tags the commit `v<version>`, `<version>` read from
+`Cargo.toml`, and stops there when that version already has a release. Then it builds the binary for the
+four platforms, then the two commands below, and publishes the zips, catalogs, and installers as a
+pre-release. It is the only workflow with
+`contents: write`, on its tag and pack jobs.
 
 | Command | Does |
 | --- | --- |
