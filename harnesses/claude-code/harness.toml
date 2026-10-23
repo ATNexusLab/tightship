@@ -46,6 +46,8 @@ skill-tool = "the Skill tool"
 instruction-files-precedence = "A `CLAUDE.md` or `CLAUDE.local.md` in a directory, or any directory above it, stops Claude Code from reading the `AGENTS.md` there"
 instruction-files-search = "`find . -name AGENTS.md -o -name CLAUDE.md -o -name CLAUDE.local.md`"
 instruction-files-migration = "A `CLAUDE.md` or `CLAUDE.local.md` in a directory, or above it, stops Claude Code from reading the `AGENTS.md` there, so each `CLAUDE.md`'s content moves into the `AGENTS.md` of the same directory and the `CLAUDE.md` is removed. A `CLAUDE.local.md` is personal and uncommitted: I ask whether its rules belong in the repo before touching it."
+project-skills-folder = "`.agents/skills/`"
+project-skill-pointer = "For each project skill, `.claude/skills/<name>/SKILL.md` with the same `name` and `description` and the body: Read `.agents/skills/<name>/SKILL.md` and follow it. Claude Code reads no `.agents/skills/`."
 
 [neutrality]
 names = ["Claude Code", "Claude", "Anthropic"]

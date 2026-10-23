@@ -6,7 +6,7 @@ Memory = "memory"
 # Global Working Contract
 
 Always-on rules for every project. A repository adds its own in its `AGENTS.md`, at the root and per area
-({{capability:area-instructions}}), and in its project skills.
+({{capability:area-instructions}}), and in its project skills, in {{capability:project-skills-folder}}.
 {{capability:instruction-files-precedence}}, so a repository keeps its instructions in `AGENTS.md`.
 
 **Precedence, highest first: a hard line · your decision in the session · the repository's `AGENTS.md` and

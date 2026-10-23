@@ -56,6 +56,8 @@ skill-tool = "`view_file` on the skill's `SKILL.md`"
 instruction-files-precedence = "Antigravity CLI reads `AGENTS.md` and `.agent/rules/*.md` in the workspace"
 instruction-files-search = "`find . -name AGENTS.md -o -path '*/.agent/rules/*.md'`"
 instruction-files-migration = "Rules in `.agent/rules/*.md` that belong to the whole project or an area move into that directory's `AGENTS.md`, and the `.agent/rules/*.md` file is removed. A personal uncommitted rule stays untouched until I ask whether it belongs in the repo."
+project-skills-folder = "`.agents/skills/`"
+project-skill-pointer = "Nothing more: Antigravity CLI reads `.agents/skills/`."
 
 [neutrality]
 names = ["Antigravity CLI", "Antigravity", "Google DeepMind"]
