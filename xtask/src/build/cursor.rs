@@ -26,7 +26,7 @@ pub fn render(
         manifest(root, harness, content.options.as_ref())?.into_bytes(),
     )];
     if let Some(file) = &harness.dist.catalog {
-        written.push((staging.join(file), catalog(harness)?.into_bytes()));
+        written.push((staging.join(file), render::catalog(harness)?.into_bytes()));
     }
     for piece in &content.pieces {
         let file = match piece.kind {
@@ -46,7 +46,7 @@ pub fn render(
     }
     written.extend(render::harness_files(root, &staging, harness)?);
     written.extend(render::binary_files(&staging, binaries)?);
-    staging::write_files(&staging, &written)?;
+    staging::write_files(&staging, &harness.name, &written)?;
     Ok((staging, written.len()))
 }
 
@@ -56,102 +56,37 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
     let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
     let mut session_start: Vec<serde_json::Value> = parts
         .iter()
-        .map(|part| {
-            json!({
-                "command": hook_command(part),
-            })
-        })
+        .map(|part| json!({ "command": format!("{binary} hook contract-part {}", part.file) }))
         .collect();
-    let mut before_submit = session_start.clone();
+    let before_submit = session_start.clone();
     if declares("status_line") {
         session_start.push(json!({ "command": format!("{binary} hook status-line") }));
     }
-    if declares("memory") {
-        let memory = format!("{binary} options disabled memory || {binary} hook start");
-        let prompt = format!("{binary} options disabled memory || {binary} hook prompt");
-        let checkpoint = format!("{binary} options disabled memory || {binary} hook checkpoint");
-        session_start.push(json!({ "command": memory }));
-        before_submit.push(json!({ "command": prompt }));
-        let body = json!({
-            "version": 1,
-            "hooks": {
-                "sessionStart": session_start,
-                "beforeSubmitPrompt": before_submit,
-                "preCompact": [{ "command": checkpoint }],
-            },
-        });
-        return Ok(Some(
-            serde_json::to_string_pretty(&body).map_err(io::Error::other)? + "\n",
-        ));
+    let memory = declares("memory");
+    if memory {
+        session_start.push(json!({ "command": format!("{binary} hook start") }));
+    }
+    if declares("auto_update") {
+        session_start.push(json!({ "command": format!("{binary} hook update") }));
     }
     if session_start.is_empty() {
         return Ok(None);
     }
-    let body = json!({
-        "version": 1,
-        "hooks": {
-            "sessionStart": session_start,
-            "beforeSubmitPrompt": before_submit,
-        },
-    });
+    let mut events = serde_json::Map::new();
+    events.insert("sessionStart".to_owned(), session_start.into());
+    if !before_submit.is_empty() {
+        events.insert("beforeSubmitPrompt".to_owned(), before_submit.into());
+    }
+    if memory {
+        events.insert(
+            "preCompact".to_owned(),
+            json!([{ "command": format!("{binary} hook checkpoint") }]),
+        );
+    }
+    let body = json!({ "version": 1, "hooks": events });
     Ok(Some(
         serde_json::to_string_pretty(&body).map_err(io::Error::other)? + "\n",
     ))
-}
-
-fn hook_command(part: &Part) -> String {
-    let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
-    let mut guards = vec![format!("{binary} options disabled contract")];
-    if let Some(gate) = &part.gate {
-        guards.push(format!("{binary} options disabled {gate}"));
-    }
-    let hook = format!("{binary} hook contract-part {}", part.file);
-    format!("{} || {}", guards.join(" || "), hook)
-}
-
-fn catalog(harness: &Harness) -> io::Result<String> {
-    #[derive(Serialize)]
-    struct Owner<'harness> {
-        name: &'harness str,
-    }
-    #[derive(Serialize)]
-    struct Entry<'harness> {
-        name: &'harness str,
-        source: &'static str,
-        description: &'harness str,
-    }
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
-    struct Catalog<'harness> {
-        name: &'harness str,
-        owner: Owner<'harness>,
-        description: &'harness str,
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        allow_cross_marketplace_dependencies_on: Vec<&'harness str>,
-        plugins: [Entry<'harness>; 1],
-    }
-    let plugin = &harness.plugin;
-    let mut marketplaces = Vec::new();
-    for companion in &harness.companions {
-        let marketplace = companion.marketplace(&harness.name)?;
-        if !marketplaces.contains(&marketplace) {
-            marketplaces.push(marketplace);
-        }
-    }
-    let catalog = Catalog {
-        name: &plugin.name,
-        owner: Owner {
-            name: &plugin.author,
-        },
-        description: &plugin.description,
-        allow_cross_marketplace_dependencies_on: marketplaces,
-        plugins: [Entry {
-            name: &plugin.name,
-            source: "./",
-            description: &plugin.description,
-        }],
-    };
-    Ok(serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n")
 }
 
 fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io::Result<String> {
@@ -171,20 +106,7 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
         variables: serde_json::Map<String, serde_json::Value>,
     }
     let version = render::workspace_version(root)?;
-    let mut variables = serde_json::Map::new();
-    if let Some(file) = options {
-        for option in &file.declared {
-            let mut setting = serde_json::json!({
-                "type": option.kind,
-                "title": render::resolve(&option.title, &file.path, harness)?,
-                "description": render::resolve(&option.description, &file.path, harness)?,
-            });
-            if !option.is_directory() {
-                setting["default"] = serde_json::Value::Bool(true);
-            }
-            variables.insert(option.name.clone(), setting);
-        }
-    }
+    let variables = render::option_settings(options, harness)?;
     let plugin = &harness.plugin;
     let manifest = PluginManifest {
         name: &plugin.name,
@@ -201,30 +123,15 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
 }
 
 fn document(piece: &Piece, harness: &Harness) -> io::Result<String> {
-    let front_matter = piece.front_matter.as_ref().ok_or_else(|| {
-        io::Error::other(format!(
-            "{}: rendered with invalid front matter",
-            piece.path
-        ))
-    })?;
-    let mut fields = vec![
-        ("name", piece.name.as_str()),
-        ("description", front_matter.description.as_str()),
-    ];
-    if let Some(hint) = &front_matter.argument_hint {
-        fields.push(("argument-hint", hint));
-    }
-    if piece.kind == Kind::Agent {
-        fields.push(("tools", &harness.access.read_only));
-        if front_matter.access.as_deref() == Some("read-only") {
-            fields.push(("readonly", "true"));
-        }
-    }
-    let mut document = String::from("---\n");
-    for (key, value) in fields {
-        document.push_str(&format!("{key}: {}\n", serde_json::Value::from(value)));
-    }
-    document.push_str("---\n");
-    document.push_str(&render::resolve(&piece.body, &piece.path, harness)?);
-    Ok(document)
+    let read_only = piece
+        .front_matter
+        .as_ref()
+        .and_then(|front_matter| front_matter.access.as_deref())
+        == Some("read-only");
+    let agent_fields: &[(&str, serde_json::Value)] = if read_only {
+        &[("readonly", serde_json::Value::Bool(true))]
+    } else {
+        &[]
+    };
+    render::document(piece, harness, agent_fields)
 }

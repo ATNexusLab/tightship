@@ -26,7 +26,9 @@ output seems to call for them.
    afterwards counts as the PR's authorship.
 
 At the end of the command I am on the PR's branch — say so in one line, so I can run the application
-right away.
+right away. Any later work on the PR happens on that branch, in the repo directory, never on a scratch
+branch or in a worktree in a temp folder; it lands as a commit on top plus a review comment, never as a
+rewritten PR description or a force push to the branch under review.
 
 ## Phase 1 — understand
 

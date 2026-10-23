@@ -2,7 +2,10 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use jiff::Zoned;
+
 use super::note::{self, Note};
+use super::{expire, rules};
 use crate::failure::Failure;
 use crate::git;
 
@@ -25,7 +28,9 @@ pub fn run() -> Result<(), Failure> {
     }
     let remotes = step(&vault, "fetch", &["remote"])?;
     let Some(remote) = remotes.lines().next() else {
-        println!("kept local — the vault has no git remote");
+        let expired = expire(&vault)?;
+        update_rules(&vault)?;
+        println!("kept local — the vault has no git remote; {expired} expired");
         return Ok(());
     };
     if git::run(&vault, &["rev-parse", "--abbrev-ref", "@{upstream}"]).is_err() {
@@ -75,11 +80,13 @@ pub fn run() -> Result<(), Failure> {
         return Err(Failure::SyncConflict(vault, paths));
     }
     let notes = note::read_all(&vault)?;
-    let renames = colliding(&notes, &local);
+    let renames = colliding(&notes, &local, note::highest_id(&vault, &notes)?);
     if !renames.is_empty() {
         println!("> Renumbering colliding ids");
         renumber(&vault, &renames)?;
     }
+    let expired = expire(&vault)?;
+    update_rules(&vault)?;
     println!("> Pushing");
     let pushed = step(
         &vault,
@@ -87,7 +94,36 @@ pub fn run() -> Result<(), Failure> {
         &["rev-list", "--count", "@{upstream}..HEAD"],
     )?;
     step(&vault, "push", &["push", "--quiet"])?;
-    println!("synced: {} pushed, {} pulled", pushed.trim(), pulled.trim());
+    println!(
+        "synced: {} pushed, {} pulled, {expired} expired",
+        pushed.trim(),
+        pulled.trim()
+    );
+    Ok(())
+}
+
+fn expire(vault: &Path) -> Result<usize, Failure> {
+    let expired = expire::run(vault, Zoned::now().date())?;
+    if expired > 0 {
+        step(vault, "commit", &["add", "-A", "notes"])?;
+        step(
+            vault,
+            "commit",
+            &["commit", "--quiet", "-m", "vault: expire notes"],
+        )?;
+    }
+    Ok(expired)
+}
+
+fn update_rules(vault: &Path) -> Result<(), Failure> {
+    if rules::run(vault)? {
+        step(vault, "commit", &["add", "AGENTS.md"])?;
+        step(
+            vault,
+            "commit",
+            &["commit", "--quiet", "-m", "vault: update the rules"],
+        )?;
+    }
     Ok(())
 }
 
@@ -109,17 +145,17 @@ fn is_under_way(vault: &Path) -> Result<bool, Failure> {
 fn colliding<'notes>(
     notes: &'notes [Note],
     local: &HashSet<PathBuf>,
+    mut highest: u64,
 ) -> Vec<(&'notes Note, String)> {
-    let taken: HashSet<&str> = notes
+    let mut taken: HashSet<&str> = notes
         .iter()
         .filter(|note| !local.contains(&note.path))
         .map(|note| note.field("id"))
-        .filter(|id| !id.is_empty())
         .collect();
-    let mut highest = note::highest_id(notes);
     notes
         .iter()
-        .filter(|note| local.contains(&note.path) && taken.contains(note.field("id")))
+        .filter(|note| local.contains(&note.path) && !note.field("id").is_empty())
+        .filter(|note| !taken.insert(note.field("id")))
         .map(|note| {
             highest += 1;
             (note, format!("mem-{highest:04}"))

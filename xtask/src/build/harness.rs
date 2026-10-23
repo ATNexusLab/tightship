@@ -88,6 +88,8 @@ impl Install {
 #[serde(deny_unknown_fields)]
 pub struct ContractTable {
     pub limit: usize,
+    #[serde(rename = "compaction-notice")]
+    pub compaction_notice: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -203,6 +205,19 @@ pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Ve
             }
             Err(error) => diagnostics.push(Diagnostic::in_file(&path, error.message().to_owned())),
         }
+    }
+    if harnesses
+        .windows(2)
+        .any(|pair| pair[0].plugin.repository != pair[1].plugin.repository)
+    {
+        let named: Vec<String> = harnesses
+            .iter()
+            .map(|harness| format!("{} \"{}\"", harness.name, harness.plugin.repository))
+            .collect();
+        diagnostics.push(Diagnostic::general(format!(
+            "the harnesses name different repositories: {}; use one",
+            named.join(", ")
+        )));
     }
     Ok(harnesses)
 }

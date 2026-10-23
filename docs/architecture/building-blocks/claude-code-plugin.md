@@ -16,13 +16,17 @@ Its first hooks carry the [contract](../concepts/contract.md): `hooks/hooks.json
 of `contract/` at `SessionStart`, each printing its part unless its options are off (M1, #4).
 
 Its `bin/` holds the [tightship binary](tightship-binary.md) and its launcher, and its memory hooks run it at
-`SessionStart` and on each prompt, unless the memory option is off (M1, #5). The manifest declares
-`vault_folder`, a `directory` setting with no default, next to the options.
+`SessionStart`, unless the memory option is off (M1, #5); none runs on a prompt since M4 (#118). The manifest
+declares `vault_folder`, a `directory` setting with no default, next to the options.
 
 One more `SessionStart` hook, on `startup`, runs `tightship hook status-line` whatever the status line option's
 state, since turning the option off is what puts the adopter's status line back. A plugin cannot set
 `statusLine` itself, so the binary writes it into the adopter's user settings while the option is on
 ([status line](../concepts/status-line.md), M1, #7).
+
+Another `startup` hook runs `tightship hook marketplace-auto-update`, which sets `autoUpdate` on the
+plugin's marketplace entry in the user settings from the `auto_update` option, so Claude Code installs each
+release by itself ([auto-update spec](../../specs/auto-update/update-the-plugin.md)).
 
 Every hook line that runs the binary, and the status line command, calls the launcher through `sh`, so an
 install that drops the executable bit still runs it (M1, #8).

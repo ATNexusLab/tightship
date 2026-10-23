@@ -140,7 +140,7 @@ of epic #1 read it like every other file of `content/`.
 
 | Argument | Type | Required | Validation |
 | --- | --- | --- | --- |
-| `--scope` | string | Yes | 1 to 100 characters, with no `/`, no `\`, no leading `.`, and no control character: one folder name |
+| `--scope` | string | No | 1 to 100 characters, with no `/`, no `\`, no leading `.`, and no control character: one folder name, lowercased; when absent, the project's scope of rule 3 |
 | `--type` | string | Yes | `preference`, `decision`, `gotcha`, or `project` |
 | `--title` | string | Yes | 1 to 120 characters, once each run of whitespace, line breaks included, is one space |
 | `--why` | string | Yes | At least 5 words, split on whitespace; written as one line, each run of whitespace one space |
@@ -289,7 +289,7 @@ seemed interesting. The test is the `why` field — if you cannot write in one l
 it would cost later, it does not qualify.
 
 To write one (single step, then tell the user in one line what landed):
-  tightship vault new --scope <project|all> --type <preference|decision|gotcha|project> \
+  tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project> \
     --title "..." --why "..." --tags a,b --source <user|session|repo> <<'EOF'
   <body>
   EOF
@@ -361,7 +361,7 @@ Prints the vault's absolute folder and a newline.
 Usage: tightship vault path
        tightship vault init <folder>
        tightship vault search [--everywhere] <term>...
-       tightship vault new --scope <project|all> --type <preference|decision|gotcha|project>
+       tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project>
                            --title <title> --why <line> --source <user|session|repo>
                            [--tags <a,b>] [--pin] [--created <YYYY-MM-DD>] < body
        tightship vault lint
@@ -499,12 +499,19 @@ behind it. Who may run it is whoever may run the Bash tool there.
   reported. Nothing is written then.
 - The note is written as the Response says, `notes/<scope>/` created when absent (FR-MEM-04.1). A file
   already at that path fails with `NOTE_EXISTS`.
+- The `id` is the next above the highest of the vault, read from each note's `id` and from each file name
+  under `notes/` that starts with `mem-` and digits, so a note whose front matter is broken keeps its `id`.
+- From choosing the `id` to creating the file, `vault new` holds an OS lock on `tightship-new.lock` in the
+  vault's git folder, or on `.tightship-new.lock` at its root when it is no git repository. Two notes written
+  at once on one machine get distinct ids, and the lock goes with a process that dies.
 - Two machines that write without syncing can give two notes the same `id`. `tightship vault sync` gives the
   local one a new id (rule 15), and the lint reports one that landed through plain git.
 
 ### 9. The lint checks every note against the template's rules
 
 - **When:** `tightship vault lint`.
+- First, each `.md` file under `notes/` that opens with a `---` line and never closes its front matter, in
+  path order, with `front matter does not close with ---`. It counts as a note with a problem.
 - For each note, in path order, each problem is reported in this order and with this text:
 
 | Rule | Line |
@@ -576,8 +583,10 @@ behind it. Who may run it is whoever may run the Bash tool there.
      remembered, then `git rebase @{upstream}`. A conflict leaves the rebase stopped where git stopped it and
      fails with `SYNC_CONFLICT`, naming the paths of `git diff --name-only --diff-filter=U`. The remote is
      unchanged (FR-MEM-11.2).
-  6. **Renumbering colliding ids**, only when a remembered note has the `id` of another note: each such note,
-     in path order, takes the next id above the vault's highest. `git mv` renames it to `<new id>-<slug>.md`,
+  6. **Renumbering colliding ids**, only when a remembered note has the `id` of a note that is not
+     remembered, or of a remembered note earlier in path order: each such note, in path order, takes the next
+     id above the vault's highest, as rule 8 reads it. Git runs with `core.quotePath=false`, so a path with
+     non-ASCII characters is remembered as written. `git mv` renames it to `<new id>-<slug>.md`,
      its `id` line is rewritten, every `[[<old stem>]]` in the vault becomes `[[<new stem>]]`, and one commit
      records them all with the message `vault: renumber colliding notes` (FR-MEM-11.3).
   7. **Pushing:** `git push` (FR-MEM-11.1).
@@ -619,7 +628,7 @@ subcommands exit 1 too, which Claude Code reports without blocking.
 | `SYNC_CONFLICT` | `1` | Rule 15 | "`` these notes conflict with the remote: <path>, <path>; resolve each, run `git -C <vault> add` on it and `git -C <vault> rebase --continue`, then run `tightship vault sync` again ``" |
 | `SYNC_GIT_FAILED` | `1` | Rule 15 | "`` git <commit\|fetch\|rebase\|mv\|push> failed in <vault>: <git's message, or the system's when git is missing> ``" |
 | `ENV_UNWRITABLE` | `1` | Rule 2 | "`` cannot write the session's environment file <path>: <the system's message> ``" |
-| `DATA_UNWRITABLE` | `1` | Rule 5 | "`` cannot write the checkpoint counter <path>: <the system's message> ``" |
+| `DATA_UNWRITABLE` | `1` | Rule 5 | "`` cannot write <path>: <the system's message> ``" |
 | `USAGE` | `1` | An unknown subcommand, an unknown argument, a flag with no value, or a required flag missing | "`unknown subcommand <name>`", "`unknown argument <argument>`", "`<flag> needs a value`", or "`missing <flag>`", then a blank line and the usage |
 | `INTERNAL` | `1` | Rule 11, a panic | "`tightship stopped on an internal fault: <the panic's message>`" |
 | `LINT_FAILED` | `1` | Rule 9 | No stderr: the report on stdout is the message |
@@ -964,7 +973,7 @@ When `tightship hook start` runs
 Then it exits 1 with "error: cannot read notes/<scope>/<file>: <the system's message>"
 Given TIGHTSHIP_DATA is a file, not a folder
 When `tightship hook prompt` runs
-Then it exits 1 with "error: cannot write the checkpoint counter <path>: <the system's message>"
+Then it exits 1 with "error: cannot write <path>: <the system's message>"
 ```
 
 ### Scenario 32 — Sync two machines (FR-MEM-11.1, happy path)

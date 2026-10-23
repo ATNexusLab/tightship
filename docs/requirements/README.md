@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 1.11.0 · **Date:** 2026-10-20 · [Changelog](CHANGELOG.md)
+**Version:** 2.2.0 · **Date:** 2026-10-23 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -55,11 +55,15 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-CTR-01](functional/contract.md#fr-ctr-01) | Contract in every session | Must | approved | M1 |
 | [FR-CTR-02](functional/contract.md#fr-ctr-02) | Contract can be turned off | Must | approved | M1 |
 | [FR-CTR-03](functional/contract.md#fr-ctr-03) | Contract matches the enabled options | Must | approved | M1 |
-| [FR-CTR-04](functional/contract.md#fr-ctr-04) | Every baseline rule is carried over | Must | approved | M1 |
+| [FR-CTR-04](functional/contract.md#fr-ctr-04) | Every baseline rule is carried over | Must | retired | M1 |
 | [FR-CTR-05](functional/contract.md#fr-ctr-05) | Behavior without the contract is documented | Must | approved | M1 |
+| [FR-CTR-06](functional/contract.md#fr-ctr-06) | Hard lines and conventions | Must | approved | M4 |
+| [FR-CTR-07](functional/contract.md#fr-ctr-07) | The contract holds only what every task needs | Must | approved | M4 |
 | [FR-SKL-01](functional/skills.md#fr-skl-01) | Skills available | Must | approved | M1 |
 | [FR-SKL-02](functional/skills.md#fr-skl-02) | Commands invocable | Must | approved | M1 |
 | [FR-SKL-03](functional/skills.md#fr-skl-03) | References resolve | Must | approved | M1 |
+| [FR-SKL-04](functional/skills.md#fr-skl-04) | The bootstrap writes a lean repository contract | Must | approved | M4 |
+| [FR-SKL-05](functional/skills.md#fr-skl-05) | The bootstrap writes project skills | Must | approved | M4 |
 | [FR-VER-01](functional/verifier.md#fr-ver-01) | Verifier can be dispatched | Must | approved | M1 |
 | [FR-VER-02](functional/verifier.md#fr-ver-02) | Verifier changes only a private copy | Must | approved | M1 |
 | [FR-MEM-01](functional/memory.md#fr-mem-01) | Memory context at session start | Must | approved | M1 |
@@ -86,6 +90,8 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-INS-06](functional/install.md#fr-ins-06) | Uninstall leaves nothing behind | Should | approved | M1 |
 | [FR-INS-07](functional/install.md#fr-ins-07) | Guided migration from the pre-plugin install | Must | approved | M1 |
 | [FR-INS-08](functional/install.md#fr-ins-08) | Install guide per harness | Must | approved | M1 |
+| [FR-INS-09](functional/install.md#fr-ins-09) | One installer for every harness | Must | approved | M3 |
+| [FR-INS-10](functional/install.md#fr-ins-10) | The plugin keeps itself updated | Must | approved | M4 |
 | [NFR-FLEX-01](non-functional/flexibility.md#nfr-flex-01) | Claude Code is supported | Must | approved | M1 |
 | [NFR-FLEX-02](non-functional/flexibility.md#nfr-flex-02) | Cursor is supported, editor and command line | Must | approved | M2 |
 | [NFR-FLEX-03](non-functional/flexibility.md#nfr-flex-03) | Antigravity CLI is supported | Must | approved | M3 |
@@ -100,6 +106,7 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [NFR-REL-01](non-functional/reliability.md#nfr-rel-01) | A plugin failure never blocks the session | Must | approved | M1 |
 | [NFR-PERF-01](non-functional/performance.md#nfr-perf-01) | Session-start overhead | Should | approved | M1 |
 | [NFR-PERF-02](non-functional/performance.md#nfr-perf-02) | Per-prompt overhead | Should | approved | M1 |
+| [NFR-PERF-03](non-functional/performance.md#nfr-perf-03) | Contract size | Must | approved | M4 |
 | [BR-01](business-rules.md#br-01) | Harness order and milestones | Must | approved | M1 |
 | [BR-02](business-rules.md#br-02) | One place to edit | Must | approved | M1 |
 | [BR-03](business-rules.md#br-03) | English content, with Portuguese translations | Must | approved | M1 |

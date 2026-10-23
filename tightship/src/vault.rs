@@ -1,10 +1,12 @@
 pub mod context;
+pub mod expire;
 pub mod handoff;
 pub mod init;
 pub mod lint;
 pub mod new;
 pub mod note;
 pub mod path;
+pub mod rules;
 pub mod search;
 pub mod sync;
 

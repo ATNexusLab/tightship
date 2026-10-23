@@ -36,6 +36,7 @@ sozinho ganha o mesmo rigor que um time exigiria.
 | Verificador | Um subagente somente leitura que tenta refutar uma correção, um achado ou um "pronto" antes que você confie nele |
 | Memória | Opcional. Notas curadas num repositório git seu, compartilhadas entre sessões, máquinas e harnesses |
 | Status line | Opcional. Gravada nas suas configurações só enquanto você a deixa ligada |
+| Atualização automática | Ligada, a menos que você a desligue. Cada release nova se instala sozinha, e a sessão seguinte avisa |
 
 Três plugins companheiros são instalados junto. O [ponytail](https://github.com/DietrichGebert/ponytail)
 mantém o código no mais simples que funciona. O [i-have-adhd](https://github.com/ayghri/i-have-adhd)

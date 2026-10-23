@@ -89,6 +89,13 @@ that is a gap to declare, not silence.
   vectors are unique per use. Secrets compared in constant time. Secrets are injected from the
   environment or a secret manager, never committed, never logged, never in a URL — and a leaked one
   can be rotated without a code change.
+- **Configuration from the environment** — a compose file takes every value from env, in dev too — user,
+  password, database name, host port — as `${NAME:?}`, and so does any per-machine value of an app, like
+  the host and port it listens on. No default at the point a variable is read, in any environment. No env
+  validation file by default: a schema or boot-time check exists only for a value whose wrong shape would
+  fail late or silently. A value that needs configuring is first asked whether it belongs in env at all; if
+  it does, its **name** goes to the example file, with at most one comment line giving its format, and
+  the adopter supplies the value.
 - **Dependencies & what runs in CI** — the lockfile is committed and the tree is free of known
   high-severity advisories; a newly added package is checked for a name that imitates another. What
   the pipeline runs is as privileged as the code: a workflow triggered by untrusted input must not
@@ -119,8 +126,8 @@ not a finding.
 - **Intended behavior.** What a requirement, an ADR, the spec, or the issue states as intended. If the
   decision itself looks risky, raise it as a decision to review, citing its source — never as a bug.
 - **A documented trade-off**, when the weakness is a deliberate decision with its mitigations written
-  down. Where it is recorded is the contract's **Security** rule; `security-debt` is for what should be
-  fixed and was not.
+  down: an architectural one in an ADR, any other in the doc it concerns or the repository's `AGENTS.md`.
+  `security-debt` is for what should be fixed and was not.
 - **A missing second layer** where the first one genuinely closes the hole. Say the depth is thin;
   do not rank it as an exposure.
 - **A theoretical weakness with no path to it.** No path, no finding.

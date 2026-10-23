@@ -89,13 +89,29 @@ fn disabled_exits_zero_when_option_is_off() {
 }
 
 #[test]
-fn disabled_exits_one_when_option_is_on() {
+fn disabled_exits_one_when_option_is_on_whatever_the_working_directory_holds() {
     let sandbox = Sandbox::new();
-    let mut command = with_data(&sandbox, "data");
-    command.args(["disabled", "contract"]);
+    sandbox.write("options.toml", "contract = false\n");
+    let mut command = sandbox.tightship(&["options", "disabled", "contract"]);
     let output = run(&mut command);
     assert_eq!(output.status.code(), Some(1));
     assert!(stderr_of(&output).is_empty());
+}
+
+#[test]
+fn disabled_rejects_vault_folder_as_a_usage_error() {
+    let sandbox = Sandbox::new();
+    let path = options_file(&sandbox, "data");
+    fs::create_dir_all(path.parent().expect("parent")).expect("folder");
+    fs::write(&path, "{\"vault_folder\":\"/notes\"}\n").expect("options");
+    let mut command = with_data(&sandbox, "data");
+    command.args(["disabled", "vault_folder"]);
+    let output = run(&mut command);
+    assert_fails_with(
+        &output,
+        "error: vault_folder is a folder, not an on/off option",
+    );
+    assert!(stderr_of(&output).contains("Usage:"));
 }
 
 #[test]

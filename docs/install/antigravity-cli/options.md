@@ -16,6 +16,7 @@ On Windows:
 | `contract` | on/off | Loads the workflow's rules into every session. Off: see [without the contract](without-the-contract.md) | On (`true`) |
 | `memory` | on/off | Keeps curated notes in your vault and hands session state to the next session | On (`true`) |
 | `status_line` | on/off | Shows tightship's status line under the prompt, and puts yours back when turned off | On (`true`) |
+| `auto_update` | on/off | Installs each new release by itself and says so at the next session. See [update](update.md) | On (`true`) |
 | `vault_folder` | folder | Your memory vault, a git repository, as a path (supports `~`). Memory needs it | No vault: memory has nothing to read or write |
 
 ## Environment variable overrides
@@ -25,6 +26,7 @@ Environment variables take precedence over `options.toml` when set:
 - `TIGHTSHIP_CONTRACT=false` overrides `contract`
 - `TIGHTSHIP_MEMORY=false` overrides `memory`
 - `TIGHTSHIP_STATUS_LINE=false` overrides `status_line`
+- `TIGHTSHIP_AUTO_UPDATE=false` overrides `auto_update`
 - `TIGHTSHIP_VAULT=/path/to/vault` overrides `vault_folder`
 - `TIGHTSHIP_DATA=/path/to/data` points to a custom directory holding `options.toml`
 
@@ -37,6 +39,7 @@ values are preserved as defaults when re-running the installer.
 contract = true
 memory = true
 status_line = true
+auto_update = true
 vault_folder = "~/ai-memory"
 ```
 

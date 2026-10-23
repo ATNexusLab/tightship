@@ -106,5 +106,7 @@ Update the spec in place: the status to `published`, `Epic: #N`, and one column 
 each task's issue number. Tell me what changed and get approval before committing it — the same rule as
 any other commit.
 
-Then print the epic URL and the task numbers in dependency order. Branch, commits and PR follow the
-contract's **Git** section.
+Then print the epic URL and the task numbers in dependency order. The epic is one branch,
+`<type>/<epic>-<slug>`, cut from the integration branch; each sub-issue's last commit ends in
+`(closes #<sub-issue>)`, and one PR into the integration branch carries `Closes #<n>` for the epic and every
+sub-issue. `{{skill:delivery}}` sizes the commits.

@@ -3,8 +3,7 @@ CURSOR_DATA="${TIGHTSHIP_DATA:-{{path:data}}}"
 
 check_cursor() {
   if [ -z "$FROM_DIR" ] && [ -z "$RELEASE_TAG" ]; then
-    echo "error: this install.sh belongs to no release; run $REPOSITORY/releases/latest/download/install.sh, or pass --from-dir <folder>" >&2
-    exit 1
+    fail "this install.sh belongs to no release; run $REPOSITORY/releases/latest/download/install.sh, or pass --from-dir <folder>"
   fi
 }
 
@@ -12,12 +11,12 @@ read_options_cursor() {
   _options="$CURSOR_DATA/options.json"
   [ -f "$_options" ] || return 0
   if ! tr -d ' \t\r\n' < "$_options" | grep -q '^{.*}$'; then
-    echo "error: $_options is not valid JSON" >&2
-    exit 1
+    fail "$_options is not valid JSON"
   fi
   existing_contract=$(sed -nE 's/.*"contract"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
   existing_memory=$(sed -nE 's/.*"memory"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
   existing_status_line=$(sed -nE 's/.*"status_line"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
+  existing_auto_update=$(sed -nE 's/.*"auto_update"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
   existing_vault_folder=$(sed -nE 's/.*"vault_folder"[[:space:]]*:[[:space:]]*"((\\.|[^"\\])*)".*/\1/p' "$_options" | head -n1 | sed -E 's/\\(.)/\1/g')
 }
 
@@ -34,11 +33,11 @@ write_cursor_options() {
   _options="$CURSOR_DATA/options.json"
   if [ -n "$VAULT_FOLDER" ]; then
     _vault=$(printf '%s' "$VAULT_FOLDER" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')
-    printf '{\n  "contract": %s,\n  "memory": %s,\n  "status_line": %s,\n  "vault_folder": "%s"\n}\n' \
-      "$(json_bool "$CONTRACT")" "$(json_bool "$MEMORY")" "$(json_bool "$STATUS_LINE")" "$_vault" > "$_options"
+    printf '{\n  "contract": %s,\n  "memory": %s,\n  "status_line": %s,\n  "auto_update": %s,\n  "vault_folder": "%s"\n}\n' \
+      "$(json_bool "$CONTRACT")" "$(json_bool "$MEMORY")" "$(json_bool "$STATUS_LINE")" "$(json_bool "$AUTO_UPDATE")" "$_vault" > "$_options"
   else
-    printf '{\n  "contract": %s,\n  "memory": %s,\n  "status_line": %s\n}\n' \
-      "$(json_bool "$CONTRACT")" "$(json_bool "$MEMORY")" "$(json_bool "$STATUS_LINE")" > "$_options"
+    printf '{\n  "contract": %s,\n  "memory": %s,\n  "status_line": %s,\n  "auto_update": %s\n}\n' \
+      "$(json_bool "$CONTRACT")" "$(json_bool "$MEMORY")" "$(json_bool "$STATUS_LINE")" "$(json_bool "$AUTO_UPDATE")" > "$_options"
   fi
 }
 
@@ -46,7 +45,8 @@ install_cursor_companion() {
   _name="$1"
   _repo="$2"
   _dest="{{path:plugins}}/${_name}"
-  _work=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
+  _work="$WORK_DIR/companion-${_name}"
+  mkdir -p "$_work"
   _zip="${_work}/${_name}.zip"
   _url="https://github.com/${_repo}/archive/refs/heads/main.zip"
   if ! download_file "$_url" "$_zip"; then
@@ -73,7 +73,6 @@ install_cursor_companion() {
   rm -rf "$_dest"
   mkdir -p "$_dest" || return 1
   cp -R "${_root}/." "$_dest/" || return 1
-  rm -rf "$_work"
 }
 
 sync_cursor_plugin() {
@@ -91,23 +90,20 @@ install_cursor() {
   if [ -n "$FROM_DIR" ]; then
     source_dir="$FROM_DIR"
   else
-    TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
-    zip_dest="$TMP_DIR/tightship-cursor.zip"
+    download_dir="$WORK_DIR/cursor"
+    mkdir -p "$download_dir"
+    zip_dest="$download_dir/tightship-cursor.zip"
     download_url="$REPOSITORY/releases/download/$RELEASE_TAG/tightship-cursor.zip"
-    echo "> Downloading tightship-cursor.zip $RELEASE_TAG"
-    if ! download_file "$download_url" "$zip_dest"; then
-      echo "error: failed to download tightship-cursor.zip from $download_url" >&2
-      echo "hint: if you are running in a local repository clone, run cargo xtask build and pass --from-dir dist/cursor" >&2
-      exit 1
+    if ! run_step "Downloading tightship-cursor.zip $RELEASE_TAG" download_file "$download_url" "$zip_dest"; then
+      fail "failed to download tightship-cursor.zip from $download_url" \
+        "if you are running in a local repository clone, run cargo xtask build and pass --from-dir dist/cursor"
     fi
-    echo "> Checking the sha256 of tightship-cursor.zip"
     zip_sha256=$(sha256_of "$zip_dest") || exit 1
-    if [ "$zip_sha256" != "$CURSOR_SHA256" ]; then
-      echo "error: tightship-cursor.zip has sha256 $zip_sha256; $RELEASE_TAG published $CURSOR_SHA256" >&2
-      exit 1
+    if ! run_step "Checking the sha256 of tightship-cursor.zip" [ "$zip_sha256" = "$CURSOR_SHA256" ]; then
+      fail "tightship-cursor.zip has sha256 $zip_sha256; $RELEASE_TAG published $CURSOR_SHA256"
     fi
-    unzip -q "$zip_dest" -d "$TMP_DIR/extracted"
-    source_dir="$TMP_DIR/extracted"
+    unzip -q "$zip_dest" -d "$download_dir/extracted"
+    source_dir="$download_dir/extracted"
   fi
 
   plugin_target="{{path:plugins}}/tightship"
@@ -118,10 +114,10 @@ install_cursor() {
   export TIGHTSHIP_DATA="$CURSOR_DATA"
   export TIGHTSHIP_SETTINGS="{{path:config}}/cli-config.json"
   export TIGHTSHIP_ROOT="$plugin_target"
-  mkdir -p "{{path:config}}"
   step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
-    step "Creating the vault at $VAULT_FOLDER" "$plugin_target/bin/tightship" vault init "$VAULT_FOLDER"
+    step "Creating the vault at $expanded_vault" "$plugin_target/bin/tightship" vault init "$expanded_vault"
   fi
+  installed_in "{{install:label}}" "$plugin_target"
 }

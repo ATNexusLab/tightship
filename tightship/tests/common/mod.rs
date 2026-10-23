@@ -30,7 +30,11 @@ impl Sandbox {
     }
 
     pub fn tightship(&self, arguments: &[&str]) -> Command {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_tightship"));
+        self.tightship_at(Path::new(env!("CARGO_BIN_EXE_tightship")), arguments)
+    }
+
+    pub fn tightship_at(&self, binary: &Path, arguments: &[&str]) -> Command {
+        let mut command = Command::new(binary);
         command
             .args(arguments)
             .current_dir(self.root.path())
@@ -40,6 +44,9 @@ impl Sandbox {
             .env_remove("TIGHTSHIP_STATUS_LINE")
             .env_remove("TIGHTSHIP_SETTINGS")
             .env_remove("TIGHTSHIP_ROOT")
+            .env_remove("TIGHTSHIP_MANIFEST")
+            .env_remove("TIGHTSHIP_HARNESS")
+            .env_remove("TIGHTSHIP_AUTO_UPDATE")
             .env("GIT_CONFIG_GLOBAL", self.write(".gitconfig", ""))
             .env("GIT_CONFIG_NOSYSTEM", "1");
         command

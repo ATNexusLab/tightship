@@ -9,7 +9,7 @@ pub enum Failure {
     VaultUnreadable(PathBuf, io::Error),
     NoteUnreadable(PathBuf, io::Error),
     EnvUnwritable(PathBuf, io::Error),
-    DataUnwritable(PathBuf, io::Error),
+    HookInputNoProject(String),
     InitNoGit,
     InitNotEmpty(PathBuf),
     InitUnwritable(PathBuf, io::Error),
@@ -25,7 +25,7 @@ pub enum Failure {
     NoteExists(PathBuf),
     NoteUnwritable(PathBuf, io::Error),
     HandoffBodyIncomplete(Vec<&'static str>),
-    HandoffUnremovable(PathBuf, io::Error),
+    NoteUnremovable(PathBuf, io::Error),
     LintFailed,
     SyncUnfinished(PathBuf),
     SyncNoUpstream {
@@ -35,6 +35,7 @@ pub enum Failure {
     },
     SyncConflict(PathBuf, Vec<String>),
     SyncGitFailed(PathBuf, &'static str, String),
+    RulesBlockBroken,
     StatusInputInvalid(String),
     VariableNotSet(&'static str),
     SettingsUnreadable(PathBuf, io::Error),
@@ -44,6 +45,7 @@ pub enum Failure {
     StatusRecordUnwritable(PathBuf, io::Error),
     StatusLinePathUnreadable(PathBuf),
     OptionsInvalid(PathBuf),
+    OptionsValueInvalid(PathBuf, String),
     OptionsJsonInvalid(PathBuf),
     OptionsUnknown(String),
     OptionsUnreadable(PathBuf, io::Error),
@@ -55,6 +57,26 @@ pub enum Failure {
     ContractPartNameInvalid(String),
     ContractPartMissing(PathBuf),
     ContractPartUnreadable(PathBuf, io::Error),
+    ManifestInvalid(PathBuf),
+    UpdateToolMissing(&'static str),
+    UpdateDownloadFailed(String, String),
+    UpdateReleaseInvalid(String),
+    UpdateNoArchive {
+        tag: String,
+        harness: String,
+    },
+    UpdateChecksumFailed(String, String),
+    UpdateIntegrity {
+        archive: String,
+        actual: String,
+        tag: String,
+        expected: String,
+    },
+    UpdateExtractFailed(String, String),
+    UpdateArchiveUnsafe(String, String),
+    UpdateApplyFailed(PathBuf, io::Error),
+    UpdateStateUnwritable(PathBuf, io::Error),
+    UpdateStartFailed(io::Error),
 }
 
 impl fmt::Display for Failure {
@@ -86,11 +108,6 @@ impl fmt::Display for Failure {
                 formatter,
                 "cannot write the session's environment file {}: {error}",
                 file.display()
-            ),
-            Self::DataUnwritable(counter, error) => write!(
-                formatter,
-                "cannot write the checkpoint counter {}: {error}",
-                counter.display()
             ),
             Self::InitNoGit => write!(
                 formatter,
@@ -139,9 +156,13 @@ impl fmt::Display for Failure {
                 "the handoff's body has no {}; each of **Goal:**, **Done:**, **Next step:**, **Open decisions:**, and **Repo state:** starts a line of it",
                 missing.join(", ")
             ),
-            Self::HandoffUnremovable(path, error) => {
+            Self::NoteUnremovable(path, error) => {
                 write!(formatter, "cannot remove {}: {error}", path.display())
             }
+            Self::HookInputNoProject(pointer) => write!(
+                formatter,
+                "the hook's input on stdin names no project folder at {pointer}"
+            ),
             Self::LintFailed => write!(formatter, "the lint found problems in the vault"),
             Self::SyncUnfinished(vault) => write!(
                 formatter,
@@ -167,6 +188,12 @@ impl fmt::Display for Failure {
                 formatter,
                 "git {step} failed in {}: {message}",
                 vault.display()
+            ),
+            Self::RulesBlockBroken => write!(
+                formatter,
+                "the vault's AGENTS.md must hold one {} line followed by one {} line; fix it by hand, then run `tightship vault sync` again",
+                crate::vault::rules::START,
+                crate::vault::rules::END
             ),
             Self::StatusInputInvalid(message) => write!(
                 formatter,
@@ -206,6 +233,11 @@ impl fmt::Display for Failure {
                 "the status line cannot run {}: cmd reads a space or one of & ^ ( ) % ! ; = , in its path, and no 8.3 short name avoids it; move the plugin to a folder without them",
                 path.display()
             ),
+            Self::OptionsValueInvalid(path, name) => write!(
+                formatter,
+                "{} has an invalid value for {name}",
+                path.display()
+            ),
             Self::OptionsInvalid(path) => {
                 write!(formatter, "{} is not valid TOML", path.display())
             }
@@ -242,6 +274,57 @@ impl fmt::Display for Failure {
                 "cannot read contract part {}: {error}",
                 path.display()
             ),
+            Self::ManifestInvalid(path) => write!(
+                formatter,
+                "{} is not a plugin manifest with a name, a version, and a repository",
+                path.display()
+            ),
+            Self::UpdateToolMissing(tool) => {
+                write!(formatter, "{tool} is not on PATH, and the update needs it")
+            }
+            Self::UpdateDownloadFailed(url, message) => {
+                write!(formatter, "cannot download {url}: {message}")
+            }
+            Self::UpdateReleaseInvalid(url) => write!(
+                formatter,
+                "{url} is not a release description tightship can read"
+            ),
+            Self::UpdateNoArchive { tag, harness } => {
+                write!(formatter, "the release {tag} has no archive for {harness}")
+            }
+            Self::UpdateChecksumFailed(archive, message) => {
+                write!(
+                    formatter,
+                    "cannot compute the sha256 of {archive}: {message}"
+                )
+            }
+            Self::UpdateIntegrity {
+                archive,
+                actual,
+                tag,
+                expected,
+            } => write!(
+                formatter,
+                "{archive} has sha256 {actual}, and the release {tag} published {expected}; nothing changed"
+            ),
+            Self::UpdateExtractFailed(archive, message) => {
+                write!(formatter, "cannot extract {archive}: {message}")
+            }
+            Self::UpdateArchiveUnsafe(archive, entry) => write!(
+                formatter,
+                "{archive} holds {entry}, which is not a plain file; nothing changed"
+            ),
+            Self::UpdateApplyFailed(path, error) => write!(
+                formatter,
+                "cannot replace {}: {error}; every file was put back",
+                path.display()
+            ),
+            Self::UpdateStateUnwritable(path, error) => {
+                write!(formatter, "cannot write {}: {error}", path.display())
+            }
+            Self::UpdateStartFailed(error) => {
+                write!(formatter, "cannot start the update: {error}")
+            }
         }
     }
 }

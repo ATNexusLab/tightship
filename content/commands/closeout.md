@@ -74,19 +74,24 @@ exist at all.
 
 ## 3. Traceability — always, never `n/a`
 
-- The work has an issue, and its branch, commits and PR follow the contract's **Process** chain and
-  **Git** section.
+- The work has an issue, and the chain holds: requirement ID → epic and its spec → sub-issue → the
+  epic's branch, commits and PR, as `{{skill:delivery}}` names and sizes them.
 - Once the PR is merged into the integration branch, the epic and its sub-issues move to Staging
   (`gh project item-edit`). They close, and go to Done, when the release reaches `main`.
 - The issue's Status in the Project matches reality, and it sits in the current `Sprint`.
 
-## 4. Security debt
+## 4. Deferred work and security debt
 
-Review open `security-debt` issues touching this area (via `gh`). What this delivery built is fixed,
-never deferred; only what it did not create can be (the contract's **Process**). Each deferred item is
-reported with the issue that already owns it — often the next delivery, named by its spec — or with
-none. A new issue waits for my word, and every one opened is reported. Nothing security-related is
-dropped silently.
+What this delivery built is fixed, never deferred; only what it did not create can be — a problem outside
+the task, or one held back on purpose or by a limitation. Everything deferred is reported, whether deferred
+explicitly or raised and left unanswered: the backlog is searched, and each item is reported with the issue
+that already owns it — often the next delivery, named by its spec — or with none. A new issue, or a comment
+on one, waits for my word, and every one opened is reported.
+
+Review open `security-debt` issues touching this area (via `gh`). Security may be deferred, never dropped:
+a deferred item becomes, at my word, an issue labeled `security-debt` with the surface, the risk, and the
+fix. A deliberate trade-off written down with its mitigations is not debt: an architectural one is an ADR,
+any other goes to the doc it concerns or the repository's `AGENTS.md`.
 
 ## 5. Memory
 

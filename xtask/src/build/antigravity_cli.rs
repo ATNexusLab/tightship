@@ -39,8 +39,7 @@ pub fn render(
 
     for part in parts {
         let file = staging.join("contract").join(&part.file);
-        let text = prepare_contract_part(part);
-        written.push((file, text.into_bytes()));
+        written.push((file, part.text.clone().into_bytes()));
     }
 
     if let Some(contract) = &content.contract {
@@ -60,23 +59,8 @@ pub fn render(
 
     written.extend(render::harness_files(root, &staging, harness)?);
     written.extend(render::binary_files(&staging, binaries)?);
-    staging::write_files(&staging, &written)?;
+    staging::write_files(&staging, &harness.name, &written)?;
     Ok((staging, written.len()))
-}
-
-fn prepare_contract_part(part: &Part) -> String {
-    if part.file == "part-1.md" {
-        if let Some((heading, rest)) = part.text.split_once('\n') {
-            format!(
-                "{heading}\n\nAfter any context compaction (/compact), load the contract skill to restore this contract in full.\n\n{}",
-                rest.trim_start_matches('\n')
-            )
-        } else {
-            part.text.clone()
-        }
-    } else {
-        part.text.clone()
-    }
 }
 
 fn contract_skill(contract: &super::contract::Contract, harness: &Harness) -> io::Result<String> {
@@ -145,28 +129,15 @@ fn hooks(
     if declares("status_line") {
         session_hooks.push(command("hook status-line".to_owned()));
     }
-
-    let mut events = serde_json::Map::new();
-    if !session_hooks.is_empty() {
-        events.insert(
-            "SessionStart".to_owned(),
-            serde_json::Value::Array(session_hooks),
-        );
-    }
-    if declares("memory") {
-        events.insert(
-            "PreInvocation".to_owned(),
-            serde_json::json!([command("hook prompt".to_owned())]),
-        );
+    if declares("auto_update") {
+        session_hooks.push(command("hook update".to_owned()));
     }
 
-    if events.is_empty() {
+    if session_hooks.is_empty() {
         return Ok(None);
     }
 
-    let mut root = serde_json::Map::new();
-    root.insert("tightship".to_owned(), serde_json::Value::Object(events));
-    let hooks = serde_json::Value::Object(root);
+    let hooks = serde_json::json!({ "tightship": { "SessionStart": session_hooks } });
     Ok(Some(
         serde_json::to_string_pretty(&hooks).map_err(io::Error::other)? + "\n",
     ))

@@ -21,6 +21,48 @@ On Windows in PowerShell:
 irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
 ```
 
+Every question starts on its default, so pressing Enter through all of them installs with the defaults. The
+first question lists the CLIs it found, already checked: move with ↑ and ↓, check or uncheck one with space,
+and confirm with Enter. On a yes or no question, an arrow switches the answer. Nothing is written until you
+choose Install on the summary:
+
+```text
+┌  tightship v1.1.1
+│
+│  Harnesses
+◇  Where should tightship be installed?
+│  Antigravity CLI
+│
+│  Options
+◇  Load the working contract in every session?
+│  Yes
+│
+◇  Turn on the memory layer?
+│  Yes
+│
+◇  Show tightship's status line?
+│  Yes
+│
+◇  Keep tightship updated automatically?
+│  Yes
+│
+│  Vault
+◇  Where is your vault?
+│  not set
+│
+◇  Summary
+│  Harnesses       Antigravity CLI
+│  Contract        on
+│  Memory          on
+│  Vault           not set
+│  Status line     on
+│  Auto-update     on
+│
+◆  Install with these choices?
+│  ● Install / ○ Cancel
+└
+```
+
 To run unattended, pass options via flags:
 
 ```sh
@@ -69,6 +111,7 @@ Create `~/.gemini/config/plugin_data/tightship/options.toml`:
 contract = true
 memory = true
 status_line = true
+auto_update = true
 vault_folder = "~/ai-memory"
 ```
 

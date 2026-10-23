@@ -19,7 +19,7 @@ fn built() -> Repository {
         ),
         (
             "content/options.toml",
-            ["contract", "memory", "status_line"]
+            ["contract", "memory", "status_line", "auto_update"]
                 .iter()
                 .map(|name| format!("[[options]]\nname = \"{name}\"\ntitle = \"An option\"\ndescription = \"An option\"\ntype = \"boolean\"\n"))
                 .collect::<Vec<String>>()
@@ -67,8 +67,8 @@ fn the_hooks_name_the_launcher_relative_to_the_plugin_folder_without_quotes() {
                         command("hook contract-part memory.md"),
                         command("hook start"),
                         command("hook status-line"),
+                        command("hook update"),
                     ],
-                    "PreInvocation": [command("hook prompt")],
                 }
             }),
             "{file}"

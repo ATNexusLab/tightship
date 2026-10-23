@@ -20,12 +20,13 @@ adopter's user settings:
 
 | Attribute | Type | Domain | Written by |
 | --- | --- | --- | --- |
-| Name | key | `contract`, `memory`, `status_line`, from `content/options.toml` | The maintainer, in the manifest |
+| Name | key | `contract`, `memory`, `status_line`, `auto_update`, from `content/options.toml` | The maintainer, in the manifest |
 | State | boolean | `true` or `false`; the key is absent until the adopter sets it | Claude Code, when the adopter chooses |
 | `vault_folder` | string, a `directory` setting | An absolute or `~` folder; absent until the adopter sets it, with no default | Claude Code, when the adopter chooses (M1, #5) |
 
 The `status_line` option's effect is the `statusLine` key of the user settings, written only while the option
-is on ([status line](status-line.md), M1, #7).
+is on ([status line](status-line.md), M1, #7). The `auto_update` option's effect is the plugin's
+`extraKnownMarketplaces` entry ([update](update.md)).
 
 Claude Code keeps the state across an update and deletes it when the plugin is uninstalled from its last
 scope. It never reads a project's or a folder's settings for it.
@@ -40,12 +41,13 @@ which Antigravity CLI preserves across plugin updates:
 contract = true
 memory = true
 status_line = true
+auto_update = true
 vault_folder = "~/ai-memory"
 ```
 
 | Attribute | Type | Domain | Written by |
 | --- | --- | --- | --- |
-| `contract`, `memory`, `status_line` | boolean | `true` or `false`; an absent file or key means `true` | `install.sh` / `install.ps1` or the adopter |
+| `contract`, `memory`, `status_line`, `auto_update` | boolean | `true` or `false`; an absent file or key means `true` | `install.sh` / `install.ps1` or the adopter |
 | `vault_folder` | string | An absolute or `~` folder; absent or empty until set | `install.sh` / `install.ps1` or the adopter |
 
 ## Cursor (M2, #58)
@@ -58,13 +60,14 @@ read state only from `$HOME/.cursor/tightship/options.json`, which `tightship op
   "contract": true,
   "memory": false,
   "status_line": true,
+  "auto_update": true,
   "vault_folder": "/home/adopter/ai-memory"
 }
 ```
 
 | Attribute | Type | Domain | Written by |
 | --- | --- | --- | --- |
-| `contract`, `memory`, `status_line` | boolean | `true` or `false`; an absent file or key means `true` | `tightship options set` or the adopter |
+| `contract`, `memory`, `status_line`, `auto_update` | boolean | `true` or `false`; an absent file or key means `true` | The installer, `tightship options set`, or the adopter |
 | `vault_folder` | string | An absolute or `~` folder; absent until set | `tightship options set` or the adopter |
 
 `tightship options list` prints the file as pretty-printed JSON, or `{}` when it does not exist.

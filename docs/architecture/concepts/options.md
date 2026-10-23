@@ -2,7 +2,7 @@
 
 **Milestone:** M1, epic #3; M3, epic #59
 
-The contract, the memory layer, and the status line are options the adopter turns on or off
+The contract, the memory layer, the status line, and auto-update are options the adopter turns on or off
 ([FR-INS-03](../../requirements/functional/install.md#fr-ins-03)). `content/options.toml` lists them, and each
 harness stores the adopter's choices:
 
@@ -11,6 +11,13 @@ harness stores the adopter's choices:
 - **Antigravity CLI** (M3, #59): `${PLUGIN_DATA}/options.toml`
   (`~/.gemini/config/plugin_data/tightship/options.toml`), written by `install.sh` / `install.ps1` or by the
   adopter and preserved across plugin updates by Antigravity CLI.
+
+- **Cursor** (M2, #58): `$HOME/.cursor/tightship/options.json`, written by the installer or `tightship options`.
+
+`auto_update` decides whether each release installs by itself. Cursor and Antigravity CLI read it before
+`tightship update` downloads anything; Claude Code passes it to `tightship hook marketplace-auto-update`, which
+turns the harness's own marketplace auto-update on or off
+([auto-update spec](../../specs/auto-update/update-the-plugin.md)).
 
 ## Reading an option
 
@@ -26,7 +33,7 @@ option the adopter never set reaches no piece
 
 ## The vault folder
 
-Next to the three options, `content/options.toml` declares `vault_folder`, a setting of type `directory` that
+Next to the four options, `content/options.toml` declares `vault_folder`, a setting of type `directory` that
 belongs to the memory layer (M1, #5). Each entry names its `type`, `boolean` or `directory`. A `boolean`
 renders with the default `true`; a `directory` renders with no default, so a folder the adopter never set
 reaches `tightship` as an absent variable or key, and memory then has no vault.

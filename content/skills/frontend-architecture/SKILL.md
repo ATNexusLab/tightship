@@ -8,12 +8,23 @@ description = "Use when structuring UI code — component boundaries, state owne
 How the UI is built and how it behaves.
 
 **Scope.** Visual craft — palette, type, layout, motion, copy voice — is `frontend-design`. Measuring
-what it costs is `{{skill:performance-analysis}}`. Mobile-first and the size of a loading state are already rules
-in the global contract. Framework, router, and data library are the repository's decisions and live in
-its own `AGENTS.md`; nothing here names one.
+what it costs is `{{skill:performance-analysis}}`. Framework, router, and data library are the repository's
+decisions and live in its own `AGENTS.md`; nothing here names one.
 
 Written for browser UI: the URL section and bundle cost assume the web. Everything else — state
 ownership, data entry, forms, async surfaces, contract types, accessibility — holds on native too.
+
+## A screen
+
+- **Mobile-first.** The layout is decided at phone width and only then expanded. A control added to an
+  existing row gets a place at 390px before anything else.
+- **A screen is structured before it is filled.** Each area gets its responsibility, its planes, framing,
+  proportions, and depth, and a color atmosphere; components dropped on a white background are not a
+  layout. No section is pure white: backgrounds alternate light brand tones and solid bands of the main
+  color, white is for card surfaces with a shadow, and the first fold carries a strong brand color. The
+  strong secondary color stays on accents.
+- **Assets come from the repository first.** An existing image, icon, SVG, or logo is searched for before
+  one is sourced or drawn. Files you hand over are all used, and your originals are never moved or deleted.
 
 ## Component boundaries
 
@@ -85,7 +96,8 @@ Every piece of state has exactly one owner. Naming it is most of the architectur
 - **Permission-driven rendering is convenience, not authorization.** Hiding a button hides nothing:
   the endpoint behind it is what must refuse.
 - **No secret reaches client code**, including config variables that get inlined into the bundle. What
-  ships to the browser is public by definition — the contract's env rules apply here without exception.
+  ships to the browser is public by definition, and an environment value is never read to find out what
+  it holds.
 - **Data from elsewhere is input, including your own backend's.** Anything that becomes markup, a URL,
   or a redirect target is untrusted until it is treated as such.
 
@@ -102,6 +114,9 @@ Where most real UI bugs live, and the cheapest ones to prevent.
   the first error off screen. Move focus to the first error.
 - **A failed submit preserves everything the user typed.** Losing a filled form to a server error is
   the worst cheap bug there is.
+- **Every field autofills correctly.** Each input carries the `autocomplete` token and a `name` browsers
+  recognize; a field that is not personal data gets `autocomplete="off"`. A field with no standard token,
+  like a house number or a neighborhood, is checked in the browser, never assumed.
 
 ## Async surfaces
 
@@ -110,8 +125,8 @@ Where most real UI bugs live, and the cheapest ones to prevent.
 - **An error state carries a way out** — retry, go back, or contact — never a bare message.
 - **Failure is isolated.** One widget that fails to load must not blank the page around it; the rest of
   the screen stays usable.
-- **The loading state's size is a rule of the global contract** (a skeleton changes appearance, never
-  size) — follow it there, it is not restated here.
+- **A loading state occupies exactly the space of the final content.** The skeleton changes appearance,
+  never size: the real component is its shell, and CLS stays at 0.
 
 ## Contract types
 
@@ -130,6 +145,20 @@ compile-time disguise.
 - **Every interactive element labeled; images have alt; color is never the only signal; contrast meets
   WCAG AA.**
 - **Announce async results.** A screen that updated silently did not update for everyone.
+
+## Verifying a screen
+
+- **A delivery that changes a screen is verified in the browser before its commit**, on the session you
+  logged in; I never type a password. The effect is checked in the database when there is one. Visual
+  verification is never saved for the end of a phase.
+- **Phone width is tested in the DevTools device toolbar you turn on**, in the tab you hand me, never
+  simulated: no new tab, no window resize, no injected iframe, no CSS override. The phone is checked before
+  the desktop.
+- **Autofill is checked with a fictitious saved profile**, filling from the name field in Chrome, whose
+  DevTools Autofill panel shows each field's predicted type. Safari on iOS goes on your list of visual
+  checks.
+- **Verification never changes real data.** A fictitious record is created, tested on, and deleted; a real
+  record touched by accident is restored at once.
 
 ## Validation checklist
 

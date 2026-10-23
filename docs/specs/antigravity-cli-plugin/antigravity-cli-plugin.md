@@ -354,6 +354,10 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
 - If `${TIGHTSHIP_DATA}/options.toml` exists, `tightship` parses it as a TOML table. A malformed
   `options.toml` fails with:
   > `"error: <path> is not valid TOML"`
+
+  An option of the wrong type fails with:
+  > `"error: <path> has an invalid value for <option>"`
+- With `TIGHTSHIP_DATA` unset, `tightship` reads no options file, so every option is on and no folder is set.
 - An option's effective value is the `TIGHTSHIP_*` environment variable when set and non-empty, or the
   key in `${TIGHTSHIP_DATA}/options.toml` otherwise:
   - `contract`: off only when `false` (`TIGHTSHIP_CONTRACT=false` or `contract = false`).
@@ -454,7 +458,8 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
 | --- | --- | --- | --- |
 | `PACKAGE_PLUGIN_MISSING` | `1` | `cargo xtask package <tag>` runs when `dist/claude-code` or `dist/antigravity-cli` is missing | `"error: dist/<harness>/<manifest> is missing; run cargo xtask build --binaries <folder> first"` |
 | `PACKAGE_BINARY_MISSING` | `1` | `cargo xtask package <tag>` runs when any of the 4 platform binaries is missing in `dist/<harness>/bin/` | `"error: dist/<harness>/bin/<platform>/<binary> is missing; run cargo xtask build --binaries <folder> first"` |
-| `OPTIONS_TOML_INVALID` | `1` | `${TIGHTSHIP_DATA}/options.toml` exists and is not valid TOML or has a non-boolean `contract`, `memory`, or `status_line` | `"error: <path> is not valid TOML"` |
+| `OPTIONS_TOML_INVALID` | `1` | `${TIGHTSHIP_DATA}/options.toml` exists and is not valid TOML | `"error: <path> is not valid TOML"` |
+| `OPTIONS_VALUE_INVALID` | `1` | The options file holds a non-boolean `contract`, `memory`, or `status_line`, or a `vault_folder` that is not a string | `"error: <path> has an invalid value for <option>"` |
 | `OPTIONS_TOML_UNREADABLE` | `1` | `${TIGHTSHIP_DATA}/options.toml` exists and cannot be read | `"error: cannot read <path>: <io error>"` |
 | `CONTRACT_FILE_UNREADABLE` | `1` | `tightship hook contract <file>` cannot read `<file>` | `"error: cannot read <file>: <io error>"` |
 | `INSTALL_HARNESS_UNKNOWN` | `1` | `install.sh` or `install.ps1` receives an unknown `--harness` value | `"error: unknown harness <value>; expected antigravity-cli, claude-code, or all"` |

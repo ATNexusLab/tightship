@@ -12,8 +12,15 @@ pub fn run() -> Result<(), Failure> {
         .filter_map(|file| file.file_stem())
         .map(|stem| stem.to_string_lossy().into_owned())
         .collect();
+    let unclosed = note::unclosed(&vault)?;
+    for file in &unclosed {
+        println!(
+            "{}\n  - front matter does not close with ---",
+            file.display()
+        );
+    }
     let mut first_with_id: HashMap<&str, &Note> = HashMap::new();
-    let mut with_problems = 0;
+    let mut with_problems = unclosed.len();
     for note in &notes {
         let id = note.field("id");
         let found = problems(note, first_with_id.get(id).copied(), &stems);
@@ -42,7 +49,7 @@ pub fn run() -> Result<(), Failure> {
     }
     println!(
         "{} notes, {with_problems} with problems, {over} scopes over the session start",
-        notes.len()
+        notes.len() + unclosed.len()
     );
     if with_problems > 0 || over > 0 {
         return Err(Failure::LintFailed);
@@ -58,6 +65,10 @@ fn problems(note: &Note, earlier: Option<&Note>, stems: &HashSet<String>) -> Vec
         if note.field(field).is_empty() {
             found.push(format!("missing `{field}`"));
         }
+    }
+    let updated = note.field("updated");
+    if !updated.is_empty() && note.updated().is_none() {
+        found.push(format!("updated `{updated}` is not a date as YYYY-MM-DD"));
     }
     let kind = note.field("type");
     let kinds = ["project", "gotcha", "decision", "preference", "handoff"];

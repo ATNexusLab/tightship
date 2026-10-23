@@ -51,6 +51,9 @@ From [ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)
   it into each harness's plugin under `dist/`, which is never committed.
 - **Harness-neutral content.** A piece refers to another piece, or to a harness capability, through a
   [token](concepts/tokens.md). Harness names, paths, and tools live only in `harnesses/<harness>/`.
+- **A rule lives where its step reaches it** (M4, #118). The contract keeps only the hard lines and what every
+  task needs; a rule of one step is in that step's skill or command, and a repository's procedures are project
+  skills in `.agents/skills/`.
 - **Rust throughout.** The build is a Cargo `xtask`; the plugin ships one compiled binary, `tightship`, so an
   adopter installs no runtime.
 - **The plugin installs as a release archive** that carries the binary for every target and a `sh` launcher
@@ -71,15 +74,15 @@ contract` for each part, which wraps the text in `injectSteps` JSON; after `/com
 
 **Session start: memory** (M1, #5; M3, #59). With memory on, the same event runs `tightship hook start`. It
 reads the pinned notes of the project's scope and of `all`, and the project's handoff, from the vault folder
-the adopter set, and prints them within 9,000 characters (wrapped in `injectSteps` JSON in Antigravity CLI,
+the adopter set, and, since M4 (#118), the project's notes tagged `to-repo` as debts, and prints them within
+9,000 characters (wrapped in `injectSteps` JSON in Antigravity CLI,
 M3, #59). In Claude Code it also appends `export TIGHTSHIP_VAULT=…` to the session's environment file; in
 Antigravity CLI, `tightship` reads `vault_folder` directly from `${PLUGIN_DATA}/options.toml`
 ([memory](concepts/memory.md)).
 
-**A prompt: the checkpoint** (M1, #5; M3, #59). Each prompt runs `tightship hook prompt` (`PreInvocation` in
-Antigravity CLI), which counts the session's prompts (`session_id` or `conversationId`) in the plugin's data
-folder and prints the checkpoint on every 10th. In Claude Code, a compaction prints it once more, from
-`SessionStart` on the source `compact`.
+**A compaction: the checkpoint** (M1, #5; M2, #58; M4, #118). A compaction prints the checkpoint, from
+`SessionStart` on the source `compact` in Claude Code and from `preCompact` in Cursor. No hook runs on a prompt
+since M4, and Antigravity CLI, with no compaction hook, gets no checkpoint.
 
 **The agent reaches the vault** (M1, #5; M3, #59). The agent runs `tightship vault search`, `new`, or `lint`
 through its shell. The binary finds the vault in `TIGHTSHIP_VAULT` (exported in Claude Code) or in
@@ -91,8 +94,9 @@ scope's earlier ones, and run `tightship vault sync` to push it. The project's r
 ([memory](concepts/memory.md)).
 
 **The adopter claims a handoff** (M1, #6). The command `handoff claim` has the agent sync the vault, run
-`tightship vault handoff claim`, which prints and removes the scope's handoffs, sync again, and compare each
-handoff with the repository after a `git fetch`. It shows the next step and the open decisions, and waits.
+`tightship vault handoff claim`, which removes each of the scope's handoffs and prints the ones it removed, so
+two sessions that claim at once never both take one, sync again, and compare each handoff with the
+repository after a `git fetch`. It shows the next step and the open decisions, and waits.
 
 **Session start: the status line** (M1, #7; M3, #59). On `startup`, `tightship hook status-line` runs whatever
 the status line option's state. With the option on, it saves the adopter's `statusLine` in the plugin's data
@@ -102,8 +106,9 @@ folder and writes the workflow's into the user settings (`~/.claude/settings.jso
 ([status line](concepts/status-line.md)).
 
 **The adopter syncs the vault** (M1, #5). The command `sync` has the agent run `tightship vault sync`, which
-commits the vault's changes, rebases them on its git remote, renumbers colliding ids, and pushes. A conflict or
-a git failure stops it with exit 1 and the next step, and the agent resolves it and syncs again
+commits the vault's changes, rebases them on its git remote, renumbers colliding ids, removes the notes past
+their lifetime and rewrites the vault's rules block, each in its own commit (M4, #118), and pushes. A conflict
+or a git failure stops it with exit 1 and the next step, and the agent resolves it and syncs again
 ([memory](concepts/memory.md)).
 
 ## Deployment

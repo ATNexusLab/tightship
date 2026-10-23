@@ -8,6 +8,14 @@ if not defined TIGHTSHIP_ROOT (
   )
 )
 
+if not defined TIGHTSHIP_MANIFEST (
+  set "TIGHTSHIP_MANIFEST=%TIGHTSHIP_ROOT%\.cursor-plugin\plugin.json"
+)
+
+if not defined TIGHTSHIP_HARNESS (
+  set "TIGHTSHIP_HARNESS=cursor"
+)
+
 if not defined TIGHTSHIP_DATA (
   set "TIGHTSHIP_DATA={{path:data}}"
 )
@@ -26,4 +34,8 @@ if not defined TIGHTSHIP_CHECKPOINT_OUTPUT (
 
 if not defined TIGHTSHIP_STATUS_LINE_COMMAND (
   set "TIGHTSHIP_STATUS_LINE_COMMAND="${CURSOR_PLUGIN_ROOT}/bin/tightship" status-line render"
+)
+
+if not defined TIGHTSHIP_PROJECT_POINTER (
+  set "TIGHTSHIP_PROJECT_POINTER=/workspace_roots/0"
 )

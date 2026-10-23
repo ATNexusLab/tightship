@@ -1,4 +1,5 @@
 use std::fs;
+use std::io;
 use std::path::Path;
 
 use clap::Subcommand;
@@ -89,30 +90,35 @@ fn claim() -> Result<(), Failure> {
     let vault = super::folder()?;
     let scope = project::scope(&vault)?;
     let notes = note::read_all(&vault)?;
-    let handoffs = in_scope(&notes, &scope);
-    if handoffs.is_empty() {
-        println!("no handoff for {scope}");
-        return Ok(());
+    let mut claimed = 0;
+    for handoff in in_scope(&notes, &scope) {
+        let path = vault.join(&handoff.path);
+        let claimed_path = path.with_extension(format!("claimed-{}", std::process::id()));
+        match fs::rename(&path, &claimed_path) {
+            Err(error) if error.kind() == io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(Failure::NoteUnremovable(handoff.path.clone(), error)),
+            Ok(()) => {}
+        }
+        fs::remove_file(&claimed_path)
+            .map_err(|error| Failure::NoteUnremovable(handoff.path.clone(), error))?;
+        if claimed > 0 {
+            println!();
+        }
+        println!(
+            "# Handoff — {scope} · {} · {}\n\n{}",
+            handoff.field("id"),
+            handoff.age(),
+            handoff.body
+        );
+        claimed += 1;
     }
-    let sections: Vec<String> = handoffs
-        .iter()
-        .map(|handoff| {
-            format!(
-                "# Handoff — {scope} · {} · {}\n\n{}\n",
-                handoff.field("id"),
-                handoff.age(),
-                handoff.body
-            )
-        })
-        .collect();
-    print!("{}", sections.join("\n"));
-    for handoff in handoffs {
-        remove(&vault, &handoff.path)?;
+    if claimed == 0 {
+        println!("no handoff for {scope}");
     }
     Ok(())
 }
 
 fn remove(vault: &Path, relative: &Path) -> Result<(), Failure> {
     fs::remove_file(vault.join(relative))
-        .map_err(|error| Failure::HandoffUnremovable(relative.to_path_buf(), error))
+        .map_err(|error| Failure::NoteUnremovable(relative.to_path_buf(), error))
 }

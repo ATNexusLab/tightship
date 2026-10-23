@@ -1,10 +1,9 @@
 #[allow(dead_code)]
 mod common;
 
-use std::fs::{self, File};
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::{Duration, SystemTime};
 
 use common::{Sandbox, assert_succeeds, note, run, stderr_of, stdout_of, with_stdin};
 
@@ -78,7 +77,7 @@ fn start_lists_the_pinned_notes_of_the_project_then_all() {
              Scope `tightship` and `all`. Before non-trivial work, search them for the subsystem and the task:\n\
              `tightship vault search <term> <term>` — one line per match, its `why` stating\n\
              what not knowing it costs. Open one at `{vault}/<path>`. Rules: `{vault}/AGENTS.md`.\n\
-             Listed below, only the pinned notes. A hint to verify against the repo, never truth.\n\
+             Listed below, the project's debts and the pinned notes. A hint to verify against the repo, never truth.\n\
              Write with `tightship vault new --help`.\n\n\
              ## Scope — tightship\n\n\
              - [[mem-0002-a-note]] (2026-10-01) — the mem-0002 why costs real time\n\n\
@@ -149,6 +148,83 @@ fn start_cuts_the_pinned_notes_at_the_cap() {
 }
 
 #[test]
+fn start_lists_the_project_debts_ahead_of_the_pinned_notes() {
+    let sandbox = Sandbox::new();
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0001",
+        "pinned: true\n",
+        "Pinned here.",
+    );
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0003",
+        "tags: [build, to-repo]\npinned: true\n",
+        "No destination.",
+    );
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0002",
+        "tags: [to-repo]\n",
+        "The fact.\n\n**Moves to:** AGENTS.md",
+    );
+    note(&sandbox, "all", "mem-0004", "tags: [to-repo]\n", "Nowhere.");
+    let working_directory = project(&sandbox, "tightship");
+
+    let output = run(&mut hook(&sandbox, "start", &working_directory));
+
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    assert!(
+        stdout.contains(
+            "\n\n## Debts — move into this repo\n\n\
+             Move each into the file it names, in this work's commit, and delete the note.\n\n\
+             - [[mem-0002-a-note]] → AGENTS.md\n\
+             - [[mem-0003-a-note]] — the mem-0003 why costs real time\n\n\
+             ## Scope — tightship\n\n\
+             - [[mem-0001-a-note]] (2026-10-01) — the mem-0001 why costs real time\n\n\
+             [1 more notes in these scopes — `tightship vault search <terms>`]\n"
+        ),
+        "{stdout}"
+    );
+    assert_eq!(stdout.matches("mem-0003-a-note").count(), 1, "{stdout}");
+    assert!(!stdout.contains("mem-0004"), "{stdout}");
+}
+
+#[test]
+fn start_cuts_the_debts_at_the_cap() {
+    let sandbox = Sandbox::new();
+    for number in 1..=400 {
+        sandbox.write(
+            &format!("vault/notes/tightship/mem-{number:04}-debt.md"),
+            &format!(
+                "---\nid: mem-{number:04}\ntype: project\nproject: tightship\nwhy: {}\ntags: [to-repo]\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-01\n---\n\nA fact.\n",
+                "w".repeat(100)
+            ),
+        );
+    }
+    let working_directory = project(&sandbox, "tightship");
+
+    let output = run(&mut hook(&sandbox, "start", &working_directory));
+
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    assert!(stdout.encode_utf16().count() <= 9000, "{}", stdout.len());
+    let listed = stdout.matches("- [[mem-").count();
+    assert!(listed > 0 && listed < 400, "{listed}");
+    assert!(
+        stdout.ends_with(&format!(
+            "[{} debts cut at the 9000-character cap — tightship vault search to-repo]\n",
+            400 - listed
+        )),
+        "{stdout}"
+    );
+}
+
+#[test]
 fn start_takes_the_scope_whose_name_prefixes_the_project_folder() {
     let sandbox = Sandbox::new();
     note(
@@ -162,6 +238,33 @@ fn start_takes_the_scope_whose_name_prefixes_the_project_folder() {
     let working_directory = project(&sandbox, "tightship-docs");
 
     let output = run(&mut hook(&sandbox, "start", &working_directory));
+
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    assert!(stdout.contains("Scope `tightship` and `all`."), "{stdout}");
+    assert!(stdout.contains("- [[mem-0001-a-note]]"), "{stdout}");
+}
+
+#[test]
+fn start_takes_the_project_the_hook_input_names() {
+    let sandbox = Sandbox::new();
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0001",
+        "pinned: true\n",
+        "Pinned.",
+    );
+    let working_directory = project(&sandbox, "tightship");
+    let plugin = project(&sandbox, "plugin");
+    let mut command = hook(&sandbox, "start", &plugin);
+    command.env("TIGHTSHIP_PROJECT_POINTER", "/workspacePaths/0");
+    let input = format!(
+        "{{\"workspacePaths\":[\"{}\"]}}",
+        working_directory.display().to_string().replace('\\', "/")
+    );
+
+    let output = with_stdin(&mut command, &input);
 
     assert_succeeds(&output);
     let stdout = stdout_of(&output);
@@ -246,37 +349,12 @@ fn export_writes_the_vault_to_the_environment_and_prints_nothing() {
 }
 
 #[test]
-fn prompt_prints_the_checkpoint_every_10_prompts_and_sweeps_stale_counters() {
+fn prompt_is_no_longer_a_subcommand() {
     let sandbox = Sandbox::new();
-    fs::create_dir_all(sandbox.path("vault")).expect("the vault");
-    let stale = sandbox.write("data/checkpoints/old-session", "3");
-    File::options()
-        .write(true)
-        .open(&stale)
-        .expect("the stale counter")
-        .set_modified(SystemTime::now() - Duration::from_secs(8 * 24 * 60 * 60))
-        .expect("an old modification time");
 
-    let printed: Vec<u32> = (1..=20)
-        .filter(|_| {
-            let output = with_stdin(
-                &mut hook(&sandbox, "prompt", &sandbox.path("")),
-                r#"{"session_id":"abc"}"#,
-            );
-            assert_succeeds(&output);
-            !stdout_of(&output).is_empty()
-        })
-        .collect();
+    let output = run(&mut hook(&sandbox, "prompt", &sandbox.path("")));
 
-    assert_eq!(printed, [10, 20]);
-    let counter = fs::read_to_string(sandbox.path("data/checkpoints/abc")).expect("the counter");
-    assert_eq!(counter, "20");
-    assert!(!stale.exists());
-    assert_succeeds(&with_stdin(
-        &mut hook(&sandbox, "prompt", &sandbox.path("")),
-        r#"{"session_id":"x/y"}"#,
-    ));
-    assert!(sandbox.path("data/checkpoints/x-y").exists());
+    common::assert_fails_with(&output, "error: unknown subcommand prompt");
 }
 
 #[test]
@@ -300,7 +378,7 @@ fn checkpoint_prints_the_checkpoint_only_with_a_vault() {
 
 #[cfg(unix)]
 #[test]
-fn an_unreadable_vault_or_note_or_data_folder_fails_with_exit_1() {
+fn an_unreadable_vault_or_note_fails_with_exit_1() {
     use std::os::unix::fs::PermissionsExt;
 
     use common::assert_fails_with;
@@ -327,18 +405,6 @@ fn an_unreadable_vault_or_note_or_data_folder_fails_with_exit_1() {
     assert_fails_with(
         &run(&mut hook(&sandbox, "start", &working_directory)),
         "error: cannot read notes/tightship/mem-0001-a-note.md: Permission denied (os error 13)",
-    );
-
-    sandbox.write("data", "a file, not a folder");
-    assert_fails_with(
-        &with_stdin(
-            &mut hook(&sandbox, "prompt", &sandbox.path("")),
-            r#"{"session_id":"abc"}"#,
-        ),
-        &format!(
-            "error: cannot write the checkpoint counter {}: Not a directory (os error 20)",
-            sandbox.path("data/checkpoints/abc").display()
-        ),
     );
 }
 
@@ -465,14 +531,6 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
 
-    let mut prompt_cmd = sandbox.tightship(&["hook", "prompt"]);
-    prompt_cmd
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
-    let output = with_stdin(&mut prompt_cmd, r#"{"conversationId":"conv-1"}"#);
-    assert_succeeds(&output);
-    assert_eq!(stdout_of(&output), "");
-
     sandbox.write("data/options.toml", "contract = false\n");
     let mut contract_cmd1 = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
     contract_cmd1
@@ -508,42 +566,20 @@ fn scenario_6_malformed_options_toml_fails_without_blocking_the_session() {
     assert_eq!(output.status.code(), Some(1));
     assert_eq!(
         stderr_of(&output),
+        format!(
+            "error: {} has an invalid value for contract\n",
+            options_file.display()
+        )
+    );
+
+    sandbox.write("data/options.toml", "contract = \n");
+    let output = run(&mut start_cmd);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(
+        stderr_of(&output),
         format!("error: {} is not valid TOML\n", options_file.display())
     );
-}
-
-#[test]
-fn scenario_7_prompt_checkpoint_fires_on_every_10th_pre_invocation_using_conversation_id() {
-    let sandbox = Sandbox::new();
-    let vault = sandbox.path("vault");
-    sandbox.write(
-        "data/options.toml",
-        &format!("memory = true\nvault_folder = '{}'\n", vault.display()),
-    );
-
-    for call in 1..=10 {
-        let mut prompt_cmd = sandbox.tightship(&["hook", "prompt"]);
-        prompt_cmd
-            .env("TIGHTSHIP_DATA", sandbox.path("data"))
-            .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
-        let output = with_stdin(&mut prompt_cmd, r#"{"conversationId":"conv-42"}"#);
-        assert_succeeds(&output);
-        let stdout = stdout_of(&output);
-        if call < 10 {
-            assert_eq!(stdout, "", "call {call} must output 0 bytes");
-        } else {
-            let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
-            let msg = json["injectSteps"][0]["systemMessage"]["systemMessage"]
-                .as_str()
-                .unwrap();
-            assert!(
-                msg.starts_with(
-                    "MEMORY CHECKPOINT — did anything this session become a durable fact?"
-                ),
-                "{msg}"
-            );
-        }
-    }
 }
 
 #[test]

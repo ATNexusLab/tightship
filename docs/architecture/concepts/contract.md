@@ -9,7 +9,10 @@ The contract is the always-on text that tells the agent how to work
 ## How it reaches a Claude Code session
 
 Claude Code puts a `SessionStart` hook's output in the context, and caps each hook's text at 10,000
-characters. The contract is longer, so the build splits it:
+characters. Until M4 the contract was longer, so the build splits it; since M4 (#118) the build also fails when
+the contract renders past 8,000 characters with every option on
+([NFR-PERF-03](../../requirements/non-functional/performance.md#nfr-perf-03)), so it is one part plus its memory
+section:
 
 1. It resolves the tokens, then packs the preamble and the sections, in file order, into parts of at most
    `[contract] limit` characters, the value in `harnesses/claude-code/harness.toml`. Each part opens with the

@@ -22,6 +22,47 @@ No Windows usando o PowerShell:
 irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
 ```
 
+Cada pergunta já começa no padrão, então apertar Enter em todas instala com os padrões. A primeira lista os
+CLIs encontrados, já marcados: mova com ↑ e ↓, marque ou desmarque com espaço e confirme com Enter. Numa
+pergunta de sim ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Install no resumo:
+
+```text
+┌  tightship v1.1.1
+│
+│  Harnesses
+◇  Where should tightship be installed?
+│  Antigravity CLI
+│
+│  Options
+◇  Load the working contract in every session?
+│  Yes
+│
+◇  Turn on the memory layer?
+│  Yes
+│
+◇  Show tightship's status line?
+│  Yes
+│
+◇  Keep tightship updated automatically?
+│  Yes
+│
+│  Vault
+◇  Where is your vault?
+│  not set
+│
+◇  Summary
+│  Harnesses       Antigravity CLI
+│  Contract        on
+│  Memory          on
+│  Vault           not set
+│  Status line     on
+│  Auto-update     on
+│
+◆  Install with these choices?
+│  ● Install / ○ Cancel
+└
+```
+
 Para executar de forma não interativa, passe opções pelas flags:
 
 ```sh
@@ -70,6 +111,7 @@ Crie o arquivo `~/.gemini/config/plugin_data/tightship/options.toml`:
 contract = true
 memory = true
 status_line = true
+auto_update = true
 vault_folder = "~/ai-memory"
 ```
 

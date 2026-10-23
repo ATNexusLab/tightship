@@ -58,6 +58,10 @@ On Windows, run every command in Git Bash.
 | FR-INS-07.1 | Manual: on a configuration with the baseline merged in, follow `migration.md`; `/hooks` shows no `vault.py` hook, and each skill and command appears once | | | |
 | FR-INS-07.2 | Manual: after the same migration, `diff -r` against the backup shows only the files the migration lists, and the vault's `git status` is clean | | | |
 | FR-INS-08.1 | Manual: `docs/install/claude-code/README.md` links install, companions, options, update, uninstall, and migration | | | |
+| FR-INS-10.1 | Manual: after promoting, the previous release installed in Cursor and in Antigravity CLI reaches this one at the second session start, and `claude plugin marketplace list --json` shows `autoUpdate` on for `tightship`. Test: `tightship/tests/update.rs` `a_newer_release_replaces_the_plugin_and_keeps_the_options`. Skipped on the first release with `latest.json` | | | |
+| FR-INS-10.2 | Manual: the session after that update tells the adopter both versions, and the next one does not. Test: `tightship/tests/update.rs` `the_notice_is_printed_once` | | | |
+| FR-INS-10.3 | Test: `tightship/tests/update.rs` `the_option_off_leaves_the_plugin_as_it_is` | | | |
+| FR-INS-10.4 | Test: `tightship/tests/update.rs` `a_mismatched_checksum_changes_nothing_and_is_announced` | | | |
 
 ## Skills, commands, and verifier
 
@@ -81,8 +85,12 @@ On Windows, run every command in Git Bash.
 | FR-CTR-02.2 | Manual: with `contract` off, `/tightship:closeout` runs | | | |
 | FR-CTR-03.1 | Manual: with `memory` off, the contract in the session holds no rule that names the vault. Test: `xtask/tests/contract.rs` `the_hooks_honor_the_options` | | | |
 | FR-CTR-03.2 | Manual: with both on, the contract holds its **Memory** section | | | |
-| FR-CTR-04.1 | Manual: every rule of the baseline's contract is in `content/`, or in the epic #4 spec's list of personal and changed rules | | | |
+| FR-CTR-04.1 | Retired in requirements 2.0.0 | | | |
 | FR-CTR-05.1 | Manual: `without-the-contract.md` names every skill and command whose text in `content/` names the contract or one of its sections | | | |
+| FR-CTR-06.1 | Manual: `dist/claude-code/contract/part-1.md` holds the section "## Hard lines" with the text of the [lean contract spec](../specs/curation/lean-contract.md#request), and no shipped piece holds "is a violation", "This overrides", or "requires your approval". In a session, ask the agent to print a variable of `.env`; it declines, names the hard line, and offers to say whether the variable is filled | | | |
+| FR-CTR-06.2 | Manual: in a repository whose `AGENTS.md` describes a layered architecture, ask to add a component library and to place one module outside the layers; the agent states each trade-off in one line, makes the change, and asks for no ADR | | | |
+| FR-CTR-07.1 | Manual: `skills/delivery/SKILL.md` is in each built plugin, and each rule the spec's rule 3 sends to a skill or command is in that piece and not in the contract | | | |
+| NFR-PERF-03.1 | Test: `cargo xtask build` fails past 8,000 characters, `xtask/tests/contract.rs` `a_contract_past_8000_characters_fails_and_leaves_no_plugin`. Manual: `dist/<harness>/contract/` holds only `part-1.md` and `memory.md` | | | |
 
 ## Memory
 
@@ -91,7 +99,7 @@ On Windows, run every command in Git Bash.
 | FR-MEM-01.1 | Manual: a pinned note in the project's scope is listed at session start. Test: `tightship/tests/hook.rs` `start_lists_the_pinned_notes_of_the_project_then_all` | | | |
 | FR-MEM-01.2 | Manual: after `/tightship:handoff release`, a new session shows the handoff's body. Test: `tightship/tests/hook.rs` `start_shows_the_handoff_apart_from_the_pinned_notes` | | | |
 | FR-MEM-01.3 | Test: `tightship/tests/hook.rs` `start_takes_the_scope_whose_name_prefixes_the_project_folder` | | | |
-| FR-MEM-02.1 | Manual: the 10th prompt of a session shows the checkpoint. Test: `tightship/tests/hook.rs` `prompt_prints_the_checkpoint_every_10_prompts_and_sweeps_stale_counters` | | | |
+| FR-MEM-02.1 | Retired. Manual: 10 prompts of a session show no checkpoint. Test: `tightship/tests/hook.rs` `prompt_is_no_longer_a_subcommand` | | | |
 | FR-MEM-02.2 | Manual: right after `/compact`, the context holds the checkpoint. Test: `tightship/tests/hook.rs` `checkpoint_prints_the_checkpoint_only_with_a_vault` | | | |
 | FR-MEM-03.1 | Test: `tightship/tests/vault.rs` `search_lists_the_project_scope_first` | | | |
 | FR-MEM-03.2 | Test: `tightship/tests/vault.rs` `search_lists_the_project_scope_first` | | | |
@@ -106,7 +114,7 @@ On Windows, run every command in Git Bash.
 | FR-MEM-08.1 | Manual: step 3's vault is a git repository with the template's `AGENTS.md` and no note. Test: `tightship/tests/vault.rs` `init_creates_a_vault_from_the_template` | | | |
 | FR-MEM-08.2 | Test: `tightship/tests/vault.rs` `init_into_a_folder_that_holds_files_changes_nothing` | | | |
 | FR-MEM-09.1 | Manual: with `vault_folder` set to step 3's folder, `tightship vault path` prints it, and a new note lands there. Test: `tightship/tests/vault.rs` `path_prints_the_folder_the_adopter_set` | | | |
-| FR-MEM-10.1 | Manual: with `memory` off, the session start lists no note and the 10th prompt shows no checkpoint | | | |
+| FR-MEM-10.1 | Manual: with `memory` off, the session start lists no note and `/compact` shows no checkpoint | | | |
 | FR-MEM-10.2 | Manual: with `memory` off, `/tightship:handoff release` says memory is off, and the vault is unchanged | | | |
 | FR-MEM-11.1 | Manual: `tightship vault sync` against a bare remote with a note on each side; both hold both. Test: `tightship/tests/sync.rs` `sync_takes_the_remote_notes_and_pushes_the_local_ones` | | | |
 | FR-MEM-11.2 | Test: `tightship/tests/sync.rs` `a_conflict_stops_in_the_rebase_and_the_resolution_is_pushed` | | | |

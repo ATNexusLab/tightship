@@ -20,15 +20,24 @@ From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.
 
 - **Network:** only the git remote of the adopter's vault, when the vault is synced
   ([FR-MEM-11](../../requirements/functional/memory.md#fr-mem-11), M1, #5), which also carries the handoff
-  (M1, #6). A handoff claim runs `git fetch` in the project's repository, through the adopter's git.
+  (M1, #6). A handoff claim runs `git fetch` in the project's repository, through the adopter's git. In
+  Cursor and Antigravity CLI, while the `auto_update` option is on, the GitHub Releases of the plugin's
+  repository, at most once a day, from a process the session-start hook starts
+  ([FR-INS-10](../../requirements/functional/install.md#fr-ins-10),
+  [ADR 0003](../../decisions/0003-the-plugin-updates-itself-from-github-releases.md)). Only a release whose
+  archive matches the sha256 it published, and whose version is greater, is put in place.
 - **Disk:** the adopter's vault, and the `statusLine` key of the harness's user settings, while the adopter
   has the status line option on ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02),
   [status line](status-line.md), M1, #7). In the harness's own places, the plugin also writes, in the plugin's
-  data folder, the checkpoint's prompt counter ([memory](memory.md), M1, #5), `status-line.json` (M1, #7), and
-  `options.toml` where the harness has no `userConfig` (M3, #59), plus one `export` line per session in the
+  data folder, `status-line.json` (M1, #7) and
+  `options.toml` where the harness has no `userConfig` (M3, #59), `update.json` and `update.lock`
+  (M4, FR-INS-10), plus one `export` line per session in the
   session's environment file (M1, #5). The options' state is kept in the harness's user settings or in
   `options.toml` inside the plugin's data folder ([options](options.md), M1, #3; M3, #59). The user settings
   can hold secrets in their `env`, so a rewrite keeps the file's permissions, and the temporary file beside it
-  is readable only by the adopter (M1, #7).
+  is readable only by the adopter (M1, #7). A plugin older than M4 also left a `checkpoints/` folder there,
+  which nothing reads since M4 (#118) and which uninstalling removes. The self-update writes the plugin's own
+  folder in Cursor and Antigravity CLI, and in Claude Code the `autoUpdate` of the plugin's entry in
+  `extraKnownMarketplaces` of the user settings (M4, FR-INS-10).
 
 The build writes only to `dist/`.

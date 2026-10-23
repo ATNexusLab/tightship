@@ -27,6 +27,42 @@ On Windows in PowerShell:
   -Harness cursor -Yes
 ```
 
+Every question starts on its default, so pressing Enter through all of them installs with the defaults. On a
+yes or no question, an arrow switches the answer. Nothing is written until you choose Install on the summary:
+
+```text
+┌  tightship v1.1.1
+│
+│  Options
+◇  Load the working contract in every session?
+│  Yes
+│
+◇  Turn on the memory layer?
+│  Yes
+│
+◇  Show tightship's status line?
+│  Yes
+│
+◇  Keep tightship updated automatically?
+│  Yes
+│
+│  Vault
+◇  Where is your vault?
+│  not set
+│
+◇  Summary
+│  Harnesses       Cursor
+│  Contract        on
+│  Memory          on
+│  Vault           not set
+│  Status line     on
+│  Auto-update     on
+│
+◆  Install with these choices?
+│  ● Install / ○ Cancel
+└
+```
+
 To run unattended, pass options via flags:
 
 ```sh
@@ -55,6 +91,7 @@ Create `~/.cursor/tightship/options.json`:
   "contract": true,
   "memory": true,
   "status_line": true,
+  "auto_update": true,
   "vault_folder": "~/ai-memory"
 }
 ```

@@ -10,6 +10,9 @@ matter between `+++` lines. `options.toml` lists the adopter's [options](../conc
 off (M1, #4). `vault-template/AGENTS.md` holds the rules a new [vault](../concepts/memory.md) starts with; it
 holds no token, because the binary embeds it as written (M1, #5). The command `handoff` is the first piece to
 read an option, through `{{option:memory}}`, and the closeout command checks memory again (M1, #6).
+Since M4 (#118), `skills/delivery/` carries the rules from an approved plan to its commit. The bootstrap
+names the project skills' folder through the capability `project-skills-folder`, since `.agents/` belongs to
+one harness's terms, and its pointer comes from the capability `project-skill-pointer` of each harness.
 
 **It never** names a harness, a harness path, or a harness tool
 ([NFR-FLEX-06](../../requirements/non-functional/flexibility.md#nfr-flex-06)), and never writes another piece's

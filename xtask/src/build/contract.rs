@@ -247,10 +247,17 @@ pub fn pack(
         .collect();
     let ungated: Vec<&Block> = blocks.iter().filter(|block| block.gate.is_none()).collect();
 
+    let title_line = |number: usize, total: usize| {
+        let heading = format!("# {title} ({number}/{total})");
+        match &table.compaction_notice {
+            Some(notice) if number == 1 => format!("{heading}\n\n{notice}"),
+            _ => heading,
+        }
+    };
     let pack_with = |total: usize| {
         let mut groups: Vec<Vec<&Block>> = Vec::new();
         for block in &ungated {
-            let title_line = format!("# {title} ({}/{total})", groups.len().max(1));
+            let title_line = title_line(groups.len().max(1), total);
             let joins = groups.last().is_some_and(|group| {
                 let candidate: Vec<&Block> = group.iter().copied().chain([*block]).collect();
                 length(&compose(&title_line, &candidate)) <= limit
@@ -272,7 +279,7 @@ pub fn pack(
     let mut parts = Vec::new();
     for (index, group) in groups.iter().enumerate() {
         let number = index + 1;
-        let text = compose(&format!("# {title} ({number}/{total})"), group);
+        let text = compose(&title_line(number, total), group);
         let count = length(&text);
         if count > limit {
             let block = group[0];
@@ -320,6 +327,16 @@ pub fn pack(
             text,
             gate: Some(option.to_owned()),
         });
+    }
+    const MOST_CHARACTERS: usize = 8000;
+    let count: usize = parts.iter().map(|part| length(&part.text)).sum();
+    if count > MOST_CHARACTERS {
+        diagnostics.push(Diagnostic::in_file(
+            &contract.path,
+            format!(
+                "the contract renders to {count} characters with every option on; NFR-PERF-03 allows {MOST_CHARACTERS}"
+            ),
+        ));
     }
     parts
 }

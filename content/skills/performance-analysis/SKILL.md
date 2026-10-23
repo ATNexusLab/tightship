@@ -78,7 +78,7 @@ separates them is utilization, not latency. Latency alone cannot tell you which 
 - **The waterfall is the diagnosis.** Read it before touching code: requests chained that could have
   been parallel, render-blocking resources, a font that delays text, a redirect nobody knew about.
 - **Layout shift is a performance bug with a visual symptom.** CLS above zero means the reserved space
-  is wrong — the fix is the loading state occupying the final content's box (see the global UI rule),
+  is wrong — the fix is the loading state occupying the final content's box (`{{skill:frontend-architecture}}`),
   not smoothing the movement.
 - **Shipped is not the same as used.** Measure what parses and executes on the critical path, not total
   transfer size. Duplicated dependency, no code-splitting, a polyfill for browsers you don't support.

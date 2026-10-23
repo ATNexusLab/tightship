@@ -11,6 +11,7 @@ pub fn run(folder: &Path, arguments: &[&str]) -> Result<String, String> {
     let output = Command::new("git")
         .arg("-C")
         .arg(folder)
+        .args(["-c", "core.quotePath=false"])
         .args(arguments)
         .env("GIT_TERMINAL_PROMPT", "0")
         .output()

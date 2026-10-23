@@ -10,6 +10,10 @@ small files**, one subject each, with a `README.md` as the folder's index. GitHu
 when the folder opens, VS Code shows the tree, and the local docs site turns the same folders into a
 sidebar with search. Nothing is written twice for any of the three.
 
+Every project is documented as if a team depended on it, even with one person on it: working alone is not
+a reason to skip what needs documenting. The repo keeps the global docs below, and every feature keeps its
+spec; a feature's PR updates the global docs it changes, so any part reads alone or against the whole.
+
 ## Structure
 
 ```text
@@ -47,6 +51,8 @@ docs/
 - **Links are relative** (`../architecture/README.md`), so they work on GitHub, in VS Code, and on the
   site.
 - A level the project does not have is one line in the parent `README.md` saying why, not an empty file.
+- **Diagrams are `.drawio.svg`**, each in the `diagrams/` folder of the doc it illustrates: edited in
+  VS Code, rendered by GitHub.
 
 ## What each doc owns — one source per fact
 

@@ -18,7 +18,7 @@ from loose rules and skills.
 | [Installation](install.md) | Running the unified installer or manual install commands |
 | [The companions](companions.md) | The three companions installed with tightship |
 | [The options](options.md) | Storing contract, memory, status line, and vault folder in `options.toml` |
-| [Update](update.md) | Getting new versions from GitHub releases |
+| [Update](update.md) | Getting new versions from GitHub releases, automatically or through the installer |
 | [Uninstall](uninstall.md) | Removing the plugin and putting your previous status line back |
 | [Migration](migration.md) | Cleaning up loose files and reconnecting to an existing vault |
 | [Without the contract](without-the-contract.md) | What each skill and command does differently with the contract off |

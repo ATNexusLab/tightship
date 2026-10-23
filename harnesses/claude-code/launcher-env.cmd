@@ -1,0 +1,3 @@
+if not defined TIGHTSHIP_MODEL_PREFIX (
+  set "TIGHTSHIP_MODEL_PREFIX=Claude "
+)

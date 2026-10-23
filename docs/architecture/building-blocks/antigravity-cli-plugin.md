@@ -14,8 +14,10 @@ per-option environment variables, so the adopter's [options](../concepts/options
 preserves across updates.
 
 Its `SessionStart` hooks in `hooks.json` run `tightship hook contract-part` for `part-1.md` and
-`memory.md`, `tightship hook start`, and `tightship hook status-line`. Its `PreInvocation` hook runs
-`tightship hook prompt`.
+`memory.md`, `tightship hook start`, `tightship hook status-line`, and `tightship hook update`, which
+announces an update and starts the next check
+([auto-update spec](../../specs/auto-update/update-the-plugin.md)). Since M4 (#118) no hook runs on a
+prompt, so Antigravity CLI, which has no compaction hook, gets no checkpoint.
 
 Antigravity CLI 1.4.2 runs a hook from the plugin's folder and gives it neither `PLUGIN_ROOT` nor
 `PLUGIN_DATA`, and the plugin's `bin/` is not on its `PATH` (probed on macOS, #89). It runs the hook
@@ -27,7 +29,9 @@ with `bin/tightship` and `hooks.windows.json` with `bin\tightship`, which `cmd` 
 Windows, Git Bash included, and deletes it elsewhere. Both launchers set `TIGHTSHIP_ROOT`, `TIGHTSHIP_DATA`,
 `TIGHTSHIP_SETTINGS`, and `TIGHTSHIP_HOOK_OUTPUT` to the plugin's `hook-output.json`,
 `{"injectSteps":[{"systemMessage":{"systemMessage":"{text}"}}]}`, before running the platform binary, so non-empty
-hook output reaches Antigravity CLI as a system message.
+hook output reaches Antigravity CLI as a system message. They also set `TIGHTSHIP_PROJECT_POINTER` to
+`/workspacePaths/0`: Antigravity CLI runs hooks in the plugin's folder and names the project only in the hook's
+input.
 
 **It never** gets edited. Every change goes to the canonical content or the harness definition, then through
 the build.

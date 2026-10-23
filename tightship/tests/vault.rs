@@ -2,14 +2,21 @@
 mod common;
 
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
 
 use common::{
     Sandbox, assert_fails_with, assert_succeeds, note, run, stderr_of, stdout_of, with_stdin,
 };
 
-const TEMPLATE: &str = include_str!("../../content/vault-template/AGENTS.md");
+const BLOCK: &str = concat!(
+    "<!-- tightship:rules:start -->\n",
+    include_str!("../../content/vault-template/AGENTS.md"),
+    "<!-- tightship:rules:end -->\n"
+);
 
 #[test]
 fn init_creates_a_vault_from_the_template() {
@@ -23,7 +30,7 @@ fn init_creates_a_vault_from_the_template() {
     assert!(stdout_of(&output).starts_with(&format!("Created the vault at {folder}. Commit it,")));
     assert_eq!(
         fs::read_to_string(vault.join("AGENTS.md")).expect("AGENTS.md"),
-        TEMPLATE
+        BLOCK
     );
     let notes = fs::read_dir(vault.join("notes/all")).expect("notes/all/");
     assert_eq!(notes.count(), 0);
@@ -298,6 +305,46 @@ fn new_writes_the_note_and_rejects_a_short_why_a_bad_scope_and_no_body() {
     );
     assert!(!folded_text.contains("\npinned: true\n"), "{folded_text}");
 
+    let cased_project = sandbox.path("Proj");
+    fs::create_dir_all(&cased_project).expect("the project folder");
+    let cased = with_stdin(
+        new_note(&sandbox, ("--scope", "Proj")).current_dir(&cased_project),
+        NOTE_BODY,
+    );
+    assert_eq!(
+        stdout_of(&cased),
+        "notes/proj/mem-0634-hooks-get-claude-env-file.md\n"
+    );
+    let found =
+        run(in_vault(&sandbox, &["vault", "search", "SessionStart"]).current_dir(&cased_project));
+    assert!(
+        stdout_of(&found).contains("- notes/proj/mem-0634-hooks-get-claude-env-file.md"),
+        "{}",
+        stdout_of(&found)
+    );
+    let unscoped = with_stdin(
+        &mut in_vault(
+            &sandbox,
+            &[
+                "vault",
+                "new",
+                "--type",
+                "gotcha",
+                "--title",
+                "No scope given",
+                "--why",
+                "a note without a scope lands in the project's own folder",
+                "--source",
+                "session",
+            ],
+        ),
+        NOTE_BODY,
+    );
+    assert_eq!(
+        stdout_of(&unscoped),
+        "notes/tightship/mem-0635-no-scope-given.md\n"
+    );
+
     let before = files_of(&sandbox.path("vault"));
     assert_fails_with(
         &with_stdin(&mut new_note(&sandbox, ("--why", "about hooks")), NOTE_BODY),
@@ -338,8 +385,16 @@ fn lint_passes_a_clean_vault_and_names_each_problem() {
         "vault/notes/tightship/mem-0003-no-why.md",
         "---\nid: mem-0003\ntype: gotcha\nproject: tightship\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-01\n---\n\n# No why\n",
     );
+    sandbox.write(
+        "vault/notes/tightship/mem-0004-soon.md",
+        "---\nid: mem-0004\ntype: gotcha\nproject: tightship\nwhy: the mem-0004 why costs real time\nsource: session\ncreated: 2026-10-01\nupdated: soon\n---\n\n# Soon\n",
+    );
     note(&sandbox, "all", "mem-0007", "", "First.");
     note(&sandbox, "tightship", "mem-0007", "", "Second.");
+    sandbox.write(
+        "vault/notes/tightship/mem-0008-unclosed.md",
+        "---\nid: mem-0008\ntype: gotcha\n\n# Unclosed\n",
+    );
 
     let broken = run(&mut in_vault(&sandbox, &["vault", "lint"]));
 
@@ -347,9 +402,55 @@ fn lint_passes_a_clean_vault_and_names_each_problem() {
     assert_eq!(stderr_of(&broken), "");
     assert_eq!(
         stdout_of(&broken),
-        "notes/tightship/mem-0003-no-why.md\n  - missing `why`\n\
+        "notes/tightship/mem-0008-unclosed.md\n  - front matter does not close with ---\n\
+         notes/tightship/mem-0003-no-why.md\n  - missing `why`\n\
+         notes/tightship/mem-0004-soon.md\n  - updated `soon` is not a date as YYYY-MM-DD\n\
          notes/tightship/mem-0007-a-note.md\n  - id `mem-0007` already used by mem-0007-a-note.md\n\
-         5 notes, 2 with problems, 0 scopes over the session start\n"
+         7 notes, 4 with problems, 0 scopes over the session start\n"
+    );
+    assert_eq!(
+        stdout_of(&with_stdin(
+            &mut new_note(&sandbox, ("--source", "session")),
+            NOTE_BODY
+        )),
+        "notes/tightship/mem-0009-hooks-get-claude-env-file.md\n"
+    );
+}
+
+#[test]
+fn new_waits_for_a_note_being_written_and_takes_the_next_id() {
+    let sandbox = Sandbox::new();
+    note(&sandbox, "all", "mem-0001", "", "The highest id.");
+    let lock = fs::File::create(sandbox.path("vault/.tightship-new.lock")).expect("the lock file");
+    lock.lock().expect("the lock");
+    let mut child = new_note(&sandbox, ("--source", "session"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("vault new starts");
+    child
+        .stdin
+        .take()
+        .expect("a stdin")
+        .write_all(NOTE_BODY.as_bytes())
+        .expect("the body");
+    let deadline = Instant::now() + Duration::from_millis(500);
+    while Instant::now() < deadline {
+        assert!(
+            child.try_wait().expect("the child's state").is_none(),
+            "vault new did not wait for the note being written"
+        );
+        thread::sleep(Duration::from_millis(10));
+    }
+
+    note(&sandbox, "all", "mem-0002", "", "Written while new waited.");
+    drop(lock);
+
+    let output = child.wait_with_output().expect("vault new ends");
+    assert_succeeds(&output);
+    assert_eq!(
+        stdout_of(&output),
+        "notes/tightship/mem-0003-hooks-get-claude-env-file.md\n"
     );
 }
 
@@ -357,10 +458,6 @@ fn lint_passes_a_clean_vault_and_names_each_problem() {
 fn a_bad_argument_of_new_or_search_writes_nothing() {
     let sandbox = Sandbox::new();
     note(&sandbox, "all", "mem-0631", "", "The highest id.");
-    sandbox.write(
-        "vault/notes/tightship/mem-0632-hooks-get-claude-env-file.md",
-        "Not a note yet.\n",
-    );
     let before = files_of(&sandbox.path("vault"));
     let long_title = "t".repeat(121);
 
@@ -384,10 +481,6 @@ fn a_bad_argument_of_new_or_search_writes_nothing() {
         (
             new_note(&sandbox, ("--created", "15/10/2026")),
             "--created must be a date as YYYY-MM-DD",
-        ),
-        (
-            new_note(&sandbox, ("--source", "session")),
-            "notes/tightship/mem-0632-hooks-get-claude-env-file.md already exists",
         ),
     ] {
         assert_fails_with(
