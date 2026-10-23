@@ -109,9 +109,10 @@ translation in the same commit.
 - A session check of a built plugin needs each harness set up. Claude Code under `--plugin-dir` has no
   vault option: export `CLAUDE_PLUGIN_OPTION_VAULT_FOLDER` before `claude`. Its companions are enabled in
   the user settings, so `--setting-sources project` disables the plugin for a missing dependency; keep them
-  and pass `--settings '{"enabledPlugins":{"tightship@tightship":false}}'`, so an installed copy stays off. Cursor's `agent` runs from
-  PowerShell with `$env:SHELL = $null`. `agy plugin install` writes into the adopter's own config, and on
-  Windows needs `hooks.windows.json` moved over `hooks.json` first, as `install.ps1` does.
+  and pass `--settings '{"enabledPlugins":{"tightship@tightship":false}}'`, so an installed copy stays off.
+  Cursor's `agent` runs from PowerShell with `$env:SHELL = $null`. `agy plugin install` writes into the
+  adopter's own config, and on Windows needs `hooks.windows.json` moved over `hooks.json` first, as
+  `install.ps1` does.
 - A sentence a command tells the agent to say comes back paraphrased unless the instruction says "word for
   word". A placeholder in it is written `\<scope\>`: MD033 rejects a bare `<scope>` in prose, and one in
   backticks reaches the reply with its backticks.
