@@ -177,14 +177,20 @@ fn the_hooks_honor_the_options() {
 
 #[test]
 fn sections_overflow_into_a_second_part_counted_in_utf16() {
-    let repository = Repository::with(&[contract(
-        "",
-        &format!(
-            "# Working Contract\n\nThe preamble.\n\n## A\n\n{}\n\n## B\n\n{}\n",
-            "a".repeat(6000),
-            "é".repeat(5000)
+    let repository = Repository::with(&[
+        contract(
+            "",
+            &format!(
+                "# Working Contract\n\nThe preamble.\n\n## A\n\n{}\n\n## B\n\n{}\n",
+                "a".repeat(3000),
+                "é".repeat(2500)
+            ),
         ),
-    )]);
+        (
+            "harnesses/claude-code/harness.toml",
+            HARNESS.replace("[contract]\nlimit = 10000\n", "[contract]\nlimit = 4000\n"),
+        ),
+    ]);
 
     assert_succeeds(&repository.run("build"));
     let first = read(&repository, "dist/claude-code/contract/part-1.md");
@@ -192,8 +198,23 @@ fn sections_overflow_into_a_second_part_counted_in_utf16() {
     assert!(first.starts_with("# Working Contract (1/2)\n\nThe preamble.\n\n## A\n"));
     assert!(second.starts_with("# Working Contract (2/2)\n\n## B\n"));
     assert!(!first.contains("## B"));
-    assert!(first.encode_utf16().count() <= 10000);
-    assert!(second.encode_utf16().count() <= 10000);
+    assert!(first.encode_utf16().count() <= 4000);
+    assert!(second.encode_utf16().count() <= 4000);
+}
+
+#[test]
+fn a_contract_past_8000_characters_fails_and_leaves_no_plugin() {
+    let repository = Repository::with(&[contract(
+        "",
+        &format!("# Working Contract\n\n## A\n\n{}\n", "a".repeat(7968)),
+    )]);
+    fs::create_dir_all(repository.path("dist/claude-code")).expect("a previous build");
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: content/contract.md: the contract renders to 8001 characters with every option on; NFR-PERF-03 allows 8000",
+    );
+    assert!(!repository.path("dist/claude-code").exists());
 }
 
 #[test]

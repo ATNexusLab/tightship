@@ -328,5 +328,15 @@ pub fn pack(
             gate: Some(option.to_owned()),
         });
     }
+    const MOST_CHARACTERS: usize = 8000;
+    let count: usize = parts.iter().map(|part| length(&part.text)).sum();
+    if count > MOST_CHARACTERS {
+        diagnostics.push(Diagnostic::in_file(
+            &contract.path,
+            format!(
+                "the contract renders to {count} characters with every option on; NFR-PERF-03 allows {MOST_CHARACTERS}"
+            ),
+        ));
+    }
     parts
 }
