@@ -12,10 +12,11 @@ hooks do. `docs.yml` runs markdownlint and the docs build on Linux when Markdown
 It is the automated half of [NFR-FLEX-05](../../requirements/non-functional/flexibility.md#nfr-flex-05); the
 release checklist is the other.
 
-`rust.yml` installs gitleaks 8.30.1 for the scan's tests and writes `.identity-terms` from the repository
+`rust.yml` installs gitleaks 8.30.1 for the scan's tests, checked against the sha256 pinned in the
+workflow, and writes `.identity-terms` from the repository
 secret `IDENTITY_TERMS`, so a pull request from a fork stops at the identity scan. It clears `USER`, since the
 runner's user name, `runner`, is no identity of the maintainer and is a word the content uses. `scan.yml`
-fetches every branch with the whole history.
+checks gitleaks the same way and fetches every branch with the whole history.
 
 **It never** writes to the repository: its token has `contents: read`.
 

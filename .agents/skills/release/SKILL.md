@@ -8,7 +8,8 @@ description: Use when cutting a release of the plugins — the tag, what release
 A release is cut only when the maintainer asks for it. It starts from `develop` merged into `main` as a merge
 commit, and a tag `v<version>` pushed on `main`, where `<version>` is the built version.
 
-The tag runs `release.yml`: it builds the binary for the four platforms, then the two commands below, and
+The tag runs `release.yml`: its first job fails when the tagged commit is not on `main`, before anything is
+built. Then it builds the binary for the four platforms, then the two commands below, and
 publishes the zips, catalogs, and installers as a pre-release. It is the only workflow with
 `contents: write`, on its pack job.
 

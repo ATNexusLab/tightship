@@ -8,7 +8,24 @@ permissions:
   contents: read
 
 jobs:
+  main-only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check that the tag is on main
+        run: |
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME is not on main; release only from a tag on main"
+            exit 1
+          fi
+
   build:
+    needs: main-only
     strategy:
       matrix:
         include:
