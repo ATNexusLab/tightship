@@ -3,8 +3,7 @@ CURSOR_DATA="${TIGHTSHIP_DATA:-{{path:data}}}"
 
 check_cursor() {
   if [ -z "$FROM_DIR" ] && [ -z "$RELEASE_TAG" ]; then
-    echo "error: this install.sh belongs to no release; run $REPOSITORY/releases/latest/download/install.sh, or pass --from-dir <folder>" >&2
-    exit 1
+    fail "this install.sh belongs to no release; run $REPOSITORY/releases/latest/download/install.sh, or pass --from-dir <folder>"
   fi
 }
 
@@ -12,8 +11,7 @@ read_options_cursor() {
   _options="$CURSOR_DATA/options.json"
   [ -f "$_options" ] || return 0
   if ! tr -d ' \t\r\n' < "$_options" | grep -q '^{.*}$'; then
-    echo "error: $_options is not valid JSON" >&2
-    exit 1
+    fail "$_options is not valid JSON"
   fi
   existing_contract=$(sed -nE 's/.*"contract"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
   existing_memory=$(sed -nE 's/.*"memory"[[:space:]]*:[[:space:]]*(true|false).*/\1/p' "$_options" | head -n1)
@@ -95,17 +93,13 @@ install_cursor() {
     mkdir -p "$download_dir"
     zip_dest="$download_dir/tightship-cursor.zip"
     download_url="$REPOSITORY/releases/download/$RELEASE_TAG/tightship-cursor.zip"
-    echo "> Downloading tightship-cursor.zip $RELEASE_TAG"
-    if ! download_file "$download_url" "$zip_dest"; then
-      echo "error: failed to download tightship-cursor.zip from $download_url" >&2
-      echo "hint: if you are running in a local repository clone, run cargo xtask build and pass --from-dir dist/cursor" >&2
-      exit 1
+    if ! run_step "Downloading tightship-cursor.zip $RELEASE_TAG" download_file "$download_url" "$zip_dest"; then
+      fail "failed to download tightship-cursor.zip from $download_url" \
+        "if you are running in a local repository clone, run cargo xtask build and pass --from-dir dist/cursor"
     fi
-    echo "> Checking the sha256 of tightship-cursor.zip"
     zip_sha256=$(sha256_of "$zip_dest") || exit 1
-    if [ "$zip_sha256" != "$CURSOR_SHA256" ]; then
-      echo "error: tightship-cursor.zip has sha256 $zip_sha256; $RELEASE_TAG published $CURSOR_SHA256" >&2
-      exit 1
+    if ! run_step "Checking the sha256 of tightship-cursor.zip" [ "$zip_sha256" = "$CURSOR_SHA256" ]; then
+      fail "tightship-cursor.zip has sha256 $zip_sha256; $RELEASE_TAG published $CURSOR_SHA256"
     fi
     unzip -q "$zip_dest" -d "$download_dir/extracted"
     source_dir="$download_dir/extracted"
@@ -124,4 +118,5 @@ install_cursor() {
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
     step "Creating the vault at $expanded_vault" "$plugin_target/bin/tightship" vault init "$expanded_vault"
   fi
+  installed_in "{{install:label}}" "$plugin_target"
 }

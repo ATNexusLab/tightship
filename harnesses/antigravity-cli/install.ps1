@@ -52,16 +52,18 @@ function Install-AntigravityCli {
         New-Item -ItemType Directory -Force -Path $tempZipFolder | Out-Null
         $zipDest = Join-Path $tempZipFolder "tightship-antigravity-cli.zip"
         $downloadUrl = "$Repository/releases/download/$ReleaseTag/tightship-antigravity-cli.zip"
-        Write-Host "> Downloading tightship-antigravity-cli.zip $ReleaseTag"
-        try {
-            Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
-        } catch {
-            throw "error: failed to download tightship-antigravity-cli.zip from $downloadUrl`nhint: if you are running in a local repository clone, run cargo xtask build and pass -FromDir dist\antigravity-cli"
+        Invoke-Step "Downloading tightship-antigravity-cli.zip $ReleaseTag" {
+            try {
+                Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
+            } catch {
+                throw "error: failed to download tightship-antigravity-cli.zip from $downloadUrl`nhint: if you are running in a local repository clone, run cargo xtask build and pass -FromDir dist\antigravity-cli"
+            }
         }
-        Write-Host "> Checking the sha256 of tightship-antigravity-cli.zip"
         $zipSha256 = (Get-FileHash -Algorithm SHA256 -Path $zipDest).Hash.ToLowerInvariant()
-        if ($zipSha256 -ne $AntigravityCliSha256) {
-            throw "error: tightship-antigravity-cli.zip has sha256 $zipSha256; $ReleaseTag published $AntigravityCliSha256"
+        Invoke-Step "Checking the sha256 of tightship-antigravity-cli.zip" {
+            if ($zipSha256 -ne $AntigravityCliSha256) {
+                throw "error: tightship-antigravity-cli.zip has sha256 $zipSha256; $ReleaseTag published $AntigravityCliSha256"
+            }
         }
         $extracted = Join-Path $tempZipFolder "extracted"
         Expand-Archive -Path $zipDest -DestinationPath $extracted -Force
@@ -98,4 +100,5 @@ status_line = $finalStatusLine
     if ($finalInitVault -and $finalVaultFolder) {
         Invoke-Step "Creating the vault at $expandedVault" { Invoke-AntigravityCliTightship vault init $expandedVault }
     }
+    $installedIn["{{install:label}}"] = [System.IO.Path]::GetFullPath($antigravityCliPlugin)
 }

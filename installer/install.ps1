@@ -28,7 +28,18 @@ $callerEnvironment = @{}
 foreach ($variable in "TIGHTSHIP_DATA", "TIGHTSHIP_SETTINGS", "TIGHTSHIP_ROOT") {
     $callerEnvironment[$variable] = [Environment]::GetEnvironmentVariable($variable)
 }
+$callerEncoding = [Console]::OutputEncoding
 $workDir = Join-Path ([System.IO.Path]::GetTempPath()) ("tightship-" + [System.Guid]::NewGuid().ToString())
+$colorOut = -not $env:NO_COLOR -and $env:TERM -ne "dumb" -and -not [Console]::IsOutputRedirected
+$colorErr = -not $env:NO_COLOR -and $env:TERM -ne "dumb" -and -not [Console]::IsErrorRedirected
+$interactive = $false
+
+function Paint([bool]$enabled, [string]$style, [string]$text) {
+    if (-not $enabled) {
+        return $text
+    }
+    return "$style$text$($PSStyle.Reset)"
+}
 
 try {
 $ErrorActionPreference = "Stop"
@@ -52,6 +63,8 @@ Options:
 "@
     return
 }
+
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 function Compare-Semver([string]$v1, [string]$v2) {
     if ($v1 -eq $v2) { return 0 }
@@ -82,9 +95,11 @@ function Extract-Version([string]$text) {
     return $text.Trim()
 }
 
-$canPrompt = -not [Console]::IsInputRedirected
-if (-not $Yes -and -not $canPrompt) {
-    throw "error: standard input is not a terminal; pass -Yes or provide required flags"
+if (-not $Yes) {
+    if ([Console]::IsInputRedirected) {
+        throw "error: standard input is not a terminal; pass -Yes or provide required flags"
+    }
+    $interactive = $true
 }
 
 function ConvertTo-Bool([string]$source, [string]$value) {
@@ -94,24 +109,184 @@ function ConvertTo-Bool([string]$source, [string]$value) {
 }
 
 function Invoke-Step([string]$description, [scriptblock]$command) {
-    Write-Host "> $description"
+    $live = -not [Console]::IsOutputRedirected
+    if ($live) {
+        Write-Host -NoNewline "$(Paint $colorOut $PSStyle.Foreground.Cyan "◒")  $description"
+    }
     $global:LASTEXITCODE = 0
-    & $command
-    if ($LASTEXITCODE -ne 0) {
-        throw "error: $description failed"
+    $output = ""
+    $failure = $null
+    try {
+        $output = & $command *>&1 | Out-String
+    } catch {
+        $failure = $_
+    }
+    $failed = $failure -or $LASTEXITCODE -ne 0
+    $mark = if ($failed) { Paint $colorOut $PSStyle.Foreground.Red "✖" } else { Paint $colorOut $PSStyle.Foreground.Green "✔" }
+    if ($live) {
+        Write-Host -NoNewline "`r`e[K"
+    }
+    Write-Host "$mark  $description"
+    if (-not $failed) {
+        return
+    }
+    foreach ($line in ($output -split "\r?\n" | Where-Object { $_ })) {
+        [Console]::Error.WriteLine("   $line")
+    }
+    if ($failure) {
+        throw $failure
+    }
+    throw "error: $description failed"
+}
+
+function Read-Key {
+    $treatControlCAsInput = [Console]::TreatControlCAsInput
+    [Console]::TreatControlCAsInput = $true
+    try {
+        $key = [Console]::ReadKey($true)
+    } finally {
+        [Console]::TreatControlCAsInput = $treatControlCAsInput
+    }
+    if ($key.Key -eq "C" -and ($key.Modifiers -band [ConsoleModifiers]::Control)) {
+        throw [System.OperationCanceledException]::new()
+    }
+    switch ($key.Key) {
+        "UpArrow" { return "up" }
+        "DownArrow" { return "down" }
+        "LeftArrow" { return "left" }
+        "RightArrow" { return "right" }
+        "Spacebar" { return "space" }
+        "Enter" { return "enter" }
+    }
+    return "$($key.KeyChar)".ToLowerInvariant()
+}
+
+function Write-Prompt([string]$text) {
+    [Console]::Error.Write($text)
+}
+
+function Clear-Lines([int]$count) {
+    if ($count -gt 0) {
+        Write-Prompt "`r`e[$($count)A`e[J"
     }
 }
 
-function Prompt-User([string]$promptText, [string]$defaultVal) {
-    if (-not $canPrompt) {
-        return $defaultVal
+function Write-Answered([string]$title, [string]$value) {
+    Write-Prompt "$(Paint $colorErr $PSStyle.Foreground.Green "◇")  $title`n│  $(Paint $colorErr $PSStyle.Dim $value)`n│`n"
+}
+
+function Write-Section([string]$title) {
+    Write-Prompt "│`n│  $(Paint $colorErr "$($PSStyle.Bold)$($PSStyle.Dim)" $title)`n"
+}
+
+function Read-Harnesses([string[]]$names, [string[]]$detected) {
+    $title = "Where should tightship be installed?"
+    $checked = [System.Collections.Generic.List[string]]::new([string[]]$detected)
+    $cursor = 0
+    $notice = ""
+    $drawn = 0
+    Write-Prompt "`e[?25l"
+    try {
+        while ($true) {
+            Clear-Lines $drawn
+            $screen = "$(Paint $colorErr $PSStyle.Foreground.Cyan "◆")  $title`n"
+            for ($index = 0; $index -lt $names.Count; $index++) {
+                $name = $names[$index]
+                $label = $Harnesses[$name].Label
+                $active = $index -eq $cursor
+                if ($name -notin $detected) {
+                    $row = Paint $colorErr $PSStyle.Dim "◻ $label  not found"
+                } else {
+                    $box = if ($checked.Contains($name)) { Paint $colorErr $PSStyle.Foreground.Green "◼" } else { Paint $colorErr $PSStyle.Dim "◻" }
+                    $text = if ($active) { Paint $colorErr "$($PSStyle.Bold)$($PSStyle.Foreground.Cyan)" $label } else { $label }
+                    $row = "$box $text"
+                }
+                $pointer = if ($active) { Paint $colorErr $PSStyle.Foreground.Cyan "›" } else { " " }
+                $screen += "│ $pointer $row`n"
+            }
+            $screen += "│  $(Paint $colorErr $PSStyle.Dim "↑/↓ move · space select · a all · enter confirm")`n"
+            $screen += "└  $(Paint $colorErr $PSStyle.Foreground.Yellow $notice)`n"
+            Write-Prompt $screen
+            $drawn = $names.Count + 3
+            $notice = ""
+            $current = $names[$cursor]
+            switch (Read-Key) {
+                { $_ -in "up", "k" } { $cursor = ($cursor - 1 + $names.Count) % $names.Count }
+                { $_ -in "down", "j" } { $cursor = ($cursor + 1) % $names.Count }
+                "space" {
+                    if ($current -notin $detected) {
+                        $notice = "$($Harnesses[$current].Label) is not installed."
+                    } elseif ($checked.Contains($current)) {
+                        [void]$checked.Remove($current)
+                    } else {
+                        $checked.Add($current)
+                    }
+                }
+                "a" {
+                    $missing = @($detected | Where-Object { -not $checked.Contains($_) })
+                    $checked.Clear()
+                    if ($missing.Count -gt 0) {
+                        $checked.AddRange([string[]]$detected)
+                    }
+                }
+                "enter" {
+                    if ($checked.Count -gt 0) {
+                        Clear-Lines $drawn
+                        $chosen = @($names | Where-Object { $checked.Contains($_) })
+                        Write-Answered $title (Join-Labels $chosen)
+                        return $chosen
+                    }
+                    $notice = "Select at least one harness."
+                }
+            }
+        }
+    } finally {
+        Write-Prompt "`e[?25h"
     }
-    [Console]::Error.Write($promptText)
+}
+
+function Read-Confirm([string]$title, [string]$hint, [string]$default, [string]$yesLabel = "Yes", [string]$noLabel = "No") {
+    $answer = $default -ne "false"
+    $drawn = 0
+    Write-Prompt "`e[?25l"
+    try {
+        while ($true) {
+            Clear-Lines $drawn
+            $choice = if ($answer) {
+                "$(Paint $colorErr $PSStyle.Foreground.Green "●") $yesLabel $(Paint $colorErr $PSStyle.Dim "/ ○ $noLabel")"
+            } else {
+                "$(Paint $colorErr $PSStyle.Dim "○ $yesLabel /") $(Paint $colorErr $PSStyle.Foreground.Green "●") $noLabel"
+            }
+            $screen = "$(Paint $colorErr $PSStyle.Foreground.Cyan "◆")  $title`n"
+            $drawn = 3
+            if ($hint) {
+                $screen += "│  $(Paint $colorErr $PSStyle.Dim $hint)`n"
+                $drawn = 4
+            }
+            Write-Prompt "$screen│  $choice`n└`n"
+            switch (Read-Key) {
+                { $_ -in "up", "down", "left", "right", "space", "h", "j", "k", "l" } { $answer = -not $answer }
+                "y" { $answer = $true }
+                "n" { $answer = $false }
+                "enter" {
+                    Clear-Lines $drawn
+                    Write-Answered $title $(if ($answer) { $yesLabel } else { $noLabel })
+                    return $(if ($answer) { "true" } else { "false" })
+                }
+            }
+        }
+    } finally {
+        Write-Prompt "`e[?25h"
+    }
+}
+
+function Read-Text([string]$title, [string]$hint, [string]$default) {
+    Write-Prompt "$(Paint $colorErr $PSStyle.Foreground.Cyan "◆")  $title`n│  $(Paint $colorErr $PSStyle.Dim $hint)`n│  "
     $reply = [Console]::ReadLine()
-    if ([string]::IsNullOrWhiteSpace($reply)) {
-        return $defaultVal
-    }
-    return $reply.Trim()
+    $value = if ([string]::IsNullOrWhiteSpace($reply)) { $default } else { $reply.Trim() }
+    Clear-Lines 3
+    Write-Answered $title $(if ($value) { $value } else { "not set" })
+    return $value
 }
 
 $userProfile = if ($env:USERPROFILE) { $env:USERPROFILE } else { $env:HOME }
@@ -155,43 +330,37 @@ function Join-Labels([string[]]$names) {
     return ($labels[0..($labels.Count - 2)] -join ", ") + " and " + $labels[-1]
 }
 
-{{fragments}}
-$names = @($Harnesses.Keys)
-if ($Harness) {
-    $value = $Harness.ToLowerInvariant()
-    if ($value -in "all", "both") {
-        $selected = $names
-    } else {
-        $found = Find-Harness $value
-        if (-not $found) {
-            throw "error: unknown harness $Harness; expected {{harness-choices}}"
-        }
-        $selected = @($found)
-    }
-} else {
-    $detected = @($names | Where-Object { Get-Command $Harnesses[$_].Command -ErrorAction SilentlyContinue })
-    $defaultSelection = if ($detected.Count -gt 0) { $detected } else { $names }
+$installedIn = [ordered]@{}
 
-    if ($Yes) {
-        $selected = $defaultSelection
-    } else {
-        $menu = (1..$names.Count | ForEach-Object { "[$_] $($Harnesses[$names[$_ - 1]].Label)" }) -join " "
-        $allNumber = "$($names.Count + 1)"
-        $choice = (Prompt-User "Install tightship for: $menu [$allNumber] All (default: $(Join-Labels $defaultSelection)): " "").ToLowerInvariant()
-        $number = 0
-        $named = Find-Harness $choice
-        if (-not $choice) {
-            $selected = $defaultSelection
-        } elseif ($choice -in "all", "both", $allNumber) {
-            $selected = $names
-        } elseif ([int]::TryParse($choice, [ref]$number) -and $number -ge 1 -and $number -le $names.Count) {
-            $selected = @($names[$number - 1])
-        } elseif ($named) {
-            $selected = @($named)
-        } else {
-            $selected = $defaultSelection
-        }
+{{fragments}}
+Write-Host "┌  $(Paint $colorOut "$($PSStyle.Bold)$($PSStyle.Foreground.Cyan)" "tightship $(if ($ReleaseTag) { $ReleaseTag } else { "dev" })")"
+
+$names = @($Harnesses.Keys)
+$detected = @($names | Where-Object { Get-Command $Harnesses[$_].Command -ErrorAction SilentlyContinue })
+$skipped = @()
+$value = "$Harness".ToLowerInvariant()
+if (-not $value) {
+    if ($detected.Count -eq 0) {
+        throw "error: none of $(Join-Labels $names) is installed"
     }
+    if ($interactive) {
+        Write-Section "Harnesses"
+        $selected = Read-Harnesses $names $detected
+    } else {
+        $selected = $detected
+    }
+} elseif ($value -in "all", "both") {
+    if ($detected.Count -eq 0) {
+        throw "error: none of $(Join-Labels $names) is installed"
+    }
+    $selected = $detected
+    $skipped = @($names | Where-Object { $_ -notin $detected })
+} else {
+    $found = Find-Harness $value
+    if (-not $found) {
+        throw "error: unknown harness $Harness; expected {{harness-choices}}"
+    }
+    $selected = @($found)
 }
 $selected = @($selected)
 
@@ -216,39 +385,52 @@ foreach ($name in $selected) {
     if ($existing.vault_folder) { $existingVaultFolder = $existing.vault_folder }
 }
 
+function Get-DefaultHint([string]$existing) {
+    $label = if ($existing -eq "false") { "No" } else { "Yes" }
+    if ($existing) {
+        return "Default: $label, from your last install."
+    }
+    return "Default: $label."
+}
+
+if ($interactive -and (-not $Contract -or -not $Memory -or -not $StatusLine)) {
+    Write-Section "Options"
+}
+
 if ($Contract) {
     $finalContract = ConvertTo-Bool "-Contract" $Contract
-} elseif ($Yes) {
+} elseif (-not $interactive) {
     $finalContract = if ($existingContract) { $existingContract } else { "true" }
 } else {
-    $def = if ($existingContract -eq "false") { "n" } else { "Y" }
-    $ans = Prompt-User "Enable the working contract in every session? [Y/n]: " $def
-    $finalContract = ConvertTo-Bool "the answer" $ans
+    $finalContract = Read-Confirm "Load the working contract in every session?" "The rules every session follows. $(Get-DefaultHint $existingContract)" $existingContract
 }
 
 if ($Memory) {
     $finalMemory = ConvertTo-Bool "-Memory" $Memory
-} elseif ($Yes) {
+} elseif (-not $interactive) {
     $finalMemory = if ($existingMemory) { $existingMemory } else { "true" }
 } else {
-    $def = if ($existingMemory -eq "false") { "n" } else { "Y" }
-    $ans = Prompt-User "Enable the memory layer (curated vault notes and handoffs)? [Y/n]: " $def
-    $finalMemory = ConvertTo-Bool "the answer" $ans
+    $finalMemory = Read-Confirm "Turn on the memory layer?" "Curated vault notes and handoffs. $(Get-DefaultHint $existingMemory)" $existingMemory
+}
+
+if ($StatusLine) {
+    $finalStatusLine = ConvertTo-Bool "-StatusLine" $StatusLine
+} elseif (-not $interactive) {
+    $finalStatusLine = if ($existingStatusLine) { $existingStatusLine } else { "true" }
+} else {
+    $finalStatusLine = Read-Confirm "Show tightship's status line?" "Replaces your statusLine and restores it when off. $(Get-DefaultHint $existingStatusLine)" $existingStatusLine
 }
 
 if ($VaultFolder) {
     $finalVaultFolder = $VaultFolder
-} elseif ($Yes) {
+} elseif (-not $interactive -or $finalMemory -ne "true") {
     $finalVaultFolder = if ($existingVaultFolder) { $existingVaultFolder } else { "" }
 } else {
-    if ($finalMemory -eq "true") {
-        if ($existingVaultFolder) {
-            $finalVaultFolder = Prompt-User "Vault folder path [$existingVaultFolder]: " $existingVaultFolder
-        } else {
-            $finalVaultFolder = Prompt-User "Vault folder path (for example ~/ai-memory, or leave empty to set later): " ""
-        }
+    Write-Section "Vault"
+    if ($existingVaultFolder) {
+        $finalVaultFolder = Read-Text "Where is your vault?" "Enter keeps $existingVaultFolder." $existingVaultFolder
     } else {
-        $finalVaultFolder = if ($existingVaultFolder) { $existingVaultFolder } else { "" }
+        $finalVaultFolder = Read-Text "Where is your vault?" "A folder such as ~/ai-memory. Enter leaves it for later." ""
     }
 }
 
@@ -265,22 +447,41 @@ if ($finalVaultFolder) {
 if ($expandedVault -and -not (Test-Path $expandedVault)) {
     if ($InitVault) {
         $finalInitVault = (ConvertTo-Bool "-InitVault" $InitVault) -eq "true"
-    } elseif ($Yes) {
-        $finalInitVault = $false
-    } else {
-        $ans = Prompt-User "Vault folder $finalVaultFolder does not exist. Create it now with tightship vault init? [Y/n]: " "Y"
-        $finalInitVault = (ConvertTo-Bool "the answer" $ans) -eq "true"
+    } elseif ($interactive) {
+        $finalInitVault = (Read-Confirm "$finalVaultFolder does not exist. Create it now?" "Runs tightship vault init. Default: Yes." "true") -eq "true"
     }
 }
 
-if ($StatusLine) {
-    $finalStatusLine = ConvertTo-Bool "-StatusLine" $StatusLine
-} elseif ($Yes) {
-    $finalStatusLine = if ($existingStatusLine) { $existingStatusLine } else { "true" }
-} else {
-    $def = if ($existingStatusLine -eq "false") { "n" } else { "Y" }
-    $ans = Prompt-User "Enable tightship's status line (replaces your current statusLine and restores it when off)? [Y/n]: " $def
-    $finalStatusLine = ConvertTo-Bool "the answer" $ans
+function Write-Row([string]$label, [string]$text) {
+    Write-Host "│  $(Paint $colorOut $PSStyle.Dim $label.PadRight(15)) $text"
+}
+
+function Format-OnOff([string]$state) {
+    if ($state -eq "true") { return "on" }
+    return "off"
+}
+
+$vaultSummary = if ($finalVaultFolder) { $finalVaultFolder } else { "not set" }
+if ($finalInitVault) {
+    $vaultSummary += ", created now"
+}
+
+Write-Host "│"
+Write-Host "$(Paint $colorOut $PSStyle.Foreground.Green "◇")  Summary"
+Write-Row "Harnesses" (Join-Labels $selected)
+if ($skipped.Count -gt 0) {
+    Write-Row "Skipped" "$(Join-Labels $skipped), not installed"
+}
+Write-Row "Contract" (Format-OnOff $finalContract)
+Write-Row "Memory" (Format-OnOff $finalMemory)
+Write-Row "Vault" $vaultSummary
+Write-Row "Status line" (Format-OnOff $finalStatusLine)
+Write-Host "│"
+
+if ($interactive -and (Read-Confirm "Install with these choices?" "" "true" "Install" "Cancel") -ne "true") {
+    Write-Host "└  Cancelled; nothing was written."
+    $global:LASTEXITCODE = 0
+    return
 }
 
 New-Item -ItemType Directory -Force -Path $workDir | Out-Null
@@ -288,15 +489,32 @@ foreach ($name in $selected) {
     & "Install-$($Harnesses[$name].Id)"
 }
 
-Write-Output "Installed tightship for $(Join-Labels $selected)."
+Write-Host "│"
+Write-Host "$(Paint $colorOut $PSStyle.Foreground.Green "◇")  Installed in"
+foreach ($label in $installedIn.Keys) {
+    Write-Row $label $installedIn[$label]
+}
+Write-Host "│"
+Write-Host "└  $(Paint $colorOut $PSStyle.Foreground.Green "Installed tightship for $(Join-Labels $selected).")"
 $global:LASTEXITCODE = 0
+} catch [System.OperationCanceledException] {
+    [Console]::Error.WriteLine("`n└  Cancelled.")
+    $global:LASTEXITCODE = 130
+    if ($PSCommandPath) {
+        exit 130
+    }
 } catch {
-    [Console]::Error.WriteLine($_.Exception.Message)
+    $lines = @($_.Exception.Message -split "\r?\n")
+    [Console]::Error.WriteLine((Paint $colorErr $PSStyle.Foreground.Red "✖ $($lines[0])"))
+    foreach ($line in $lines | Select-Object -Skip 1) {
+        [Console]::Error.WriteLine((Paint $colorErr $PSStyle.Dim "  $line"))
+    }
     $global:LASTEXITCODE = 1
     if ($PSCommandPath) {
         exit 1
     }
 } finally {
+    [Console]::OutputEncoding = $callerEncoding
     foreach ($variable in $callerEnvironment.Keys) {
         [Environment]::SetEnvironmentVariable($variable, $callerEnvironment[$variable])
     }

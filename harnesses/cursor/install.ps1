@@ -89,16 +89,18 @@ function Install-Cursor {
         New-Item -ItemType Directory -Force -Path $tempZipFolder | Out-Null
         $zipDest = Join-Path $tempZipFolder "tightship-cursor.zip"
         $downloadUrl = "$Repository/releases/download/$ReleaseTag/tightship-cursor.zip"
-        Write-Host "> Downloading tightship-cursor.zip $ReleaseTag"
-        try {
-            Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
-        } catch {
-            throw "error: failed to download tightship-cursor.zip from $downloadUrl`nhint: if you are running in a local repository clone, run cargo xtask build and pass -FromDir dist\cursor"
+        Invoke-Step "Downloading tightship-cursor.zip $ReleaseTag" {
+            try {
+                Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
+            } catch {
+                throw "error: failed to download tightship-cursor.zip from $downloadUrl`nhint: if you are running in a local repository clone, run cargo xtask build and pass -FromDir dist\cursor"
+            }
         }
-        Write-Host "> Checking the sha256 of tightship-cursor.zip"
         $zipSha256 = (Get-FileHash -Algorithm SHA256 -Path $zipDest).Hash.ToLowerInvariant()
-        if ($zipSha256 -ne $CursorSha256) {
-            throw "error: tightship-cursor.zip has sha256 $zipSha256; $ReleaseTag published $CursorSha256"
+        Invoke-Step "Checking the sha256 of tightship-cursor.zip" {
+            if ($zipSha256 -ne $CursorSha256) {
+                throw "error: tightship-cursor.zip has sha256 $zipSha256; $ReleaseTag published $CursorSha256"
+            }
         }
         $extracted = Join-Path $tempZipFolder "extracted"
         Expand-Archive -Path $zipDest -DestinationPath $extracted -Force
@@ -123,4 +125,5 @@ function Install-Cursor {
     if ($finalInitVault -and $finalVaultFolder) {
         Invoke-Step "Creating the vault at $expandedVault" { Invoke-CursorTightship vault init $expandedVault }
     }
+    $installedIn["{{install:label}}"] = [System.IO.Path]::GetFullPath($cursorPlugin)
 }

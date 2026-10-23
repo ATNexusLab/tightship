@@ -23,6 +23,36 @@ Options:
 EOF
 }
 
+NEWLINE='
+'
+COLOR_OUT=0
+COLOR_ERR=0
+
+paint() {
+  if [ "$1" = 1 ]; then
+    _enabled="$COLOR_OUT"
+  else
+    _enabled="$COLOR_ERR"
+  fi
+  if [ "$_enabled" = 1 ]; then
+    printf '\033[%sm%s\033[0m' "$2" "$3"
+  else
+    printf '%s' "$3"
+  fi
+}
+
+color_enabled() {
+  [ -z "${NO_COLOR:-}" ] && [ "${TERM:-}" != "dumb" ] && [ -t "$1" ]
+}
+
+fail() {
+  printf '%s\n' "$(paint 2 31 "✖ error: $1")" >&2
+  if [ -n "${2:-}" ]; then
+    printf '%s\n' "$(paint 2 2 "  hint: $2")" >&2
+  fi
+  exit 1
+}
+
 version_ge() {
   if [ "$1" = "$2" ]; then
     return 0
@@ -72,8 +102,7 @@ sha256_of() {
   elif command -v shasum >/dev/null 2>&1; then
     shasum -a 256 "$1" | cut -d' ' -f1
   else
-    echo "error: neither sha256sum nor shasum is available to check $1" >&2
-    return 1
+    fail "neither sha256sum nor shasum is available to check $1"
   fi
 }
 
@@ -84,37 +113,61 @@ download_file() {
     wget -qO "$2" "$1"
   else
     echo "error: neither curl nor wget is available to download $1" >&2
-    exit 1
+    return 1
   fi
+}
+
+quietly() {
+  "$@" >/dev/null 2>&1 || true
 }
 
 to_bool() {
   case "$(printf '%s' "$2" | tr '[:upper:]' '[:lower:]')" in
     true|yes|y|on|1) echo "true" ;;
     false|no|n|off|0) echo "false" ;;
-    *)
-      echo "error: $1 expects true or false; got \"$2\"" >&2
-      return 1
-      ;;
+    *) fail "$1 expects true or false; got \"$2\"" ;;
   esac
 }
 
-step() {
+run_step() {
   _description="$1"
   shift
-  echo "> $_description"
-  if ! "$@"; then
-    echo "error: $_description failed" >&2
-    exit 1
+  _log="$WORK_DIR/step.log"
+  if [ -t 1 ]; then
+    printf '%s  %s' "$(paint 1 36 "◒")" "$_description"
   fi
+  if "$@" >"$_log" 2>&1; then
+    _status=0
+    _mark=$(paint 1 32 "✔")
+  else
+    _status=1
+    _mark=$(paint 1 31 "✖")
+  fi
+  if [ -t 1 ]; then
+    printf '\r\033[K'
+  fi
+  printf '%s  %s\n' "$_mark" "$_description"
+  if [ "$_status" -ne 0 ]; then
+    sed 's/^/   /' "$_log" >&2
+  fi
+  return "$_status"
+}
+
+step() {
+  run_step "$@" || fail "$1 failed"
+}
+
+INSTALLED_IN=""
+
+installed_in() {
+  INSTALLED_IN="$INSTALLED_IN$1|$2$NEWLINE"
 }
 
 require_version() {
   _command=$(harness_field "$1" command)
   _minimum=$(harness_field "$1" min-version)
   if ! command -v "$_command" >/dev/null 2>&1; then
-    echo "error: $_command $_minimum or later is required; found not installed" >&2
-    exit 1
+    fail "$_command $_minimum or later is required; found not installed"
   fi
   _raw=$("$_command" --version 2>&1 || true)
   _ver=$(extract_version "$_raw")
@@ -122,8 +175,7 @@ require_version() {
     _ver="$_raw"
   fi
   if ! version_ge "$_ver" "$_minimum"; then
-    echo "error: $_command $_minimum or later is required; found $_ver" >&2
-    exit 1
+    fail "$_command $_minimum or later is required; found $_ver"
   fi
 }
 
@@ -132,18 +184,6 @@ call_hook() {
   if command -v "$_hook" >/dev/null 2>&1; then
     "$_hook"
   fi
-}
-
-harness_numbered() {
-  _index=0
-  for _harness in $HARNESSES; do
-    _index=$((_index + 1))
-    if [ "$_index" = "$1" ]; then
-      echo "$_harness"
-      return 0
-    fi
-  done
-  return 1
 }
 
 labels_of() {
@@ -161,6 +201,13 @@ labels_of() {
     fi
   done
   printf '%s\n' "$_labels"
+}
+
+contains() {
+  case " $1 " in
+    *" $2 "*) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 {{harnesses}}
@@ -242,91 +289,307 @@ while [ $# -gt 0 ]; do
       exit 0
       ;;
     *)
-      echo "error: unrecognized argument $1" >&2
-      exit 1
+      fail "unrecognized argument $1"
       ;;
   esac
 done
 
+if color_enabled 1; then
+  COLOR_OUT=1
+fi
+if color_enabled 2; then
+  COLOR_ERR=1
+fi
+
 TTY_FD=""
-if [ -t 0 ]; then
-  TTY_FD="0"
-elif (exec 3</dev/tty) 2>/dev/null; then
-  exec 3</dev/tty
-  TTY_FD="3"
-fi
-
-if [ "$YES" -eq 0 ] && [ -z "$TTY_FD" ]; then
-  echo "error: standard input is not a terminal; pass --yes or provide required flags" >&2
-  exit 1
-fi
-
-prompt_read() {
-  _prompt="$1"
-  _default="$2"
-  _ans=""
-  if [ -n "$TTY_FD" ]; then
-    printf "%s" "$_prompt" >&2
-    if [ "$TTY_FD" = "3" ]; then
-      read -r _ans <&3 || true
-    else
-      read -r _ans || true
-    fi
-  fi
-  if [ -z "$_ans" ]; then
-    printf '%s\n' "$_default"
+STTY_SAVED=""
+if [ "$YES" -eq 0 ]; then
+  if [ -t 0 ]; then
+    TTY_FD="0"
+  elif (exec 3</dev/tty) 2>/dev/null; then
+    exec 3</dev/tty
+    TTY_FD="3"
   else
-    printf '%s\n' "$_ans"
+    fail "standard input is not a terminal; pass --yes or provide required flags"
+  fi
+fi
+
+tty_stty() {
+  if [ "$TTY_FD" = "3" ]; then
+    stty "$@" <&3
+  else
+    stty "$@"
   fi
 }
 
-HARNESS=$(printf '%s' "$HARNESS" | tr '[:upper:]' '[:lower:]')
-if [ -n "$HARNESS" ]; then
-  case "$HARNESS" in
-    all|both)
-      SELECTED="$HARNESSES"
-      ;;
-    *)
-      if ! SELECTED=$(harness_named "$HARNESS"); then
-        echo "error: unknown harness $HARNESS; expected {{harness-choices}}" >&2
-        exit 1
-      fi
-      ;;
-  esac
-else
-  detected=""
-  menu=""
-  count=0
-  for harness in $HARNESSES; do
-    count=$((count + 1))
-    menu="$menu[$count] $(harness_field "$harness" label) "
-    if command -v "$(harness_field "$harness" command)" >/dev/null 2>&1; then
-      detected="$detected $harness"
-    fi
-  done
-  default_selection="${detected# }"
-  if [ -z "$default_selection" ]; then
-    default_selection="$HARNESSES"
-  fi
-
-  if [ "$YES" -eq 1 ]; then
-    SELECTED="$default_selection"
+read_byte() {
+  if [ "$TTY_FD" = "3" ]; then
+    dd bs=1 count=1 2>/dev/null <&3
   else
-    all_number=$((count + 1))
-    choice=$(prompt_read "Install tightship for: $menu[$all_number] All (default: $(labels_of $default_selection)): " "" | tr '[:upper:]' '[:lower:]')
-    case "$choice" in
-      "")
-        SELECTED="$default_selection"
+    dd bs=1 count=1 2>/dev/null
+  fi
+}
+
+read_key() {
+  _byte=$(read_byte; echo x)
+  _byte="${_byte%x}"
+  case "$_byte" in
+    "$(printf '\033')")
+      _sequence=$(read_byte; read_byte; echo x)
+      case "${_sequence%x}" in
+        "[A"|OA) KEY="up" ;;
+        "[B"|OB) KEY="down" ;;
+        "[C"|OC) KEY="right" ;;
+        "[D"|OD) KEY="left" ;;
+        *) KEY="other" ;;
+      esac
+      ;;
+    " ") KEY="space" ;;
+    "$NEWLINE"|"$(printf '\r')") KEY="enter" ;;
+    *) KEY=$(printf '%s' "$_byte" | tr '[:upper:]' '[:lower:]') ;;
+  esac
+}
+
+raw_mode() {
+  tty_stty -icanon -echo min 1 time 0
+  printf '\033[?25l' >&2
+}
+
+cooked_mode() {
+  tty_stty "$STTY_SAVED"
+  printf '\033[?25h' >&2
+}
+
+erase() {
+  if [ "$1" -gt 0 ]; then
+    printf '\r\033[%sA\033[J' "$1" >&2
+  fi
+}
+
+answered() {
+  printf '%s  %s\n%s  %s\n%s\n' "$(paint 2 32 "◇")" "$1" "│" "$(paint 2 2 "$2")" "│" >&2
+}
+
+section() {
+  printf '%s\n%s  %s\n' "│" "│" "$(paint 2 '1;2' "$1")" >&2
+}
+
+ask_harnesses() {
+  _title="Where should tightship be installed?"
+  _checked="$detected"
+  _cursor=1
+  _count=0
+  for _harness in $HARNESSES; do
+    _count=$((_count + 1))
+  done
+  _notice=""
+  _drawn=0
+  raw_mode
+  while :; do
+    erase "$_drawn"
+    _screen="$(paint 2 36 "◆")  $_title$NEWLINE"
+    _index=0
+    for _harness in $HARNESSES; do
+      _index=$((_index + 1))
+      _label=$(harness_field "$_harness" label)
+      if ! contains "$detected" "$_harness"; then
+        _row=$(paint 2 2 "◻ $_label  not found")
+      else
+        if contains "$_checked" "$_harness"; then
+          _box=$(paint 2 32 "◼")
+        else
+          _box=$(paint 2 2 "◻")
+        fi
+        if [ "$_index" -eq "$_cursor" ]; then
+          _row="$_box $(paint 2 '1;36' "$_label")"
+        else
+          _row="$_box $_label"
+        fi
+      fi
+      if [ "$_index" -eq "$_cursor" ]; then
+        _row="$(paint 2 36 "›") $_row"
+      else
+        _row="  $_row"
+      fi
+      _screen="$_screen│ $_row$NEWLINE"
+    done
+    _screen="$_screen│  $(paint 2 2 "↑/↓ move · space select · a all · enter confirm")$NEWLINE"
+    _screen="$_screen└  $(paint 2 33 "$_notice")$NEWLINE"
+    printf '%s' "$_screen" >&2
+    _drawn=$((_count + 3))
+    read_key
+    _notice=""
+    _current=$(set -- $HARNESSES; eval "echo \${$_cursor}")
+    case "$KEY" in
+      up|k)
+        _cursor=$((_cursor - 1))
+        [ "$_cursor" -ge 1 ] || _cursor="$_count"
         ;;
-      all|both|"$all_number")
-        SELECTED="$HARNESSES"
+      down|j)
+        _cursor=$((_cursor + 1))
+        [ "$_cursor" -le "$_count" ] || _cursor=1
         ;;
-      *)
-        SELECTED=$(harness_numbered "$choice") || SELECTED=$(harness_named "$choice") || SELECTED="$default_selection"
+      space)
+        if ! contains "$detected" "$_current"; then
+          _notice="$(harness_field "$_current" label) is not installed."
+        elif contains "$_checked" "$_current"; then
+          _kept=""
+          for _harness in $_checked; do
+            [ "$_harness" = "$_current" ] || _kept="$_kept $_harness"
+          done
+          _checked="$_kept"
+        else
+          _checked="$_checked $_current"
+        fi
+        ;;
+      a)
+        _all=1
+        for _harness in $detected; do
+          contains "$_checked" "$_harness" || _all=0
+        done
+        if [ "$_all" -eq 1 ]; then
+          _checked=""
+        else
+          _checked="$detected"
+        fi
+        ;;
+      enter)
+        if [ -n "$(printf '%s' "$_checked" | tr -d ' ')" ]; then
+          break
+        fi
+        _notice="Select at least one harness."
         ;;
     esac
+  done
+  cooked_mode
+  erase "$_drawn"
+  SELECTED=""
+  for _harness in $HARNESSES; do
+    if contains "$_checked" "$_harness"; then
+      SELECTED="$SELECTED $_harness"
+    fi
+  done
+  SELECTED="${SELECTED# }"
+  answered "$_title" "$(labels_of $SELECTED)"
+}
+
+ask_confirm() {
+  _title="$1"
+  _hint="$2"
+  ANSWER="$3"
+  _yes="${4:-Yes}"
+  _no="${5:-No}"
+  _drawn=0
+  raw_mode
+  while :; do
+    erase "$_drawn"
+    if [ "$ANSWER" = "true" ]; then
+      _choice="$(paint 2 32 "●") $_yes $(paint 2 2 "/ ○ $_no")"
+    else
+      _choice="$(paint 2 2 "○ $_yes /") $(paint 2 32 "●") $_no"
+    fi
+    _screen="$(paint 2 36 "◆")  $_title$NEWLINE"
+    _drawn=3
+    if [ -n "$_hint" ]; then
+      _screen="$_screen│  $(paint 2 2 "$_hint")$NEWLINE"
+      _drawn=4
+    fi
+    printf '%s│  %s\n└\n' "$_screen" "$_choice" >&2
+    read_key
+    case "$KEY" in
+      up|down|left|right|space|h|j|k|l)
+        if [ "$ANSWER" = "true" ]; then
+          ANSWER="false"
+        else
+          ANSWER="true"
+        fi
+        ;;
+      y) ANSWER="true" ;;
+      n) ANSWER="false" ;;
+      enter) break ;;
+    esac
+  done
+  cooked_mode
+  erase "$_drawn"
+  if [ "$ANSWER" = "true" ]; then
+    answered "$_title" "$_yes"
+  else
+    answered "$_title" "$_no"
   fi
+}
+
+ask_text() {
+  _title="$1"
+  _hint="$2"
+  printf '%s  %s\n%s  %s\n%s  ' "$(paint 2 36 "◆")" "$_title" "│" "$(paint 2 2 "$_hint")" "│" >&2
+  _line=""
+  if [ "$TTY_FD" = "3" ]; then
+    read -r _line <&3 || true
+  else
+    read -r _line || true
+  fi
+  ANSWER="${_line:-$3}"
+  erase 3
+  answered "$_title" "${ANSWER:-not set}"
+}
+
+WORK_DIR=""
+cleanup() {
+  if [ -n "$STTY_SAVED" ]; then
+    tty_stty "$STTY_SAVED" 2>/dev/null || true
+    printf '\033[?25h' >&2
+  fi
+  if [ -n "$WORK_DIR" ] && [ -d "$WORK_DIR" ]; then
+    rm -rf "$WORK_DIR"
+  fi
+}
+trap cleanup EXIT
+trap 'printf "\n%s\n" "└  Cancelled." >&2; exit 130' INT TERM
+
+if [ -n "$TTY_FD" ]; then
+  STTY_SAVED=$(tty_stty -g)
 fi
+
+printf '%s  %s\n' "┌" "$(paint 1 '1;36' "tightship ${RELEASE_TAG:-dev}")"
+
+detected=""
+for harness in $HARNESSES; do
+  if command -v "$(harness_field "$harness" command)" >/dev/null 2>&1; then
+    detected="$detected $harness"
+  fi
+done
+detected="${detected# }"
+
+SKIPPED=""
+HARNESS=$(printf '%s' "$HARNESS" | tr '[:upper:]' '[:lower:]')
+case "$HARNESS" in
+  "")
+    if [ -z "$detected" ]; then
+      fail "none of $(labels_of $HARNESSES) is installed"
+    fi
+    if [ "$YES" -eq 1 ]; then
+      SELECTED="$detected"
+    else
+      section "Harnesses"
+      ask_harnesses
+    fi
+    ;;
+  all|both)
+    if [ -z "$detected" ]; then
+      fail "none of $(labels_of $HARNESSES) is installed"
+    fi
+    SELECTED="$detected"
+    for harness in $HARNESSES; do
+      contains "$detected" "$harness" || SKIPPED="$SKIPPED $harness"
+    done
+    SKIPPED="${SKIPPED# }"
+    ;;
+  *)
+    if ! SELECTED=$(harness_named "$HARNESS"); then
+      fail "unknown harness $HARNESS; expected {{harness-choices}}"
+    fi
+    ;;
+esac
 
 for harness in $SELECTED; do
   require_version "$harness"
@@ -342,15 +605,35 @@ for harness in $SELECTED; do
   call_hook read_options "$harness"
 done
 
+kept_default() {
+  if [ -n "$1" ]; then
+    printf 'Default: %s, from your last install.' "$2"
+  else
+    printf 'Default: %s.' "$2"
+  fi
+}
+
+yes_no() {
+  if [ "$1" = "false" ]; then
+    echo "No"
+  else
+    echo "Yes"
+  fi
+}
+
+if [ "$YES" -eq 0 ] && { [ -z "$CONTRACT_ARG" ] || [ -z "$MEMORY_ARG" ] || [ -z "$STATUS_LINE_ARG" ]; }; then
+  section "Options"
+fi
+
 if [ -n "$CONTRACT_ARG" ]; then
   CONTRACT=$(to_bool --contract "$CONTRACT_ARG")
 elif [ "$YES" -eq 1 ]; then
   CONTRACT="${existing_contract:-true}"
 else
-  def="Y"
-  [ "$existing_contract" = "false" ] && def="n"
-  ans=$(prompt_read "Enable the working contract in every session? [Y/n]: " "$def")
-  CONTRACT=$(to_bool "the answer" "$ans")
+  ask_confirm "Load the working contract in every session?" \
+    "The rules every session follows. $(kept_default "$existing_contract" "$(yes_no "$existing_contract")")" \
+    "${existing_contract:-true}"
+  CONTRACT="$ANSWER"
 fi
 
 if [ -n "$MEMORY_ARG" ]; then
@@ -358,26 +641,35 @@ if [ -n "$MEMORY_ARG" ]; then
 elif [ "$YES" -eq 1 ]; then
   MEMORY="${existing_memory:-true}"
 else
-  def="Y"
-  [ "$existing_memory" = "false" ] && def="n"
-  ans=$(prompt_read "Enable the memory layer (curated vault notes and handoffs)? [Y/n]: " "$def")
-  MEMORY=$(to_bool "the answer" "$ans")
+  ask_confirm "Turn on the memory layer?" \
+    "Curated vault notes and handoffs. $(kept_default "$existing_memory" "$(yes_no "$existing_memory")")" \
+    "${existing_memory:-true}"
+  MEMORY="$ANSWER"
+fi
+
+if [ -n "$STATUS_LINE_ARG" ]; then
+  STATUS_LINE=$(to_bool --status-line "$STATUS_LINE_ARG")
+elif [ "$YES" -eq 1 ]; then
+  STATUS_LINE="${existing_status_line:-true}"
+else
+  ask_confirm "Show tightship's status line?" \
+    "Replaces your statusLine and restores it when off. $(kept_default "$existing_status_line" "$(yes_no "$existing_status_line")")" \
+    "${existing_status_line:-true}"
+  STATUS_LINE="$ANSWER"
 fi
 
 if [ -n "$VAULT_FOLDER_ARG" ]; then
   VAULT_FOLDER="$VAULT_FOLDER_ARG"
-elif [ "$YES" -eq 1 ]; then
+elif [ "$YES" -eq 1 ] || [ "$MEMORY" != "true" ]; then
   VAULT_FOLDER="${existing_vault_folder:-}"
 else
-  if [ "$MEMORY" = "true" ]; then
-    if [ -n "$existing_vault_folder" ]; then
-      VAULT_FOLDER=$(prompt_read "Vault folder path [$existing_vault_folder]: " "$existing_vault_folder")
-    else
-      VAULT_FOLDER=$(prompt_read "Vault folder path (for example ~/ai-memory, or leave empty to set later): " "")
-    fi
+  section "Vault"
+  if [ -n "$existing_vault_folder" ]; then
+    ask_text "Where is your vault?" "Enter keeps $existing_vault_folder." "$existing_vault_folder"
   else
-    VAULT_FOLDER="${existing_vault_folder:-}"
+    ask_text "Where is your vault?" "A folder such as ~/ai-memory. Enter leaves it for later." ""
   fi
+  VAULT_FOLDER="$ANSWER"
 fi
 
 INIT_VAULT="false"
@@ -392,36 +684,56 @@ fi
 if [ -n "$expanded_vault" ] && [ ! -d "$expanded_vault" ]; then
   if [ -n "$INIT_VAULT_ARG" ]; then
     INIT_VAULT=$(to_bool --init-vault "$INIT_VAULT_ARG")
-  elif [ "$YES" -eq 1 ]; then
-    INIT_VAULT="false"
-  else
-    ans=$(prompt_read "Vault folder $VAULT_FOLDER does not exist. Create it now with tightship vault init? [Y/n]: " "Y")
-    INIT_VAULT=$(to_bool "the answer" "$ans")
+  elif [ "$YES" -eq 0 ]; then
+    ask_confirm "$VAULT_FOLDER does not exist. Create it now?" "Runs tightship vault init. Default: Yes." "true"
+    INIT_VAULT="$ANSWER"
   fi
 fi
 
-if [ -n "$STATUS_LINE_ARG" ]; then
-  STATUS_LINE=$(to_bool --status-line "$STATUS_LINE_ARG")
-elif [ "$YES" -eq 1 ]; then
-  STATUS_LINE="${existing_status_line:-true}"
-else
-  def="Y"
-  [ "$existing_status_line" = "false" ] && def="n"
-  ans=$(prompt_read "Enable tightship's status line (replaces your current statusLine and restores it when off)? [Y/n]: " "$def")
-  STATUS_LINE=$(to_bool "the answer" "$ans")
-fi
+summary_row() {
+  printf '%s  %s %s\n' "│" "$(paint 1 2 "$(printf '%-15s' "$1")")" "$2"
+}
 
-WORK_DIR=""
-cleanup() {
-  if [ -n "$WORK_DIR" ] && [ -d "$WORK_DIR" ]; then
-    rm -rf "$WORK_DIR"
+on_off() {
+  if [ "$1" = "true" ]; then
+    echo "on"
+  else
+    echo "off"
   fi
 }
-trap cleanup EXIT INT TERM
+
+vault_summary="${VAULT_FOLDER:-not set}"
+if [ "$INIT_VAULT" = "true" ]; then
+  vault_summary="$vault_summary, created now"
+fi
+
+printf '%s\n%s  %s\n' "│" "$(paint 1 32 "◇")" "Summary"
+summary_row "Harnesses" "$(labels_of $SELECTED)"
+if [ -n "$SKIPPED" ]; then
+  summary_row "Skipped" "$(labels_of $SKIPPED), not installed"
+fi
+summary_row "Contract" "$(on_off "$CONTRACT")"
+summary_row "Memory" "$(on_off "$MEMORY")"
+summary_row "Vault" "$vault_summary"
+summary_row "Status line" "$(on_off "$STATUS_LINE")"
+printf '%s\n' "│"
+
+if [ "$YES" -eq 0 ]; then
+  ask_confirm "Install with these choices?" "" "true" "Install" "Cancel"
+  if [ "$ANSWER" != "true" ]; then
+    printf '%s  %s\n' "└" "Cancelled; nothing was written."
+    exit 0
+  fi
+fi
+
 WORK_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'tightship')
 
 for harness in $SELECTED; do
   "install_$(harness_field "$harness" id)"
 done
 
-echo "Installed tightship for $(labels_of $SELECTED)."
+printf '%s\n%s  %s\n' "│" "$(paint 1 32 "◇")" "Installed in"
+printf '%s' "$INSTALLED_IN" | while IFS='|' read -r label location; do
+  summary_row "$label" "$location"
+done
+printf '%s\n%s  %s\n' "│" "└" "$(paint 1 32 "Installed tightship for $(labels_of $SELECTED).")"

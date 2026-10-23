@@ -1,9 +1,9 @@
 function Install-ClaudeCode {
     {{install:companions}}
     if ($FromDir) {
-        try { & claude plugin marketplace add $FromDir } catch {}
+        try { & claude plugin marketplace add $FromDir *> $null } catch {}
     } else {
-        try { & claude plugin marketplace add ($Repository -replace '^https://github.com/', '') } catch {}
+        try { & claude plugin marketplace add ($Repository -replace '^https://github.com/', '') *> $null } catch {}
     }
 
     $claudeArgs = @(
@@ -16,4 +16,5 @@ function Install-ClaudeCode {
         $claudeArgs += @("--config", "vault_folder=$finalVaultFolder")
     }
     Invoke-Step "Installing tightship for {{install:label}}" { & claude @claudeArgs }
+    $installedIn["{{install:label}}"] = "tightship@tightship, listed by claude plugin list"
 }
