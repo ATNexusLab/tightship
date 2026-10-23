@@ -20,11 +20,11 @@ harness's own, and falls back to `${TIGHTSHIP_DATA}/options.toml` when an option
 or to no file at all when `TIGHTSHIP_DATA` is unset (#90), so it names no harness, plus `COLUMNS`, the
 terminal's width, for the status line (M1, #7). When `TIGHTSHIP_HOOK_OUTPUT` names a JSON file, non-empty
 hook output fills that file's `"{text}"` slot, and the binary prints the filled JSON; the harness folder
-ships that file (M3, #59). The memory checkpoint takes its
-shape from `TIGHTSHIP_CHECKPOINT_OUTPUT` when it is set. `TIGHTSHIP_STATUS_LINE_COMMAND` replaces the status
-line command the binary writes into the settings, and `status-line render` strips `TIGHTSHIP_MODEL_PREFIX`
-from the model's name (#78). `cargo xtask build` fails when a harness's neutrality term appears in
-`tightship/src/`.
+ships that file (M3, #59). The memory checkpoint takes its shape from `TIGHTSHIP_CHECKPOINT_OUTPUT` when it
+is set. `hook start` reads the project's folder at the JSON pointer `TIGHTSHIP_PROJECT_POINTER` names in the
+hook's input, when it is set. `TIGHTSHIP_STATUS_LINE_COMMAND` replaces the status line command the binary
+writes into the settings, and `status-line render` strips `TIGHTSHIP_MODEL_PREFIX` from the model's name (#78).
+`cargo xtask build` fails when a harness's neutrality term appears in `tightship/src/`.
 
 `bin/tightship` is a `sh` launcher (and `bin/tightship.cmd` is a Windows batch launcher for harnesses that run
 hooks under `cmd /c`, M3, #59) that runs `bin/<platform>/tightship` for the machine, among `macos`,

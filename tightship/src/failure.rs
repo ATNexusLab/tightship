@@ -9,6 +9,7 @@ pub enum Failure {
     VaultUnreadable(PathBuf, io::Error),
     NoteUnreadable(PathBuf, io::Error),
     EnvUnwritable(PathBuf, io::Error),
+    HookInputNoProject(String),
     InitNoGit,
     InitNotEmpty(PathBuf),
     InitUnwritable(PathBuf, io::Error),
@@ -137,6 +138,10 @@ impl fmt::Display for Failure {
             Self::HandoffUnremovable(path, error) => {
                 write!(formatter, "cannot remove {}: {error}", path.display())
             }
+            Self::HookInputNoProject(pointer) => write!(
+                formatter,
+                "the hook's input on stdin names no project folder at {pointer}"
+            ),
             Self::LintFailed => write!(formatter, "the lint found problems in the vault"),
             Self::SyncUnfinished(vault) => write!(
                 formatter,

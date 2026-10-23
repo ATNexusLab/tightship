@@ -1,3 +1,5 @@
+use std::env;
+
 use crate::failure::Failure;
 use crate::project;
 use crate::vault::{self, context, note};
@@ -32,7 +34,10 @@ pub fn run() -> Result<(), Failure> {
         Err(failure) => return Err(failure),
     };
     let notes = note::read_all(&folder)?;
-    let scope = project::scope(&folder)?;
+    let scope = match env::var("TIGHTSHIP_PROJECT_POINTER") {
+        Ok(pointer) => project::scope_of(&folder, &project::named_in_input(&pointer)?)?,
+        Err(_) => project::scope(&folder)?,
+    };
     let (memory_context, _) = context::render(&folder, &scope, &notes);
     super::export_vault(&folder)?;
     super::emit(&memory_context)

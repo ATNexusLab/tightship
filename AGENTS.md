@@ -106,6 +106,10 @@ translation in the same commit.
 - `install.ps1` and its harness parts fail with `throw "error: …"`, never `exit`: under `irm … | iex`,
   `exit` closes the adopter's terminal. The one `catch` at the top prints the message as a plain line, since pwsh's
   own rendering wraps it across decorated lines, and exits 1 only when the installer runs as a file.
+- A session check of a built plugin needs each harness set up. Claude Code under `--plugin-dir` has no
+  vault option: export `CLAUDE_PLUGIN_OPTION_VAULT_FOLDER` before `claude`. Cursor's `agent` runs from
+  PowerShell with `$env:SHELL = $null`. `agy plugin install` writes into the adopter's own config, and on
+  Windows needs `hooks.windows.json` moved over `hooks.json` first, as `install.ps1` does.
 - A sentence a command tells the agent to say comes back paraphrased unless the instruction says "word for
   word". A placeholder in it is written `\<scope\>`: MD033 rejects a bare `<scope>` in prose, and one in
   backticks reaches the reply with its backticks.

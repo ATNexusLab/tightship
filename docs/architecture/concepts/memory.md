@@ -20,7 +20,9 @@ with `tightship vault init <folder>`.
 ## The project's scope
 
 A note belongs to one scope: a project's name or `all`. A session's scope is the name of its git repository's
-top folder, lowercased. When the vault has no folder of that name, the longest scope that prefixes it,
+top folder, lowercased. The session start finds the project in the hook's working directory, or, in a harness
+that runs hooks in the plugin's folder, at the JSON pointer `TIGHTSHIP_PROJECT_POINTER` names in the hook's
+input. When the vault has no folder of that name, the longest scope that prefixes it,
 followed by `-` or `_`, is used instead, so `tightship-docs` reads the notes of `tightship`.
 
 ## What the session start lists

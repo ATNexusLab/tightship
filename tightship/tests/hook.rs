@@ -5,7 +5,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use common::{Sandbox, assert_succeeds, note, run, stderr_of, stdout_of};
+use common::{Sandbox, assert_succeeds, note, run, stderr_of, stdout_of, with_stdin};
 
 fn project(sandbox: &Sandbox, name: &str) -> PathBuf {
     let folder = sandbox.path(name);
@@ -238,6 +238,33 @@ fn start_takes_the_scope_whose_name_prefixes_the_project_folder() {
     let working_directory = project(&sandbox, "tightship-docs");
 
     let output = run(&mut hook(&sandbox, "start", &working_directory));
+
+    assert_succeeds(&output);
+    let stdout = stdout_of(&output);
+    assert!(stdout.contains("Scope `tightship` and `all`."), "{stdout}");
+    assert!(stdout.contains("- [[mem-0001-a-note]]"), "{stdout}");
+}
+
+#[test]
+fn start_takes_the_project_the_hook_input_names() {
+    let sandbox = Sandbox::new();
+    note(
+        &sandbox,
+        "tightship",
+        "mem-0001",
+        "pinned: true\n",
+        "Pinned.",
+    );
+    let working_directory = project(&sandbox, "tightship");
+    let plugin = project(&sandbox, "plugin");
+    let mut command = hook(&sandbox, "start", &plugin);
+    command.env("TIGHTSHIP_PROJECT_POINTER", "/workspacePaths/0");
+    let input = format!(
+        "{{\"workspacePaths\":[\"{}\"]}}",
+        working_directory.display().to_string().replace('\\', "/")
+    );
+
+    let output = with_stdin(&mut command, &input);
 
     assert_succeeds(&output);
     let stdout = stdout_of(&output);

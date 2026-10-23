@@ -28,3 +28,7 @@ if not defined TIGHTSHIP_HOOK_OUTPUT (
   set "TIGHTSHIP_HOOK_OUTPUT=%PLUGIN_DIR%\hook-output.json"
 )
 
+
+if not defined TIGHTSHIP_PROJECT_POINTER (
+  set "TIGHTSHIP_PROJECT_POINTER=/workspacePaths/0"
+)

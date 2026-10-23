@@ -1,16 +1,22 @@
 use std::env;
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
 
 pub fn scope(vault: &Path) -> Result<String, Failure> {
-    let working_directory = env::current_dir().expect("the hook's working directory");
-    let top = working_directory
+    scope_of(
+        vault,
+        &env::current_dir().expect("the command's working directory"),
+    )
+}
+
+pub fn scope_of(vault: &Path, folder: &Path) -> Result<String, Failure> {
+    let top = folder
         .ancestors()
-        .find(|folder| folder.join(".git").exists())
-        .unwrap_or(&working_directory);
+        .find(|ancestor| ancestor.join(".git").exists())
+        .unwrap_or(folder);
     let name = normalize(&top.file_name().unwrap_or_default().to_string_lossy());
     let scopes = scope_folders(vault)?;
     if scopes.contains(&name) {
@@ -25,6 +31,17 @@ pub fn scope(vault: &Path) -> Result<String, Failure> {
         })
         .max_by_key(String::len);
     Ok(prefix.unwrap_or(name))
+}
+
+pub fn named_in_input(pointer: &str) -> Result<PathBuf, Failure> {
+    let unnamed = || Failure::HookInputNoProject(pointer.to_owned());
+    let input = io::read_to_string(io::stdin()).map_err(|_| unnamed())?;
+    let input: serde_json::Value = serde_json::from_str(&input).map_err(|_| unnamed())?;
+    let folder = input
+        .pointer(pointer)
+        .and_then(serde_json::Value::as_str)
+        .ok_or_else(unnamed)?;
+    Ok(PathBuf::from(folder))
 }
 
 pub fn normalize(name: &str) -> String {

@@ -27,3 +27,7 @@ if not defined TIGHTSHIP_CHECKPOINT_OUTPUT (
 if not defined TIGHTSHIP_STATUS_LINE_COMMAND (
   set "TIGHTSHIP_STATUS_LINE_COMMAND="${CURSOR_PLUGIN_ROOT}/bin/tightship" status-line render"
 )
+
+if not defined TIGHTSHIP_PROJECT_POINTER (
+  set "TIGHTSHIP_PROJECT_POINTER=/workspace_roots/0"
+)

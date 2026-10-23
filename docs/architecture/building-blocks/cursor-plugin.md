@@ -24,7 +24,8 @@ on Windows (M2, #58).
 The Cursor editor has no status line. With the status line option on, the CLI alone runs
 `tightship status-line render` through `statusLine` in `~/.cursor/cli-config.json` (M2, #58). The launcher
 hands the binary that command, with `${CURSOR_PLUGIN_ROOT}` left for the CLI to expand, in
-`TIGHTSHIP_STATUS_LINE_COMMAND` (#78).
+`TIGHTSHIP_STATUS_LINE_COMMAND` (#78). The CLI runs hooks in the plugin's folder, so the launcher sets
+`TIGHTSHIP_PROJECT_POINTER` to `/workspace_roots/0`, where the hook's input names the project.
 
 Companion plugins have no `dependencies` field in Cursor's manifest. The unified installer copies each
 companion into `~/.cursor/plugins/local/<name>/` before `tightship` (M2, #58; #85).

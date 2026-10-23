@@ -27,7 +27,9 @@ with `bin/tightship` and `hooks.windows.json` with `bin\tightship`, which `cmd` 
 Windows, Git Bash included, and deletes it elsewhere. Both launchers set `TIGHTSHIP_ROOT`, `TIGHTSHIP_DATA`,
 `TIGHTSHIP_SETTINGS`, and `TIGHTSHIP_HOOK_OUTPUT` to the plugin's `hook-output.json`,
 `{"injectSteps":[{"systemMessage":{"systemMessage":"{text}"}}]}`, before running the platform binary, so non-empty
-hook output reaches Antigravity CLI as a system message.
+hook output reaches Antigravity CLI as a system message. They also set `TIGHTSHIP_PROJECT_POINTER` to
+`/workspacePaths/0`: Antigravity CLI runs hooks in the plugin's folder and names the project only in the hook's
+input.
 
 **It never** gets edited. Every change goes to the canonical content or the harness definition, then through
 the build.

@@ -92,7 +92,8 @@ pwsh -NoProfile -NonInteractive -ExecutionPolicy Bypass -c "... Get-Content <pay
   set, the shell is bash and every hook fails with `syntax error near unexpected token '&'`. A failing
   `beforeShellExecution` hook then blocks every shell call. Probe from PowerShell with `$env:SHELL = $null`.
 - `${CURSOR_PLUGIN_ROOT}` and `${CLAUDE_PLUGIN_ROOT}` are replaced in the command and exported to it.
-- The working directory is the workspace root.
+- The CLI runs the hook in the plugin's folder, not the workspace (probed 2026-10-23, CLI 2026.10.22). The
+  project is `workspace_roots` in the input and `CURSOR_PROJECT_DIR` in the environment.
 
 ### Environment and input
 
