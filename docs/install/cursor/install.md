@@ -31,7 +31,7 @@ Every question starts on its default, so pressing Enter through all of them inst
 yes or no question, an arrow switches the answer. Nothing is written until you choose Install on the summary:
 
 ```text
-┌  tightship v1.1.1
+┌  tightship v1.2.0
 │
 │  Options
 ◇  Load the working contract in every session?
