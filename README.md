@@ -31,7 +31,7 @@ alone gets the same rigor a team would demand.
 | --- | --- |
 | Contract | Rules in every session: how the agent plans, writes code, tests, handles git and secrets, and what counts as done |
 | 10 commands | One per step: `/requirements`, `/bootstrap`, `/sprint`, `/spec`, `/epic`, `/audit`, `/closeout`, `/pr-review`, `/handoff`, `/sync` |
-| 13 skills | Loaded on demand: API, database, frontend, and hexagonal architecture, requirements engineering, spec writing, security audit, testing, performance, technical writing, and more |
+| 14 skills | Loaded on demand: API, database, frontend, and hexagonal architecture, requirements engineering, spec writing, security audit, testing, performance, technical writing, and more |
 | Verifier | A read-only subagent that tries to disprove a fix, a finding, or a "done" before you trust it |
 | Memory | Optional. Curated notes in a git repository you own, shared across sessions, machines, and harnesses |
 | Status line | Optional. Written to your settings only while you have it turned on |
@@ -55,7 +55,8 @@ with zero errors and zero warnings and you have read the change.
 
 ## Quickstart
 
-Run the installer for Claude Code (2.1.295+), Antigravity CLI (1.4.0+), or both:
+Run the installer for Claude Code (2.1.295+), Cursor (3.25.6+, `agent` 2026.10.14+), Antigravity CLI
+(1.4.0+), or all three:
 
 ```sh
 curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | sh
@@ -67,19 +68,18 @@ On Windows in PowerShell:
 irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
 ```
 
-The installer detects your CLIs and asks which options to turn on. The install guides
-([Claude Code](docs/install/claude-code/README.md), [Antigravity CLI](docs/install/antigravity-cli/README.md))
-cover options, updates, uninstalling, and moving from pre-plugin installs. For Cursor (3.25.6+, `agent`
-2026.10.14+), follow the [Cursor install guide](docs/install/cursor/README.md); it is not part of the unified
-installer yet.
+The installer detects your CLIs, asks where to install and which options to turn on, and writes nothing
+until you confirm the summary. The install guides ([Claude Code](docs/install/claude-code/README.md),
+[Cursor](docs/install/cursor/README.md), [Antigravity CLI](docs/install/antigravity-cli/README.md)) cover
+options, updates, uninstalling, and installing by hand.
 
 ## Harnesses
 
 | Harness | Status | Milestone |
 | --- | --- | --- |
 | Claude Code | Available | M1 |
+| Cursor | Available | M2 |
 | Antigravity CLI | Available | M3 |
-| Cursor | Planned | M2 |
 | Codex | Planned | M4 |
 
 Every piece is written once in `content/`, which names no harness. A Rust build turns it into each
@@ -107,7 +107,8 @@ lists every gate.
 | Where | What |
 | --- | --- |
 | [Install guide (Claude Code)](docs/install/claude-code/README.md) | Installing, options, updates, uninstalling, migration |
-| [Install guide (Cursor)](docs/install/cursor/README.md) | Companions, marketplace install, options, uninstall |
+| [Install guide (Cursor)](docs/install/cursor/README.md) | Installing, companions, options, updates, uninstalling |
+| [Install guide (Antigravity CLI)](docs/install/antigravity-cli/README.md) | Installing, options, updates, uninstalling, migration |
 | [Requirements](docs/requirements/README.md) | The versioned SRS: every requirement and its acceptance criteria |
 | [Architecture](docs/architecture/README.md) | The system map, in arc42 sections with C4 diagrams |
 | [Decisions](docs/decisions/README.md) | The architecture decision records |

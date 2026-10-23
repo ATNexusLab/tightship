@@ -32,7 +32,7 @@ sozinho ganha o mesmo rigor que um time exigiria.
 | --- | --- |
 | Contrato | Regras em toda sessão: como o agente planeja, escreve código, testa, lida com git e segredos, e o que conta como pronto |
 | 10 comandos | Um por etapa: `/requirements`, `/bootstrap`, `/sprint`, `/spec`, `/epic`, `/audit`, `/closeout`, `/pr-review`, `/handoff`, `/sync` |
-| 13 skills | Carregadas sob demanda: arquitetura de API, de banco de dados, de frontend e hexagonal, engenharia de requisitos, escrita de spec, auditoria de segurança, testes, performance, escrita técnica e outras |
+| 14 skills | Carregadas sob demanda: arquitetura de API, de banco de dados, de frontend e hexagonal, engenharia de requisitos, escrita de spec, auditoria de segurança, testes, performance, escrita técnica e outras |
 | Verificador | Um subagente somente leitura que tenta refutar uma correção, um achado ou um "pronto" antes que você confie nele |
 | Memória | Opcional. Notas curadas num repositório git seu, compartilhadas entre sessões, máquinas e harnesses |
 | Status line | Opcional. Gravada nas suas configurações só enquanto você a deixa ligada |
@@ -56,7 +56,8 @@ zero avisos e de você ter lido a mudança.
 
 ## Início rápido
 
-Execute o instalador para o Claude Code (2.1.295+), Antigravity CLI (1.4.0+) ou ambos:
+Execute o instalador para o Claude Code (2.1.295+), Cursor (3.25.6+, `agent` 2026.10.14+), Antigravity CLI
+(1.4.0+) ou os três:
 
 ```sh
 curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | sh
@@ -68,20 +69,18 @@ No Windows usando o PowerShell:
 irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
 ```
 
-O instalador detecta seus CLIs e pergunta quais opções ligar. Os guias de instalação
-([Claude Code](docs/install/claude-code/README.pt-BR.md),
-[Antigravity CLI](docs/install/antigravity-cli/README.pt-BR.md)) cobrem opções, atualizações, desinstalação
-e a migração da instalação anterior. Para o Cursor (3.25.6+, `agent` 2026.10.14+), siga o
-[guia de instalação do Cursor](docs/install/cursor/README.pt-BR.md); ele ainda não entra no instalador
-unificado.
+O instalador detecta seus CLIs, pergunta onde instalar e quais opções ligar, e não grava nada antes de você
+confirmar o resumo. Os guias de instalação ([Claude Code](docs/install/claude-code/README.pt-BR.md),
+[Cursor](docs/install/cursor/README.pt-BR.md), [Antigravity CLI](docs/install/antigravity-cli/README.pt-BR.md))
+cobrem opções, atualizações, desinstalação e a instalação manual.
 
 ## Harnesses
 
 | Harness | Status | Marco |
 | --- | --- | --- |
 | Claude Code | Disponível | M1 |
+| Cursor | Disponível | M2 |
 | Antigravity CLI | Disponível | M3 |
-| Cursor | Planejado | M2 |
 | Codex | Planejado | M4 |
 
 Cada peça é escrita uma vez em `content/`, que não cita nenhum harness. Um build em Rust a transforma no
@@ -112,7 +111,8 @@ O guia de instalação tem versão em português. O resto da documentação est�
 | Onde | O quê |
 | --- | --- |
 | [Guia de instalação (Claude Code)](docs/install/claude-code/README.pt-BR.md) | Instalação, opções, atualizações, desinstalação, migração |
-| [Guia de instalação (Cursor)](docs/install/cursor/README.pt-BR.md) | Companheiros, instalação pelo marketplace, opções, desinstalação |
+| [Guia de instalação (Cursor)](docs/install/cursor/README.pt-BR.md) | Instalação, companheiros, opções, atualizações, desinstalação |
+| [Guia de instalação (Antigravity CLI)](docs/install/antigravity-cli/README.pt-BR.md) | Instalação, opções, atualizações, desinstalação, migração |
 | [Requisitos](docs/requirements/README.md) | A SRS versionada: cada requisito e seus critérios de aceite |
 | [Arquitetura](docs/architecture/README.md) | O mapa do sistema, nas seções do arc42 com diagramas C4 |
 | [Decisões](docs/decisions/README.md) | Os registros de decisão de arquitetura |

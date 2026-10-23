@@ -16,7 +16,7 @@ partir da instalação anterior ao plugin.
 
 | Página | O que cobre |
 | --- | --- |
-| [Instalação](install.pt-BR.md) | Adicionar os catálogos e instalar o plugin |
+| [Instalação](install.pt-BR.md) | Rodar o instalador, ou adicionar os catálogos e instalar manualmente |
 | [Os companheiros](companions.pt-BR.md) | Os três plugins instalados com o tightship |
 | [As opções](options.pt-BR.md) | Ligar ou desligar o contrato, a memória e a status line, e a pasta do vault |
 | [Atualização](update.pt-BR.md) | Receber novas versões, automaticamente, pelo instalador ou à mão |

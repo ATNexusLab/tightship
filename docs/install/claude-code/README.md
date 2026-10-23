@@ -16,7 +16,7 @@ the pre-plugin install.
 
 | Page | What it covers |
 | --- | --- |
-| [Installation](install.md) | Adding the catalogs and installing the plugin |
+| [Installation](install.md) | Running the installer, or adding the catalogs and installing by hand |
 | [The companions](companions.md) | The three plugins installed with tightship |
 | [The options](options.md) | Turning the contract, memory, and the status line on or off, and the vault folder |
 | [Update](update.md) | Getting new versions, automatically, through the installer, or by hand |
