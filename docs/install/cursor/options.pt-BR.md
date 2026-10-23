@@ -10,6 +10,7 @@ e o binário `tightship` ignoram esse diálogo e leem o estado só em `$HOME/.cu
 | `contract` | ligada/desligada | Carrega as regras do workflow em toda sessão. Desligada: as regras do contrato não são injetadas | Ligada |
 | `memory` | ligada/desligada | Guarda notas curadas no seu vault e passa o estado da sessão para a próxima | Ligada |
 | `status_line` | ligada/desligada | Só no **CLI**, mostra a status line do tightship sob o prompt e devolve a sua quando desligada | Ligada |
+| `auto_update` | ligada/desligada | Instala cada release nova sozinha e avisa na sessão seguinte. Veja [atualização](update.pt-BR.md) | Ligada |
 | `vault_folder` | pasta | O seu vault de memória, um repositório git, como caminho absoluto ou `~`. A memória precisa dele | Sem vault: a memória não tem o que ler nem onde gravar |
 
 Arquivo ausente ou chave ausente significa **ligada** para cada opção booleana.

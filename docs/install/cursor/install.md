@@ -43,6 +43,9 @@ yes or no question, an arrow switches the answer. Nothing is written until you c
 ◇  Show tightship's status line?
 │  Yes
 │
+◇  Keep tightship updated automatically?
+│  Yes
+│
 │  Vault
 ◇  Where is your vault?
 │  not set
@@ -53,6 +56,7 @@ yes or no question, an arrow switches the answer. Nothing is written until you c
 │  Memory          on
 │  Vault           not set
 │  Status line     on
+│  Auto-update     on
 │
 ◆  Install with these choices?
 │  ● Install / ○ Cancel
@@ -87,6 +91,7 @@ Create `~/.cursor/tightship/options.json`:
   "contract": true,
   "memory": true,
   "status_line": true,
+  "auto_update": true,
   "vault_folder": "~/ai-memory"
 }
 ```

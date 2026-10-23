@@ -43,6 +43,9 @@ choose Install on the summary:
 ◇  Show tightship's status line?
 │  Yes
 │
+◇  Keep tightship updated automatically?
+│  Yes
+│
 │  Vault
 ◇  Where is your vault?
 │  not set
@@ -53,6 +56,7 @@ choose Install on the summary:
 │  Memory          on
 │  Vault           not set
 │  Status line     on
+│  Auto-update     on
 │
 ◆  Install with these choices?
 │  ● Install / ○ Cancel
@@ -107,6 +111,7 @@ Create `~/.gemini/config/plugin_data/tightship/options.toml`:
 contract = true
 memory = true
 status_line = true
+auto_update = true
 vault_folder = "~/ai-memory"
 ```
 

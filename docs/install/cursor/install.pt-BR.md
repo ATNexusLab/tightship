@@ -43,6 +43,9 @@ ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Inst
 ◇  Show tightship's status line?
 │  Yes
 │
+◇  Keep tightship updated automatically?
+│  Yes
+│
 │  Vault
 ◇  Where is your vault?
 │  not set
@@ -53,6 +56,7 @@ ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Inst
 │  Memory          on
 │  Vault           not set
 │  Status line     on
+│  Auto-update     on
 │
 ◆  Install with these choices?
 │  ● Install / ○ Cancel
@@ -87,6 +91,7 @@ Crie `~/.cursor/tightship/options.json`:
   "contract": true,
   "memory": true,
   "status_line": true,
+  "auto_update": true,
   "vault_folder": "~/ai-memory"
 }
 ```

@@ -5,8 +5,8 @@ each option in the adopter's harness. The model below comes from the
 [memory](../requirements/functional/memory.md) and [installation](../requirements/functional/install.md)
 requirements. The logical and physical models and the storage are drawn by the epics that define the file
 formats: the options in #3 ([options](options.md)), the vault and its notes in #5 ([vault](vault.md)), the
-handoff's body in #6 ([vault](vault.md#a-handoff)), and the status line's record in #7
-([status line](status-line.md)).
+handoff's body in #6 ([vault](vault.md#a-handoff)), the status line's record in #7
+([status line](status-line.md)), and the auto-update's state ([update](update.md)).
 
 ## Conceptual model
 
@@ -18,7 +18,7 @@ handoff's body in #6 ([vault](vault.md#a-handoff)), and the status line's record
 | Note | One curated fact: title, type, the line stating why it matters, a body | M1 |
 | Scope | The folder a note belongs to: one project's name, or `all` | M1 |
 | Handoff | The note that carries one project's session state to the next session | M1 |
-| Option | The contract, the memory layer, or the status line, each enabled or disabled | M1 |
+| Option | The contract, the memory layer, the status line, or auto-update, each enabled or disabled | M1 |
 
 ## Invariants
 
@@ -37,4 +37,5 @@ handoff's body in #6 ([vault](vault.md#a-handoff)), and the status line's record
 - [Access patterns](access-patterns.md)
 - [Options](options.md)
 - [Status line](status-line.md)
+- [Update](update.md)
 - [Vault](vault.md)

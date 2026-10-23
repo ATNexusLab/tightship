@@ -16,6 +16,7 @@ No Windows:
 | `contract` | liga/desliga | Carrega as regras do fluxo em cada sessão. Desligado: veja [sem o contrato](without-the-contract.pt-BR.md) | Ligado (`true`) |
 | `memory` | liga/desliga | Mantém notas curadas no vault e repassa o estado para a próxima sessão | Ligado (`true`) |
 | `status_line` | liga/desliga | Exibe a status line do tightship abaixo do prompt, e restaura a sua quando desligada | Ligado (`true`) |
+| `auto_update` | liga/desliga | Instala cada release nova sozinha e avisa na sessão seguinte. Veja [atualização](update.pt-BR.md) | Ligado (`true`) |
 | `vault_folder` | pasta | O seu vault de memória, um repositório git, como caminho (suporta `~`). A memória precisa dele | Sem vault: a memória não tem onde ler ou gravar |
 
 ## Variáveis de ambiente
@@ -25,6 +26,7 @@ Variáveis de ambiente têm prioridade sobre o `options.toml` quando definidas:
 - `TIGHTSHIP_CONTRACT=false` sobrepõe `contract`
 - `TIGHTSHIP_MEMORY=false` sobrepõe `memory`
 - `TIGHTSHIP_STATUS_LINE=false` sobrepõe `status_line`
+- `TIGHTSHIP_AUTO_UPDATE=false` sobrepõe `auto_update`
 - `TIGHTSHIP_VAULT=/caminho/do/vault` sobrepõe `vault_folder`
 - `TIGHTSHIP_DATA=/caminho/dos/dados` define uma pasta personalizada com o `options.toml`
 
@@ -37,6 +39,7 @@ Você pode editar o arquivo `options.toml` diretamente com qualquer editor de te
 contract = true
 memory = true
 status_line = true
+auto_update = true
 vault_folder = "~/ai-memory"
 ```
 

@@ -14,7 +14,9 @@ per-option environment variables, so the adopter's [options](../concepts/options
 preserves across updates.
 
 Its `SessionStart` hooks in `hooks.json` run `tightship hook contract-part` for `part-1.md` and
-`memory.md`, `tightship hook start`, and `tightship hook status-line`. Since M4 (#118) no hook runs on a
+`memory.md`, `tightship hook start`, `tightship hook status-line`, and `tightship hook update`, which
+announces an update and starts the next check
+([auto-update spec](../../specs/auto-update/update-the-plugin.md)). Since M4 (#118) no hook runs on a
 prompt, so Antigravity CLI, which has no compaction hook, gets no checkpoint.
 
 Antigravity CLI 1.4.2 runs a hook from the plugin's folder and gives it neither `PLUGIN_ROOT` nor

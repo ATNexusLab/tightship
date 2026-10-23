@@ -2,8 +2,27 @@
 
 [English](update.md) · Português
 
-O Antigravity CLI atualiza o tightship a partir dos lançamentos no GitHub. As suas opções no `options.toml`
-mantêm seus valores durante uma atualização.
+O tightship se atualiza sozinho a partir dos lançamentos no GitHub. As suas opções no `options.toml` mantêm
+seus valores durante uma atualização.
+
+## Automática
+
+Com a opção `auto_update` ligada, que é o padrão, cada início de sessão procura uma release nova, no máximo
+uma vez por dia, sem fazer a sessão esperar. Uma release mais nova é baixada em segundo plano, tem o sha256
+conferido com o que a release publicou e é colocada no lugar. A sessão seguinte avisa, uma única vez:
+"tightship was updated from 1.1.0 to 1.2.0."
+
+Um download cujo sha256 não confere não é instalado, e a sessão seguinte avisa. Uma falha de rede não muda
+nada e é tentada de novo no dia seguinte.
+
+Para procurar agora, rode o atualizador você mesmo:
+
+```sh
+~/.gemini/config/plugins/tightship/bin/tightship update
+```
+
+Para desligar, ponha `auto_update = false` no `options.toml`, ou rode o instalador de novo com
+`--auto-update false`.
 
 ## Usando o instalador
 
@@ -22,6 +41,9 @@ No Windows usando o PowerShell:
 & ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) `
   -Harness antigravity-cli -Yes
 ```
+
+O instalador também reinstala os companheiros a partir dos repositórios deles, e é assim que eles se
+atualizam.
 
 ## Atualização manual
 
@@ -44,11 +66,12 @@ mv -f ~/.gemini/config/plugins/tightship/hooks.windows.json ~/.gemini/config/plu
 
 ## Atualização dos companheiros
 
-Para atualizar os plugins companheiros:
+O Antigravity CLI não tem comando de atualização para um plugin de fora do seu catálogo oficial, então
+reinstale cada companheiro a partir do repositório dele:
 
 ```sh
-agy plugin update ponytail
-agy plugin update i-have-adhd
+agy plugin install https://github.com/DietrichGebert/ponytail
+agy plugin install https://github.com/ayghri/i-have-adhd
 curl -fsSL https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md \
   -o ~/.gemini/config/skills/humanizer/SKILL.md
 ```

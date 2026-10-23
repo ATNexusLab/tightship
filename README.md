@@ -35,6 +35,7 @@ alone gets the same rigor a team would demand.
 | Verifier | A read-only subagent that tries to disprove a fix, a finding, or a "done" before you trust it |
 | Memory | Optional. Curated notes in a git repository you own, shared across sessions, machines, and harnesses |
 | Status line | Optional. Written to your settings only while you have it turned on |
+| Auto-update | On unless you turn it off. Each new release installs by itself, and the next session says so |
 
 Three companion plugins install with it. [ponytail](https://github.com/DietrichGebert/ponytail) keeps the
 code to the simplest thing that works. [i-have-adhd](https://github.com/ayghri/i-have-adhd) shapes answers

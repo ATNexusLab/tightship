@@ -19,7 +19,7 @@ partir da instalação anterior ao plugin.
 | [Instalação](install.pt-BR.md) | Adicionar os catálogos e instalar o plugin |
 | [Os companheiros](companions.pt-BR.md) | Os três plugins instalados com o tightship |
 | [As opções](options.pt-BR.md) | Ligar ou desligar o contrato, a memória e a status line, e a pasta do vault |
-| [Atualização](update.pt-BR.md) | Receber novas versões, automaticamente ou à mão |
+| [Atualização](update.pt-BR.md) | Receber novas versões, automaticamente, pelo instalador ou à mão |
 | [Desinstalação](uninstall.pt-BR.md) | Remover o plugin e devolver a sua status line |
 | [Migração](migration.pt-BR.md) | Sair da instalação anterior ao plugin sem perder as suas configurações nem o seu vault |
 | [Sem o contrato](without-the-contract.pt-BR.md) | O que cada skill e comando faz de diferente com o contrato desligado |

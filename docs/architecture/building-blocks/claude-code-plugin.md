@@ -24,6 +24,10 @@ state, since turning the option off is what puts the adopter's status line back.
 `statusLine` itself, so the binary writes it into the adopter's user settings while the option is on
 ([status line](../concepts/status-line.md), M1, #7).
 
+Another `startup` hook runs `tightship hook marketplace-auto-update`, which sets `autoUpdate` on the
+plugin's marketplace entry in the user settings from the `auto_update` option, so Claude Code installs each
+release by itself ([auto-update spec](../../specs/auto-update/update-the-plugin.md)).
+
 Every hook line that runs the binary, and the status line command, calls the launcher through `sh`, so an
 install that drops the executable bit still runs it (M1, #8).
 

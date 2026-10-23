@@ -47,7 +47,9 @@ companions as the plugin's dependencies. The catalog committed at the repository
 update arrives through the `version` of the promoted release's `plugin.json` and no release changes the file
 (M1, #8, #48). The adopter chooses the [options](concepts/options.md) in the dialog of `/plugin install`, or
 with `--config <name>=false` on the shell's install, and changes them later with `/plugin configure` or `claude
-plugin configure`. Before uninstalling, the adopter turns `status_line` off and opens one session, which puts
+plugin configure`. With `auto_update` on, the plugin's `startup` hook turns on Claude Code's auto-update for
+the catalog, and a rerun of the installer updates the plugin and its companions. Before uninstalling, the
+adopter turns `status_line` off and opens one session, which puts
 their own status line back; `claude plugin uninstall tightship@tightship --prune -y` then deletes the options,
 the plugin's data folder, and the companions it installed.
 
@@ -56,10 +58,12 @@ the plugin's data folder, and the companions it installed.
 `ayghri/i-have-adhd`, installs `blader/humanizer`'s `SKILL.md` into `~/.gemini/config/skills/humanizer/`,
 extracts `tightship-antigravity-cli.zip` and runs `agy plugin install`, writes
 `~/.gemini/config/plugin_data/tightship/options.toml`, and runs `tightship hook status-line`. The adopter
-changes options later by editing `options.toml` or rerunning the installer, and updates by rerunning the
-installer or `agy plugin install`. Before uninstalling, the adopter sets `status_line = false` in
-`options.toml` and runs `tightship hook status-line` (or opens one session) to restore their previous
-`statusLine`, then removes `~/.gemini/config/plugins/tightship` and `~/.gemini/config/plugin_data/tightship`.
+changes options later by editing `options.toml` or rerunning the installer. With `auto_update` on, the plugin
+updates itself from the latest promoted release; a rerun of the installer or `agy plugin install` also updates
+it, and the installer is what updates the companions. Before uninstalling, the adopter sets
+`status_line = false` in `options.toml` and runs `tightship hook status-line` (or opens one session) to
+restore their previous `statusLine`, then removes `~/.gemini/config/plugins/tightship` and
+`~/.gemini/config/plugin_data/tightship`.
 
 ## Adopter prerequisites
 
