@@ -46,7 +46,8 @@ changelog:
 2. **A release starts from a tag `v<version>` pushed on `main`**, and publishes a pre-release. The maintainer
    installs it through its own catalog URL on the three systems, so the bytes tested are the bytes shipped and
    the macOS binary is tested from an archive Claude Code downloaded. The maintainer then promotes it to the
-   latest release.
+   latest release. Amended: a push to `main` tags the version of `Cargo.toml` and publishes it,
+   unless that version already has a release.
 3. **The gates also run on every pull request into `develop` or `main`**, on macOS, Linux, and Windows. This
    corrects the release pipeline's "never runs on a push or a pull request". A test that fails on one system
    in code an earlier epic built is a defect of NFR-FLEX-05, which this epic owns, and task 1 fixes it.

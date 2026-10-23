@@ -3,8 +3,9 @@
 **Lives in:** `.github/workflows/release.yml` · **Technology:** GitHub Actions ·
 **Milestone:** M1, epic #8; M3, epic #59
 
-Runs when the maintainer pushes a tag `v<version>` on `main`. It builds the `tightship` binary on macOS, Linux,
-and Windows runners, then `cargo xtask build --binaries` packs the four binaries with the generated plugins and
+Runs at each push to `main`: it tags the commit `v<version>`, the version of `Cargo.toml`, and stops when
+that version already has a release. It builds the `tightship` binary on macOS, Linux, and Windows runners,
+then `cargo xtask build --binaries` packs the four binaries with the generated plugins and
 `cargo xtask package` writes `tightship-claude-code.zip`, `tightship-antigravity-cli.zip` (M3, #59), and
 `tightship-cursor.zip`, and the catalogs `marketplace.json` and `cursor-marketplace.json`, each with an
 `archive` source that names its own zip's URL for that tag and its `sha256`. It fills the tag and the `sha256`
