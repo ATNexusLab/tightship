@@ -3,6 +3,8 @@ use std::fs::{self, File, OpenOptions};
 use std::io::{self, IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
 
+use jiff::civil::Date;
+
 use crate::failure::Failure;
 use crate::git;
 
@@ -38,6 +40,20 @@ impl Note {
             .rev()
             .find_map(|line| line.strip_prefix("**Moves to:**"))
             .map(str::trim)
+    }
+
+    pub fn updated(&self) -> Option<Date> {
+        let text = self.field("updated");
+        text.parse::<Date>()
+            .ok()
+            .filter(|date| date.to_string() == text)
+    }
+
+    pub fn title(&self) -> String {
+        self.body
+            .lines()
+            .find_map(|line| line.strip_prefix("# "))
+            .map_or_else(|| self.stem(), |title| title.trim().to_owned())
     }
 
     pub fn stem(&self) -> String {

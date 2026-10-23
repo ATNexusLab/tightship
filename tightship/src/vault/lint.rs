@@ -66,6 +66,10 @@ fn problems(note: &Note, earlier: Option<&Note>, stems: &HashSet<String>) -> Vec
             found.push(format!("missing `{field}`"));
         }
     }
+    let updated = note.field("updated");
+    if !updated.is_empty() && note.updated().is_none() {
+        found.push(format!("updated `{updated}` is not a date as YYYY-MM-DD"));
+    }
     let kind = note.field("type");
     let kinds = ["project", "gotcha", "decision", "preference", "handoff"];
     if !kind.is_empty() && !kinds.contains(&kind) {

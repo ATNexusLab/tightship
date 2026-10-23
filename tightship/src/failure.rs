@@ -25,7 +25,7 @@ pub enum Failure {
     NoteExists(PathBuf),
     NoteUnwritable(PathBuf, io::Error),
     HandoffBodyIncomplete(Vec<&'static str>),
-    HandoffUnremovable(PathBuf, io::Error),
+    NoteUnremovable(PathBuf, io::Error),
     LintFailed,
     SyncUnfinished(PathBuf),
     SyncNoUpstream {
@@ -135,7 +135,7 @@ impl fmt::Display for Failure {
                 "the handoff's body has no {}; each of **Goal:**, **Done:**, **Next step:**, **Open decisions:**, and **Repo state:** starts a line of it",
                 missing.join(", ")
             ),
-            Self::HandoffUnremovable(path, error) => {
+            Self::NoteUnremovable(path, error) => {
                 write!(formatter, "cannot remove {}: {error}", path.display())
             }
             Self::HookInputNoProject(pointer) => write!(

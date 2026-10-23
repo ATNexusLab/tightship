@@ -94,7 +94,7 @@ fn claim() -> Result<(), Failure> {
     for handoff in in_scope(&notes, &scope) {
         match fs::remove_file(vault.join(&handoff.path)) {
             Err(error) if error.kind() == io::ErrorKind::NotFound => continue,
-            Err(error) => return Err(Failure::HandoffUnremovable(handoff.path.clone(), error)),
+            Err(error) => return Err(Failure::NoteUnremovable(handoff.path.clone(), error)),
             Ok(()) => {}
         }
         if claimed > 0 {
@@ -116,5 +116,5 @@ fn claim() -> Result<(), Failure> {
 
 fn remove(vault: &Path, relative: &Path) -> Result<(), Failure> {
     fs::remove_file(vault.join(relative))
-        .map_err(|error| Failure::HandoffUnremovable(relative.to_path_buf(), error))
+        .map_err(|error| Failure::NoteUnremovable(relative.to_path_buf(), error))
 }

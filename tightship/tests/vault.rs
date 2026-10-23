@@ -381,6 +381,10 @@ fn lint_passes_a_clean_vault_and_names_each_problem() {
         "vault/notes/tightship/mem-0003-no-why.md",
         "---\nid: mem-0003\ntype: gotcha\nproject: tightship\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-01\n---\n\n# No why\n",
     );
+    sandbox.write(
+        "vault/notes/tightship/mem-0004-soon.md",
+        "---\nid: mem-0004\ntype: gotcha\nproject: tightship\nwhy: the mem-0004 why costs real time\nsource: session\ncreated: 2026-10-01\nupdated: soon\n---\n\n# Soon\n",
+    );
     note(&sandbox, "all", "mem-0007", "", "First.");
     note(&sandbox, "tightship", "mem-0007", "", "Second.");
     sandbox.write(
@@ -396,8 +400,9 @@ fn lint_passes_a_clean_vault_and_names_each_problem() {
         stdout_of(&broken),
         "notes/tightship/mem-0008-unclosed.md\n  - front matter does not close with ---\n\
          notes/tightship/mem-0003-no-why.md\n  - missing `why`\n\
+         notes/tightship/mem-0004-soon.md\n  - updated `soon` is not a date as YYYY-MM-DD\n\
          notes/tightship/mem-0007-a-note.md\n  - id `mem-0007` already used by mem-0007-a-note.md\n\
-         6 notes, 3 with problems, 0 scopes over the session start\n"
+         7 notes, 4 with problems, 0 scopes over the session start\n"
     );
     assert_eq!(
         stdout_of(&with_stdin(

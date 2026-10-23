@@ -2,6 +2,9 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use jiff::Zoned;
+
+use super::expire;
 use super::note::{self, Note};
 use crate::failure::Failure;
 use crate::git;
@@ -25,7 +28,8 @@ pub fn run() -> Result<(), Failure> {
     }
     let remotes = step(&vault, "fetch", &["remote"])?;
     let Some(remote) = remotes.lines().next() else {
-        println!("kept local — the vault has no git remote");
+        let expired = expire(&vault)?;
+        println!("kept local — the vault has no git remote; {expired} expired");
         return Ok(());
     };
     if git::run(&vault, &["rev-parse", "--abbrev-ref", "@{upstream}"]).is_err() {
@@ -80,6 +84,7 @@ pub fn run() -> Result<(), Failure> {
         println!("> Renumbering colliding ids");
         renumber(&vault, &renames)?;
     }
+    let expired = expire(&vault)?;
     println!("> Pushing");
     let pushed = step(
         &vault,
@@ -87,8 +92,25 @@ pub fn run() -> Result<(), Failure> {
         &["rev-list", "--count", "@{upstream}..HEAD"],
     )?;
     step(&vault, "push", &["push", "--quiet"])?;
-    println!("synced: {} pushed, {} pulled", pushed.trim(), pulled.trim());
+    println!(
+        "synced: {} pushed, {} pulled, {expired} expired",
+        pushed.trim(),
+        pulled.trim()
+    );
     Ok(())
+}
+
+fn expire(vault: &Path) -> Result<usize, Failure> {
+    let expired = expire::run(vault, Zoned::now().date())?;
+    if expired > 0 {
+        step(vault, "commit", &["add", "-A", "notes"])?;
+        step(
+            vault,
+            "commit",
+            &["commit", "--quiet", "-m", "vault: expire notes"],
+        )?;
+    }
+    Ok(expired)
 }
 
 fn step(vault: &Path, name: &'static str, arguments: &[&str]) -> Result<String, Failure> {

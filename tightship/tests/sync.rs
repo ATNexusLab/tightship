@@ -5,6 +5,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Output;
 
+use jiff::ToSpan;
+use jiff::civil::Date;
+
 use common::{
     IDENTITY, Sandbox, assert_fails_with, assert_succeeds, commit, git, run, stderr_of, stdout_of,
 };
@@ -18,7 +21,17 @@ fn sync(sandbox: &Sandbox, vault: &Path) -> Output {
 
 fn note_text(scope: &str, id: &str, body: &str) -> String {
     format!(
-        "---\nid: {id}\ntype: gotcha\nproject: {scope}\nwhy: the {id} why costs real time\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-01\n---\n\n# A note\n\n{body}\n"
+        "---\nid: {id}\ntype: decision\nproject: {scope}\nwhy: the {id} why costs real time\nsource: session\ncreated: 2026-10-01\nupdated: 2026-10-01\n---\n\n# A note\n\n{body}\n"
+    )
+}
+
+fn write_dated(sandbox: &Sandbox, clone: &str, stem: &str, front: &str, body: &str) -> PathBuf {
+    let id = &stem[..8];
+    sandbox.write(
+        &format!("{clone}/notes/all/{stem}.md"),
+        &format!(
+            "---\nid: {id}\nproject: all\nwhy: the {id} why costs real time\n{front}---\n\n{body}\n"
+        ),
     )
 }
 
@@ -88,7 +101,7 @@ fn sync_takes_the_remote_notes_and_pushes_the_local_ones() {
     assert_succeeds(&synced);
     assert_eq!(
         stdout_of(&synced),
-        "> Recording local changes\n> Fetching the remote\n> Rebasing local commits on the remote\n> Pushing\nsynced: 1 pushed, 1 pulled\n"
+        "> Recording local changes\n> Fetching the remote\n> Rebasing local commits on the remote\n> Pushing\nsynced: 1 pushed, 1 pulled, 0 expired\n"
     );
     assert!(a.join("notes/all/mem-0002-b.md").is_file());
     assert_eq!(
@@ -102,7 +115,7 @@ fn sync_takes_the_remote_notes_and_pushes_the_local_ones() {
 }
 
 #[test]
-fn a_vault_with_no_remote_is_committed_and_kept_local() {
+fn a_vault_with_no_remote_is_committed_kept_local_and_expired() {
     let sandbox = Sandbox::new();
     let vault = sandbox.path("vault");
     git(
@@ -110,20 +123,145 @@ fn a_vault_with_no_remote_is_committed_and_kept_local() {
         &sandbox.path("."),
         &["init", "--quiet", "-b", "main", "vault"],
     );
-    write_note(&sandbox, "vault", "mem-0001-x", "One fact.");
+    let old = "created: 2025-01-01\nupdated: 2025-01-01\n";
+    let kept = [
+        (
+            "mem-0001-user",
+            format!("type: gotcha\nsource: user\n{old}"),
+        ),
+        (
+            "mem-0002-pinned",
+            format!("type: project\npinned: true\nsource: session\n{old}"),
+        ),
+        (
+            "mem-0003-decision",
+            format!("type: decision\nsource: session\n{old}"),
+        ),
+        (
+            "mem-0004-preference",
+            format!("type: preference\nsource: session\n{old}"),
+        ),
+        (
+            "mem-0005-handoff",
+            format!("type: handoff\nsource: session\n{old}"),
+        ),
+        (
+            "mem-0006-soon",
+            "type: gotcha\nsource: session\ncreated: 2025-01-01\nupdated: soon\n".to_owned(),
+        ),
+    ];
+    for (stem, front) in &kept {
+        write_dated(&sandbox, "vault", stem, front, "# A note\n\nOne fact.");
+    }
+    write_dated(
+        &sandbox,
+        "vault",
+        "mem-0007-old",
+        &format!("type: gotcha\nsource: session\n{old}"),
+        "# A note\n\nOne fact.",
+    );
 
     let synced = sync(&sandbox, &vault);
 
     assert_succeeds(&synced);
     assert_eq!(
         stdout_of(&synced),
-        "> Recording local changes\nkept local — the vault has no git remote\n"
+        "> Recording local changes\n> Removing expired notes\nexpired notes/all/mem-0007-old.md (updated 2025-01-01)\n\
+         kept local — the vault has no git remote; 1 expired\n"
     );
+    assert_eq!(kept.len(), 6);
+    for (stem, _) in &kept {
+        assert!(
+            vault.join(format!("notes/all/{stem}.md")).is_file(),
+            "{stem}"
+        );
+    }
+    assert!(!vault.join("notes/all/mem-0007-old.md").exists());
     assert_eq!(
-        git(&sandbox, &vault, &["log", "-1", "--format=%s"]),
-        "vault: sync"
+        git(&sandbox, &vault, &["log", "--format=%s"]),
+        "vault: expire notes\nvault: sync"
     );
     assert_eq!(git(&sandbox, &vault, &["status", "--porcelain"]), "");
+}
+
+#[test]
+fn an_expired_note_and_its_links_leave_the_vault_and_the_remote() {
+    let sandbox = Sandbox::new();
+    let (remote, a, _) = machines(&sandbox, "mem-0001-x");
+    let today = jiff::Zoned::now().date();
+    let expired_on = today - 31.days();
+    let session = |updated: Date| {
+        format!("type: gotcha\nsource: session\ncreated: {updated}\nupdated: {updated}\n")
+    };
+    write_dated(
+        &sandbox,
+        "a",
+        "mem-0002-a",
+        &session(expired_on),
+        "# Cargo test flakes on Windows\n\nRetry once.",
+    );
+    let linker = write_dated(
+        &sandbox,
+        "a",
+        "mem-0003-links",
+        &session(today),
+        "# Links\n\nSee [[mem-0002-a]], [[mem-0002-a#fix]], and [[mem-0002-a|the flake]].",
+    );
+    write_dated(
+        &sandbox,
+        "a",
+        "mem-0004-thirty",
+        &session(today - 30.days()),
+        "# A note\n\nStill live.",
+    );
+    write_dated(
+        &sandbox,
+        "a",
+        "mem-0005-revised",
+        &format!(
+            "type: project\nsource: repo\ncreated: {}\nupdated: {}\n",
+            today - 83.days(),
+            today - 12.days()
+        ),
+        "# A note\n\nRevised in place.",
+    );
+    commit(&sandbox, &a, "vault: a");
+    git(&sandbox, &a, &["push", "--quiet"]);
+    let linked = fs::read_to_string(&linker).expect("the linking note");
+
+    let synced = sync(&sandbox, &a);
+
+    assert_succeeds(&synced);
+    assert_eq!(
+        stdout_of(&synced),
+        format!(
+            "> Recording local changes\n> Fetching the remote\n> Rebasing local commits on the remote\n\
+             > Removing expired notes\nexpired notes/all/mem-0002-a.md (updated {expired_on})\n\
+             > Pushing\nsynced: 1 pushed, 0 pulled, 1 expired\n"
+        )
+    );
+    assert_eq!(
+        remote_files(&sandbox, &remote),
+        "notes/all/mem-0001-x.md\nnotes/all/mem-0003-links.md\nnotes/all/mem-0004-thirty.md\nnotes/all/mem-0005-revised.md"
+    );
+    assert_eq!(
+        git(
+            &sandbox,
+            &remote,
+            &["log", "-1", "--format=%s", "--name-status", "main"]
+        ),
+        "vault: expire notes\n\nD\tnotes/all/mem-0002-a.md\nM\tnotes/all/mem-0003-links.md"
+    );
+    assert_eq!(
+        fs::read_to_string(&linker).expect("the linking note"),
+        linked.replace(
+            "[[mem-0002-a]], [[mem-0002-a#fix]], and [[mem-0002-a|the flake]]",
+            "Cargo test flakes on Windows, Cargo test flakes on Windows, and the flake"
+        )
+    );
+    assert_succeeds(&run(sandbox
+        .tightship(&["vault", "lint"])
+        .env("TIGHTSHIP_VAULT", &a)));
 }
 
 #[test]
@@ -173,7 +311,7 @@ fn a_conflict_stops_in_the_rebase_and_the_resolution_is_pushed() {
     let resumed = sync(&sandbox, &a);
 
     assert_succeeds(&resumed);
-    assert!(stdout_of(&resumed).ends_with("synced: 1 pushed, 0 pulled\n"));
+    assert!(stdout_of(&resumed).ends_with("synced: 1 pushed, 0 pulled, 0 expired\n"));
     assert_eq!(
         git(&sandbox, &remote, &["show", "main:notes/all/mem-0001-x.md"]),
         resolution.trim()
@@ -207,7 +345,7 @@ fn an_id_taken_on_both_machines_or_twice_locally_is_renumbered_with_its_links() 
         "> Recording local changes\n> Fetching the remote\n> Rebasing local commits on the remote\n> Renumbering colliding ids\n\
          mem-0632 → mem-0636 notes/orçamento/mem-0636-from-a.md\n\
          mem-0635 → mem-0637 notes/orçamento/mem-0637-second.md\n\
-         > Pushing\nsynced: 2 pushed, 1 pulled\n"
+         > Pushing\nsynced: 2 pushed, 1 pulled, 0 expired\n"
     );
     let renamed =
         fs::read_to_string(a.join("notes/orçamento/mem-0636-from-a.md")).expect("the renamed note");
