@@ -95,12 +95,15 @@ fn claim() -> Result<(), Failure> {
         let path = vault.join(&handoff.path);
         let claimed_path = path.with_extension(format!("claimed-{}", std::process::id()));
         match fs::rename(&path, &claimed_path) {
+            Err(_) if !path.exists() => continue,
+            Err(error) => return Err(Failure::NoteUnremovable(handoff.path.clone(), error)),
+            Ok(()) => {}
+        }
+        match fs::remove_file(&claimed_path) {
             Err(error) if error.kind() == io::ErrorKind::NotFound => continue,
             Err(error) => return Err(Failure::NoteUnremovable(handoff.path.clone(), error)),
             Ok(()) => {}
         }
-        fs::remove_file(&claimed_path)
-            .map_err(|error| Failure::NoteUnremovable(handoff.path.clone(), error))?;
         if claimed > 0 {
             println!();
         }
