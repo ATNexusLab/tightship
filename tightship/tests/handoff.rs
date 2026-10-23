@@ -262,6 +262,45 @@ fn claim_prints_the_handoff_and_removes_it() {
 }
 
 #[test]
+fn two_claims_of_one_handoff_print_it_once() {
+    let sandbox = Sandbox::new();
+    let project = project(&sandbox);
+    handoff(
+        &sandbox,
+        "tightship",
+        "mem-0641-a",
+        "2026-10-14",
+        "2026-10-14",
+    );
+    let start = || {
+        handoff_command(&sandbox, &project, &["claim"])
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("a claim starts")
+    };
+
+    let claims = [start(), start()];
+
+    let mut outputs: Vec<String> = claims
+        .into_iter()
+        .map(|child| {
+            let output = child.wait_with_output().expect("a claim finishes");
+            assert_succeeds(&output);
+            stdout_of(&output)
+        })
+        .collect();
+    outputs.sort();
+    assert_eq!(
+        outputs,
+        [
+            "# Handoff — tightship · mem-0641 · 2026-10-14\n\n# Work on mem-0641\n\n**Next step:** mem-0641\n",
+            "no handoff for tightship\n",
+        ]
+    );
+}
+
+#[test]
 fn claim_with_no_handoff_changes_nothing() {
     let sandbox = Sandbox::new();
     let project = project(&sandbox);
@@ -310,7 +349,7 @@ fn claim_prints_every_handoff_latest_first_and_removes_them() {
 
 #[cfg(unix)]
 #[test]
-fn claim_reports_a_handoff_it_cannot_remove_after_printing_it() {
+fn claim_prints_nothing_of_a_handoff_it_cannot_remove() {
     use std::os::unix::fs::PermissionsExt;
 
     let sandbox = Sandbox::new();
@@ -328,11 +367,7 @@ fn claim_reports_a_handoff_it_cannot_remove_after_printing_it() {
     let output = claim(&sandbox, &project);
 
     fs::set_permissions(&scope, fs::Permissions::from_mode(0o755)).expect("a writable scope");
-    assert!(
-        stdout_of(&output).starts_with("# Handoff — tightship · mem-0641 · 2026-10-14\n"),
-        "{}",
-        stdout_of(&output)
-    );
+    assert_eq!(stdout_of(&output), "");
     assert_fails_with(
         &output,
         "error: cannot remove notes/tightship/mem-0641-a.md: Permission denied (os error 13)",

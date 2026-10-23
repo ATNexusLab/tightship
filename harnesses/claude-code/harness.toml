@@ -17,8 +17,14 @@ min-version = "2.1.295"
 aliases = ["claude"]
 
 [install.companion-steps.plugin]
-sh = "claude plugin marketplace add {repository} || true"
-ps1 = "try { & claude plugin marketplace add {repository} } catch {}"
+sh = """
+quietly claude plugin marketplace add {repository}
+quietly claude plugin marketplace update {marketplace}
+quietly claude plugin update {plugin}@{marketplace}"""
+ps1 = """
+try { & claude plugin marketplace add {repository} *> $null } catch {}
+try { & claude plugin marketplace update {marketplace} *> $null } catch {}
+try { & claude plugin update {plugin}@{marketplace} *> $null } catch {}"""
 
 [references]
 skill = "{plugin}:{name}"
@@ -46,6 +52,8 @@ skill-tool = "the Skill tool"
 instruction-files-precedence = "A `CLAUDE.md` or `CLAUDE.local.md` in a directory, or any directory above it, stops Claude Code from reading the `AGENTS.md` there"
 instruction-files-search = "`find . -name AGENTS.md -o -name CLAUDE.md -o -name CLAUDE.local.md`"
 instruction-files-migration = "A `CLAUDE.md` or `CLAUDE.local.md` in a directory, or above it, stops Claude Code from reading the `AGENTS.md` there, so each `CLAUDE.md`'s content moves into the `AGENTS.md` of the same directory and the `CLAUDE.md` is removed. A `CLAUDE.local.md` is personal and uncommitted: I ask whether its rules belong in the repo before touching it."
+project-skills-folder = "`.agents/skills/`"
+project-skill-pointer = "For each project skill, `.claude/skills/<name>/SKILL.md` with the same `name` and `description`, a `# <name>` heading, and the line: Read `.agents/skills/<name>/SKILL.md` and follow it. Claude Code reads no `.agents/skills/`."
 
 [neutrality]
 names = ["Claude Code", "Claude", "Anthropic"]

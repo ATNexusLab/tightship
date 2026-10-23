@@ -536,6 +536,8 @@ fn the_status_line_recognizes_its_launchers_and_binaries_on_every_platform() {
         r#""C:/path/bin/tightship.cmd" status-line render"#,
         r#""C:\path\1.0.2\bin\windows-x64\tightship.exe" status-line render"#,
         r#""/path/1.0.2/bin/linux-x64/tightship" status-line render"#,
+        r#"C:\path\bin\tightship.cmd status-line render"#,
+        r#"C:\PROGRA~1\bin\tightship.cmd status-line render"#,
     ] {
         sandbox.write(
             "config/settings.json",
@@ -554,6 +556,40 @@ fn the_status_line_recognizes_its_launchers_and_binaries_on_every_platform() {
             "{command}"
         );
     }
+}
+
+#[cfg(windows)]
+#[test]
+fn on_windows_the_status_line_command_runs_through_cmd_from_a_folder_with_a_space() {
+    let sandbox = Sandbox::new();
+    sandbox.write(
+        "plugin with space/bin/tightship.cmd",
+        "@echo off\r\necho %*> \"%~dp0..\\ran.txt\"\r\n",
+    );
+    let root = sandbox.path("plugin with space");
+
+    assert_succeeds(&status_line(
+        &sandbox,
+        &["hook", "status-line"],
+        &root.display().to_string(),
+        None,
+    ));
+
+    let written: serde_json::Value = serde_json::from_str(&settings(&sandbox)).expect("JSON");
+    let command = written["statusLine"]["command"]
+        .as_str()
+        .expect("a command")
+        .to_owned();
+    assert!(!command.contains('"'), "{command}");
+    let output = std::process::Command::new("cmd")
+        .args(["/c", &command])
+        .output()
+        .expect("cmd runs");
+    assert_succeeds(&output);
+    assert_eq!(
+        fs::read_to_string(root.join("ran.txt")).expect("the stub ran"),
+        "status-line render\r\n"
+    );
 }
 
 const CURSOR_OURS: &str = "\"${CURSOR_PLUGIN_ROOT}/bin/tightship\" status-line render";

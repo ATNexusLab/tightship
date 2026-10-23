@@ -14,8 +14,8 @@ without it, all four run. Each agent loads its lens skill first.
 | --- | --- |
 | **sec** | `{{skill:security-audit}}` — map each touched surface to its threat cases (auth, input/output, mutation/state, uploads, network, crypto/secrets, dependencies). |
 | **perf** | `{{skill:performance-analysis}}` — all three layers: frontend (critical path, interaction cost, what ships), backend (serial I/O, work inside the request, timeouts and retries), database (query count per row, plan at real volume, pool and lock waits). Evidence over speculation; no premature optimization. |
-| **arch** | `{{skill:architecture-reading}}` — adherence to the repo `AGENTS.md` Architecture section and its ADRs: layer/boundary violations, leaked dependencies, misplaced files. |
-| **maint** | the contract's **Code I write** — organization and maintainability: duplication, mixed responsibility, god-objects, dead code, magic/hidden behavior, speculative abstraction, type-safety escapes, opaque names. |
+| **arch** | `{{skill:architecture-reading}}` — the repo `AGENTS.md` Architecture section, read as the current shape, and its ADRs: each file that departs from it is a divergence, reported with the place it departs, for me to decide. A departure I decided is not a finding. |
+| **maint** | Organization and maintainability against the shape the code already has: duplication, mixed responsibility, god-objects, dead code, hidden behavior, speculative abstraction, type-safety escapes, opaque names. |
 
 `{{command:audit}}` targets an arbitrary path or diff. For the current branch alone,
 {{capability:security-review-command}} and {{capability:review-command}} cover sec and maint natively and
@@ -85,11 +85,13 @@ In the chat's language, with no jargon the scenario does not explain:
 
 Nothing is fixed and nothing is filed until I decide — a comment on an existing issue counts as filing.
 
-- What I send to a fix follows the dev loop (tests first where it matters).
+- What I send to a fix follows `{{skill:delivery}}` (tests first where it matters).
 - A finding in code this session built is fixed, never sent to an issue: it is not debt.
 - What I send to an issue: security findings → labeled `security-debt` (surface · risk · fix ·
   severity); the other axes → labeled `tech-debt`, same shape.
-- A deliberate trade-off is not debt; where it is recorded is the contract's **Security** rule.
+- A deliberate trade-off written down with its mitigations is not debt: an architectural one is an ADR, any
+  other goes to the doc it concerns or the repository's `AGENTS.md`.
 - Once every finding has my call, summarize: fixed vs deferred (with issue numbers), broken out per axis.
 
-If a finding needs an architectural change, flag it so a `{{command:spec}}` ADR is written before implementing.
+If a finding needs an architectural change, flag it for my call, and offer in one line to record the
+decision in an ADR through `{{command:spec}}`.

@@ -72,6 +72,8 @@ survives:
 - **Show, don't assert.** A concrete command beats an adjective.
 - **The repo's languages, as its `AGENTS.md` states them** — the doc language for the prose, the code
   language for identifiers, paths, and file names.
+- **A reusable doc or skill uses generic placeholders**, never names from the project it was written in,
+  and names no OS, machine, or absolute path it does not document.
 
 ## The three artifacts
 

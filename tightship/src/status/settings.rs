@@ -13,9 +13,12 @@ pub fn is_ours(status_line: &Value) -> bool {
     let Some(command) = status_line.get("command").and_then(Value::as_str) else {
         return false;
     };
-    let Some(path) = command.strip_suffix("\" status-line render") else {
+    let Some(path) = command.strip_suffix(" status-line render") else {
         return false;
     };
+    let path = path.strip_prefix("sh ").unwrap_or(path);
+    let path = path.strip_prefix('"').unwrap_or(path);
+    let path = path.strip_suffix('"').unwrap_or(path);
     let path = path.replace('\\', "/");
     let mut components = path.rsplit('/');
     let file = components.next();
@@ -25,21 +28,54 @@ pub fn is_ours(status_line: &Value) -> bool {
         && (folder == Some("bin") || above == Some("bin"))
 }
 
-pub fn command_for(root: &Path) -> String {
+pub fn command_for(root: &Path) -> Result<String, Failure> {
     if let Some(command) = env::var("TIGHTSHIP_STATUS_LINE_COMMAND")
         .ok()
         .filter(|command| !command.is_empty())
     {
-        return command;
+        return Ok(command);
     }
     #[cfg(windows)]
     {
         let cmd = root.join("bin").join("tightship.cmd");
         if cmd.exists() {
-            return format!("\"{}\" status-line render", cmd.display());
+            return Ok(format!("{} status-line render", readable_unquoted(&cmd)?));
         }
     }
-    format!("sh \"{}/bin/tightship\" status-line render", root.display())
+    Ok(format!(
+        "sh \"{}/bin/tightship\" status-line render",
+        root.display()
+    ))
+}
+
+#[cfg(windows)]
+fn readable_unquoted(path: &Path) -> Result<String, Failure> {
+    use std::os::windows::process::CommandExt;
+
+    let read_by_cmd =
+        |text: &str| text.contains([' ', '&', '^', '(', ')', '%', '!', ';', '=', ',']);
+    let path = path.to_string_lossy().replace('/', "\\");
+    if !read_by_cmd(&path) {
+        return Ok(path);
+    }
+    let unreadable = || Failure::StatusLinePathUnreadable(PathBuf::from(&path));
+    let output = std::process::Command::new("cmd")
+        .raw_arg(format!(r#"/d /u /c for %I in ("{path}") do @echo %~sI"#))
+        .output()
+        .map_err(|_| unreadable())?;
+    let units: Vec<u16> = output
+        .stdout
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .map(|pair| u16::from_le_bytes(*pair))
+        .collect();
+    let short = String::from_utf16(&units).map_err(|_| unreadable())?;
+    let short = short.trim();
+    if !output.status.success() || read_by_cmd(short) || !Path::new(short).is_file() {
+        return Err(unreadable());
+    }
+    Ok(short.to_owned())
 }
 
 pub fn read_settings(path: &Path) -> Result<Map<String, Value>, Failure> {

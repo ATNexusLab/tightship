@@ -225,6 +225,7 @@ repository can run them; only a push needs the maintainer's write access.
 - A token that names no piece of its kind fails with `TOKEN_MISSING_PIECE`.
 - A `capability` token missing from `[capabilities]` of any `harness.toml` fails with `CAPABILITY_UNDEFINED`.
 - Text with `{{` and `}}` that does not match `{{<kind>:<name>}}` fails with `TOKEN_MALFORMED`.
+- A `{{` or `}}` left outside a token, like a token wrapped across two lines, fails with `TOKEN_BROKEN`.
 
 ### 4. No literal reference
 
@@ -326,6 +327,7 @@ Every message goes to stderr, prefixed by `error:` and a space. `<path>` is rela
 | `TOKEN_MISSING_PIECE` | `1` | Rule 3 | "`<path>:<line>: {{<kind>:<name>}} names no <kind> in content/`" |
 | `CAPABILITY_UNDEFINED` | `1` | Rule 3 | "`<path>:<line>: capability "<name>" has no entry in harnesses/<harness>/harness.toml`" |
 | `TOKEN_MALFORMED` | `1` | Rule 3 | "`<path>:<line>: "<text>" is not a token; write {{<kind>:<name>}}`" |
+| `TOKEN_BROKEN` | `1` | Rule 3 | "`<path>:<line>: "<word>" is not a token; write {{<kind>:<name>}} on one line`" |
 | `LITERAL_REFERENCE` | `1` | Rule 4 | "`<path>:<line>: "<text>" refers to the <kind> "<name>"; write {{<kind>:<name>}}`" |
 | `HARNESS_TERM` | `1` | Rule 5 | "`<path>:<line>: "<term>" belongs to <harness>; use a {{capability:…}} token defined in harnesses/<harness>/harness.toml`" |
 | `FRONT_MATTER_INVALID` | `1` | Rule 6 | "`<path>: front matter: <reason>`" |
@@ -438,7 +440,16 @@ When the maintainer runs `cargo xtask build`
 Then it exits 1 with "\"{{skill grilling}}\" is not a token; write {{<kind>:<name>}}" for that line
 ```
 
-### Scenario 10 — Literal reference (exception)
+### Scenario 10 — Broken token (exception)
+
+```gherkin
+Given a body holds "{{skill:" on line 7 and "grilling}}" on line 8, and another holds "{{skill:grilling}"
+When the maintainer runs `cargo xtask build`
+Then it exits 1 with "\"{{skill:\" is not a token; write {{<kind>:<name>}} on one line" for line 7
+And the same message for "grilling}}" on line 8 and for "{{skill:grilling}"
+```
+
+### Scenario 11 — Literal reference (exception)
 
 ```gherkin
 Given content/commands/sprint.md holds "`/spec`" on line 30
@@ -447,7 +458,7 @@ Then it exits 1
 And stderr holds "error: content/commands/sprint.md:30: \"/spec\" refers to the command \"spec\"; write {{command:spec}}"
 ```
 
-### Scenario 11 — A path like docs/specs/ is not a reference (alternative)
+### Scenario 12 — A path like docs/specs/ is not a reference (alternative)
 
 ```gherkin
 Given a body holds "docs/specs/<epic>/" and "docs/requirements/"
@@ -455,7 +466,7 @@ When the maintainer runs `cargo xtask build`
 Then neither is reported as a literal reference
 ```
 
-### Scenario 12 — Harness term in canonical content (NFR-FLEX-06.1, exception)
+### Scenario 13 — Harness term in canonical content (NFR-FLEX-06.1, exception)
 
 ```gherkin
 Given content/skills/grilling/SKILL.md holds "ExitPlanMode" on line 60
@@ -465,7 +476,7 @@ And stderr holds the HARNESS_TERM message for content/skills/grilling/SKILL.md:6
   harness "claude-code"
 ```
 
-### Scenario 13 — A word that contains a term is not a match (alternative)
+### Scenario 14 — A word that contains a term is not a match (alternative)
 
 ```gherkin
 Given a body holds "cursor-based pagination" and "Explored"
@@ -473,7 +484,7 @@ When the maintainer runs `cargo xtask build`
 Then no harness term is reported
 ```
 
-### Scenario 14 — Invalid front matter (exception)
+### Scenario 15 — Invalid front matter (exception)
 
 ```gherkin
 Given content/agents/adversarial-verifier.md has front matter with tools = "Read"
@@ -481,7 +492,7 @@ When the maintainer runs `cargo xtask build`
 Then it exits 1 with "content/agents/adversarial-verifier.md: front matter: unknown key \"tools\""
 ```
 
-### Scenario 15 — Name differs from its file (exception)
+### Scenario 16 — Name differs from its file (exception)
 
 ```gherkin
 Given content/commands/spec.md has name = "specs"
@@ -489,7 +500,7 @@ When the maintainer runs `cargo xtask build`
 Then it exits 1 with "content/commands/spec.md: name \"specs\" differs from its file name \"spec\""
 ```
 
-### Scenario 16 — Name taken by two pieces (exception)
+### Scenario 17 — Name taken by two pieces (exception)
 
 ```gherkin
 Given content/skills/audit/SKILL.md and content/commands/audit.md both exist
@@ -497,7 +508,7 @@ When the maintainer runs `cargo xtask build`
 Then it exits 1 with "the name \"audit\" already belongs to" naming the other file
 ```
 
-### Scenario 17 — Every error in one run (alternative)
+### Scenario 18 — Every error in one run (alternative)
 
 ```gherkin
 Given one body holds {{skill:missing}} and another holds "ExitPlanMode"
@@ -506,7 +517,7 @@ Then stderr holds both errors, sorted by path and line
 And it exits 1
 ```
 
-### Scenario 18 — Identity term in a shipped file (NFR-SEC-01.1, exception)
+### Scenario 19 — Identity term in a shipped file (NFR-SEC-01.1, exception)
 
 ```gherkin
 Given .identity-terms lists a handle
@@ -517,7 +528,7 @@ And stderr does not hold the handle
 And dist/claude-code/ does not exist
 ```
 
-### Scenario 19 — Identity terms file missing (exception)
+### Scenario 20 — Identity terms file missing (exception)
 
 ```gherkin
 Given no .identity-terms at the repository root
@@ -525,7 +536,7 @@ When the maintainer runs `cargo xtask build`
 Then it exits 1 with the IDENTITY_TERMS_MISSING message
 ```
 
-### Scenario 20 — Git identity missing (exception)
+### Scenario 21 — Git identity missing (exception)
 
 ```gherkin
 Given git config user.email is empty for the repository
@@ -533,7 +544,7 @@ When the maintainer runs `cargo xtask build`
 Then it exits 1 with "git config user.name or user.email is empty"
 ```
 
-### Scenario 21 — Scan a clean repository (NFR-SEC-02.1, NFR-SEC-02.2, happy path)
+### Scenario 22 — Scan a clean repository (NFR-SEC-02.1, NFR-SEC-02.2, happy path)
 
 ```gherkin
 Given gitleaks 8.30.1 is on the PATH
@@ -542,7 +553,7 @@ When the maintainer runs `cargo xtask scan`
 Then it exits 0 and prints "No secret in <n> commits. No vault note."
 ```
 
-### Scenario 22 — Secret in the history (exception)
+### Scenario 23 — Secret in the history (exception)
 
 ```gherkin
 Given a commit on any branch added a file holding a GitHub token
@@ -551,7 +562,7 @@ Then it exits 1 with "gitleaks found 1 secrets in the history; its redacted repo
 And the report does not print the token
 ```
 
-### Scenario 23 — gitleaks missing or another version (exception)
+### Scenario 24 — gitleaks missing or another version (exception)
 
 ```gherkin
 Given gitleaks is not on the PATH
@@ -565,7 +576,7 @@ When the maintainer runs `cargo xtask scan`
 Then it exits 1 with "gitleaks 8.29.1 found; 8.30.1 is required"
 ```
 
-### Scenario 24 — Vault note in the tree (NFR-SEC-02.2, exception)
+### Scenario 25 — Vault note in the tree (NFR-SEC-02.2, exception)
 
 ```gherkin
 Given a tracked file docs/note.md whose front matter holds id: mem-0001
@@ -573,7 +584,7 @@ When the maintainer runs `cargo xtask scan`
 Then it exits 1 with "docs/note.md is a vault note; vault notes never enter this repository"
 ```
 
-### Scenario 25 — The migrated pieces are the baseline's (BR-02, BR-03)
+### Scenario 26 — The migrated pieces are the baseline's (BR-02, BR-03)
 
 ```gherkin
 Given the 22 baseline files at commit 1f41699

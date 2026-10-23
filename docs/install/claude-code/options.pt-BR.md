@@ -10,6 +10,7 @@ valores que você definiu, e a desinstalação os apaga.
 | `contract` | ligada/desligada | Carrega as regras do workflow em toda sessão. Desligada: veja [sem o contrato](without-the-contract.pt-BR.md) | Ligada |
 | `memory` | ligada/desligada | Guarda notas curadas no seu vault e passa o estado da sessão para a próxima | Ligada |
 | `status_line` | ligada/desligada | Mostra a status line do tightship sob o prompt e devolve a sua quando desligada | Ligada |
+| `auto_update` | ligada/desligada | Liga a atualização automática do Claude Code para o catálogo do tightship, e cada release nova se instala sozinha. Veja [atualização](update.pt-BR.md) | Ligada |
 | `vault_folder` | pasta | O seu vault de memória, um repositório git, como caminho absoluto. A memória precisa dele | Sem vault: a memória não tem o que ler nem onde gravar |
 
 ## Defina ao instalar
@@ -21,7 +22,7 @@ claude plugin install tightship@tightship --config memory=true --config vault_fo
 ```
 
 Numa sessão, `/plugin install tightship@tightship` instala e depois abre um diálogo para cada opção ainda não
-definida. Uma instalação pelo shell sem `--config` informa `3 userConfig options not yet set` e deixa
+definida. Uma instalação pelo shell sem `--config` informa `5 userConfig options not yet set` e deixa
 ligada cada opção ligada/desligada.
 
 ## Mude depois

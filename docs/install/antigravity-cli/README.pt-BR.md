@@ -18,7 +18,7 @@ regras e skills avulsas.
 | [Instalação](install.pt-BR.md) | Executar o instalador unificado ou comandos manuais |
 | [Os companheiros](companions.pt-BR.md) | Os três companheiros instalados com o tightship |
 | [As opções](options.pt-BR.md) | Configurar contrato, memória, status line e pasta do vault no `options.toml` |
-| [Atualização](update.pt-BR.md) | Obter novas versões a partir dos releases do GitHub |
+| [Atualização](update.pt-BR.md) | Obter novas versões a partir dos releases do GitHub, automaticamente ou pelo instalador |
 | [Desinstalação](uninstall.pt-BR.md) | Remover o plugin e devolver a sua status line anterior |
 | [Migração](migration.pt-BR.md) | Limpar arquivos avulsos e reconectar a um vault existente |
 | [Sem o contrato](without-the-contract.pt-BR.md) | O que cada skill e comando faz de diferente com o contrato desligado |

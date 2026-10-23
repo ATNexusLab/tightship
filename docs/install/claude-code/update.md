@@ -7,13 +7,31 @@ values across an update.
 
 ## Automatically
 
-Auto-update is off by default for a catalog outside Claude Code's official one. To turn it on:
+With the `auto_update` option on, which is its default, tightship turns on Claude Code's auto-update for its
+catalog at each session start. Claude Code then installs each new release by itself, and the session after
+an update loads it.
 
-1. Run `/plugin` in a session.
-2. Open **Marketplaces**, then `tightship`.
-3. Choose **Enable auto-update**.
+Turn the option off to stop it; the next session start turns the catalog's auto-update off again:
 
-The session after an update loads the new version.
+```sh
+echo '{"auto_update":"false"}' | claude plugin configure tightship@tightship --values-stdin
+```
+
+## Using the installer
+
+Rerunning the installer updates tightship and its three companions, and keeps the options you chose before:
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | \
+  sh -s -- --harness claude-code --yes
+```
+
+On Windows in PowerShell:
+
+```powershell
+& ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) `
+  -Harness claude-code -Yes
+```
 
 ## By hand
 

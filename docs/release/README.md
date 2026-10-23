@@ -9,17 +9,11 @@ their word. The pipeline is in the [release spec](../specs/release-m1/release-th
    updates `Cargo.lock`. Merge that change into `develop` through its pull request.
 2. **Release `develop` into `main`.** Open a pull request from `develop` to `main`, wait for its gates, and
    merge it as a merge commit, so every `Closes #<n>` it carries closes its issue.
-3. **Push the tag on `main`.**
-
-   ```sh
-   git checkout main && git pull
-   git tag v<version>
-   git push origin v<version>
-   ```
-
-   `.github/workflows/release.yml` builds the binary for the four platforms and publishes the pre-release
-   `v<version>` with `tightship-claude-code.zip`, `tightship-cursor.zip`, `tightship-antigravity-cli.zip`,
-   `marketplace.json`, `cursor-marketplace.json`, `install.sh`, and `install.ps1`.
+3. **The merge publishes it.** The push to `main` runs `.github/workflows/release.yml`, which tags the merge
+   commit `v<version>` from `Cargo.toml`, unless that version already has a release. It then builds the
+   binary for the four platforms and publishes the pre-release `v<version>` with
+   `tightship-claude-code.zip`, `tightship-cursor.zip`, `tightship-antigravity-cli.zip`, `marketplace.json`,
+   `cursor-marketplace.json`, `install.sh`, and `install.ps1`.
 4. **Run the [checklist](checklist.md)** on macOS, Linux, and Windows, each at Claude Code 2.1.295 or later,
    installing from the release's own `marketplace.json`, as the checklist's preparation says.
 5. **Promote it**, only when every row passes on all three:

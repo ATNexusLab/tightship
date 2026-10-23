@@ -1,5 +1,88 @@
 # Changelog
 
+## 2.2.0 — 2026-10-23
+
+A release reached an adopter only through the installer, and a rerun of it left Claude Code on the version it
+had. Cursor keeps a plugin added from a repository at the commit it was added at, and Antigravity CLI updates
+only the plugins of its official catalog. The maintainer requires every release to reach every harness by
+itself, and decided it without a change request issue.
+
+**Added**
+
+- FR-INS-10, The plugin keeps itself updated: while the new `auto_update` option is on, each release is
+  installed without a step from the adopter, and the next session says so.
+
+## 2.1.0 — 2026-10-22
+
+The unified installer was shipped by [#64](https://github.com/ATNexusLab/tightship/issues/64) with no
+requirement behind it, and FR-INS-01 still promised an install with no script. The maintainer requires every
+harness to install through it, none by hand.
+
+**Added**
+
+- FR-INS-09, One installer for every harness: `install.sh` and `install.ps1` install the plugin in every
+  supported harness, from the first release that ships it.
+
+**Changed**
+
+- FR-INS-01's story no longer promises an install with no script.
+
+## 2.0.0 — 2026-10-22
+
+The contract and the repository's `AGENTS.md` made every convention a law, by change request
+[#118](https://github.com/ATNexusLab/tightship/issues/118): the agent argued against the maintainer's own
+decisions, defended a folder of 20 files as required, and carried 25,418 characters of contract into every
+session, most of it for one step of the workflow. The vault's notes now expire by one lifetime, since 306 of
+the 323 notes that can expire in the maintainer's vault were under 30 days old.
+
+**Added**
+
+- FR-CTR-06, Hard lines and conventions: the contract separates the two, and the adopter's decision in the
+  session overrides a convention.
+- FR-CTR-07, The contract holds only what every task needs: a rule of one step lives in that step's skill or
+  command.
+- FR-SKL-04, The bootstrap writes a lean repository contract: the `AGENTS.md` holds only what every task
+  needs and the repository does not show, with the architecture as the current shape.
+- FR-SKL-05, The bootstrap writes project skills: each procedure of one area or step goes to
+  `.agents/skills/`, reachable from every supported harness.
+- NFR-PERF-03, Contract size: at most 8,000 characters with every option on.
+
+**Changed**
+
+- FR-MEM-12 removes the notes past one lifetime, the same for every note that can expire, instead of a
+  lifetime per type.
+- FR-CTR-03.2 checks the contract's memory rules, since the baseline no longer bounds the contract.
+
+**Retired**
+
+- FR-CTR-04: carrying every baseline rule over made each convention a law. FR-CTR-06 and FR-CTR-07 decide
+  what the contract holds.
+
+## 1.11.0 — 2026-10-20
+
+The vault grew faster than anything removed notes from it, by change request
+[#118](https://github.com/ATNexusLab/tightship/issues/118): the maintainer's vault went from 213 notes to
+418 in the 19 days after a manual prune, 307 of its 417 notes were written at the agent's initiative, and 41
+notes waiting to move into a repository were never moved.
+
+**Added**
+
+- FR-MEM-01.4: the session start lists the project's notes waiting to move into a repository, as debts.
+- FR-MEM-12, Notes expire: each sync removes the notes past their type's lifetime, except pinned notes, notes
+  the user stated, decisions, preferences, and handoffs.
+- FR-MEM-13, The vault's rules follow the plugin: a delimited block of the vault's `AGENTS.md` follows the
+  installed template, and the text outside it is left alone.
+
+**Changed**
+
+- FR-MEM-01 also places the notes waiting to move into a repository in the session's context.
+- FR-MEM-02 places the checkpoint only right after a compaction.
+- FR-MEM-10.1 checks a compaction instead of prompts, since a prompt no longer brings a checkpoint.
+
+**Retired**
+
+- FR-MEM-02.1: a checkpoint at a prompt interval made the agent write notes that fail the vault's rules.
+
 ## 1.10.0 — 2026-10-17
 
 Cursor and Antigravity CLI shipped together in v1.1.0. The maintainer approved the release in

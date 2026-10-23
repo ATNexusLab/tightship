@@ -10,6 +10,7 @@ Cursor shows tightship's options in Customize → Configure from the manifest `v
 | `contract` | on/off | Loads the workflow's rules into every session. Off: contract rules are not injected | On |
 | `memory` | on/off | Keeps curated notes in your vault and hands session state to the next session | On |
 | `status_line` | on/off | In the **CLI only**, shows tightship's status line under the prompt and restores yours when turned off | On |
+| `auto_update` | on/off | Installs each new release by itself and says so at the next session. See [update](update.md) | On |
 | `vault_folder` | folder | Your memory vault, a git repository, as an absolute path or `~` path. Memory needs it | No vault: memory has nothing to read or write |
 
 Absent file or absent key means **on** for each boolean option.

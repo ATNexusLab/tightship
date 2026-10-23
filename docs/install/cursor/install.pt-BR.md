@@ -27,6 +27,42 @@ No Windows no PowerShell:
   -Harness cursor -Yes
 ```
 
+Cada pergunta já começa no padrão, então apertar Enter em todas instala com os padrões. Numa pergunta de sim
+ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Install no resumo:
+
+```text
+┌  tightship v1.2.0
+│
+│  Options
+◇  Load the working contract in every session?
+│  Yes
+│
+◇  Turn on the memory layer?
+│  Yes
+│
+◇  Show tightship's status line?
+│  Yes
+│
+◇  Keep tightship updated automatically?
+│  Yes
+│
+│  Vault
+◇  Where is your vault?
+│  not set
+│
+◇  Summary
+│  Harnesses       Cursor
+│  Contract        on
+│  Memory          on
+│  Vault           not set
+│  Status line     on
+│  Auto-update     on
+│
+◆  Install with these choices?
+│  ● Install / ○ Cancel
+└
+```
+
 Para rodar sem prompts, passe as opções por flags:
 
 ```sh
@@ -55,6 +91,7 @@ Crie `~/.cursor/tightship/options.json`:
   "contract": true,
   "memory": true,
   "status_line": true,
+  "auto_update": true,
   "vault_folder": "~/ai-memory"
 }
 ```

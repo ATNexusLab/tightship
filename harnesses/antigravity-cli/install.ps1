@@ -4,8 +4,7 @@ $antigravityCliPlugin = "{{path:plugins}}/tightship"
 
 function Test-AntigravityCli {
     if (-not $FromDir -and -not $ReleaseTag) {
-        Write-Stderr "error: this install.ps1 belongs to no release; run $Repository/releases/latest/download/install.ps1, or pass -FromDir <folder>"
-        exit 1
+        throw "error: this install.ps1 belongs to no release; run $Repository/releases/latest/download/install.ps1, or pass -FromDir <folder>"
     }
 }
 
@@ -14,11 +13,12 @@ function Read-AntigravityCliOptions {
     if (-not (Test-Path $optionsFile)) {
         return $null
     }
-    $options = [ordered]@{ contract = $null; memory = $null; status_line = $null; vault_folder = $null }
+    $options = [ordered]@{ contract = $null; memory = $null; status_line = $null; auto_update = $null; vault_folder = $null }
     Get-Content $optionsFile | ForEach-Object {
         if ($_ -match '^\s*contract\s*=\s*(.+)$') { $options.contract = $Matches[1].Trim(" '`"").ToLowerInvariant() }
         if ($_ -match '^\s*memory\s*=\s*(.+)$') { $options.memory = $Matches[1].Trim(" '`"").ToLowerInvariant() }
         if ($_ -match '^\s*status_line\s*=\s*(.+)$') { $options.status_line = $Matches[1].Trim(" '`"").ToLowerInvariant() }
+        if ($_ -match '^\s*auto_update\s*=\s*(.+)$') { $options.auto_update = $Matches[1].Trim(" '`"").ToLowerInvariant() }
         if ($_ -match '^\s*vault_folder\s*=\s*"((?:[^"\\]|\\.)*)"') { $options.vault_folder = $Matches[1] -replace '\\(.)', '$1' }
     }
     $options
@@ -49,23 +49,22 @@ function Install-AntigravityCli {
     if ($FromDir) {
         $sourceDir = $FromDir
     } else {
-        $tempZipFolder = Join-Path ([System.IO.Path]::GetTempPath()) ("tightship-" + [System.Guid]::NewGuid().ToString())
+        $tempZipFolder = Join-Path $workDir "antigravity-cli"
         New-Item -ItemType Directory -Force -Path $tempZipFolder | Out-Null
         $zipDest = Join-Path $tempZipFolder "tightship-antigravity-cli.zip"
         $downloadUrl = "$Repository/releases/download/$ReleaseTag/tightship-antigravity-cli.zip"
-        Write-Host "> Downloading tightship-antigravity-cli.zip $ReleaseTag"
-        try {
-            Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
-        } catch {
-            Write-Stderr "error: failed to download tightship-antigravity-cli.zip from $downloadUrl"
-            Write-Stderr "hint: if you are running in a local repository clone, run cargo xtask build and pass -FromDir dist\antigravity-cli"
-            exit 1
+        Invoke-Step "Downloading tightship-antigravity-cli.zip $ReleaseTag" {
+            try {
+                Invoke-RestMethod -Uri $downloadUrl -OutFile $zipDest
+            } catch {
+                throw "error: failed to download tightship-antigravity-cli.zip from $downloadUrl`nhint: if you are running in a local repository clone, run cargo xtask build and pass -FromDir dist\antigravity-cli"
+            }
         }
-        Write-Host "> Checking the sha256 of tightship-antigravity-cli.zip"
         $zipSha256 = (Get-FileHash -Algorithm SHA256 -Path $zipDest).Hash.ToLowerInvariant()
-        if ($zipSha256 -ne $AntigravityCliSha256) {
-            Write-Stderr "error: tightship-antigravity-cli.zip has sha256 $zipSha256; $ReleaseTag published $AntigravityCliSha256"
-            exit 1
+        Invoke-Step "Checking the sha256 of tightship-antigravity-cli.zip" {
+            if ($zipSha256 -ne $AntigravityCliSha256) {
+                throw "error: tightship-antigravity-cli.zip has sha256 $zipSha256; $ReleaseTag published $AntigravityCliSha256"
+            }
         }
         $extracted = Join-Path $tempZipFolder "extracted"
         Expand-Archive -Path $zipDest -DestinationPath $extracted -Force
@@ -73,6 +72,14 @@ function Install-AntigravityCli {
     }
 
     Invoke-Step "Installing tightship for {{install:label}}" { & agy plugin install $sourceDir }
+    $windowsHooks = Join-Path $antigravityCliPlugin "hooks.windows.json"
+    if (Test-Path $windowsHooks) {
+        if ($env:OS -eq "Windows_NT") {
+            Move-Item -Force -Path $windowsHooks -Destination (Join-Path $antigravityCliPlugin "hooks.json")
+        } else {
+            Remove-Item -Force -Path $windowsHooks
+        }
+    }
 
     if (-not (Test-Path $antigravityCliData)) {
         New-Item -ItemType Directory -Force -Path $antigravityCliData | Out-Null
@@ -81,6 +88,7 @@ function Install-AntigravityCli {
 contract = $finalContract
 memory = $finalMemory
 status_line = $finalStatusLine
+auto_update = $finalAutoUpdate
 "@
     if ($finalVaultFolder) {
         $escapedVaultFolder = $finalVaultFolder.Replace('\', '\\').Replace('"', '\"')
@@ -92,10 +100,7 @@ status_line = $finalStatusLine
     Invoke-Step "Applying the status line option" { Invoke-AntigravityCliTightship hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder) {
-        Invoke-Step "Creating the vault at $finalVaultFolder" { Invoke-AntigravityCliTightship vault init $finalVaultFolder }
+        Invoke-Step "Creating the vault at $expandedVault" { Invoke-AntigravityCliTightship vault init $expandedVault }
     }
-
-    if ($tempZipFolder -and (Test-Path $tempZipFolder)) {
-        Remove-Item -Recurse -Force $tempZipFolder -ErrorAction SilentlyContinue
-    }
+    $installedIn["{{install:label}}"] = [System.IO.Path]::GetFullPath($antigravityCliPlugin)
 }

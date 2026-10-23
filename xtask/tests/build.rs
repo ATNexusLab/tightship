@@ -149,6 +149,29 @@ fn a_malformed_token_fails() {
 }
 
 #[test]
+fn a_broken_token_fails() {
+    let repository = Repository::with(&[
+        piece(
+            "content/skills/planning/SKILL.md",
+            &on_line(7, "Load {{skill:\ngrilling}} first."),
+        ),
+        piece(
+            "content/commands/spec.md",
+            &on_line(9, "Load {{skill:grilling} first."),
+        ),
+    ]);
+
+    let output = repository.run("build");
+    for line in [
+        "error: content/skills/planning/SKILL.md:7: \"{{skill:\" is not a token; write {{<kind>:<name>}} on one line",
+        "error: content/skills/planning/SKILL.md:8: \"grilling}}\" is not a token; write {{<kind>:<name>}} on one line",
+        "error: content/commands/spec.md:9: \"{{skill:grilling}\" is not a token; write {{<kind>:<name>}} on one line",
+    ] {
+        assert_fails_with(&output, line);
+    }
+}
+
+#[test]
 fn a_literal_reference_fails() {
     let repository = Repository::with(&[
         piece("content/commands/spec.md", "Write the spec.\n"),
@@ -311,6 +334,35 @@ fn an_identity_term_in_a_shipped_file_fails_without_printing_it() {
 }
 
 #[test]
+fn an_identity_term_in_an_installer_fragment_fails_without_printing_it() {
+    let repository = Repository::with(&[
+        piece("content/skills/grilling/SKILL.md", "Grill.\n"),
+        (
+            "installer/install.sh",
+            "#!/bin/sh\n{{fragments}}\n".to_owned(),
+        ),
+        (
+            "harnesses/claude-code/install.sh",
+            "install_claude_code() {\n  echo ghost-handle-0451\n}\n".to_owned(),
+        ),
+    ]);
+    repository.write(".identity-terms", "Ghost-Handle-0451\n");
+
+    let output = repository.run("build");
+    assert_fails_with(
+        &output,
+        "error: dist/install.sh:3: holds an identity term of the maintainer",
+    );
+    assert!(
+        !stderr_of(&output)
+            .to_lowercase()
+            .contains("ghost-handle-0451")
+    );
+    assert!(!repository.path("dist/install.sh").exists());
+    assert!(!repository.path("dist/claude-code").exists());
+}
+
+#[test]
 fn a_file_named_with_an_identity_term_fails_without_printing_it() {
     let repository = Repository::with(&[
         piece("content/skills/grilling/SKILL.md", "Grill.\n"),
@@ -412,6 +464,26 @@ fn cursor_repository(extra: Vec<(String, String)>) -> Repository {
 }
 
 #[test]
+fn harnesses_naming_different_repositories_fail() {
+    let (path, epic) = piece("content/commands/epic.md", "Open the epic.\n");
+    let repository = cursor_repository(vec![(path.to_owned(), epic)]);
+    let manifest = repository.path("harnesses/cursor/harness.toml");
+    let text = fs::read_to_string(&manifest).expect("the cursor harness");
+    repository.write(
+        "harnesses/cursor/harness.toml",
+        &text.replace(
+            "repository = \"https://github.com/ATNexusLab/tightship\"",
+            "repository = \"https://github.com/fork/tightship\"",
+        ),
+    );
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: the harnesses name different repositories: claude-code \"https://github.com/ATNexusLab/tightship\", cursor \"https://github.com/fork/tightship\"; use one",
+    );
+}
+
+#[test]
 fn the_manifest_lists_the_companions_and_the_options_and_the_catalog_allows_them() {
     let repository = Repository::with(&[
         piece("content/commands/epic.md", "Open the epic.\n"),
@@ -492,6 +564,11 @@ fn the_launcher_runs_the_binary_built_for_this_machine() {
     fs::create_dir(&vault).expect("a vault folder");
 
     assert_succeeds(&repository.run("build"));
+    assert!(
+        repository
+            .path("dist/claude-code/bin/tightship.cmd")
+            .is_file()
+    );
     let output = Command::new("sh")
         .arg(repository.path("dist/claude-code/bin/tightship"))
         .args(["vault", "path"])
@@ -522,6 +599,24 @@ fn a_companion_without_a_marketplace_fails_and_leaves_no_plugin() {
     assert_fails_with(
         &repository.run("build"),
         "error: harnesses/claude-code/harness.toml: companion \"ponytail\" has no marketplace",
+    );
+    assert!(!repository.path("dist/claude-code").exists());
+}
+
+#[test]
+fn a_plugin_file_on_a_rendered_path_fails_and_leaves_no_plugin() {
+    let repository = Repository::with(&[
+        piece("content/commands/epic.md", "Open the epic.\n"),
+        (
+            "harnesses/claude-code/plugin/skills/epic/SKILL.md",
+            "A copied file.\n".to_owned(),
+        ),
+    ]);
+    fs::create_dir_all(repository.path("dist/claude-code")).expect("a previous build");
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: dist/claude-code/skills/epic/SKILL.md: two sources write this file",
     );
     assert!(!repository.path("dist/claude-code").exists());
 }
@@ -770,9 +865,10 @@ fn cursor_verifier_agent_has_readonly_front_matter() {
         fs::read_to_string(repository.path("dist/cursor/agents/adversarial-verifier.md"))
             .expect("rendered verifier");
     assert!(
-        rendered.contains("readonly: true\n") || rendered.contains("readonly: \"true\"\n"),
+        rendered.contains("readonly: true\n"),
         "expected readonly: true in front matter:\n{rendered}"
     );
+    assert!(!rendered.contains("readonly: \"true\""));
     assert!(rendered.contains("tools: \"Read, Grep, Glob, Shell\"\n"));
     assert!(rendered.contains("You are an adversarial verifier."));
 }

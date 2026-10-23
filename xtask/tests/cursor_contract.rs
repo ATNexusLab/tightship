@@ -41,7 +41,7 @@ fn built_with_memory_gated() -> Repository {
             "[gated]\nMemory = \"memory\"\n",
             "# Working Contract\n\nThe preamble.\n\n## A\n\nRule A.\n\n## Memory\n\nUse the notes.\n\n## B\n\nRule B.\n",
         ),
-        options(&["contract", "memory"]),
+        options(&["contract", "memory", "auto_update"]),
     ]);
     let repository = Repository::with(&files);
     assert_succeeds(&repository.run("build"));
@@ -107,29 +107,26 @@ fn cursor_contract_hooks_call_contract_part_on_session_start_and_every_prompt() 
         serde_json::from_str(&read(&repository, "dist/cursor/hooks/hooks.json"))
             .expect("valid JSON");
     let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
-    let part =
-        format!("{binary} options disabled contract || {binary} hook contract-part part-1.md");
-    let memory_part = format!(
-        "{binary} options disabled contract || {binary} options disabled memory || {binary} hook contract-part memory.md"
-    );
-    let memory_start = format!("{binary} options disabled memory || {binary} hook start");
-    let memory_prompt = format!("{binary} options disabled memory || {binary} hook prompt");
-    let memory_checkpoint = format!("{binary} options disabled memory || {binary} hook checkpoint");
+    let part = format!("{binary} hook contract-part part-1.md");
+    let memory_part = format!("{binary} hook contract-part memory.md");
+    let memory_start = format!("{binary} hook start");
+    let memory_checkpoint = format!("{binary} hook checkpoint");
+    let update = format!("{binary} hook update");
     assert_eq!(hooks["version"], serde_json::json!(1));
     assert_eq!(
         hooks["hooks"]["sessionStart"],
         serde_json::json!([
             { "command": part },
             { "command": memory_part },
-            { "command": memory_start }
+            { "command": memory_start },
+            { "command": update }
         ])
     );
     assert_eq!(
         hooks["hooks"]["beforeSubmitPrompt"],
         serde_json::json!([
             { "command": part },
-            { "command": memory_part },
-            { "command": memory_prompt }
+            { "command": memory_part }
         ])
     );
     assert_eq!(

@@ -1,10 +1,10 @@
 pub mod checkpoint;
-pub mod contract;
 pub mod contract_part;
 pub mod export;
-pub mod prompt;
+pub mod marketplace_auto_update;
 pub mod start;
 pub mod status_line;
+pub mod update;
 
 use std::env;
 use std::fs::{self, OpenOptions};
@@ -28,7 +28,7 @@ seemed interesting. The test is the `why` field — if you cannot write in one l
 it would cost later, it does not qualify.
 
 To write one (single step, then tell the user in one line what landed):
-  tightship vault new --scope <project|all> --type <preference|decision|gotcha|project> \\
+  tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project> \\
     --title \"...\" --why \"...\" --tags a,b --source <user|session|repo> <<'EOF'
   <body>
   EOF

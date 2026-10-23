@@ -9,7 +9,7 @@ How the plugin is installed, configured, updated, removed, and how the pre-plugi
 ## FR-INS-01 — Install through the harness's plugin mechanism
 
 > As an adopter, I want to install the workflow the way my harness installs any plugin, so that I need no
-> script and no manual copy.
+> manual copy.
 
 The system shall be installable from this repository with the harness's own plugin commands.
 
@@ -198,3 +198,61 @@ options, update, uninstall, and migration.
 
 - **FR-INS-08.1** — Given a supported harness, when the adopter opens its guide, then it holds a section
   for each of the six subjects.
+
+<a id="fr-ins-09"></a>
+
+## FR-INS-09 — One installer for every harness
+
+> As an adopter, I want one installer to set the workflow up in any harness it supports, so that no harness
+> leaves me a step to do by hand.
+
+The system shall install the plugin in every supported harness through the unified `install.sh` and
+`install.ps1`, from the first release that ships that harness, including a harness whose own CLI has no
+install command.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | A harness the installer sends to the docs for a manual install is one the adopter sets up alone, and gets wrong. When the harness's CLI cannot install a plugin, the installer takes another route, such as extracting the plugin into the harness's local plugin folder. |
+| Source | Maintainer, 2026-10-16 |
+| Priority | Must |
+| Status | approved |
+| Milestone | M3 |
+| Since | v2.1.0 |
+
+**Acceptance criteria**
+
+- **FR-INS-09.1** — Given a machine with a supported harness and without the workflow, when the adopter
+  runs `install.sh` or `install.ps1` and picks that harness, then the plugin is installed in it with no
+  step left to the adopter.
+
+<a id="fr-ins-10"></a>
+
+## FR-INS-10 — The plugin keeps itself updated
+
+> As an adopter, I want each new release of the workflow to reach my harness by itself, so that I never run
+> an old version without knowing it.
+
+The system shall install each new release of the plugin in every supported harness without a step from the
+adopter, while the `auto_update` option is on, and tell the adopter in the next session that it did.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Only the installer brought a release, and a rerun of it left Claude Code on the old version. Cursor keeps a plugin added from a repository at the commit it was added at, and Antigravity CLI has no update command for a plugin outside its official catalog. |
+| Source | Maintainer, 2026-10-23 |
+| Priority | Must |
+| Status | approved |
+| Milestone | M4 |
+| Since | v2.2.0 |
+
+**Acceptance criteria**
+
+- **FR-INS-10.1** — Given the `auto_update` option is on and a newer release is published, when the adopter
+  starts sessions over the next day, then the plugin is updated to that release, and its options keep their
+  state.
+- **FR-INS-10.2** — Given the plugin was updated since the last session, when the next session starts, then
+  the agent tells the adopter the version it came from and the version it is on, once.
+- **FR-INS-10.3** — Given the `auto_update` option is off, when a newer release is published, then the plugin
+  stays on its version.
+- **FR-INS-10.4** — Given the downloaded release does not match the checksum its release published, when the
+  update runs, then nothing changes in the plugin, and the next session tells the adopter the update was
+  refused.

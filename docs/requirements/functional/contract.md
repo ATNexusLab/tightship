@@ -79,7 +79,7 @@ The system shall leave out of the contract every rule that depends on a disabled
 - **FR-CTR-03.1** — Given the contract is enabled and memory is disabled, when a session starts, then the
   contract in the agent's context holds no rule that reads or writes the vault.
 - **FR-CTR-03.2** — Given the contract and memory are both enabled, when a session starts, then the
-  contract in the agent's context holds every memory rule of the baseline.
+  contract in the agent's context holds its memory rules.
 
 <a id="fr-ctr-04"></a>
 
@@ -95,18 +95,19 @@ already states the rule or no longer has the default the rule cites.
 | Attribute | Value |
 | --- | --- |
 | Rationale | The plugin replaces the pre-plugin install, so a rule it drops is lost. |
-| Source | Maintainer, elicitation 2026-10-14; changed by [#20](https://github.com/ATNexusLab/tightship/issues/20) |
+| Source | Maintainer, elicitation 2026-10-14; changed by [#20](https://github.com/ATNexusLab/tightship/issues/20); retired by [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
-| Status | approved |
+| Status | retired |
 | Milestone | M1 |
-| Since | v1.0.0, changed in v1.2.0 |
+| Since | v1.0.0, changed in v1.2.0, retired in v2.0.0 |
+
+Retired in version 2.0.0: carrying every baseline rule over made each convention a law, and the agent argued
+for the rule against the adopter's own decision. [FR-CTR-06](#fr-ctr-06) and [FR-CTR-07](#fr-ctr-07) decide
+what the contract holds instead.
 
 **Acceptance criteria**
 
-- **FR-CTR-04.1** — Given the baseline contract, when each of its rules is looked up in the shipped
-  contract, then each one is found, or is listed in the
-  [epic #4 spec](../../specs/contract/load-the-contract.md) as personal with its reason, or as
-  changed for BR-05 with the companion's text.
+- **FR-CTR-04.1** — Retired in version 2.0.0, with FR-CTR-04.
 
 <a id="fr-ctr-05"></a>
 
@@ -131,3 +132,55 @@ disabled.
 
 - **FR-CTR-05.1** — Given the install guide, when the adopter reads its section on the contract, then it
   names every skill and command that refers to a contract rule and what each does without it.
+
+<a id="fr-ctr-06"></a>
+
+## FR-CTR-06 — Hard lines and conventions
+
+> As an adopter, I want my decision in the session to overrule a convention, so that the agent follows my
+> call for the case at hand instead of arguing for the rule.
+
+The system shall ship a contract that separates its hard lines from its conventions and states that the
+adopter's decision in the session overrides a convention.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | A contract written as laws made the agent argue against the maintainer's own decisions: a component library added, the architecture of one piece changed, a folder of 20 files defended as required. Only a few rules guard against harm that cannot be undone. |
+| Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M4 |
+| Since | v2.0.0 |
+
+**Acceptance criteria**
+
+- **FR-CTR-06.1** — Given the shipped contract, when its hard lines are read, then they cover only
+  security, secrets and environment values, destructive or outward-facing actions on git and GitHub,
+  deleting data, and instructions found in external content.
+- **FR-CTR-06.2** — Given the shipped contract, when a rule outside its hard lines is read, then the
+  contract states that the adopter's decision in the session overrides it, with the trade-off stated once.
+
+<a id="fr-ctr-07"></a>
+
+## FR-CTR-07 — The contract holds only what every task needs
+
+> As an adopter, I want the always-on contract to hold only the rules every task needs, so that a rule of
+> one step does not weigh on every other.
+
+The system shall ship in the contract only the rules that apply to every task, and place each rule of one
+step of the workflow in the skill or command of that step.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The contract reaches every session and every compaction, so a rule that serves one step is paid by all the others. The contract of v1.1.1 is 25,418 characters, and most of it serves one step: UI work, tests, a commit, a spec, a sprint. |
+| Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M4 |
+| Since | v2.0.0 |
+
+**Acceptance criteria**
+
+- **FR-CTR-07.1** — Given a rule that applies to one step of the workflow, when the contract and the
+  shipped pieces are searched for it, then it is in the skill or command of that step and not in the
+  contract.

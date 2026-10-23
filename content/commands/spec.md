@@ -13,6 +13,12 @@ a closed spec. Use the `{{skill:spec-writing}}` skill for the templates and the 
 
 Find the facts yourself; spend my attention only on decisions.
 
+- The issue this work belongs to. No work starts without one: the chain is requirement ID (`FR-…`,
+  `NFR-…`, `BR-…`) → epic and its spec → sub-issues, each a delivery read in one sitting → the epic's
+  branch, commits, and PR. A missing link is a gap to fix, never a shortcut. Check the open issues for
+  work that already owns this, duplicates it, or breaks with it; what already has an issue is folded into
+  that issue.
+
 - For an epic, its branch: cut it from the updated integration branch before writing any file. The
   spec, its global-docs changes and `{{command:epic}}`'s update are commits there.
 - Whether the feature is an item of the current sprint, with an epic issue on `docs/roadmap/`. If it is

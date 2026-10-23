@@ -2,11 +2,12 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::binary::Binary;
-use super::content::{Content, SupportingBody};
+use super::content::{self, Content, Kind, Piece, SupportingBody};
 use super::harness::Harness;
+use super::options::OptionsFile;
 use super::scripts::{self, Shell};
 use super::tokens;
 use crate::diagnostics::naming;
@@ -41,6 +42,109 @@ pub fn workspace_version(root: &Path) -> io::Result<String> {
     let cargo: CargoManifest = toml::from_str(&cargo_text)
         .map_err(|error| io::Error::other(format!("Cargo.toml: {}", error.message())))?;
     Ok(cargo.workspace.package.version)
+}
+
+pub fn catalog(harness: &Harness) -> io::Result<String> {
+    #[derive(Serialize)]
+    struct Owner<'harness> {
+        name: &'harness str,
+    }
+    #[derive(Serialize)]
+    struct Entry<'harness> {
+        name: &'harness str,
+        source: &'static str,
+        description: &'harness str,
+    }
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Catalog<'harness> {
+        name: &'harness str,
+        owner: Owner<'harness>,
+        description: &'harness str,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        allow_cross_marketplace_dependencies_on: Vec<&'harness str>,
+        plugins: [Entry<'harness>; 1],
+    }
+    let plugin = &harness.plugin;
+    let mut marketplaces = Vec::new();
+    for companion in &harness.companions {
+        let marketplace = companion.marketplace(&harness.name)?;
+        if !marketplaces.contains(&marketplace) {
+            marketplaces.push(marketplace);
+        }
+    }
+    let catalog = Catalog {
+        name: &plugin.name,
+        owner: Owner {
+            name: &plugin.author,
+        },
+        description: &plugin.description,
+        allow_cross_marketplace_dependencies_on: marketplaces,
+        plugins: [Entry {
+            name: &plugin.name,
+            source: "./",
+            description: &plugin.description,
+        }],
+    };
+    Ok(serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n")
+}
+
+pub fn option_settings(
+    options: Option<&OptionsFile>,
+    harness: &Harness,
+) -> io::Result<serde_json::Map<String, serde_json::Value>> {
+    let mut settings = serde_json::Map::new();
+    if let Some(file) = options {
+        for option in &file.declared {
+            let mut setting = serde_json::json!({
+                "type": option.kind,
+                "title": resolve(&option.title, &file.path, harness)?,
+                "description": resolve(&option.description, &file.path, harness)?,
+            });
+            if !option.is_directory() {
+                setting["default"] = serde_json::Value::Bool(true);
+            }
+            settings.insert(option.name.clone(), setting);
+        }
+    }
+    Ok(settings)
+}
+
+pub fn document(
+    piece: &Piece,
+    harness: &Harness,
+    agent_fields: &[(&str, serde_json::Value)],
+) -> io::Result<String> {
+    let front_matter = piece.front_matter.as_ref().ok_or_else(|| {
+        io::Error::other(format!(
+            "{}: rendered with invalid front matter",
+            piece.path
+        ))
+    })?;
+    let mut fields = vec![
+        ("name", serde_json::Value::from(piece.name.as_str())),
+        (
+            "description",
+            serde_json::Value::from(front_matter.description.as_str()),
+        ),
+    ];
+    if let Some(hint) = &front_matter.argument_hint {
+        fields.push(("argument-hint", serde_json::Value::from(hint.as_str())));
+    }
+    if piece.kind == Kind::Agent {
+        fields.push((
+            "tools",
+            serde_json::Value::from(harness.access.read_only.as_str()),
+        ));
+        fields.extend_from_slice(agent_fields);
+    }
+    let mut document = String::from("---\n");
+    for (key, value) in fields {
+        document.push_str(&format!("{key}: {value}\n"));
+    }
+    document.push_str("---\n");
+    document.push_str(&resolve(&piece.body, &piece.path, harness)?);
+    Ok(document)
 }
 
 pub fn supporting_files(
@@ -96,22 +200,13 @@ pub fn harness_files(
     }
     let plugin = folder.join("plugin");
     if plugin.is_dir() {
-        copy_tree(&plugin, staging, &mut files)?;
-    }
-    Ok(files)
-}
-
-fn copy_tree(source: &Path, target: &Path, files: &mut Vec<(PathBuf, Vec<u8>)>) -> io::Result<()> {
-    for entry in fs::read_dir(source).map_err(naming(source))? {
-        let entry = entry?;
-        let copy = target.join(entry.file_name());
-        if entry.file_type()?.is_dir() {
-            copy_tree(&entry.path(), &copy, files)?;
-        } else {
-            files.push((copy, fs::read(entry.path()).map_err(naming(&entry.path()))?));
+        for file in content::files_under(&plugin)? {
+            let relative = file.strip_prefix(&plugin).map_err(io::Error::other)?;
+            let bytes = fs::read(&file).map_err(naming(&file))?;
+            files.push((staging.join(relative), bytes));
         }
     }
-    Ok(())
+    Ok(files)
 }
 
 pub fn binary_files(staging: &Path, binaries: &[Binary]) -> io::Result<Vec<(PathBuf, Vec<u8>)>> {

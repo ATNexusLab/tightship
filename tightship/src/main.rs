@@ -4,6 +4,7 @@ mod hook;
 mod options;
 mod project;
 mod status;
+mod update;
 mod vault;
 
 use std::env;
@@ -20,7 +21,7 @@ pub const USAGE: &str = "\
 Usage: tightship vault path
        tightship vault init <folder>
        tightship vault search [--everywhere] <term>...
-       tightship vault new --scope <project|all> --type <preference|decision|gotcha|project>
+       tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project>
                            --title <title> --why <line> --source <user|session|repo>
                            [--tags <a,b>] [--pin] [--created <YYYY-MM-DD>] < body
        tightship vault lint
@@ -32,7 +33,8 @@ Usage: tightship vault path
        tightship options list
        tightship options reset
        tightship options disabled <name>
-       tightship hook contract-part <file>";
+       tightship hook contract-part <file>
+       tightship update";
 
 #[derive(Parser)]
 #[command(name = "tightship")]
@@ -51,24 +53,18 @@ enum Area {
     StatusLine(StatusLineCommand),
     #[command(subcommand)]
     Options(OptionsCommand),
+    Update,
 }
 
 #[derive(Subcommand)]
 enum HookCommand {
-    Contract {
-        #[arg(long)]
-        gate: Option<String>,
-        #[arg(value_name = "file")]
-        file: PathBuf,
-    },
     Start,
     Export,
     Checkpoint,
-    Prompt,
     StatusLine,
-    ContractPart {
-        file: String,
-    },
+    ContractPart { file: String },
+    Update,
+    MarketplaceAutoUpdate,
 }
 
 #[derive(Subcommand)]
@@ -135,15 +131,14 @@ fn main() -> ExitCode {
         Area::Vault(VaultCommand::Lint) => vault::lint::run(),
         Area::Vault(VaultCommand::Sync) => vault::sync::run(),
         Area::Vault(VaultCommand::Handoff(command)) => vault::handoff::run(&command),
-        Area::Hook(HookCommand::Contract { gate, file }) => {
-            hook::contract::run(gate.as_deref(), &file)
-        }
         Area::Hook(HookCommand::Start) => hook::start::run(),
         Area::Hook(HookCommand::Export) => hook::export::run(),
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
-        Area::Hook(HookCommand::Prompt) => hook::prompt::run(),
         Area::Hook(HookCommand::StatusLine) => hook::status_line::run(),
         Area::Hook(HookCommand::ContractPart { file }) => hook::contract_part::run(&file),
+        Area::Hook(HookCommand::Update) => hook::update::run(),
+        Area::Hook(HookCommand::MarketplaceAutoUpdate) => hook::marketplace_auto_update::run(),
+        Area::Update => update::run(),
         Area::StatusLine(StatusLineCommand::Render) => status::render::run(),
         Area::Options(OptionsCommand::Set { name, value }) => options::set(&name, &value),
         Area::Options(OptionsCommand::List) => options::list(),

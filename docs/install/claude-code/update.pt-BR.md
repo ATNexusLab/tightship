@@ -7,14 +7,32 @@ opções mantêm os valores numa atualização.
 
 ## Automática
 
-A atualização automática vem desligada para um catálogo fora do catálogo oficial do Claude Code. Para
-ligá-la:
+Com a opção `auto_update` ligada, que é o padrão, o tightship liga a atualização automática do Claude Code
+para o seu catálogo a cada início de sessão. O Claude Code passa a instalar cada release nova sozinho, e a
+sessão seguinte a uma atualização a carrega.
 
-1. Rode `/plugin` numa sessão.
-2. Abra **Marketplaces**, depois `tightship`.
-3. Escolha **Enable auto-update**.
+Desligue a opção para parar; o próximo início de sessão desliga de novo a atualização automática do catálogo:
 
-A sessão seguinte a uma atualização carrega a nova versão.
+```sh
+echo '{"auto_update":"false"}' | claude plugin configure tightship@tightship --values-stdin
+```
+
+## Pelo instalador
+
+Rodar o instalador de novo atualiza o tightship e os três companheiros, e mantém as opções que você já tinha
+escolhido:
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | \
+  sh -s -- --harness claude-code --yes
+```
+
+No Windows, no PowerShell:
+
+```powershell
+& ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) `
+  -Harness claude-code -Yes
+```
 
 ## À mão
 

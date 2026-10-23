@@ -9,7 +9,10 @@ The contract is the always-on text that tells the agent how to work
 ## How it reaches a Claude Code session
 
 Claude Code puts a `SessionStart` hook's output in the context, and caps each hook's text at 10,000
-characters. The contract is longer, so the build splits it:
+characters. Until M4 the contract was longer, so the build splits it; since M4 (#118) the build also fails when
+the contract renders past 8,000 characters with every option on
+([NFR-PERF-03](../../requirements/non-functional/performance.md#nfr-perf-03)), so it is one part plus its memory
+section:
 
 1. It resolves the tokens, then packs the preamble and the sections, in file order, into parts of at most
    `[contract] limit` characters, the value in `harnesses/claude-code/harness.toml`. Each part opens with the
@@ -26,9 +29,9 @@ already holds the copy placed before. A hook that fails costs only its own part;
 ## How it reaches an Antigravity CLI session (M3, #59)
 
 Antigravity CLI truncates each `rules/*.md` file at 24,000 bytes and loads `rules/` unconditionally. Instead,
-`hooks.json` runs `tightship hook contract` at `SessionStart` for `contract/part-1.md` and
-`contract/memory.md` (with `[contract] limit = 100000`), which reads `${TIGHTSHIP_DATA}/options.toml` and
-prints each enabled file wrapped in `{"injectSteps":[{"systemMessage":{"systemMessage":"..."}}]}`. Because
+`hooks.json` runs `tightship hook contract-part` at `SessionStart` for `part-1.md` and `memory.md` (with
+`[contract] limit = 100000`), which reads `${TIGHTSHIP_DATA}/options.toml` and prints each enabled file
+wrapped in `{"injectSteps":[{"systemMessage":{"systemMessage":"..."}}]}`. Because
 `SessionStart` in Antigravity CLI fires only once at conversation start, the build also writes
 `skills/contract/SKILL.md` and prepends a line to `contract/part-1.md` instructing the agent to load the
 `contract` skill after `/compact`.

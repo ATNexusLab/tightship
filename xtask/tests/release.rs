@@ -133,9 +133,11 @@ fn a_missing_binary_fails_and_leaves_no_plugin() {
 fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
     let repository = release_repository("1.0.0");
     assert_succeeds(&run(&repository, &["build", "--binaries", "binaries"]));
+    repository.write("dist/.package.tmp/stray.txt", "left by a killed run\n");
 
     let output = run(&repository, &["package", "v1.0.0"]);
     assert_succeeds(&output);
+    assert!(!repository.path("dist/stray.txt").exists());
     let bytes = fs::read(repository.path("dist/tightship-claude-code.zip")).expect("the zip");
     let sha256: String = Sha256::digest(&bytes)
         .iter()
@@ -168,6 +170,7 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
             "bin/linux-x64/tightship",
             "bin/macos/tightship",
             "bin/tightship",
+            "bin/tightship.cmd",
             "bin/windows-x64/tightship.exe",
         ]
     );
@@ -298,6 +301,21 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
         cursor_catalog["allowCrossMarketplaceDependenciesOn"],
         serde_json::json!(["ponytail", "i-have-adhd", "humanizer"])
     );
+
+    let latest_text = fs::read_to_string(repository.path("dist/latest.json")).expect("latest.json");
+    let latest: serde_json::Value = serde_json::from_str(&latest_text).expect("valid JSON");
+    assert_eq!(
+        latest,
+        serde_json::json!({
+            "version": "1.0.0",
+            "tag": "v1.0.0",
+            "assets": {
+                "claude-code": { "archive": "tightship-claude-code.zip", "sha256": sha256 },
+                "antigravity-cli": { "archive": "tightship-antigravity-cli.zip", "sha256": agy_sha256 },
+                "cursor": { "archive": "tightship-cursor.zip", "sha256": cursor_sha256 },
+            },
+        })
+    );
 }
 
 #[test]
@@ -318,6 +336,7 @@ fn a_tag_other_than_the_version_fails_and_writes_nothing() {
     assert!(!repository.path("dist/marketplace.json").exists());
     assert!(!repository.path("dist/tightship-cursor.zip").exists());
     assert!(!repository.path("dist/cursor-marketplace.json").exists());
+    assert!(!repository.path("dist/latest.json").exists());
     let installer =
         fs::read_to_string(repository.path("dist/install.sh")).expect("the built installer");
     assert!(installer.lines().any(|line| line == "RELEASE_TAG=\"\""));

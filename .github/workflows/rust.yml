@@ -36,13 +36,26 @@ jobs:
       - name: Install gitleaks 8.30.1
         run: |
           case "$RUNNER_OS" in
-          Linux) asset=gitleaks_8.30.1_linux_x64.tar.gz ;;
-          macOS) asset=gitleaks_8.30.1_darwin_arm64.tar.gz ;;
-          Windows) asset=gitleaks_8.30.1_windows_x64.zip ;;
+          Linux)
+            asset=gitleaks_8.30.1_linux_x64.tar.gz
+            checksum=sha256sum
+            sha256=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+            ;;
+          macOS)
+            asset=gitleaks_8.30.1_darwin_arm64.tar.gz
+            checksum="shasum -a 256"
+            sha256=b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5
+            ;;
+          Windows)
+            asset=gitleaks_8.30.1_windows_x64.zip
+            checksum=sha256sum
+            sha256=d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e
+            ;;
           esac
           folder="$RUNNER_TEMP/gitleaks"
           mkdir -p "$folder"
           curl -fsSL -o "$folder/$asset" "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/$asset"
+          (cd "$folder" && echo "$sha256  $asset" | $checksum -c -)
           case "$asset" in
           *.zip) unzip -q "$folder/$asset" -d "$folder" ;;
           *) tar -xzf "$folder/$asset" -C "$folder" ;;

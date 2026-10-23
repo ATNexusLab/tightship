@@ -8,6 +8,14 @@ if not defined TIGHTSHIP_ROOT (
   )
 )
 
+if not defined TIGHTSHIP_MANIFEST (
+  set "TIGHTSHIP_MANIFEST=%TIGHTSHIP_ROOT%\plugin.json"
+)
+
+if not defined TIGHTSHIP_HARNESS (
+  set "TIGHTSHIP_HARNESS=antigravity-cli"
+)
+
 if not defined TIGHTSHIP_DATA (
   if defined PLUGIN_DATA (
     set "TIGHTSHIP_DATA=%PLUGIN_DATA%"
@@ -28,3 +36,7 @@ if not defined TIGHTSHIP_HOOK_OUTPUT (
   set "TIGHTSHIP_HOOK_OUTPUT=%PLUGIN_DIR%\hook-output.json"
 )
 
+
+if not defined TIGHTSHIP_PROJECT_POINTER (
+  set "TIGHTSHIP_PROJECT_POINTER=/workspacePaths/0"
+)

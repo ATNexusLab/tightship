@@ -7,19 +7,7 @@ use super::words::is_part_of_a_word;
 use crate::diagnostics::{Diagnostic, naming};
 use crate::git;
 
-pub fn check(
-    root: &Path,
-    rendered: &Path,
-    published_as: &str,
-    diagnostics: &mut Vec<Diagnostic>,
-) -> io::Result<()> {
-    let Some(terms) = terms(root, diagnostics)? else {
-        return Ok(());
-    };
-    scan_folder(rendered, published_as, &terms, diagnostics)
-}
-
-fn terms(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Option<Vec<String>>> {
+pub fn terms(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Option<Vec<String>>> {
     let mut terms = Vec::new();
     let mut complete = true;
     for key in ["user.name", "user.email"] {
@@ -62,7 +50,7 @@ fn terms(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Option<Ve
     Ok(complete.then_some(lowercase))
 }
 
-fn scan_folder(
+pub fn check_folder(
     folder: &Path,
     shown_as: &str,
     terms: &[String],
@@ -80,22 +68,25 @@ fn scan_folder(
         }
         let shown = format!("{shown_as}/{file_name}");
         if path.is_dir() {
-            scan_folder(&path, &shown, terms, diagnostics)?;
+            check_folder(&path, &shown, terms, diagnostics)?;
             continue;
         }
         let bytes = fs::read(&path).map_err(naming(&path))?;
-        let text = String::from_utf8_lossy(&bytes).to_lowercase();
-        for (index, line) in text.split('\n').enumerate() {
-            if holds_a_term(line, terms) {
-                diagnostics.push(Diagnostic::at_line(
-                    &shown,
-                    index + 1,
-                    "holds an identity term of the maintainer".to_owned(),
-                ));
-            }
-        }
+        check_text(&String::from_utf8_lossy(&bytes), &shown, terms, diagnostics);
     }
     Ok(())
+}
+
+pub fn check_text(text: &str, shown_as: &str, terms: &[String], diagnostics: &mut Vec<Diagnostic>) {
+    for (index, line) in text.to_lowercase().split('\n').enumerate() {
+        if holds_a_term(line, terms) {
+            diagnostics.push(Diagnostic::at_line(
+                shown_as,
+                index + 1,
+                "holds an identity term of the maintainer".to_owned(),
+            ));
+        }
+    }
 }
 
 fn holds_a_term(text: &str, terms: &[String]) -> bool {

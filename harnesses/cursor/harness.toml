@@ -51,6 +51,8 @@ skill-tool = "the skill"
 instruction-files-precedence = "Cursor rules with globs apply to the files they match; they do not replace `AGENTS.md` in the same folder"
 instruction-files-search = "`find . -name AGENTS.md`"
 instruction-files-migration = "When an area already has `AGENTS.md`, move any legacy harness instruction content into that file and remove the legacy file from the repo"
+project-skills-folder = "`.agents/skills/`"
+project-skill-pointer = "Nothing more: Cursor reads `.agents/skills/`."
 binary-invocation = "\"${CURSOR_PLUGIN_ROOT}/bin/tightship\""
 
 [neutrality]

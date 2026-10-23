@@ -1,5 +1,8 @@
 # Vault — cross-harness memory
 
+This block belongs to the plugin: `tightship vault sync` rewrites it to the installed template. Your own
+rules go below it, outside the markers.
+
 This vault is the single curated memory shared by every coding agent across machines. It syncs through a
 private git repo and lives in the folder each machine set; `tightship vault path` prints it. It stores only
 what is NOT derivable from a repo, its git history, or its docs.
@@ -60,12 +63,13 @@ qualify. `why` states the consequence, never the topic:
 One step. Allocate nothing by hand — the tool stamps the id and the dates:
 
 ```bash
-tightship vault new --scope <project|all> --type <preference|decision|gotcha|project> \
+tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project> \
   --title "..." --why "..." --tags a,b --source <user|session|repo> <<'EOF'
 <body in Markdown>
 EOF
 ```
 
+Leave out `--scope` for a note on the project you are in; pass `--scope all` for one that holds in every project.
 The type follows the gate: a rule the user stated is `preference`, a decision is `decision`, a trap is `gotcha`,
 a project fact is `project`. Then tell the user in one line what landed: `memory: <title> → notes/<scope>/<file>`.
 They veto after the fact; do not interrupt the work to ask first.
@@ -87,7 +91,14 @@ rest — they hold the words the body does not.
 
 A fact that belongs in a repo the current work cannot reach yet is written with the tag `to-repo` and a last
 line `**Moves to:** <file in that repo>`. It is a debt: the next work in that repo moves the content there, in
-that work's commit, and deletes the note.
+that work's commit, and deletes the note. Session start lists the project's debts, each with where it
+moves.
+
+### Lifetime
+
+A note of type `gotcha` or `project` that the user did not state and that is not pinned is removed by
+`tightship vault sync` 30 days after its `updated` date. Rewriting it in place with a new `updated` keeps it
+30 more days. A `[[link]]` to a removed note becomes plain text. `git log` keeps what was removed.
 
 ### Handoff
 
@@ -122,10 +133,10 @@ in place with a new `updated`, never answered by a second note. `git log` keeps 
 
 ## Lint (monthly)
 
-- `tightship vault lint` — required fields, a known type and source, unique ids, a folder that matches
-  `project`, `[[wikilinks]]` that resolve, a `why` of at least five words, and pinned notes that fit the session
-  start in every scope. Whether the `why` states a cost and not a topic is the writer's check: the tool only
-  counts words.
+- `tightship vault lint` — required fields, a known type and source, an `updated` that is a date, unique ids,
+  a folder that matches `project`, `[[wikilinks]]` that resolve, a `why` of at least five words, and pinned
+  notes that fit the session start in every scope. Whether the `why` states a cost and not a topic is the
+  writer's check: the tool only counts words.
 - A note whose situation has resolved → delete it. A contradiction → rewrite the note.
 - Stale notes → verify against the repo; fix or delete.
 - Sweep each harness's own per-project memory: anything durable that landed there is a write that went to the

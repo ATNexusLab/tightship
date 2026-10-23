@@ -67,6 +67,14 @@ pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Dia
         }
         let blanked = String::from_utf8_lossy(&blanked);
         for (index, line) in blanked.split('\n').enumerate() {
+            let broken = line
+                .split_whitespace()
+                .filter(|word| word.contains("{{") || word.contains("}}"));
+            for word in broken {
+                let message =
+                    format!("\"{word}\" is not a token; write {{{{<kind>:<name>}}}} on one line");
+                diagnostics.push(report(index + 1, message));
+            }
             for (literal, kind, name) in literal_references(line, &pieces, &forms) {
                 let message = format!(
                     "\"{literal}\" refers to the {noun} \"{name}\"; write {{{{{noun}:{name}}}}}",

@@ -75,3 +75,57 @@ script in the installed plugin.
 
 - **FR-SKL-03.1** — Given the built plugin, when every reference in its shipped pieces is checked, then
   each one names a piece present in that plugin under the name the harness gives it.
+
+<a id="fr-skl-04"></a>
+
+## FR-SKL-04 — The bootstrap writes a lean repository contract
+
+> As an adopter, I want my repository's `AGENTS.md` to hold only what every task in it needs, so that the
+> agent does not carry what the repository already shows or what serves one area.
+
+The system shall write, through the bootstrap command, an `AGENTS.md` that holds only what applies to every
+task in the repository and that its files do not show, and that describes the architecture as the current
+shape, which the adopter may change.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The repository contract is read at every session, like the contract. Commands the build files state, procedures of one area, and an architecture to conform to strictly made it long, and made the agent defend the current shape against the adopter's decision to change it. |
+| Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M4 |
+| Since | v2.0.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-04.1** — Given a repository with no `AGENTS.md`, when the adopter runs the bootstrap command,
+  then the `AGENTS.md` it writes states no command, path, or structure the repository's files state, and no
+  procedure of one area or step.
+- **FR-SKL-04.2** — Given a repository whose `AGENTS.md` holds such text, when the adopter runs the
+  bootstrap command, then it proposes the cut and changes the file only once the adopter approves.
+
+<a id="fr-skl-05"></a>
+
+## FR-SKL-05 — The bootstrap writes project skills
+
+> As an adopter, I want each procedure of one area or step of my repository as a project skill, so that the
+> agent loads it only when the task needs it.
+
+The system shall write, through the bootstrap command, each procedure of one area or step of the repository
+as a skill in the repository's `.agents/skills/` folder, and make it reachable from every supported harness.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The workflow gave a repository only its `AGENTS.md`, so every procedure went there and was read at every session. `.agents/skills/` is the folder of the open Agent Skills format, the most general one the harnesses read. |
+| Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M4 |
+| Since | v2.0.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-05.1** — Given a repository with a procedure of one area or step, when the adopter runs the
+  bootstrap command, then `.agents/skills/<name>/SKILL.md` holds that procedure.
+- **FR-SKL-05.2** — Given a supported harness that does not read `.agents/skills/`, when a session starts
+  in a repository with project skills, then the harness lists them.

@@ -21,10 +21,13 @@ may name a harness. Each one holds:
 - The denylist the neutrality check applies, across every harness in `harnesses/`, to the canonical content
   and to the binary's sources in `tightship/src/` (#78).
 - `[contract] limit`: the most characters one hook may put in the context (M1, #4).
+- `[contract] compaction-notice`, optional: a line the build puts under the title of the contract's first
+  part, counted against the limit, for a harness whose hooks do not fire after a compaction (#109).
 
 **It never** holds a piece's text. A sentence that only one harness needs is a capability, and its text
 lives here.
 
 **To change it safely:** a capability added to the content needs an entry in every harness's file, or the
-build fails. Adding a harness adds a folder and a renderer, and leaves `content/` untouched
-([NFR-FLEX-07](../../requirements/non-functional/flexibility.md#nfr-flex-07)).
+build fails. So does a `[plugin] repository` that differs from another harness's, since the installers take
+it from one harness and `package` from each (#111). Adding a harness adds a folder and a renderer, and
+leaves `content/` untouched ([NFR-FLEX-07](../../requirements/non-functional/flexibility.md#nfr-flex-07)).

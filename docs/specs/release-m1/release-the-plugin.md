@@ -46,7 +46,8 @@ changelog:
 2. **A release starts from a tag `v<version>` pushed on `main`**, and publishes a pre-release. The maintainer
    installs it through its own catalog URL on the three systems, so the bytes tested are the bytes shipped and
    the macOS binary is tested from an archive Claude Code downloaded. The maintainer then promotes it to the
-   latest release.
+   latest release. Amended: a push to `main` tags the version of `Cargo.toml` and publishes it,
+   unless that version already has a release.
 3. **The gates also run on every pull request into `develop` or `main`**, on macOS, Linux, and Windows. This
    corrects the release pipeline's "never runs on a push or a pull request". A test that fails on one system
    in code an earlier epic built is a defect of NFR-FLEX-05, which this epic owns, and task 1 fixes it.
@@ -105,16 +106,17 @@ pull request, compared with its base, touches one of its paths.
 
 | Workflow | Paths | Systems | Steps |
 | --- | --- | --- | --- |
-| `rust.yml` | `xtask/`, `tightship/`, `content/`, `harnesses/`, `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, itself | `ubuntu-latest`, `macos-latest`, `windows-latest`; on Windows, steps run in Git Bash | gitleaks 8.30.1 from its release, for the scan's tests; `git config user.name` and `user.email` set to the Actions bot; `.identity-terms` from the repository secret `IDENTITY_TERMS`, written only when the secret is set; `USER` cleared, since the runner's user name, `runner`, is a word the content uses; then `cargo clippy --workspace --all-targets -- -D warnings`, `cargo check --workspace --all-targets`, `cargo fmt --all --check`, `cargo xtask build`, `cargo test --workspace --no-fail-fast` |
+| `rust.yml` | `xtask/`, `tightship/`, `content/`, `harnesses/`, `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, itself | `ubuntu-latest`, `macos-latest`, `windows-latest`; on Windows, steps run in Git Bash | gitleaks 8.30.1 from its release, checked against the sha256 pinned in the workflow, for the scan's tests; `git config user.name` and `user.email` set to the Actions bot; `.identity-terms` from the repository secret `IDENTITY_TERMS`, written only when the secret is set; `USER` cleared, since the runner's user name, `runner`, is a word the content uses; then `cargo clippy --workspace --all-targets -- -D warnings`, `cargo check --workspace --all-targets`, `cargo fmt --all --check`, `cargo xtask build`, `cargo test --workspace --no-fail-fast` |
 | `docs.yml` | Every `.md`, `docs/`, `zensical.toml`, `.markdownlint-cli2.jsonc`, itself | `ubuntu-latest` | `npx markdownlint-cli2@0.23.3`, `uvx zensical==0.0.70 build` |
-| `scan.yml` | Any, since a secret can enter through any file | `ubuntu-latest` | gitleaks 8.30.1, the whole history and every branch fetched, `cargo xtask scan` |
+| `scan.yml` | Any, since a secret can enter through any file | `ubuntu-latest` | gitleaks 8.30.1, checked against its pinned sha256; the whole history and every branch fetched, `cargo xtask scan` |
 
 #### `.github/workflows/release.yml`
 
 | Key | Value |
 | --- | --- |
 | Trigger | `push` of a tag matching `v*` |
-| Build jobs | `macos-latest`: `aarch64-apple-darwin` and `x86_64-apple-darwin`, merged by `lipo` into `macos/tightship`. `ubuntu-latest`: `x86_64-unknown-linux-musl` into `linux-x64/tightship`. `ubuntu-24.04-arm`: `aarch64-unknown-linux-musl` into `linux-arm64/tightship`. `windows-latest`: `x86_64-pc-windows-msvc` into `windows-x64/tightship.exe` |
+| Guard job | `main-only`, on `ubuntu-latest`, with the whole history: `git merge-base --is-ancestor "$GITHUB_SHA" origin/main`, or it fails and no build starts |
+| Build jobs | After the guard job. `macos-latest`: `aarch64-apple-darwin` and `x86_64-apple-darwin`, merged by `lipo` into `macos/tightship`. `ubuntu-latest`: `x86_64-unknown-linux-musl` into `linux-x64/tightship`. `ubuntu-24.04-arm`: `aarch64-unknown-linux-musl` into `linux-arm64/tightship`. `windows-latest`: `x86_64-pc-windows-msvc` into `windows-x64/tightship.exe` |
 | Each build | `cargo build --release --locked --package tightship --target <target>`, with the path remaps of the host build |
 | Pack job | `ubuntu-latest`, after the four builds: `.identity-terms` from `IDENTITY_TERMS`, `cargo xtask build --binaries binaries`, `cargo xtask package "$GITHUB_REF_NAME"`, then `gh release create "$GITHUB_REF_NAME" --prerelease --title "tightship $GITHUB_REF_NAME" --generate-notes` with the two files of `dist/` |
 | Permissions | `contents: write` on the pack job, `contents: read` on the builds |
@@ -266,6 +268,7 @@ Windows.
 ### 5. A tag publishes a pre-release, never the latest release
 
 - **When:** a tag `v*` is pushed.
+- A tag on a commit outside `main` fails the guard job, and nothing is built or published.
 - The four builds run in parallel; the pack job runs only if all four succeed.
 - A failed build, a failed package, or a failed `gh release create` leaves no release. The maintainer deletes
   the tag, fixes, and pushes it again.

@@ -37,7 +37,7 @@ fn built_with_memory_gated() -> Repository {
             "[gated]\nMemory = \"memory\"\n",
             "# Working Contract\n\nThe preamble.\n\n## A\n\nRule A.\n\n## Memory\n\nUse the notes.\n\n## B\n\nRule B.\n\n### B.1\n\nA detail.\n\n## C\n\n```sh\n## not a heading\n```\n",
         ),
-        options(&["contract", "memory", "status_line"]),
+        options(&["contract", "memory", "status_line", "auto_update"]),
     ]);
     assert_succeeds(&repository.run("build"));
     repository
@@ -107,9 +107,12 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
                         "type": "command",
                         "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
                     }],
-                }],
-                "UserPromptSubmit": [{
-                    "hooks": [memory_hook("TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" ", "prompt")],
+                }, {
+                    "matcher": "startup",
+                    "hooks": [{
+                        "type": "command",
+                        "command": "TIGHTSHIP_AUTO_UPDATE=\"$CLAUDE_PLUGIN_OPTION_AUTO_UPDATE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_MANIFEST=\"${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook marketplace-auto-update",
+                    }],
                 }],
             },
         })
@@ -166,15 +169,10 @@ fn the_hooks_honor_the_options() {
         .expect("the SessionStart groups")
         .iter()
         .take(4)
-        .chain(
-            hooks["hooks"]["UserPromptSubmit"]
-                .as_array()
-                .expect("the UserPromptSubmit groups"),
-        )
         .skip(1)
         .map(|group| group["hooks"][0]["command"].as_str().expect("a command"))
         .collect();
-    assert_eq!(memory_lines.len(), 4);
+    assert_eq!(memory_lines.len(), 3);
     for line in &memory_lines {
         assert_eq!(run(line, &memory_off), "", "{line}");
     }
@@ -184,15 +182,51 @@ fn the_hooks_honor_the_options() {
 }
 
 #[test]
+fn the_marketplace_hook_writes_auto_update_in_the_user_settings() {
+    let repository = built_with_memory_gated();
+    let hooks: serde_json::Value =
+        serde_json::from_str(&read(&repository, "dist/claude-code/hooks/hooks.json"))
+            .expect("valid JSON");
+    let command = hooks["hooks"]["SessionStart"]
+        .as_array()
+        .expect("the SessionStart groups")
+        .last()
+        .and_then(|group| group["hooks"][0]["command"].as_str())
+        .expect("the marketplace hook");
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(command)
+        .env("CLAUDE_PLUGIN_ROOT", repository.path("dist/claude-code"))
+        .env("CLAUDE_CONFIG_DIR", repository.path("claude"))
+        .env("CLAUDE_PLUGIN_OPTION_AUTO_UPDATE", "false")
+        .output()
+        .expect("sh runs");
+
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let settings: serde_json::Value =
+        serde_json::from_str(&read(&repository, "claude/settings.json")).expect("JSON settings");
+    assert_eq!(
+        settings["extraKnownMarketplaces"]["tightship"]["autoUpdate"],
+        serde_json::json!(false)
+    );
+}
+
+#[test]
 fn sections_overflow_into_a_second_part_counted_in_utf16() {
-    let repository = Repository::with(&[contract(
-        "",
-        &format!(
-            "# Working Contract\n\nThe preamble.\n\n## A\n\n{}\n\n## B\n\n{}\n",
-            "a".repeat(6000),
-            "é".repeat(5000)
+    let repository = Repository::with(&[
+        contract(
+            "",
+            &format!(
+                "# Working Contract\n\nThe preamble.\n\n## A\n\n{}\n\n## B\n\n{}\n",
+                "a".repeat(3000),
+                "é".repeat(2500)
+            ),
         ),
-    )]);
+        (
+            "harnesses/claude-code/harness.toml",
+            HARNESS.replace("[contract]\nlimit = 10000\n", "[contract]\nlimit = 4000\n"),
+        ),
+    ]);
 
     assert_succeeds(&repository.run("build"));
     let first = read(&repository, "dist/claude-code/contract/part-1.md");
@@ -200,8 +234,23 @@ fn sections_overflow_into_a_second_part_counted_in_utf16() {
     assert!(first.starts_with("# Working Contract (1/2)\n\nThe preamble.\n\n## A\n"));
     assert!(second.starts_with("# Working Contract (2/2)\n\n## B\n"));
     assert!(!first.contains("## B"));
-    assert!(first.encode_utf16().count() <= 10000);
-    assert!(second.encode_utf16().count() <= 10000);
+    assert!(first.encode_utf16().count() <= 4000);
+    assert!(second.encode_utf16().count() <= 4000);
+}
+
+#[test]
+fn a_contract_past_8000_characters_fails_and_leaves_no_plugin() {
+    let repository = Repository::with(&[contract(
+        "",
+        &format!("# Working Contract\n\n## A\n\n{}\n", "a".repeat(7968)),
+    )]);
+    fs::create_dir_all(repository.path("dist/claude-code")).expect("a previous build");
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: content/contract.md: the contract renders to 8001 characters with every option on; NFR-PERF-03 allows 8000",
+    );
+    assert!(!repository.path("dist/claude-code").exists());
 }
 
 #[test]
@@ -220,6 +269,28 @@ fn a_section_too_long_fails_and_leaves_no_plugin() {
         "error: content/contract.md:5: the section \"Code I write\" renders to 10045 characters with its title; claude-code takes at most 10000 per hook",
     );
     assert!(!repository.path("dist/claude-code").exists());
+}
+
+#[test]
+fn the_compaction_notice_counts_against_the_limit() {
+    let repository = Repository::with(&[
+        contract(
+            "",
+            &format!("# Working Contract\n\n## A\n\n{}\n", "a".repeat(9967)),
+        ),
+        (
+            "harnesses/claude-code/harness.toml",
+            HARNESS.replace(
+                "[contract]\nlimit = 10000\n",
+                "[contract]\nlimit = 10000\ncompaction-notice = \"Reload it.\"\n",
+            ),
+        ),
+    ]);
+
+    assert_fails_with(
+        &repository.run("build"),
+        "error: content/contract.md:3: the section \"A\" renders to 10012 characters with its title; claude-code takes at most 10000 per hook",
+    );
 }
 
 #[test]

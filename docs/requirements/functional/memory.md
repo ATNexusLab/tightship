@@ -13,16 +13,17 @@ handoffs are written.
 > agent begins with them without my asking.
 
 The system shall place in the agent's context, at session start, the pinned notes of the project's scope
-and of `all`, and the project's handoff when one exists.
+and of `all`, the project's handoff when one exists, and the project's notes waiting to move into a
+repository.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | A pinned note or a handoff is useful only if the session sees it before it starts working. |
-| Source | Maintainer, elicitation 2026-10-14; baseline |
+| Rationale | A pinned note or a handoff is useful only if the session sees it before it starts working. A note waiting to move into a repository is a debt that stays in the vault until a session in that project sees it: the maintainer's vault held 41 of them, the oldest from July 2026. |
+| Source | Maintainer, elicitation 2026-10-14; baseline; change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
-| Since | v1.0.0 |
+| Since | v1.0.0, changed in v1.11.0 |
 
 **Acceptance criteria**
 
@@ -32,6 +33,8 @@ and of `all`, and the project's handoff when one exists.
   the agent's context holds the handoff's body.
 - **FR-MEM-01.3** — Given memory is enabled and a note is in another project's scope, when a session
   starts, then the agent's context does not list it.
+- **FR-MEM-01.4** — Given memory is enabled and a note in the project's scope is tagged to move into a
+  repository, when a session starts in that project, then the agent's context lists that note as a debt.
 
 <a id="fr-mem-02"></a>
 
@@ -40,22 +43,21 @@ and of `all`, and the project's handoff when one exists.
 > As an adopter, I want the agent reminded to record what it learned, so that a fact worth keeping is not
 > lost when the session ends.
 
-The system shall place a checkpoint in the agent's context at a fixed prompt interval and right after the
-session's context is compacted.
+The system shall place a checkpoint in the agent's context right after the session's context is compacted.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | An agent busy with a task forgets to write to the vault unless reminded. No harness hook adds text to the context before a compaction, so the checkpoint comes in the context that follows it, as in the baseline. |
-| Source | Maintainer, elicitation 2026-10-14; baseline; change request [#22](https://github.com/ATNexusLab/tightship/issues/22) |
+| Rationale | A compaction drops what the session learned, so the checkpoint comes in the context that follows it: no harness hook adds text to the context before one. A reminder at a prompt interval pushed the agent to write notes nobody asked for, 307 of the 417 notes in the maintainer's vault on 2026-10-20. |
+| Source | Maintainer, elicitation 2026-10-14; baseline; change requests [#22](https://github.com/ATNexusLab/tightship/issues/22) and [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
-| Since | v1.0.0, changed in v1.3.0 |
+| Since | v1.0.0, changed in v1.3.0 and v1.11.0 |
 
 **Acceptance criteria**
 
-- **FR-MEM-02.1** — Given memory is enabled, when the adopter sends the number of prompts the
-  [epic #5 spec](../../specs/memory/keep-the-vault.md) sets as the interval, then the agent receives a checkpoint.
+- **FR-MEM-02.1** — Retired in version 1.11.0: a checkpoint at a prompt interval made the agent write
+  notes that fail the vault's rules ([#118](https://github.com/ATNexusLab/tightship/issues/118)).
 - **FR-MEM-02.2** — Given memory is enabled, when the session's context is compacted, then the context
   that follows the compaction holds a checkpoint.
 
@@ -257,7 +259,7 @@ The system shall run no memory function while memory is disabled.
 
 **Acceptance criteria**
 
-- **FR-MEM-10.1** — Given memory is disabled, when a session starts and the adopter sends prompts, then
+- **FR-MEM-10.1** — Given memory is disabled, when a session starts and its context is compacted, then
   the agent's context receives no memory context and no checkpoint.
 - **FR-MEM-10.2** — Given memory is disabled, when the adopter invokes the handoff command, then the agent
   says memory is off and changes nothing.
@@ -291,3 +293,57 @@ to that remote.
   which notes conflict.
 - **FR-MEM-11.3** — Given a note written locally and a note from the remote have the same id, when the
   adopter syncs, then the local note gets a new id and every link to it follows.
+
+<a id="fr-mem-12"></a>
+
+## FR-MEM-12 — Notes expire
+
+> As an adopter, I want a note that nobody revised in its lifetime removed from the vault, so that the
+> vault keeps only what is still worth reading.
+
+The system shall remove from the vault, at each sync, every note whose lifetime has passed since the note
+was last updated, except pinned notes, notes the user stated, decisions, preferences, and handoffs.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Nothing removes a note unless a person prunes by hand, and pruning by hand did not hold: the maintainer's vault went from 213 notes to 418 in the 19 days after a prune. What the user states and decides stays, and what the agent wrote on its own decays, as the episodic memory of [akitaonrails/ai-memory](https://github.com/akitaonrails/ai-memory) does, with no new field per note. One lifetime for every note that can expire: of the 323 such notes in the maintainer's vault on 2026-10-22, 306 were under 30 days old, so a longer lifetime for one type would keep the noise for months. |
+| Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M4 |
+| Since | v1.11.0, changed in v2.0.0 |
+
+**Acceptance criteria**
+
+- **FR-MEM-12.1** — Given a note whose lifetime has passed since it was last updated, when the adopter
+  syncs, then the vault and its remote no longer hold it, and the vault's git history does.
+- **FR-MEM-12.2** — Given a note past its lifetime that is pinned, stated by the user, a decision,
+  a preference, or a handoff, when the adopter syncs, then the vault still holds it.
+- **FR-MEM-12.3** — Given a note rewritten in place before its lifetime passed, when the adopter syncs
+  after the date the old version would have expired, then the vault still holds it.
+
+<a id="fr-mem-13"></a>
+
+## FR-MEM-13 — The vault's rules follow the plugin
+
+> As an adopter, I want the vault's rules updated with the plugin, so that a change to the rules reaches
+> my vault without my copying it.
+
+The system shall keep one delimited block of the vault's `AGENTS.md` equal to the rules of the vault
+template the installed plugin ships, and leave the text outside the block unchanged.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Creating a vault copies the template once, so the rules of an older vault fall behind: the maintainer's vault still describes a `vault.py` that no longer exists. A delimited block lets the adopter keep rules of their own next to it. |
+| Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M4 |
+| Since | v1.11.0 |
+
+**Acceptance criteria**
+
+- **FR-MEM-13.1** — Given the vault's block is missing or differs from the installed template's rules,
+  when the adopter syncs, then the block holds the template's rules.
+- **FR-MEM-13.2** — Given the vault's `AGENTS.md` holds text outside the block, when the adopter syncs,
+  then that text is unchanged.
