@@ -421,10 +421,10 @@ ask_harnesses() {
       else
         _row="  $_row"
       fi
-      _screen="$_screen│ $_row$NEWLINE"
+      _screen="${_screen}│ $_row$NEWLINE"
     done
-    _screen="$_screen│  $(paint 2 2 "↑/↓ move · space select · a all · enter confirm")$NEWLINE"
-    _screen="$_screen└  $(paint 2 33 "$_notice")$NEWLINE"
+    _screen="${_screen}│  $(paint 2 2 "↑/↓ move · space select · a all · enter confirm")$NEWLINE"
+    _screen="${_screen}└  $(paint 2 33 "$_notice")$NEWLINE"
     printf '%s' "$_screen" >&2
     _drawn=$((_count + 3))
     read_key
@@ -501,7 +501,7 @@ ask_confirm() {
     _screen="$(paint 2 36 "◆")  $_title$NEWLINE"
     _drawn=3
     if [ -n "$_hint" ]; then
-      _screen="$_screen│  $(paint 2 2 "$_hint")$NEWLINE"
+      _screen="${_screen}│  $(paint 2 2 "$_hint")$NEWLINE"
       _drawn=4
     fi
     printf '%s│  %s\n└\n' "$_screen" "$_choice" >&2
