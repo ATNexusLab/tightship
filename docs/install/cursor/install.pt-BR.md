@@ -27,6 +27,38 @@ No Windows no PowerShell:
   -Harness cursor -Yes
 ```
 
+Cada pergunta já começa no padrão, então apertar Enter em todas instala com os padrões. Numa pergunta de sim
+ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Install no resumo:
+
+```text
+┌  tightship v1.1.1
+│
+│  Options
+◇  Load the working contract in every session?
+│  Yes
+│
+◇  Turn on the memory layer?
+│  Yes
+│
+◇  Show tightship's status line?
+│  Yes
+│
+│  Vault
+◇  Where is your vault?
+│  not set
+│
+◇  Summary
+│  Harnesses       Cursor
+│  Contract        on
+│  Memory          on
+│  Vault           not set
+│  Status line     on
+│
+◆  Install with these choices?
+│  ● Install / ○ Cancel
+└
+```
+
 Para rodar sem prompts, passe as opções por flags:
 
 ```sh

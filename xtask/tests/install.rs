@@ -1,14 +1,27 @@
+use std::ffi::OsString;
 use std::fs;
-use std::io::{Cursor, Write};
+use std::io::{Cursor, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
+use std::sync::mpsc;
+use std::time::{Duration, Instant};
 
+use portable_pty::{CommandBuilder, PtySize, native_pty_system};
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, System, ZipWriter};
 
 const RELEASE_TAG: &str = "v1.0.0";
+
+const REMOVED_VARIABLES: [&str; 6] = [
+    "TIGHTSHIP_ROOT",
+    "TIGHTSHIP_DATA",
+    "TIGHTSHIP_SETTINGS",
+    "PLUGIN_ROOT",
+    "PLUGIN_DATA",
+    "AGY_CONFIG_DIR",
+];
 
 const AGENT_VERSION: &str = r#"#!/bin/sh
 if [ "$1" = "--version" ]; then
@@ -195,31 +208,30 @@ cp "$source" "$dest"
         released
     }
 
+    fn environment(&self) -> [(&'static str, OsString); 6] {
+        [
+            ("HOME", self.home_dir.clone().into()),
+            ("USERPROFILE", self.home_dir.clone().into()),
+            ("PATH", self.isolated_path().into()),
+            ("TMPDIR", self.system_temp_dir.clone().into()),
+            ("TEMP", self.system_temp_dir.clone().into()),
+            ("TMP", self.system_temp_dir.clone().into()),
+        ]
+    }
+
     fn command(&self, program: &str, working_dir: &Path) -> Command {
         let mut command = Command::new(program);
         command
             .current_dir(working_dir)
-            .env("HOME", &self.home_dir)
-            .env("USERPROFILE", &self.home_dir)
-            .env("PATH", self.isolated_path())
-            .env("TMPDIR", &self.system_temp_dir)
-            .env("TEMP", &self.system_temp_dir)
-            .env("TMP", &self.system_temp_dir)
+            .envs(self.environment())
             .stdin(Stdio::null());
-        for variable in [
-            "TIGHTSHIP_ROOT",
-            "TIGHTSHIP_DATA",
-            "TIGHTSHIP_SETTINGS",
-            "PLUGIN_ROOT",
-            "PLUGIN_DATA",
-            "AGY_CONFIG_DIR",
-        ] {
+        for variable in REMOVED_VARIABLES {
             command.env_remove(variable);
         }
         command
     }
 
-    fn pwsh(&self, working_dir: &Path, invocation: &str, args: &[&str]) -> Output {
+    fn pwsh_script(&self, invocation: &str, args: &[&str]) -> String {
         let arguments: Vec<String> = args
             .iter()
             .map(|argument| match argument.strip_prefix("--") {
@@ -229,7 +241,7 @@ cp "$source" "$dest"
             })
             .collect();
         let downloads = quoted(&self.downloads_dir.to_string_lossy());
-        let script = format!(
+        format!(
             "function Invoke-RestMethod([string]$Uri, [string]$OutFile) {{
     $key = ($Uri -replace '^https://','') -replace '/','_'
     $source = Join-Path {downloads} $key
@@ -243,11 +255,128 @@ cp "$source" "$dest"
 & {invocation} {}
 exit $LASTEXITCODE",
             arguments.join(" ")
-        );
+        )
+    }
+
+    fn pwsh(&self, working_dir: &Path, invocation: &str, args: &[&str]) -> Output {
         self.command("pwsh", working_dir)
-            .args(["-NoProfile", "-Command", &script])
+            .args([
+                "-NoProfile",
+                "-Command",
+                &self.pwsh_script(invocation, args),
+            ])
             .output()
             .expect("pwsh executes")
+    }
+
+    fn program(&self, name: &str) -> PathBuf {
+        std::env::split_paths(&self.isolated_path())
+            .flat_map(|folder| [folder.join(name), folder.join(format!("{name}.exe"))])
+            .find(|candidate| candidate.is_file())
+            .unwrap_or_else(|| panic!("{name} is on PATH"))
+    }
+
+    fn run_in_terminal(
+        &self,
+        installer: Installer,
+        script: &Path,
+        args: &[&str],
+        answers: &[(&str, &str)],
+    ) -> (String, u32) {
+        let pty = native_pty_system()
+            .openpty(PtySize {
+                rows: 50,
+                cols: 140,
+                pixel_width: 0,
+                pixel_height: 0,
+            })
+            .expect("a pseudo-terminal");
+        let mut command = match installer {
+            Installer::Sh => {
+                let mut command = CommandBuilder::new(self.program("sh"));
+                command.arg(script);
+                command.args(args);
+                command
+            }
+            Installer::Pwsh => {
+                let mut command = CommandBuilder::new(self.program("pwsh"));
+                let invocation = quoted(&script.to_string_lossy());
+                command.args([
+                    "-NoProfile",
+                    "-Command",
+                    &self.pwsh_script(&invocation, args),
+                ]);
+                command
+            }
+        };
+        command.cwd(repo_root());
+        for (name, value) in std::env::vars_os().chain(
+            self.environment()
+                .map(|(name, value)| (OsString::from(name), value)),
+        ) {
+            command.env(name, value);
+        }
+        for variable in REMOVED_VARIABLES {
+            command.env_remove(variable);
+        }
+        let mut child = pty
+            .slave
+            .spawn_command(command)
+            .expect("the installer starts");
+        drop(pty.slave);
+        let mut reader = pty.master.try_clone_reader().expect("a pty reader");
+        let mut writer = pty.master.take_writer().expect("a pty writer");
+        let (sender, receiver) = mpsc::channel();
+        std::thread::spawn(move || {
+            let mut buffer = [0u8; 4096];
+            while let Ok(read @ 1..) = reader.read(&mut buffer) {
+                if sender.send(buffer[..read].to_vec()).is_err() {
+                    break;
+                }
+            }
+        });
+
+        let mut screen = String::new();
+        let mut consumed = 0;
+        let mut answered = 0;
+        let mut cursor_replies = 0;
+        let started = Instant::now();
+        let status = loop {
+            assert!(
+                started.elapsed() < Duration::from_secs(90),
+                "{installer:?}: stuck after {answered} answers:
+{screen}"
+            );
+            if let Ok(chunk) = receiver.recv_timeout(Duration::from_millis(50)) {
+                screen.push_str(&String::from_utf8_lossy(&chunk));
+            }
+            while cursor_replies < screen.matches("\x1b[6n").count() {
+                writer.write_all(b"\x1b[1;1R").expect("a cursor reply");
+                cursor_replies += 1;
+            }
+            if let Some((prompt, keys)) = answers.get(answered)
+                && let Some(position) = screen[consumed..].find(prompt)
+            {
+                consumed += position + prompt.len();
+                std::thread::sleep(Duration::from_millis(150));
+                writer.write_all(keys.as_bytes()).expect("the keys");
+                writer.flush().expect("the keys are sent");
+                answered += 1;
+            }
+            if let Some(status) = child.try_wait().expect("the installer's status") {
+                while let Ok(chunk) = receiver.recv_timeout(Duration::from_millis(300)) {
+                    screen.push_str(&String::from_utf8_lossy(&chunk));
+                }
+                break status;
+            }
+        };
+        assert_eq!(
+            answered,
+            answers.len(),
+            "{installer:?}: exited before every answer:
+{screen}"
+        );
+        (screen, status.exit_code())
     }
 
     fn run(&self, installer: Installer, args: &[&str]) -> Output {
@@ -505,6 +634,12 @@ fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
             String::from_utf8_lossy(&output.stdout)
                 .contains("Installed tightship for Antigravity CLI.")
         );
+        for stream in [&output.stdout, &output.stderr] {
+            assert!(
+                !stream.contains(&0x1b),
+                "{installer:?}: color outside a terminal"
+            );
+        }
         let plugins = env.home_dir.join(".gemini/config/plugins");
         assert!(plugins.join("ponytail").is_dir(), "{installer:?}");
         assert!(plugins.join("i-have-adhd").is_dir(), "{installer:?}");
@@ -962,6 +1097,106 @@ exit 0
             .expect("read the system temp folder")
             .collect();
         assert!(leftovers.is_empty(), "{installer:?}: {leftovers:?}");
+    }
+}
+
+#[test]
+fn enter_on_every_question_installs_the_checked_harnesses_with_the_defaults() {
+    let (antigravity_zip, antigravity_sha256) = release_zip("antigravity-cli");
+    let (cursor_zip, cursor_sha256) = release_zip("cursor");
+    for installer in INSTALLERS {
+        let env = MockEnvironment::new();
+        fs::write(
+            env.downloads_dir.join("tightship-antigravity-cli.zip"),
+            &antigravity_zip,
+        )
+        .expect("the Antigravity CLI download");
+        fs::write(env.downloads_dir.join("tightship-cursor.zip"), &cursor_zip)
+            .expect("the Cursor download");
+        seed_companion_downloads(&env.downloads_dir);
+        env.add_mock_script("agy", AGY_THAT_INSTALLS);
+        env.add_mock_script("agent", AGENT_VERSION);
+        env.add_mock_script(
+            "claude",
+            r#"#!/bin/sh
+if [ "$1" = "--version" ]; then
+    echo "claude 2.1.295"
+    exit 0
+fi
+echo "$@" >> "$HOME/claude-arguments"
+exit 0
+"#,
+        );
+
+        let released = env.released(installer, &[&antigravity_sha256, &cursor_sha256]);
+        let (screen, code) = env.run_in_terminal(
+            installer,
+            &released,
+            &[],
+            &[
+                ("Where should tightship be installed?", "\x1b[B \r"),
+                ("Load the working contract in every session?", "\r"),
+                ("Turn on the memory layer?", "\r"),
+                ("Show tightship's status line?", "\r"),
+                ("Where is your vault?", "\r"),
+                ("Install with these choices?", "\r"),
+            ],
+        );
+
+        assert_eq!(
+            code, 0,
+            "{installer:?}:
+{screen}"
+        );
+        assert!(
+            screen.contains("Harnesses"),
+            "{installer:?}:
+{screen}"
+        );
+        assert!(
+            env.home_dir
+                .join(".gemini/config/plugins/tightship/plugin.json")
+                .is_file(),
+            "{installer:?}:
+{screen}"
+        );
+        assert!(
+            env.home_dir
+                .join(".cursor/plugins/local/tightship/commands/spec.md")
+                .is_file(),
+            "{installer:?}:
+{screen}"
+        );
+        let claude_arguments =
+            fs::read_to_string(env.home_dir.join("claude-arguments")).unwrap_or_default();
+        assert!(
+            !claude_arguments.contains("plugin install"),
+            "{installer:?}: {claude_arguments}"
+        );
+        let toml_text = fs::read_to_string(
+            env.home_dir
+                .join(".gemini/config/plugin_data/tightship/options.toml"),
+        )
+        .expect("read options.toml");
+        let toml_options: toml::Table = toml_text.parse().expect("valid options.toml");
+        for option in ["contract", "memory", "status_line"] {
+            assert_eq!(
+                toml_options[option].as_bool(),
+                Some(true),
+                "{installer:?}: {toml_text}"
+            );
+        }
+        assert!(
+            !toml_options.contains_key("vault_folder"),
+            "{installer:?}: {toml_text}"
+        );
+        let json_text = fs::read_to_string(env.home_dir.join(".cursor/tightship/options.json"))
+            .expect("read options.json");
+        let json_options: serde_json::Value =
+            serde_json::from_str(&json_text).expect("valid options.json");
+        for option in ["contract", "memory", "status_line"] {
+            assert_eq!(json_options[option], true, "{installer:?}: {json_text}");
+        }
     }
 }
 
