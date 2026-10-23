@@ -14,6 +14,7 @@ use crate::diagnostics::{Diagnostic, naming};
 use crate::{Failure, stop_on_errors};
 
 const CLAUDE_CATALOG: &str = "marketplace.json";
+const LATEST: &str = "latest.json";
 
 fn release_catalog_name(harness: &str) -> String {
     if harness == "claude-code" {
@@ -114,6 +115,7 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
     let mut parts = Vec::new();
     let mut catalogs = Vec::new();
     let mut values = vec![("release-tag".to_owned(), tag.to_owned(), true)];
+    let mut assets = serde_json::Map::new();
     for (harness, manifest) in harnesses.iter().zip(&manifests) {
         let archive = format!("{}-{}.zip", harness.plugin.name, harness.name);
         println!("> Packing {archive}");
@@ -161,8 +163,13 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
             catalogs.push(format!("dist/{release_catalog}"));
         }
         parts.push(format!("dist/{archive} ({} files)", files.len()));
+        assets.insert(
+            harness.name.clone(),
+            serde_json::json!({ "archive": archive, "sha256": sha256 }),
+        );
         values.push((format!("{}-sha256", harness.name), sha256, false));
     }
+    write_latest(staging, tag, assets)?;
     write_installers(&dist, staging, &values, tag)?;
 
     let shas: Vec<String> = harnesses
@@ -176,7 +183,7 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
         format!(", {}", catalogs.join(", "))
     };
     Ok(format!(
-        "Packed {}{}, and the installers for {tag}.\n{}",
+        "Packed {}{}, dist/{LATEST}, and the installers for {tag}.\n{}",
         parts.join(", "),
         catalog_summary,
         shas.join("\n")
@@ -205,6 +212,23 @@ fn write_catalog(
     let catalog_path = staging.join(release_name);
     let catalog_text = serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n";
     fs::write(&catalog_path, catalog_text).map_err(naming(&catalog_path))?;
+    Ok(())
+}
+
+fn write_latest(
+    staging: &Path,
+    tag: &str,
+    assets: serde_json::Map<String, serde_json::Value>,
+) -> Result<(), Failure> {
+    println!("> Writing {LATEST}");
+    let latest = serde_json::json!({
+        "version": tag.trim_start_matches('v'),
+        "tag": tag,
+        "assets": assets,
+    });
+    let path = staging.join(LATEST);
+    let text = serde_json::to_string_pretty(&latest).map_err(io::Error::other)? + "\n";
+    fs::write(&path, text).map_err(naming(&path))?;
     Ok(())
 }
 

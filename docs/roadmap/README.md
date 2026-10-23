@@ -98,6 +98,7 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | FR-INS-07 | #8 | M1 |
 | FR-INS-08 | #8 | M1 |
 | FR-INS-09 | #59 | M3 |
+| FR-INS-10 | none: delivered on the `fix/open-issues` branch | M4 |
 | NFR-FLEX-01 | #8 | M1 |
 | NFR-FLEX-02 | #58 | M2 |
 | NFR-FLEX-03 | #59 | M3 |

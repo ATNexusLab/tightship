@@ -7,3 +7,4 @@ link to the one that replaced it.
 | --- | --- | --- |
 | [0001](0001-rust-build-and-tokenized-canonical-content.md) | Rust build and tokenized canonical content | accepted |
 | [0002](0002-tightship-binary-modules-and-dependencies.md) | The tightship binary: modules by domain, a pure core, six dependencies | accepted |
+| [0003](0003-the-plugin-updates-itself-from-github-releases.md) | The plugin updates itself from GitHub Releases | accepted |

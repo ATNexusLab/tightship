@@ -51,7 +51,9 @@ Until M4 (#118) it also came on every 10th prompt, which pushed the agent to wri
 pushes ([FR-MEM-11](../../requirements/functional/memory.md#fr-mem-11)). A note written on two machines with
 the same id is renumbered on the machine that syncs last, and every link to it follows. The binary never
 resolves a conflict: it leaves the rebase where git stopped it and names the next step, and the command `sync`
-has the agent resolve it and sync again. Nothing syncs from a hook, since no hook uses the network.
+has the agent resolve it and sync again. Nothing syncs from a hook: the only network a hook starts is the
+self-update of [ADR 0003](../../decisions/0003-the-plugin-updates-itself-from-github-releases.md), which
+never touches the vault.
 
 Since M4 (#118), after the rebase and before the push, the sync removes each note past its lifetime: a `gotcha`
 or `project` that the user did not state and that is not pinned, 30 days after its `updated`

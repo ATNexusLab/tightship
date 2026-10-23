@@ -66,7 +66,10 @@ status line keeps their keys in order.
 `clap` runs through `try_parse`, never `parse`, since clap exits with 2 on a usage error. `main` turns each
 usage error into the spec's message and exit 1. Front matter is read and written by hand: it is flat
 `key: value` lines, and ADR 0001 already turned down the archived YAML crate. git runs as a process, never
-through `git2` or `gix`, so the binary uses the adopter's own git, credentials, and configuration.
+through `git2` or `gix`, so the binary uses the adopter's own git, credentials, and configuration. So do the
+download, checksum, and archive tools of the self-update, by
+[ADR 0003](0003-the-plugin-updates-itself-from-github-releases.md): `curl`, `sha256sum` or `shasum`, and `unzip`
+on macOS and Linux, and `powershell` on Windows.
 
 **The build is split by command.** `xtask/src/build/` holds the reading, checking, and rendering of the
 plugin, `xtask/src/scan/` holds gitleaks and the vault-note check, and `git.rs` and `diagnostics.rs` stay at

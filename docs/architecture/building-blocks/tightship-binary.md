@@ -40,9 +40,11 @@ a pure core, and the I/O at the edges, and it depends on `clap`, `jiff`, `serde_
 `unicode-width` (M1, #7), and `toml` (M3, #59)
 ([ADR 0002](../../decisions/0002-tightship-binary-modules-and-dependencies.md)).
 
-**It never** connects to any host other than the vault's git remote, and only from `vault sync`, never from a
-hook. It writes only where [security](../concepts/security.md) lists, and never exits with 2, the code with
-which a hook blocks a prompt. A failure never blocks the session ([NFR-REL-01](../../requirements/non-functional/reliability.md#nfr-rel-01)).
+**It never** connects to any host other than the vault's git remote, from `vault sync`, and the GitHub
+Releases of the plugin's repository, from `update`, which a hook starts as a detached process and never waits
+on ([ADR 0003](../../decisions/0003-the-plugin-updates-itself-from-github-releases.md)). It writes only
+where [security](../concepts/security.md) lists, and never exits with 2, the code with which a hook blocks a
+prompt. A failure never blocks the session ([NFR-REL-01](../../requirements/non-functional/reliability.md#nfr-rel-01)).
 
 **To change it safely:** every rule, message, and exit code is in the specs of
 [epic #5](../../specs/memory/keep-the-vault.md), [epic #6](../../specs/handoff/hand-off-the-session.md),

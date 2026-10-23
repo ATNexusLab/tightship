@@ -14,3 +14,4 @@ One folder per epic, one closed spec per feature, written by `/spec` before any 
 | [#8 Release M1](release-m1/README.md) | [Release the Claude Code plugin](release-m1/release-the-plugin.md) | published |
 | [#59 Antigravity CLI plugin](antigravity-cli-plugin/README.md) | [Build, install, and run the Antigravity CLI plugin](antigravity-cli-plugin/antigravity-cli-plugin.md) | published |
 | [#120 Curation](curation/README.md) | [Curate the vault](curation/curate-the-vault.md), [Split the contract into hard lines, conventions, and skills](curation/lean-contract.md) | published |
+| [Auto-update](auto-update/README.md), no epic | [Keep the plugin updated in every harness](auto-update/update-the-plugin.md) | closed |

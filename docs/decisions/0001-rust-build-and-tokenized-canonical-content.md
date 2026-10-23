@@ -117,7 +117,10 @@ hooks run under Git Bash (Antigravity CLI on Windows runs `bin/tightship.cmd` un
 every system when the memory option is on.
 
 **Reach.** The plugin connects to one network host: the git remote of the adopter's vault, when it syncs the
-vault or pulls and pushes a handoff. Outside what the harness owns, it writes in two places only:
+vault or pulls and pushes a handoff. [ADR 0003](0003-the-plugin-updates-itself-from-github-releases.md) adds the
+GitHub Releases of the plugin's own repository, from the update that a session-start hook starts, and the
+plugin's own folder, where that update puts a release. Outside what the harness owns, it writes in two places
+only:
 
 - The adopter's vault.
 - The harness's settings file, for the status line only, after the adopter consents

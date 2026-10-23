@@ -58,6 +58,10 @@ On Windows, run every command in Git Bash.
 | FR-INS-07.1 | Manual: on a configuration with the baseline merged in, follow `migration.md`; `/hooks` shows no `vault.py` hook, and each skill and command appears once | | | |
 | FR-INS-07.2 | Manual: after the same migration, `diff -r` against the backup shows only the files the migration lists, and the vault's `git status` is clean | | | |
 | FR-INS-08.1 | Manual: `docs/install/claude-code/README.md` links install, companions, options, update, uninstall, and migration | | | |
+| FR-INS-10.1 | Manual: after promoting, the previous release installed in Cursor and in Antigravity CLI reaches this one at the second session start, and `claude plugin marketplace list --json` shows `autoUpdate` on for `tightship`. Test: `tightship/tests/update.rs` `a_newer_release_replaces_the_plugin_and_keeps_the_options`. Skipped on the first release with `latest.json` | | | |
+| FR-INS-10.2 | Manual: the session after that update tells the adopter both versions, and the next one does not. Test: `tightship/tests/update.rs` `the_notice_is_printed_once` | | | |
+| FR-INS-10.3 | Test: `tightship/tests/update.rs` `the_option_off_leaves_the_plugin_as_it_is` | | | |
+| FR-INS-10.4 | Test: `tightship/tests/update.rs` `a_mismatched_checksum_changes_nothing_and_is_announced` | | | |
 
 ## Skills, commands, and verifier
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0 — 2026-10-23
+
+A release reached an adopter only through the installer, and a rerun of it left Claude Code on the version it
+had. Cursor keeps a plugin added from a repository at the commit it was added at, and Antigravity CLI updates
+only the plugins of its official catalog. The maintainer requires every release to reach every harness by
+itself, and decided it without a change request issue.
+
+**Added**
+
+- FR-INS-10, The plugin keeps itself updated: while the new `auto_update` option is on, each release is
+  installed without a step from the adopter, and the next session says so.
+
 ## 2.1.0 — 2026-10-22
 
 The unified installer was shipped by [#64](https://github.com/ATNexusLab/tightship/issues/64) with no
