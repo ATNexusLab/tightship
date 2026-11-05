@@ -31,13 +31,13 @@ From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.
   [status line](status-line.md), M1, #7). In the harness's own places, the plugin also writes, in the plugin's
   data folder, `status-line.json` (M1, #7) and
   `options.toml` where the harness has no `userConfig` (M3, #59), `update.json` and `update.lock`
-  (M4, FR-INS-10), plus one `export` line per session in the
+  (M3, FR-INS-10), plus one `export` line per session in the
   session's environment file (M1, #5). The options' state is kept in the harness's user settings or in
   `options.toml` inside the plugin's data folder ([options](options.md), M1, #3; M3, #59). The user settings
   can hold secrets in their `env`, so a rewrite keeps the file's permissions, and the temporary file beside it
-  is readable only by the adopter (M1, #7). A plugin older than M4 also left a `checkpoints/` folder there,
-  which nothing reads since M4 (#118) and which uninstalling removes. The self-update writes the plugin's own
+  is readable only by the adopter (M1, #7). A plugin from before #118 also left a `checkpoints/` folder there,
+  which nothing reads since M3 (#118) and which uninstalling removes. The self-update writes the plugin's own
   folder in Cursor and Antigravity CLI, and in Claude Code the `autoUpdate` of the plugin's entry in
-  `extraKnownMarketplaces` of the user settings (M4, FR-INS-10).
+  `extraKnownMarketplaces` of the user settings (M3, FR-INS-10).
 
 The build writes only to `dist/`.

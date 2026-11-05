@@ -12,7 +12,7 @@ then `cargo xtask build --binaries` packs the four binaries with the generated p
 of the Antigravity CLI and Cursor zips into the `install.sh` and `install.ps1` (M3, #59; #85) that the build
 assembled, and the installers check that `sha256` before installing each zip. It also writes `latest.json`,
 with the version, the tag, and each zip with its `sha256`, which the plugin's self-update reads from the latest
-release (M4, FR-INS-10, [ADR 0003](../../decisions/0003-the-plugin-updates-itself-from-github-releases.md)).
+release (M3, FR-INS-10, [ADR 0003](../../decisions/0003-the-plugin-updates-itself-from-github-releases.md)).
 It publishes the archives, the catalogs, `latest.json`, and the two installers as the latest release.
 The targets and the packing are in [deployment](../deployment.md).
 

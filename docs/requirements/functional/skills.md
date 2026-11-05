@@ -93,7 +93,7 @@ shape, which the adopter may change.
 | Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
-| Milestone | M4 |
+| Milestone | M3 |
 | Since | v2.0.0 |
 
 **Acceptance criteria**
@@ -120,7 +120,7 @@ as a skill in the repository's `.agents/skills/` folder, and make it reachable f
 | Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
-| Milestone | M4 |
+| Milestone | M3 |
 | Since | v2.0.0 |
 
 **Acceptance criteria**

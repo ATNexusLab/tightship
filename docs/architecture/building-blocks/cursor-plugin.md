@@ -14,7 +14,7 @@ maintains (M2, #58).
 `sessionStart` and `beforeSubmitPrompt` hooks that run `${CURSOR_PLUGIN_ROOT}/bin/tightship hook contract-part`
 and print JSON with `additional_context`, the shape of the plugin's `hook-output.json` (M2, #58). Memory
 hooks run the same binary subcommands as in Claude Code, mapped to `sessionStart` and `preCompact`, and
-`beforeSubmitPrompt` carries only the contract since M4 (#118); the `preCompact` checkpoint prints
+`beforeSubmitPrompt` carries only the contract since M3 (#118); the `preCompact` checkpoint prints
 `user_message`, the shape of `checkpoint-output.json` (#78). The last `sessionStart` hook runs
 `tightship hook update`, which announces an update and starts the next check
 ([auto-update spec](../../specs/auto-update/update-the-plugin.md)).

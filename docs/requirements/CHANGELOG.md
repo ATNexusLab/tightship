@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.0.0 — 2026-11-05
+
+Eight requirements carried M4, which BR-01 gives to Codex. They shipped in v1.2.0 without a Codex plugin,
+so the maintainer moved them to M3, the last milestone released, by change request
+[#141](https://github.com/ATNexusLab/tightship/issues/141). The Cursor spec had already settled Cursor's
+part of the open questions, but the SRS still asked about Cursor.
+
+**Changed**
+
+- FR-CTR-06, FR-CTR-07, FR-SKL-04, FR-SKL-05, FR-MEM-12, FR-MEM-13, NFR-PERF-03, and FR-INS-10 move from M4
+  to M3.
+- OQ-04, OQ-05, OQ-06, and OQ-08 ask about Codex only. For Cursor, the
+  [spec of epic #58](../specs/cursor-plugin/ship-for-cursor.md) settles them.
+
+**Removed**
+
+- OQ-07, whether Cursor's command-line agent loads a plugin's always-on text and hooks: the spec of epic #58
+  settles it.
+
 ## 2.2.0 — 2026-10-23
 
 A release reached an adopter only through the installer, and a rerun of it left Claude Code on the version it

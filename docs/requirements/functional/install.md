@@ -241,7 +241,7 @@ adopter, while the `auto_update` option is on, and tell the adopter in the next 
 | Source | Maintainer, 2026-10-23 |
 | Priority | Must |
 | Status | approved |
-| Milestone | M4 |
+| Milestone | M3 |
 | Since | v2.2.0 |
 
 **Acceptance criteria**
