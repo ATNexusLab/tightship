@@ -310,7 +310,7 @@ was last updated, except pinned notes, notes the user stated, decisions, prefere
 | Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
-| Milestone | M4 |
+| Milestone | M3 |
 | Since | v1.11.0, changed in v2.0.0 |
 
 **Acceptance criteria**
@@ -338,7 +338,7 @@ template the installed plugin ships, and leave the text outside the block unchan
 | Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
-| Milestone | M4 |
+| Milestone | M3 |
 | Since | v1.11.0 |
 
 **Acceptance criteria**

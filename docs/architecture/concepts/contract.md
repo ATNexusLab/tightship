@@ -9,7 +9,7 @@ The contract is the always-on text that tells the agent how to work
 ## How it reaches a Claude Code session
 
 Claude Code puts a `SessionStart` hook's output in the context, and caps each hook's text at 10,000
-characters. Until M4 the contract was longer, so the build splits it; since M4 (#118) the build also fails when
+characters. Until M3 (#118) the contract was longer, so the build splits it; since then the build also fails when
 the contract renders past 8,000 characters with every option on
 ([NFR-PERF-03](../../requirements/non-functional/performance.md#nfr-perf-03)), so it is one part plus its memory
 section:

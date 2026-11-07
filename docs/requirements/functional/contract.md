@@ -149,7 +149,7 @@ adopter's decision in the session overrides a convention.
 | Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
-| Milestone | M4 |
+| Milestone | M3 |
 | Since | v2.0.0 |
 
 **Acceptance criteria**
@@ -176,7 +176,7 @@ step of the workflow in the skill or command of that step.
 | Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
-| Milestone | M4 |
+| Milestone | M3 |
 | Since | v2.0.0 |
 
 **Acceptance criteria**
