@@ -30,3 +30,14 @@ because sprint 1 closed early. The iterations stay as they are, since redefining
   OQ-08 for Antigravity CLI, then `/epic`.
 
 Issues #60 and #55 have no epic and need no spec: each is one delivery on its own branch.
+
+## Sprint result — 2026-10-16
+
+Goal reached: Cursor and Antigravity CLI shipped in
+[v1.1.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.1.0), with #60 and #55 in the same release.
+The GitHub Milestones of M2 and M3 are closed. Nothing carries over.
+
+The result was written on 2026-11-06, when sprint 3 was planned. In between, the Project's `Sprint 3`
+iteration ran with no sprint plan: it shipped epic
+[#120](https://github.com/ATNexusLab/tightship/issues/120), the auto-update of FR-INS-10, and the fixes of
+v1.1.1 and [v1.2.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.2.0).

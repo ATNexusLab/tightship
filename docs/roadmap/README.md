@@ -57,10 +57,22 @@ Epic #120 and the auto-update of FR-INS-10 shipped after it, in
 [v1.2.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.2.0), for every harness of M1 to M3.
 FR-INS-10 has no epic: [#128](https://github.com/ATNexusLab/tightship/pull/128) delivered it.
 
+## M4 — Codex
+
+The workflow installs and runs as a native Codex plugin.
+GitHub Milestone: [M4 — Codex](https://github.com/ATNexusLab/tightship/milestone/4).
+
+| Epic | Issue | Covers |
+| --- | --- | --- |
+| Codex plugin | [#142](https://github.com/ATNexusLab/tightship/issues/142) | NFR-FLEX-04 |
+
+One epic carries the whole harness, as in M2 and M3. Its spec settles OQ-04, OQ-05, OQ-06, and OQ-08, and
+waits for the audit of the companion plugins ([#140](https://github.com/ATNexusLab/tightship/issues/140)),
+which answers OQ-05.
+
 ## Requirement coverage
 
-Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned when its turn comes
-([BR-01](../requirements/business-rules.md#br-01)).
+Every approved requirement of M1 to M4 maps to exactly one epic.
 
 | Requirement | Epic | Milestone |
 | --- | --- | --- |
@@ -107,6 +119,7 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | NFR-FLEX-01 | #8 | M1 |
 | NFR-FLEX-02 | #58 | M2 |
 | NFR-FLEX-03 | #59 | M3 |
+| NFR-FLEX-04 | #142 | M4 |
 | NFR-FLEX-05 | #8 | M1 |
 | NFR-FLEX-06 | #1 | M1 |
 | NFR-FLEX-07 | #58 | M2 |
@@ -128,3 +141,5 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 
 - [Sprint 1](sprints/sprint-01.md) — M1, from the canonical source to the release on the three systems
 - [Sprint 2](sprints/sprint-02.md) — Cursor and Antigravity CLI, the vault location with `~`, a status fix
+- [Sprint 3](sprints/sprint-03.md) — the installer in any shell with no step left, a live status line, the
+  companions' audit
