@@ -1,3 +1,10 @@
 {
-  "recommendations": ["hediet.vscode-drawio", "DavidAnson.vscode-markdownlint", "rust-lang.rust-analyzer"]
+  "recommendations": [
+    "rust-lang.rust-analyzer",
+    "DavidAnson.vscode-markdownlint",
+    "tamasfe.even-better-toml",
+    "ms-vscode.powershell",
+    "github.vscode-github-actions",
+    "hediet.vscode-drawio"
+  ]
 }
