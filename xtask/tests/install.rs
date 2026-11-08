@@ -14,13 +14,15 @@ use zip::{CompressionMethod, System, ZipWriter};
 
 const RELEASE_TAG: &str = "v1.0.0";
 
-const REMOVED_VARIABLES: [&str; 6] = [
+const REMOVED_VARIABLES: [&str; 8] = [
     "TIGHTSHIP_ROOT",
     "TIGHTSHIP_DATA",
     "TIGHTSHIP_SETTINGS",
     "PLUGIN_ROOT",
     "PLUGIN_DATA",
     "AGY_CONFIG_DIR",
+    "CLAUDE_CONFIG_DIR",
+    "TIGHTSHIP_STATUS_LINE",
 ];
 
 const AGENT_VERSION: &str = r#"#!/bin/sh
@@ -1073,17 +1075,7 @@ fn existing_options_are_preserved_on_update() {
         seed_companion_downloads(&env.downloads_dir);
         env.add_mock_script("agy", AGY_THAT_INSTALLS);
         env.add_mock_script("agent", AGENT_VERSION);
-        env.add_mock_script(
-            "claude",
-            r#"#!/bin/sh
-if [ "$1" = "--version" ]; then
-    echo "claude 2.1.295"
-    exit 0
-fi
-echo "$@" >> "$HOME/claude-arguments"
-exit 0
-"#,
-        );
+        env.add_mock_script("claude", &claude_that_installs());
 
         let released = env.released(installer, &[&antigravity_sha256, &cursor_sha256]);
         let output = env.run_script(installer, &released, &["--harness", "all", "--yes"]);
@@ -1135,7 +1127,7 @@ fn a_rerun_updates_the_installed_claude_code_plugin_and_keeps_its_options() {
         let env = MockEnvironment::new();
         env.add_mock_script(
             "claude",
-            r#"#!/bin/sh
+            &r#"#!/bin/sh
 if [ "$1" = "--version" ]; then
     echo "claude 2.1.295"
     exit 0
@@ -1143,7 +1135,7 @@ fi
 echo "$@" >> "$HOME/claude-arguments"
 case "$*" in
     "plugin list --json")
-        echo '[{"id": "tightship@tightship", "version": "1.1.1"}]'
+        echo '[{"id": "tightship@tightship", "version": "1.1.1", "installPath": INSTALL_PATH}]'
         ;;
     "plugin configure tightship@tightship --json")
         printf '%s\n' '{"schema": {"contract": {"default": true}}, "inputs": {"contract": "false", "memory": "true", "status_line": "true", "vault_folder": "C:\\Users\\me \"work\""}}'
@@ -1153,7 +1145,8 @@ case "$*" in
         ;;
 esac
 exit 0
-"#,
+"#
+            .replace("INSTALL_PATH", &claude_code_install_path()),
         );
 
         let from_dir = from_dir();
@@ -1194,6 +1187,92 @@ exit 0
                 "vault_folder": r#"C:\Users\me "work""#,
             }),
             "{installer:?}"
+        );
+        assert_claude_code_status_line(installer, &env);
+    }
+}
+
+fn claude_code_install_path() -> String {
+    serde_json::to_string(
+        repo_root()
+            .join("dist/claude-code")
+            .to_str()
+            .expect("valid utf-8 path"),
+    )
+    .expect("a JSON string")
+}
+
+fn claude_that_installs() -> String {
+    r#"#!/bin/sh
+if [ "$1" = "--version" ]; then
+    echo "claude 2.1.295"
+    exit 0
+fi
+echo "$@" >> "$HOME/claude-arguments"
+case "$*" in
+    "plugin list --json")
+        if [ -f "$HOME/claude-installed" ]; then
+            echo '[{"id": "tightship@tightship", "version": "1.2.0", "installPath": INSTALL_PATH}]'
+        else
+            echo '[]'
+        fi
+        ;;
+    "plugin install tightship@tightship"*)
+        touch "$HOME/claude-installed"
+        ;;
+esac
+exit 0
+"#
+    .replace("INSTALL_PATH", &claude_code_install_path())
+}
+
+fn assert_claude_code_status_line(installer: Installer, env: &MockEnvironment) {
+    let settings_text = fs::read_to_string(env.home_dir.join(".claude/settings.json"))
+        .unwrap_or_else(|_| panic!("{installer:?}: Claude Code's settings.json was not written"));
+    let settings: serde_json::Value =
+        serde_json::from_str(&settings_text).expect("valid settings.json");
+    let command = settings["statusLine"]["command"]
+        .as_str()
+        .unwrap_or_default();
+    assert!(
+        command.ends_with(" status-line render"),
+        "{installer:?}: {settings_text}"
+    );
+}
+
+#[test]
+fn a_fresh_claude_code_install_applies_the_status_line_and_creates_the_vault() {
+    for installer in INSTALLERS {
+        let env = MockEnvironment::new();
+        env.add_mock_script("claude", &claude_that_installs());
+
+        let from_dir = from_dir();
+        let output = env.run(
+            installer,
+            &[
+                "--harness",
+                "claude-code",
+                "--from-dir",
+                &from_dir,
+                "--vault-folder",
+                "~/ai-memory",
+                "--init-vault",
+                "true",
+                "--yes",
+            ],
+        );
+
+        assert_exit(installer, &output, 0);
+        let claude_arguments = fs::read_to_string(env.home_dir.join("claude-arguments"))
+            .expect("read claude arguments");
+        assert!(
+            claude_arguments.contains("vault_folder=~/ai-memory"),
+            "{installer:?}: {claude_arguments}"
+        );
+        assert_claude_code_status_line(installer, &env);
+        assert!(
+            env.home_dir.join("ai-memory/AGENTS.md").is_file(),
+            "{installer:?}: the vault was not created"
         );
     }
 }
@@ -1238,6 +1317,7 @@ exit 0
                 ("Show tightship's status line?", "\r"),
                 ("Keep tightship updated automatically?", "\r"),
                 ("Where is your vault?", "\r"),
+                ("does not exist. Create it now?", "\r"),
                 ("Install with these choices?", "\r"),
             ],
         );
@@ -1285,8 +1365,9 @@ exit 0
                 "{installer:?}: {toml_text}"
             );
         }
-        assert!(
-            !toml_options.contains_key("vault_folder"),
+        assert_eq!(
+            toml_options["vault_folder"].as_str(),
+            Some("~/ai-memory"),
             "{installer:?}: {toml_text}"
         );
         let json_text = fs::read_to_string(env.home_dir.join(".cursor/tightship/options.json"))
@@ -1296,6 +1377,15 @@ exit 0
         for option in ["contract", "memory", "status_line", "auto_update"] {
             assert_eq!(json_options[option], true, "{installer:?}: {json_text}");
         }
+        assert_eq!(
+            json_options["vault_folder"], "~/ai-memory",
+            "{installer:?}: {json_text}"
+        );
+        assert!(
+            env.home_dir.join("ai-memory/AGENTS.md").is_file(),
+            "{installer:?}:
+{screen}"
+        );
     }
 }
 
@@ -1478,5 +1568,53 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
         let settings_text =
             fs::read_to_string(env.home_dir.join(".cursor/cli-config.json")).expect("cli-config");
         assert!(settings_text.contains("statusLine"), "{installer:?}");
+    }
+}
+
+#[test]
+fn a_dash_on_the_vault_question_leaves_the_vault_unset() {
+    for installer in INSTALLERS {
+        let env = MockEnvironment::new();
+        seed_companion_downloads(&env.downloads_dir);
+        env.add_mock_script("agent", AGENT_VERSION);
+
+        let from_dir = cursor_from_dir();
+        let (screen, code) = env.run_in_terminal(
+            installer,
+            &installer.built(),
+            &[
+                "--harness",
+                "cursor",
+                "--contract",
+                "true",
+                "--memory",
+                "true",
+                "--status-line",
+                "true",
+                "--auto-update",
+                "true",
+                "--from-dir",
+                &from_dir,
+            ],
+            &[
+                ("Where is your vault?", "-\r"),
+                ("Install with these choices?", "\r"),
+            ],
+        );
+
+        assert_eq!(
+            code, 0,
+            "{installer:?}:
+{screen}"
+        );
+        let options_text = fs::read_to_string(env.home_dir.join(".cursor/tightship/options.json"))
+            .expect("read options.json");
+        let options: serde_json::Value =
+            serde_json::from_str(&options_text).expect("valid options.json");
+        assert!(
+            options.get("vault_folder").is_none(),
+            "{installer:?}: {options_text}"
+        );
+        assert!(!env.home_dir.join("ai-memory").exists(), "{installer:?}");
     }
 }

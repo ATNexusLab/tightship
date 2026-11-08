@@ -69,7 +69,7 @@ install_antigravity_cli() {
   export TIGHTSHIP_DATA="$ANTIGRAVITY_CLI_DATA"
   step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
-  if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
+  if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ] && [ ! -d "$expanded_vault" ]; then
     step "Creating the vault at $expanded_vault" "$plugin_target/bin/tightship" vault init "$expanded_vault"
   fi
   installed_in "{{install:label}}" "$plugin_target"

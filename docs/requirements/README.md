@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 3.0.0 · **Date:** 2026-11-05 · [Changelog](CHANGELOG.md)
+**Version:** 3.0.1 · **Date:** 2026-11-08 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 

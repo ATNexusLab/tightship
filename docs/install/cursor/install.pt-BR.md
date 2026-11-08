@@ -27,7 +27,8 @@ No Windows no PowerShell:
   -Harness cursor -Yes
 ```
 
-Cada pergunta já começa no padrão, então apertar Enter em todas instala com os padrões. Numa pergunta de sim
+Cada pergunta já começa no padrão, então apertar Enter em todas instala com os padrões, inclusive o
+vault em `~/ai-memory`; um `-` na pergunta do vault o deixa para depois. Numa pergunta de sim
 ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Install no resumo:
 
 ```text
@@ -48,13 +49,16 @@ ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Inst
 │
 │  Vault
 ◇  Where is your vault?
-│  not set
+│  ~/ai-memory
+│
+◇  ~/ai-memory does not exist. Create it now?
+│  Yes
 │
 ◇  Summary
 │  Harnesses       Cursor
 │  Contract        on
 │  Memory          on
-│  Vault           not set
+│  Vault           ~/ai-memory, created now
 │  Status line     on
 │  Auto-update     on
 │

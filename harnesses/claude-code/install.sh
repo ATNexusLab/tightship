@@ -21,6 +21,11 @@ configure_claude_code() {
   printf '{%s}\n' "$_values" | claude plugin configure tightship@tightship --values-stdin
 }
 
+claude_code_root() {
+  claude plugin list --json 2>/dev/null | tr -d '\n' | tr '{' '\n' | grep '"tightship@tightship"' \
+    | sed -nE 's/.*"installPath"[[:space:]]*:[[:space:]]*"((\\.|[^"\\])*)".*/\1/p' | head -n1 | sed -E 's/\\(.)/\1/g'
+}
+
 install_claude_code() {
   {{install:companions}}
 
@@ -41,6 +46,20 @@ install_claude_code() {
       set -- "$@" --config "vault_folder=$VAULT_FOLDER"
     fi
     step "Installing tightship for {{install:label}}" claude plugin install tightship@tightship "$@"
+  fi
+
+  _root=$(claude_code_root)
+  [ -n "$_root" ] || fail "claude plugin list does not show where tightship@tightship is installed"
+  _config="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+  mkdir -p "$_config/plugins/data/tightship-tightship"
+  export TIGHTSHIP_STATUS_LINE="$STATUS_LINE"
+  export TIGHTSHIP_SETTINGS="$_config/settings.json"
+  export TIGHTSHIP_DATA="$_config/plugins/data/tightship-tightship"
+  export TIGHTSHIP_ROOT="$_root"
+  step "Applying the status line option" sh "$_root/bin/tightship" hook status-line
+
+  if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ] && [ ! -d "$expanded_vault" ]; then
+    step "Creating the vault at $expanded_vault" sh "$_root/bin/tightship" vault init "$expanded_vault"
   fi
   installed_in "{{install:label}}" "tightship@tightship, listed by claude plugin list"
 }

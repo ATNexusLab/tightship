@@ -287,6 +287,7 @@ function Read-Text([string]$title, [string]$hint, [string]$default) {
     Write-Prompt "$(Paint $colorErr $PSStyle.Foreground.Cyan "◆")  $title`n│  $(Paint $colorErr $PSStyle.Dim $hint)`n│  "
     $reply = [Console]::ReadLine()
     $value = if ([string]::IsNullOrWhiteSpace($reply)) { $default } else { $reply.Trim() }
+    if ($value -eq "-") { $value = "" }
     Clear-Lines 3
     Write-Answered $title $(if ($value) { $value } else { "not set" })
     return $value
@@ -443,7 +444,7 @@ if ($VaultFolder) {
     if ($existingVaultFolder) {
         $finalVaultFolder = Read-Text "Where is your vault?" "Enter keeps $existingVaultFolder." $existingVaultFolder
     } else {
-        $finalVaultFolder = Read-Text "Where is your vault?" "A folder such as ~/ai-memory. Enter leaves it for later." ""
+        $finalVaultFolder = Read-Text "Where is your vault?" "Enter takes ~/ai-memory; - leaves it for later." "~/ai-memory"
     }
 }
 

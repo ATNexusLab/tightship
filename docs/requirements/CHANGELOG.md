@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.0.1 — 2026-11-08
+
+On a clean Windows machine, pressing Enter through the v1.2.0 installer turned memory on with no vault, and
+Claude Code had no status line until the first new session. Both left the adopter a step, which FR-INS-09
+rules out. Fixed by issue [#132](https://github.com/ATNexusLab/tightship/issues/132).
+
+**Added**
+
+- FR-INS-09.2: Enter on the vault question takes `~/ai-memory`.
+- FR-INS-09.3: the status line is in every installed harness's settings when the installer finishes.
+
 ## 3.0.0 — 2026-11-05
 
 Eight requirements carried M4, which BR-01 gives to Codex. They shipped in v1.2.0 without a Codex plugin,

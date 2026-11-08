@@ -99,7 +99,7 @@ auto_update = $finalAutoUpdate
     $env:TIGHTSHIP_DATA = $antigravityCliData
     Invoke-Step "Applying the status line option" { Invoke-AntigravityCliTightship hook status-line }
 
-    if ($finalInitVault -and $finalVaultFolder) {
+    if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path $expandedVault)) {
         Invoke-Step "Creating the vault at $expandedVault" { Invoke-AntigravityCliTightship vault init $expandedVault }
     }
     $installedIn["{{install:label}}"] = [System.IO.Path]::GetFullPath($antigravityCliPlugin)

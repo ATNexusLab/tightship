@@ -116,7 +116,7 @@ install_cursor() {
   export TIGHTSHIP_ROOT="$plugin_target"
   step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
-  if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ]; then
+  if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ] && [ ! -d "$expanded_vault" ]; then
     step "Creating the vault at $expanded_vault" "$plugin_target/bin/tightship" vault init "$expanded_vault"
   fi
   installed_in "{{install:label}}" "$plugin_target"
