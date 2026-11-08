@@ -23,6 +23,13 @@ On Windows in PowerShell:
   -Harness claude-code
 ```
 
+From `cmd`:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "& ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) -Harness claude-code"
+```
+
 Without `--harness`, the first question lists every CLI it found, so one run can install Cursor and
 Antigravity CLI as well.
 

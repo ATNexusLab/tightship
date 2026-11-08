@@ -625,6 +625,23 @@ fn release_zip(harness: &str) -> (Vec<u8>, String) {
 }
 
 #[test]
+fn installers_print_ascii_only() {
+    for name in ["install.sh", "install.ps1"] {
+        let text = fs::read_to_string(repo_root().join("installer").join(name)).expect(name);
+        for (line, content) in text.lines().enumerate() {
+            if let Some(column) = content.find(|character: char| !character.is_ascii()) {
+                panic!(
+                    "installer/{name}:{}:{}: a character outside ASCII reads garbled in a console \
+                     outside UTF-8",
+                    line + 1,
+                    column + 1
+                );
+            }
+        }
+    }
+}
+
+#[test]
 fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
     for installer in INSTALLERS {
         let env = MockEnvironment::new();

@@ -62,10 +62,17 @@ Run the installer for Claude Code (2.1.295+), Cursor (3.25.6+, `agent` 2026.10.1
 curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | sh
 ```
 
-On Windows in PowerShell:
+On Windows in PowerShell (5.1 or 7):
 
 ```powershell
 irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
+```
+
+From `cmd`:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex"
 ```
 
 The installer detects your CLIs, asks where to install and which options to turn on, and writes nothing

@@ -1,6 +1,7 @@
 # Release checklist
 
-One row per acceptance criterion of every functional requirement of M1, the macOS signature, and
+One row per acceptance criterion of every functional requirement of M1, the macOS signature, the installer
+in every supported shell, and
 [NFR-FLEX-02.1](../requirements/non-functional/flexibility.md#nfr-flex-02) Scenario 6 for Cursor's
 command-line agent. Run it on macOS, Linux, and Windows for every release, and write ✅ or ❌ with the date
 in each system's column. `develop` is released into `main` only when every row passes on all three
@@ -138,3 +139,25 @@ On Windows, run every command in Git Bash.
 | Check | How it is checked | macOS | Linux | Windows |
 | --- | --- | --- | --- | --- |
 | Signature | With `memory` on, a session starts with no Gatekeeper prompt and no kill, and `codesign -dv` on the installed `bin/macos/tightship` reports an ad-hoc signature | | n/a | n/a |
+
+## Installer shells
+
+Run the interactive install of `README.md` for that shell, against the release built from `develop`. A row
+passes when the install finishes, the frame, the questions, and the summary read with no garbled character,
+and the arrows, space, and Enter move, check, and confirm the first question. Run each row once more with
+`NO_COLOR=1`: the same screens, with no color.
+
+| Shell | Where it runs | macOS | Linux | Windows |
+| --- | --- | --- | --- | --- |
+| Windows PowerShell 5.1 | The default console host | n/a | n/a | |
+| Windows PowerShell 5.1 | Windows Terminal | n/a | n/a | |
+| PowerShell 7 | The default console host | n/a | n/a | |
+| PowerShell 7 | Windows Terminal | n/a | n/a | |
+| `cmd` | The default console host | n/a | n/a | |
+| `cmd` | Windows Terminal | n/a | n/a | |
+| bash | A UTF-8 locale | | | n/a |
+| bash | `LANG=C` | | | n/a |
+| zsh | A UTF-8 locale | | | n/a |
+| zsh | `LANG=C` | | | n/a |
+| `sh` | A UTF-8 locale | | | n/a |
+| `sh` | `LANG=C` | | | n/a |

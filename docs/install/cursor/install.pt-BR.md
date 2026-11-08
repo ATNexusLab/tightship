@@ -27,44 +27,51 @@ No Windows no PowerShell:
   -Harness cursor -Yes
 ```
 
+No `cmd`:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "& ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) -Harness cursor -Yes"
+```
+
 Cada pergunta já começa no padrão, então apertar Enter em todas instala com os padrões, inclusive o
 vault em `~/ai-memory`; um `-` na pergunta do vault o deixa para depois. Numa pergunta de sim
 ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Install no resumo:
 
 ```text
-┌  tightship v1.2.0
-│
-│  Options
-◇  Load the working contract in every session?
-│  Yes
-│
-◇  Turn on the memory layer?
-│  Yes
-│
-◇  Show tightship's status line?
-│  Yes
-│
-◇  Keep tightship updated automatically?
-│  Yes
-│
-│  Vault
-◇  Where is your vault?
-│  ~/ai-memory
-│
-◇  ~/ai-memory does not exist. Create it now?
-│  Yes
-│
-◇  Summary
-│  Harnesses       Cursor
-│  Contract        on
-│  Memory          on
-│  Vault           ~/ai-memory, created now
-│  Status line     on
-│  Auto-update     on
-│
-◆  Install with these choices?
-│  ● Install / ○ Cancel
-└
++  tightship v1.2.0
+|
+|  Options
+*  Load the working contract in every session?
+|  Yes
+|
+*  Turn on the memory layer?
+|  Yes
+|
+*  Show tightship's status line?
+|  Yes
+|
+*  Keep tightship updated automatically?
+|  Yes
+|
+|  Vault
+*  Where is your vault?
+|  ~/ai-memory
+|
+*  ~/ai-memory does not exist. Create it now?
+|  Yes
+|
+*  Summary
+|  Harnesses       Cursor
+|  Contract        on
+|  Memory          on
+|  Vault           ~/ai-memory, created now
+|  Status line     on
+|  Auto-update     on
+|
+?  Install with these choices?
+|  (*) Install / ( ) Cancel
++
 ```
 
 Para rodar sem prompts, passe as opções por flags:

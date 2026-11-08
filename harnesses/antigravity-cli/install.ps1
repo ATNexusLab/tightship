@@ -94,12 +94,12 @@ auto_update = $finalAutoUpdate
         $escapedVaultFolder = $finalVaultFolder.Replace('\', '\\').Replace('"', '\"')
         $tomlContent += "`nvault_folder = `"$escapedVaultFolder`""
     }
-    Set-Content -Path (Join-Path $antigravityCliData "options.toml") -Value ($tomlContent + "`n") -Encoding utf8
+    [System.IO.File]::WriteAllText((Join-Path $antigravityCliData "options.toml"), ($tomlContent + "`n"), [System.Text.UTF8Encoding]::new($false))
 
     $env:TIGHTSHIP_DATA = $antigravityCliData
     Invoke-Step "Applying the status line option" { Invoke-AntigravityCliTightship hook status-line }
 
-    if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path $expandedVault)) {
+    if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path -LiteralPath $expandedVault -ErrorAction Ignore)) {
         Invoke-Step "Creating the vault at $expandedVault" { Invoke-AntigravityCliTightship vault init $expandedVault }
     }
     $installedIn["{{install:label}}"] = [System.IO.Path]::GetFullPath($antigravityCliPlugin)
