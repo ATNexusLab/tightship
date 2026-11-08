@@ -29,7 +29,7 @@ From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.
 - **Disk:** the adopter's vault, and the `statusLine` key of the harness's user settings, while the adopter
   has the status line option on ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02),
   [status line](status-line.md), M1, #7). In the harness's own places, the plugin also writes, in the plugin's
-  data folder, `status-line.json` (M1, #7) and
+  data folder, `status-line.json` (M1, #7), `rate-limits.json` (#133), and
   `options.toml` where the harness has no `userConfig` (M3, #59), `update.json` and `update.lock`
   (M3, FR-INS-10), plus one `export` line per session in the
   session's environment file (M1, #5). The options' state is kept in the harness's user settings or in

@@ -31,17 +31,7 @@ fn render_with_prefix(
     columns: Option<&str>,
     prefix: Option<&str>,
 ) -> Output {
-    let file = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/status")
-        .join(format!("{fixture}.json"));
-    let input = fs::read_to_string(file).expect("the fixture").replace(
-        "/home/adopter/tightship",
-        &sandbox
-            .path("tightship")
-            .display()
-            .to_string()
-            .replace('\\', "\\\\"),
-    );
+    let input = read_fixture(sandbox, fixture);
     let mut command = sandbox.tightship(&["status-line", "render"]);
     command.env("TZ", "UTC");
     match columns {
@@ -53,6 +43,41 @@ fn render_with_prefix(
         None => command.env_remove("TIGHTSHIP_MODEL_PREFIX"),
     };
     with_stdin(&mut command, &input)
+}
+
+fn read_fixture(sandbox: &Sandbox, fixture: &str) -> String {
+    let file = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/status")
+        .join(format!("{fixture}.json"));
+    fs::read_to_string(file).expect("the fixture").replace(
+        "/home/adopter/tightship",
+        &sandbox
+            .path("tightship")
+            .display()
+            .to_string()
+            .replace('\\', "\\\\"),
+    )
+}
+
+fn render_remembering(sandbox: &Sandbox, fixture_name: &str) -> Output {
+    let mut command = sandbox.tightship(&["status-line", "render"]);
+    command
+        .env("TZ", "UTC")
+        .env_remove("COLUMNS")
+        .env("TIGHTSHIP_DATA", sandbox.path("data"));
+    with_stdin(&mut command, &read_fixture(sandbox, fixture_name))
+}
+
+fn now() -> i64 {
+    let elapsed = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("a clock after 1970");
+    i64::try_from(elapsed.as_secs()).expect("seconds that fit")
+}
+
+fn cache(sandbox: &Sandbox) -> serde_json::Value {
+    let text = fs::read_to_string(sandbox.path("data/rate-limits.json")).expect("the cache");
+    serde_json::from_str(&text).expect("a JSON cache")
 }
 
 fn plain(output: &Output) -> String {
@@ -122,6 +147,10 @@ fn a_narrow_terminal_drops_by_priority() {
     let plain = plain(&output);
     let rows: Vec<&str> = plain.lines().collect();
     assert_eq!(rows[0], "tightship · feat/7-status-line · Opus 5.5");
+    assert_eq!(
+        rows[1],
+        "ctx █░░░░░ 11% 109k/1M · 5h ░░░░░░ 4% · 7d ████░░ 66%"
+    );
     assert!(rows.iter().all(|row| row.width() <= 56), "{plain}");
 }
 
@@ -162,6 +191,71 @@ fn no_field_prints_nothing_and_no_columns_prints_whole_rows() {
 }
 
 #[test]
+fn a_window_missing_from_the_input_shows_its_last_reading() {
+    let sandbox = Sandbox::new();
+    let reset = now() + 3600;
+    let seven_day = json!({ "used_percentage": 66, "resets_at": reset });
+    sandbox.write(
+        "data/rate-limits.json",
+        &json!({ "seven_day": seven_day }).to_string(),
+    );
+
+    let output = render_remembering(&sandbox, "five-hour-only");
+
+    assert_succeeds(&output);
+    assert!(
+        plain(&output).contains("5h ░░░░░░ 4% 17:50 · 7d ████░░ 66%"),
+        "{}",
+        plain(&output)
+    );
+    assert_eq!(
+        cache(&sandbox),
+        json!({
+            "five_hour": { "used_percentage": 4, "resets_at": 1792086600 },
+            "seven_day": seven_day,
+        })
+    );
+}
+
+#[test]
+fn a_reading_past_its_reset_is_forgotten() {
+    let sandbox = Sandbox::new();
+    sandbox.write(
+        "data/rate-limits.json",
+        &json!({ "seven_day": { "used_percentage": 66, "resets_at": now() - 60 } }).to_string(),
+    );
+
+    let output = render_remembering(&sandbox, "five-hour-only");
+
+    assert_succeeds(&output);
+    assert!(!plain(&output).contains("7d"), "{}", plain(&output));
+    assert_eq!(
+        cache(&sandbox),
+        json!({ "five_hour": { "used_percentage": 4, "resets_at": 1792086600 } })
+    );
+}
+
+#[test]
+fn a_damaged_cache_is_replaced_and_a_missing_data_folder_is_not_created() {
+    let sandbox = Sandbox::new();
+    sandbox.write("data/rate-limits.json", "nope");
+
+    let damaged = render_remembering(&sandbox, "request");
+    fs::remove_dir_all(sandbox.path("data")).expect("the data folder");
+    let without_folder = render_remembering(&sandbox, "request");
+
+    assert_succeeds(&damaged);
+    assert!(
+        plain(&damaged).contains("7d ████░░ 66%"),
+        "{}",
+        plain(&damaged)
+    );
+    assert_succeeds(&without_folder);
+    assert_eq!(plain(&without_folder), plain(&damaged));
+    assert!(!sandbox.path("data").exists());
+}
+
+#[test]
 fn input_that_is_not_json_fails() {
     let sandbox = Sandbox::new();
 
@@ -180,7 +274,8 @@ fn status_line(sandbox: &Sandbox, arguments: &[&str], root: &str, option: Option
     command
         .env("TIGHTSHIP_SETTINGS", sandbox.path("config/settings.json"))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", root);
+        .env("TIGHTSHIP_ROOT", root)
+        .env("TIGHTSHIP_STATUS_LINE_REFRESH", "60");
     if let Some(option) = option {
         command.env("TIGHTSHIP_STATUS_LINE", option);
     }
@@ -217,7 +312,9 @@ fn the_session_start_activates_the_status_line() {
     assert_eq!(stdout_of(&output), "");
     assert_eq!(
         settings(&sandbox),
-        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
+        pretty(
+            &json!({ "statusLine": { "type": "command", "command": OURS, "refreshInterval": 60 } })
+        )
     );
     assert_eq!(
         record(&sandbox),
@@ -239,7 +336,7 @@ fn on_saves_the_previous_status_line_and_off_puts_it_back_in_place() {
         settings(&sandbox),
         pretty(&json!({
             "model": "opus",
-            "statusLine": { "type": "command", "command": OURS },
+            "statusLine": { "type": "command", "command": OURS, "refreshInterval": 60 },
             "theme": "dark",
         }))
     );
@@ -262,7 +359,9 @@ fn on_saves_the_previous_status_line_and_off_puts_it_back_in_place() {
 #[test]
 fn on_with_no_status_line_before_removes_the_key_when_off() {
     let sandbox = Sandbox::new();
-    let ours = pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }));
+    let ours = pretty(
+        &json!({ "statusLine": { "type": "command", "command": OURS, "refreshInterval": 60 } }),
+    );
 
     assert_succeeds(&hook(&sandbox, None));
     assert_eq!(settings(&sandbox), ours);
@@ -275,7 +374,7 @@ fn on_with_no_status_line_before_removes_the_key_when_off() {
     sandbox.write(
         "config/settings.json",
         &pretty(&json!({
-            "statusLine": { "type": "command", "command": OURS },
+            "statusLine": { "type": "command", "command": OURS, "refreshInterval": 60 },
             "model": "opus",
             "theme": "dark",
         })),
@@ -299,7 +398,9 @@ fn an_old_declined_record_does_not_keep_the_status_line_off() {
     assert_eq!(stdout_of(&on), "");
     assert_eq!(
         settings(&sandbox),
-        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
+        pretty(
+            &json!({ "statusLine": { "type": "command", "command": OURS, "refreshInterval": 60 } })
+        )
     );
     assert_eq!(
         record(&sandbox),
@@ -326,8 +427,25 @@ fn the_status_line_follows_the_plugin_folder() {
             "type": "command",
             "command": "sh \"/plugins/0.2.0/bin/tightship\" status-line render",
             "padding": 1,
+            "refreshInterval": 60,
         } }))
     );
+}
+
+#[test]
+fn a_refresh_interval_set_by_hand_is_kept() {
+    let sandbox = Sandbox::new();
+    let paced = pretty(&json!({ "statusLine": {
+        "type": "command",
+        "command": OURS,
+        "refreshInterval": 5,
+    } }));
+    sandbox.write("config/settings.json", &paced);
+    sandbox.write("data/status-line.json", r#"{"state": "on"}"#);
+
+    assert_succeeds(&hook(&sandbox, None));
+
+    assert_eq!(settings(&sandbox), paced);
 }
 
 #[test]
@@ -348,7 +466,9 @@ fn a_status_line_replaced_by_hand_is_saved_and_replaced() {
     assert_eq!(stdout_of(&output), "");
     assert_eq!(
         settings(&sandbox),
-        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
+        pretty(
+            &json!({ "statusLine": { "type": "command", "command": OURS, "refreshInterval": 60 } })
+        )
     );
     assert_eq!(
         record(&sandbox),
@@ -375,7 +495,9 @@ fn a_linked_settings_file_stays_a_link_with_its_permissions() {
     );
     assert_eq!(
         fs::read_to_string(&target).expect("the target"),
-        pretty(&json!({ "statusLine": { "type": "command", "command": OURS } }))
+        pretty(
+            &json!({ "statusLine": { "type": "command", "command": OURS, "refreshInterval": 60 } })
+        )
     );
     let mode = fs::metadata(&target)
         .expect("the target")
@@ -482,14 +604,15 @@ fn scenario_9_status_line_enables_renders_and_restores_via_options_toml() {
     hook_cmd
         .env("TIGHTSHIP_SETTINGS", sandbox.path("config/settings.json"))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", ROOT);
+        .env("TIGHTSHIP_ROOT", ROOT)
+        .env("TIGHTSHIP_STATUS_LINE_REFRESH", "60");
     let output = run(&mut hook_cmd);
     assert_succeeds(&output);
 
     assert_eq!(
         settings(&sandbox),
         pretty(&json!({
-            "statusLine": { "type": "command", "command": OURS },
+            "statusLine": { "type": "command", "command": OURS, "refreshInterval": 60 },
             "theme": "dark"
         }))
     );
@@ -512,7 +635,8 @@ fn scenario_9_status_line_enables_renders_and_restores_via_options_toml() {
     restore_cmd
         .env("TIGHTSHIP_SETTINGS", sandbox.path("config/settings.json"))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", ROOT);
+        .env("TIGHTSHIP_ROOT", ROOT)
+        .env("TIGHTSHIP_STATUS_LINE_REFRESH", "60");
     let output = run(&mut restore_cmd);
     assert_succeeds(&output);
 
@@ -548,7 +672,9 @@ fn the_status_line_recognizes_its_launchers_and_binaries_on_every_platform() {
         assert_succeeds(&hook(&sandbox, None));
         assert_eq!(
             settings(&sandbox),
-            pretty(&json!({ "statusLine": { "type": "command", "command": OURS } })),
+            pretty(
+                &json!({ "statusLine": { "type": "command", "command": OURS, "refreshInterval": 60 } })
+            ),
             "{command}"
         );
         assert_eq!(
