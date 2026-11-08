@@ -22,7 +22,8 @@ No Windows usando o PowerShell:
 irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
 ```
 
-Cada pergunta já começa no padrão, então apertar Enter em todas instala com os padrões. A primeira lista os
+Cada pergunta já começa no padrão, então apertar Enter em todas instala com os padrões, inclusive o
+vault em `~/ai-memory`; um `-` na pergunta do vault o deixa para depois. A primeira lista os
 CLIs encontrados, já marcados: mova com ↑ e ↓, marque ou desmarque com espaço e confirme com Enter. Numa
 pergunta de sim ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Install no resumo:
 
@@ -48,13 +49,16 @@ pergunta de sim ou não, uma seta troca a resposta. Nada é gravado antes de voc
 │
 │  Vault
 ◇  Where is your vault?
-│  not set
+│  ~/ai-memory
+│
+◇  ~/ai-memory does not exist. Create it now?
+│  Yes
 │
 ◇  Summary
 │  Harnesses       Antigravity CLI
 │  Contract        on
 │  Memory          on
-│  Vault           not set
+│  Vault           ~/ai-memory, created now
 │  Status line     on
 │  Auto-update     on
 │

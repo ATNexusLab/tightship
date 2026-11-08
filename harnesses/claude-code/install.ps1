@@ -15,6 +15,14 @@ function Read-ClaudeCodeOptions {
     $options
 }
 
+function Invoke-ClaudeCodeTightship([string]$root) {
+    if ($env:OS -eq "Windows_NT") {
+        & (Join-Path $root "bin\tightship.cmd") @args
+    } else {
+        & sh (Join-Path $root "bin/tightship") @args
+    }
+}
+
 function Install-ClaudeCode {
     {{install:companions}}
     if ($FromDir) {
@@ -50,6 +58,24 @@ function Install-ClaudeCode {
             $claudeArgs += @("--config", "vault_folder=$finalVaultFolder")
         }
         Invoke-Step "Installing tightship for {{install:label}}" { & claude @claudeArgs }
+    }
+
+    $installed = try { & claude plugin list --json 2>$null | Out-String | ConvertFrom-Json } catch { @() }
+    $claudeRoot = @($installed | Where-Object { $_.id -eq "tightship@tightship" })[0].installPath
+    if (-not $claudeRoot) {
+        throw "error: claude plugin list does not show where tightship@tightship is installed"
+    }
+    $claudeConfig = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $userProfile ".claude" }
+    $claudeData = Join-Path $claudeConfig "plugins/data/tightship-tightship"
+    New-Item -ItemType Directory -Force -Path $claudeData | Out-Null
+    $env:TIGHTSHIP_STATUS_LINE = $finalStatusLine
+    $env:TIGHTSHIP_SETTINGS = Join-Path $claudeConfig "settings.json"
+    $env:TIGHTSHIP_DATA = $claudeData
+    $env:TIGHTSHIP_ROOT = $claudeRoot
+    Invoke-Step "Applying the status line option" { Invoke-ClaudeCodeTightship $claudeRoot hook status-line }
+
+    if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path $expandedVault)) {
+        Invoke-Step "Creating the vault at $expandedVault" { Invoke-ClaudeCodeTightship $claudeRoot vault init $expandedVault }
     }
     $installedIn["{{install:label}}"] = "tightship@tightship, listed by claude plugin list"
 }

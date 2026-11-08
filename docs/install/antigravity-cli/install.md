@@ -21,7 +21,8 @@ On Windows in PowerShell:
 irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
 ```
 
-Every question starts on its default, so pressing Enter through all of them installs with the defaults. The
+Every question starts on its default, so pressing Enter through all of them installs with the defaults,
+the vault at `~/ai-memory` included; a `-` on the vault question leaves it for later. The
 first question lists the CLIs it found, already checked: move with ↑ and ↓, check or uncheck one with space,
 and confirm with Enter. On a yes or no question, an arrow switches the answer. Nothing is written until you
 choose Install on the summary:
@@ -48,13 +49,16 @@ choose Install on the summary:
 │
 │  Vault
 ◇  Where is your vault?
-│  not set
+│  ~/ai-memory
+│
+◇  ~/ai-memory does not exist. Create it now?
+│  Yes
 │
 ◇  Summary
 │  Harnesses       Antigravity CLI
 │  Contract        on
 │  Memory          on
-│  Vault           not set
+│  Vault           ~/ai-memory, created now
 │  Status line     on
 │  Auto-update     on
 │

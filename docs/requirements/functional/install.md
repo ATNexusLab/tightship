@@ -224,6 +224,11 @@ install command.
 - **FR-INS-09.1** — Given a machine with a supported harness and without the workflow, when the adopter
   runs `install.sh` or `install.ps1` and picks that harness, then the plugin is installed in it with no
   step left to the adopter.
+- **FR-INS-09.2** — Given the memory layer on and no vault from an earlier install, when the adopter presses
+  Enter on the vault question, then the vault is `~/ai-memory`, and the installer offers to create it when the
+  folder does not exist.
+- **FR-INS-09.3** — Given the status line option on, when the installer finishes, then every harness it
+  installed has tightship's status line in its settings, before the adopter opens a session.
 
 <a id="fr-ins-10"></a>
 

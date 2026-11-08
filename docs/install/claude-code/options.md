@@ -48,8 +48,9 @@ when you ask about memory.
 
 ## The status line
 
-With `status_line` on, tightship shows its status line under the prompt from the next session start. It
-replaces the `statusLine` of your user settings, whatever it held, and keeps yours aside.
+With `status_line` on, tightship shows its status line under the prompt as soon as the installer finishes,
+and each session start keeps it current. It replaces the `statusLine` of your user settings, whatever it
+held, and keeps yours aside.
 
 Turning `status_line` off puts your previous status line back at the next session start, or removes the key
 when you had none.

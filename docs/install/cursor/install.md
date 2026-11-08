@@ -27,7 +27,8 @@ On Windows in PowerShell:
   -Harness cursor -Yes
 ```
 
-Every question starts on its default, so pressing Enter through all of them installs with the defaults. On a
+Every question starts on its default, so pressing Enter through all of them installs with the defaults,
+the vault at `~/ai-memory` included; a `-` on the vault question leaves it for later. On a
 yes or no question, an arrow switches the answer. Nothing is written until you choose Install on the summary:
 
 ```text
@@ -48,13 +49,16 @@ yes or no question, an arrow switches the answer. Nothing is written until you c
 │
 │  Vault
 ◇  Where is your vault?
-│  not set
+│  ~/ai-memory
+│
+◇  ~/ai-memory does not exist. Create it now?
+│  Yes
 │
 ◇  Summary
 │  Harnesses       Cursor
 │  Contract        on
 │  Memory          on
-│  Vault           not set
+│  Vault           ~/ai-memory, created now
 │  Status line     on
 │  Auto-update     on
 │

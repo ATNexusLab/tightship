@@ -123,7 +123,7 @@ function Install-Cursor {
     $env:TIGHTSHIP_ROOT = $cursorPlugin
     Invoke-Step "Applying the status line option" { Invoke-CursorTightship hook status-line }
 
-    if ($finalInitVault -and $finalVaultFolder) {
+    if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path $expandedVault)) {
         Invoke-Step "Creating the vault at $expandedVault" { Invoke-CursorTightship vault init $expandedVault }
     }
     $installedIn["{{install:label}}"] = [System.IO.Path]::GetFullPath($cursorPlugin)

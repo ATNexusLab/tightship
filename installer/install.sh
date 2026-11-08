@@ -539,6 +539,9 @@ ask_text() {
     read -r _line || true
   fi
   ANSWER="${_line:-$3}"
+  if [ "$ANSWER" = "-" ]; then
+    ANSWER=""
+  fi
   erase 3
   answered "$_title" "${ANSWER:-not set}"
 }
@@ -689,7 +692,7 @@ else
   if [ -n "$existing_vault_folder" ]; then
     ask_text "Where is your vault?" "Enter keeps $existing_vault_folder." "$existing_vault_folder"
   else
-    ask_text "Where is your vault?" "A folder such as ~/ai-memory. Enter leaves it for later." ""
+    ask_text "Where is your vault?" "Enter takes ~/ai-memory; - leaves it for later." "~/ai-memory"
   fi
   VAULT_FOLDER="$ANSWER"
 fi
