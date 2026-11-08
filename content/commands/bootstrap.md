@@ -145,9 +145,14 @@ Only what serves this project, in its stack, for anyone who clones it — never 
 (theme, font, keymap).
 
 - `extensions.json` — `recommendations` for the stack's language server, formatter, and linter, plus
-  `hediet.vscode-drawio` for the diagrams.
-- `settings.json` — only what the repo's own gates need in the editor: format on save with the repo's
-  formatter, the linter the gates run, file associations the stack needs.
+  `hediet.vscode-drawio` for the diagrams. Each one works on open, with the setup below or with none.
+- `settings.json` — for each recommended extension, what it needs to run what the gates run: the formatter
+  the gates check as the language's default formatter, on save; the linter with the command and arguments
+  the gates pass, like `rust-analyzer.check.command` set to `clippy`; the path to a gate's config file when
+  the extension does not find it alone; the file associations the stack needs. The extension reads the
+  gate's config file and never gets a copy of its rules. An extension that finds that file alone, or that
+  no gate covers, gets no entry. An extension's own config file is written only when it needs one and no
+  gate has one.
 - `tasks.json` — only commands with no script behind them in the repo's task runner, like `docs: serve`
   for the local docs site, which runs the command `{{skill:project-docs}}` gives. A task that only wraps an
   existing script does not go in.
