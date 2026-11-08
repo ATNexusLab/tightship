@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use jiff::Timestamp;
 use jiff::tz::TimeZone;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use unicode_width::UnicodeWidthStr;
 
 use crate::failure::Failure;
@@ -13,6 +13,7 @@ use crate::failure::Failure;
 struct Segment {
     plain: String,
     colored: String,
+    short: Option<(String, String)>,
     priority: u8,
 }
 
@@ -21,6 +22,7 @@ impl Segment {
         Self {
             colored: paint(code, &text),
             plain: text,
+            short: None,
             priority,
         }
     }
@@ -40,6 +42,7 @@ pub fn run() -> Result<(), Failure> {
     {
         *model = short.to_owned();
     }
+    remember_from_cache(&mut session);
     let branch =
         text(&session, "/workspace/current_dir").and_then(|folder| read_branch(Path::new(folder)));
     let width = env::var("COLUMNS")
@@ -51,6 +54,81 @@ pub fn run() -> Result<(), Failure> {
         println!("{row}");
     }
     Ok(())
+}
+
+const CACHE: &str = "rate-limits.json";
+const WINDOWS: [&str; 2] = ["five_hour", "seven_day"];
+
+fn remember_from_cache(session: &mut Value) {
+    let Some(folder) = env::var_os("TIGHTSHIP_DATA")
+        .filter(|folder| !folder.is_empty())
+        .map(PathBuf::from)
+        .filter(|folder| folder.is_dir())
+    else {
+        return;
+    };
+    let file = folder.join(CACHE);
+    let cached: Map<String, Value> = fs::read_to_string(&file)
+        .ok()
+        .and_then(|text| serde_json::from_str(&text).ok())
+        .unwrap_or_default();
+    let remembered = remember_windows(session, cached.clone(), Timestamp::now().as_second());
+    if remembered != cached {
+        let _ = write_cache(&file, &remembered);
+    }
+}
+
+fn remember_windows(
+    session: &mut Value,
+    mut cached: Map<String, Value>,
+    now: i64,
+) -> Map<String, Value> {
+    let mut remembered = Map::new();
+    for window in WINDOWS {
+        let pointer = format!("/rate_limits/{window}");
+        if let Some(reading) = session
+            .pointer(&pointer)
+            .filter(|reading| reading.is_object())
+        {
+            remembered.insert(window.to_owned(), reading.clone());
+            continue;
+        }
+        let Some(reading) = cached.remove(window) else {
+            continue;
+        };
+        let current = reading
+            .get("resets_at")
+            .and_then(Value::as_i64)
+            .is_some_and(|reset| reset > now);
+        if !current || !reading.get("used_percentage").is_some_and(Value::is_number) {
+            continue;
+        }
+        let limits = session
+            .as_object_mut()
+            .map(|fields| {
+                fields
+                    .entry("rate_limits")
+                    .or_insert_with(|| Value::Object(Map::new()))
+            })
+            .and_then(Value::as_object_mut);
+        if let Some(limits) = limits {
+            limits.insert(window.to_owned(), reading.clone());
+            remembered.insert(window.to_owned(), reading);
+        }
+    }
+    remembered
+}
+
+fn write_cache(file: &Path, remembered: &Map<String, Value>) -> io::Result<()> {
+    let text = serde_json::to_string(remembered).map_err(io::Error::other)?;
+    let mut temporary = file.as_os_str().to_owned();
+    temporary.push(format!(".{}.tmp", std::process::id()));
+    let temporary = PathBuf::from(temporary);
+    let written = fs::write(&temporary, text).and_then(|()| fs::rename(&temporary, file));
+    if written.is_err() {
+        let _ = fs::remove_file(&temporary);
+    }
+    written
 }
 
 fn read_branch(folder: &Path) -> Option<String> {
@@ -94,7 +172,21 @@ fn fit(mut row: Vec<Segment>, width: Option<usize>) -> Vec<Segment> {
     let Some(width) = width else {
         return row;
     };
-    while row.len() > 1 && row_width(&row) > width {
+    while row_width(&row) > width {
+        let shortest = row
+            .iter_mut()
+            .filter(|segment| segment.short.is_some())
+            .max_by_key(|segment| segment.priority);
+        if let Some(segment) = shortest
+            && let Some((plain, colored)) = segment.short.take()
+        {
+            segment.plain = plain;
+            segment.colored = colored;
+            continue;
+        }
+        if row.len() < 2 {
+            break;
+        }
         let Some(least_important) = (0..row.len()).max_by_key(|index| row[*index].priority) else {
             break;
         };
@@ -167,7 +259,10 @@ fn usage_row(session: &Value) -> Vec<Segment> {
             (Some(input), Some(size)) => format!("{}/{}", compact(input), compact(size)),
             _ => String::new(),
         };
-        row.push(gauge("ctx", percentage, tokens, 3));
+        row.push(Segment {
+            short: None,
+            ..gauge("ctx", percentage, tokens, 3)
+        });
     }
     if let Some(percentage) = number(session, "/rate_limits/five_hour/used_percentage") {
         let reset = reset(session, "/rate_limits/five_hour/resets_at", "%H:%M");
@@ -199,6 +294,7 @@ fn gauge(label: &str, percentage: f64, detail: String, priority: u8) -> Segment 
     Segment {
         colored: format!("{} {}", paint(code, &reading), paint("2", &detail)),
         plain: format!("{reading} {detail}"),
+        short: Some((reading.clone(), paint(code, &reading))),
         priority,
     }
 }

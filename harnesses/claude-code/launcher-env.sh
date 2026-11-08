@@ -1,1 +1,3 @@
 export TIGHTSHIP_MODEL_PREFIX="${TIGHTSHIP_MODEL_PREFIX:-Claude }"
+export TIGHTSHIP_DATA="${TIGHTSHIP_DATA:-$(dirname "$0")/../../../../../data/tightship-tightship}"
+export TIGHTSHIP_STATUS_LINE_REFRESH="${TIGHTSHIP_STATUS_LINE_REFRESH:-60}"

@@ -42,6 +42,7 @@ impl Sandbox {
             .env_remove("TIGHTSHIP_ENV_FILE")
             .env_remove("TIGHTSHIP_DATA")
             .env_remove("TIGHTSHIP_STATUS_LINE")
+            .env_remove("TIGHTSHIP_STATUS_LINE_REFRESH")
             .env_remove("TIGHTSHIP_SETTINGS")
             .env_remove("TIGHTSHIP_ROOT")
             .env_remove("TIGHTSHIP_MANIFEST")
