@@ -49,7 +49,7 @@ function Write-CursorOptions {
         $table["vault_folder"] = $finalVaultFolder
     }
     $json = ($table | ConvertTo-Json -Depth 3) + "`n"
-    Set-Content -Path (Join-Path $cursorData "options.json") -Value $json -Encoding utf8
+    [System.IO.File]::WriteAllText((Join-Path $cursorData "options.json"), $json, [System.Text.UTF8Encoding]::new($false))
 }
 
 function Install-CursorCompanion([string]$name, [string]$repository) {
@@ -123,7 +123,7 @@ function Install-Cursor {
     $env:TIGHTSHIP_ROOT = $cursorPlugin
     Invoke-Step "Applying the status line option" { Invoke-CursorTightship hook status-line }
 
-    if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path $expandedVault)) {
+    if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path -LiteralPath $expandedVault -ErrorAction Ignore)) {
         Invoke-Step "Creating the vault at $expandedVault" { Invoke-CursorTightship vault init $expandedVault }
     }
     $installedIn["{{install:label}}"] = [System.IO.Path]::GetFullPath($cursorPlugin)

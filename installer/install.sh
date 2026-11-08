@@ -47,7 +47,7 @@ color_enabled() {
 }
 
 fail() {
-  printf '%s\n' "$(paint 2 31 "✖ error: $1")" >&2
+  printf '%s\n' "$(paint 2 31 "x error: $1")" >&2
   if [ -n "${2:-}" ]; then
     printf '%s\n' "$(paint 2 2 "  hint: $2")" >&2
   fi
@@ -135,14 +135,14 @@ run_step() {
   shift
   _log="$WORK_DIR/step.log"
   if [ -t 1 ]; then
-    printf '%s  %s' "$(paint 1 36 "◒")" "$_description"
+    printf '%s  %s' "$(paint 1 36 "-")" "$_description"
   fi
   if "$@" >"$_log" 2>&1; then
     _status=0
-    _mark=$(paint 1 32 "✔")
+    _mark=$(paint 1 32 "ok")
   else
     _status=1
-    _mark=$(paint 1 31 "✖")
+    _mark=$(paint 1 31 "x")
   fi
   if [ -t 1 ]; then
     printf '\r\033[K'
@@ -377,11 +377,11 @@ erase() {
 }
 
 answered() {
-  printf '%s  %s\n%s  %s\n%s\n' "$(paint 2 32 "◇")" "$1" "│" "$(paint 2 2 "$2")" "│" >&2
+  printf '%s  %s\n%s  %s\n%s\n' "$(paint 2 32 "*")" "$1" "|" "$(paint 2 2 "$2")" "|" >&2
 }
 
 section() {
-  printf '%s\n%s  %s\n' "│" "│" "$(paint 2 '1;2' "$1")" >&2
+  printf '%s\n%s  %s\n' "|" "|" "$(paint 2 '1;2' "$1")" >&2
 }
 
 ask_harnesses() {
@@ -397,18 +397,18 @@ ask_harnesses() {
   raw_mode
   while :; do
     erase "$_drawn"
-    _screen="$(paint 2 36 "◆")  $_title$NEWLINE"
+    _screen="$(paint 2 36 "?")  $_title$NEWLINE"
     _index=0
     for _harness in $HARNESSES; do
       _index=$((_index + 1))
       _label=$(harness_field "$_harness" label)
       if ! contains "$detected" "$_harness"; then
-        _row=$(paint 2 2 "◻ $_label  not found")
+        _row=$(paint 2 2 "[ ] $_label  not found")
       else
         if contains "$_checked" "$_harness"; then
-          _box=$(paint 2 32 "◼")
+          _box=$(paint 2 32 "[x]")
         else
-          _box=$(paint 2 2 "◻")
+          _box=$(paint 2 2 "[ ]")
         fi
         if [ "$_index" -eq "$_cursor" ]; then
           _row="$_box $(paint 2 '1;36' "$_label")"
@@ -417,14 +417,14 @@ ask_harnesses() {
         fi
       fi
       if [ "$_index" -eq "$_cursor" ]; then
-        _row="$(paint 2 36 "›") $_row"
+        _row="$(paint 2 36 ">") $_row"
       else
         _row="  $_row"
       fi
-      _screen="${_screen}│ $_row$NEWLINE"
+      _screen="${_screen}| $_row$NEWLINE"
     done
-    _screen="${_screen}│  $(paint 2 2 "↑/↓ move · space select · a all · enter confirm")$NEWLINE"
-    _screen="${_screen}└  $(paint 2 33 "$_notice")$NEWLINE"
+    _screen="${_screen}|  $(paint 2 2 "up/down move - space select - a all - enter confirm")$NEWLINE"
+    _screen="${_screen}+  $(paint 2 33 "$_notice")$NEWLINE"
     printf '%s' "$_screen" >&2
     _drawn=$((_count + 3))
     read_key
@@ -494,17 +494,17 @@ ask_confirm() {
   while :; do
     erase "$_drawn"
     if [ "$ANSWER" = "true" ]; then
-      _choice="$(paint 2 32 "●") $_yes $(paint 2 2 "/ ○ $_no")"
+      _choice="$(paint 2 32 "(*)") $_yes $(paint 2 2 "/ ( ) $_no")"
     else
-      _choice="$(paint 2 2 "○ $_yes /") $(paint 2 32 "●") $_no"
+      _choice="$(paint 2 2 "( ) $_yes /") $(paint 2 32 "(*)") $_no"
     fi
-    _screen="$(paint 2 36 "◆")  $_title$NEWLINE"
+    _screen="$(paint 2 36 "?")  $_title$NEWLINE"
     _drawn=3
     if [ -n "$_hint" ]; then
-      _screen="${_screen}│  $(paint 2 2 "$_hint")$NEWLINE"
+      _screen="${_screen}|  $(paint 2 2 "$_hint")$NEWLINE"
       _drawn=4
     fi
-    printf '%s│  %s\n└\n' "$_screen" "$_choice" >&2
+    printf '%s|  %s\n+\n' "$_screen" "$_choice" >&2
     read_key
     case "$KEY" in
       up|down|left|right|space|h|j|k|l)
@@ -531,7 +531,7 @@ ask_confirm() {
 ask_text() {
   _title="$1"
   _hint="$2"
-  printf '%s  %s\n%s  %s\n%s  ' "$(paint 2 36 "◆")" "$_title" "│" "$(paint 2 2 "$_hint")" "│" >&2
+  printf '%s  %s\n%s  %s\n%s  ' "$(paint 2 36 "?")" "$_title" "|" "$(paint 2 2 "$_hint")" "|" >&2
   _line=""
   if [ "$TTY_FD" = "3" ]; then
     read -r _line <&3 || true
@@ -557,13 +557,13 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
-trap 'printf "\n%s\n" "└  Cancelled." >&2; exit 130' INT TERM
+trap 'printf "\n%s\n" "+  Cancelled." >&2; exit 130' INT TERM
 
 if [ -n "$TTY_FD" ]; then
   STTY_SAVED=$(tty_stty -g)
 fi
 
-printf '%s  %s\n' "┌" "$(paint 1 '1;36' "tightship ${RELEASE_TAG:-dev}")"
+printf '%s  %s\n' "+" "$(paint 1 '1;36' "tightship ${RELEASE_TAG:-dev}")"
 
 detected=""
 for harness in $HARNESSES; do
@@ -716,7 +716,7 @@ if [ -n "$expanded_vault" ] && [ ! -d "$expanded_vault" ]; then
 fi
 
 summary_row() {
-  printf '%s  %s %s\n' "│" "$(paint 1 2 "$(printf '%-15s' "$1")")" "$2"
+  printf '%s  %s %s\n' "|" "$(paint 1 2 "$(printf '%-15s' "$1")")" "$2"
 }
 
 on_off() {
@@ -732,7 +732,7 @@ if [ "$INIT_VAULT" = "true" ]; then
   vault_summary="$vault_summary, created now"
 fi
 
-printf '%s\n%s  %s\n' "│" "$(paint 1 32 "◇")" "Summary"
+printf '%s\n%s  %s\n' "|" "$(paint 1 32 "*")" "Summary"
 summary_row "Harnesses" "$(labels_of $SELECTED)"
 if [ -n "$SKIPPED" ]; then
   summary_row "Skipped" "$(labels_of $SKIPPED), not installed"
@@ -742,12 +742,12 @@ summary_row "Memory" "$(on_off "$MEMORY")"
 summary_row "Vault" "$vault_summary"
 summary_row "Status line" "$(on_off "$STATUS_LINE")"
 summary_row "Auto-update" "$(on_off "$AUTO_UPDATE")"
-printf '%s\n' "│"
+printf '%s\n' "|"
 
 if [ "$YES" -eq 0 ]; then
   ask_confirm "Install with these choices?" "" "true" "Install" "Cancel"
   if [ "$ANSWER" != "true" ]; then
-    printf '%s  %s\n' "└" "Cancelled; nothing was written."
+    printf '%s  %s\n' "+" "Cancelled; nothing was written."
     exit 0
   fi
 fi
@@ -758,8 +758,8 @@ for harness in $SELECTED; do
   "install_$(harness_field "$harness" id)"
 done
 
-printf '%s\n%s  %s\n' "│" "$(paint 1 32 "◇")" "Installed in"
+printf '%s\n%s  %s\n' "|" "$(paint 1 32 "*")" "Installed in"
 printf '%s' "$INSTALLED_IN" | while IFS='|' read -r label location; do
   summary_row "$label" "$location"
 done
-printf '%s\n%s  %s\n' "│" "└" "$(paint 1 32 "Installed tightship for $(labels_of $SELECTED).")"
+printf '%s\n%s  %s\n' "|" "+" "$(paint 1 32 "Installed tightship for $(labels_of $SELECTED).")"

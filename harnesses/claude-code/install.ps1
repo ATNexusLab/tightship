@@ -74,7 +74,7 @@ function Install-ClaudeCode {
     $env:TIGHTSHIP_ROOT = $claudeRoot
     Invoke-Step "Applying the status line option" { Invoke-ClaudeCodeTightship $claudeRoot hook status-line }
 
-    if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path $expandedVault)) {
+    if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path -LiteralPath $expandedVault -ErrorAction Ignore)) {
         Invoke-Step "Creating the vault at $expandedVault" { Invoke-ClaudeCodeTightship $claudeRoot vault init $expandedVault }
     }
     $installedIn["{{install:label}}"] = "tightship@tightship, listed by claude plugin list"

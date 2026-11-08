@@ -32,15 +32,25 @@ foreach ($variable in "TIGHTSHIP_DATA", "TIGHTSHIP_SETTINGS", "TIGHTSHIP_ROOT") 
 }
 $callerEncoding = [Console]::OutputEncoding
 $workDir = Join-Path ([System.IO.Path]::GetTempPath()) ("tightship-" + [System.Guid]::NewGuid().ToString())
-$colorOut = -not $env:NO_COLOR -and $env:TERM -ne "dumb" -and -not [Console]::IsOutputRedirected
-$colorErr = -not $env:NO_COLOR -and $env:TERM -ne "dumb" -and -not [Console]::IsErrorRedirected
+$colorOut = -not $env:NO_COLOR -and $env:TERM -ne "dumb" -and -not [Console]::IsOutputRedirected -and $Host.UI.SupportsVirtualTerminal
+$colorErr = -not $env:NO_COLOR -and $env:TERM -ne "dumb" -and -not [Console]::IsErrorRedirected -and $Host.UI.SupportsVirtualTerminal
+$esc = [char]27
+$ansi = @{
+    Reset = "$esc[0m"
+    Bold = "$esc[1m"
+    Dim = "$esc[2m"
+    Red = "$esc[31m"
+    Green = "$esc[32m"
+    Yellow = "$esc[33m"
+    Cyan = "$esc[36m"
+}
 $interactive = $false
 
 function Paint([bool]$enabled, [string]$style, [string]$text) {
     if (-not $enabled) {
         return $text
     }
-    return "$style$text$($PSStyle.Reset)"
+    return "$style$text$($ansi.Reset)"
 }
 
 try {
@@ -114,7 +124,7 @@ function ConvertTo-Bool([string]$source, [string]$value) {
 function Invoke-Step([string]$description, [scriptblock]$command) {
     $live = -not [Console]::IsOutputRedirected
     if ($live) {
-        Write-Host -NoNewline "$(Paint $colorOut $PSStyle.Foreground.Cyan "◒")  $description"
+        Write-Host -NoNewline "$(Paint $colorOut $ansi.Cyan "-")  $description"
     }
     $global:LASTEXITCODE = 0
     $output = ""
@@ -125,9 +135,9 @@ function Invoke-Step([string]$description, [scriptblock]$command) {
         $failure = $_
     }
     $failed = $failure -or $LASTEXITCODE -ne 0
-    $mark = if ($failed) { Paint $colorOut $PSStyle.Foreground.Red "✖" } else { Paint $colorOut $PSStyle.Foreground.Green "✔" }
+    $mark = if ($failed) { Paint $colorOut $ansi.Red "x" } else { Paint $colorOut $ansi.Green "ok" }
     if ($live) {
-        Write-Host -NoNewline "`r`e[K"
+        Write-Host -NoNewline "`r$esc[K"
     }
     Write-Host "$mark  $description"
     if (-not $failed) {
@@ -170,16 +180,16 @@ function Write-Prompt([string]$text) {
 
 function Clear-Lines([int]$count) {
     if ($count -gt 0) {
-        Write-Prompt "`r`e[$($count)A`e[J"
+        Write-Prompt "`r$esc[$($count)A$esc[J"
     }
 }
 
 function Write-Answered([string]$title, [string]$value) {
-    Write-Prompt "$(Paint $colorErr $PSStyle.Foreground.Green "◇")  $title`n│  $(Paint $colorErr $PSStyle.Dim $value)`n│`n"
+    Write-Prompt "$(Paint $colorErr $ansi.Green "*")  $title`n|  $(Paint $colorErr $ansi.Dim $value)`n|`n"
 }
 
 function Write-Section([string]$title) {
-    Write-Prompt "│`n│  $(Paint $colorErr "$($PSStyle.Bold)$($PSStyle.Dim)" $title)`n"
+    Write-Prompt "|`n|  $(Paint $colorErr "$($ansi.Bold)$($ansi.Dim)" $title)`n"
 }
 
 function Read-Harnesses([string[]]$names, [string[]]$detected) {
@@ -188,27 +198,27 @@ function Read-Harnesses([string[]]$names, [string[]]$detected) {
     $cursor = 0
     $notice = ""
     $drawn = 0
-    Write-Prompt "`e[?25l"
+    Write-Prompt "$esc[?25l"
     try {
         while ($true) {
             Clear-Lines $drawn
-            $screen = "$(Paint $colorErr $PSStyle.Foreground.Cyan "◆")  $title`n"
+            $screen = "$(Paint $colorErr $ansi.Cyan "?")  $title`n"
             for ($index = 0; $index -lt $names.Count; $index++) {
                 $name = $names[$index]
                 $label = $Harnesses[$name].Label
                 $active = $index -eq $cursor
                 if ($name -notin $detected) {
-                    $row = Paint $colorErr $PSStyle.Dim "◻ $label  not found"
+                    $row = Paint $colorErr $ansi.Dim "[ ] $label  not found"
                 } else {
-                    $box = if ($checked.Contains($name)) { Paint $colorErr $PSStyle.Foreground.Green "◼" } else { Paint $colorErr $PSStyle.Dim "◻" }
-                    $text = if ($active) { Paint $colorErr "$($PSStyle.Bold)$($PSStyle.Foreground.Cyan)" $label } else { $label }
+                    $box = if ($checked.Contains($name)) { Paint $colorErr $ansi.Green "[x]" } else { Paint $colorErr $ansi.Dim "[ ]" }
+                    $text = if ($active) { Paint $colorErr "$($ansi.Bold)$($ansi.Cyan)" $label } else { $label }
                     $row = "$box $text"
                 }
-                $pointer = if ($active) { Paint $colorErr $PSStyle.Foreground.Cyan "›" } else { " " }
-                $screen += "│ $pointer $row`n"
+                $pointer = if ($active) { Paint $colorErr $ansi.Cyan ">" } else { " " }
+                $screen += "| $pointer $row`n"
             }
-            $screen += "│  $(Paint $colorErr $PSStyle.Dim "↑/↓ move · space select · a all · enter confirm")`n"
-            $screen += "└  $(Paint $colorErr $PSStyle.Foreground.Yellow $notice)`n"
+            $screen += "|  $(Paint $colorErr $ansi.Dim "up/down move - space select - a all - enter confirm")`n"
+            $screen += "+  $(Paint $colorErr $ansi.Yellow $notice)`n"
             Write-Prompt $screen
             $drawn = $names.Count + 3
             $notice = ""
@@ -244,29 +254,29 @@ function Read-Harnesses([string[]]$names, [string[]]$detected) {
             }
         }
     } finally {
-        Write-Prompt "`e[?25h"
+        Write-Prompt "$esc[?25h"
     }
 }
 
 function Read-Confirm([string]$title, [string]$hint, [string]$default, [string]$yesLabel = "Yes", [string]$noLabel = "No") {
     $answer = $default -ne "false"
     $drawn = 0
-    Write-Prompt "`e[?25l"
+    Write-Prompt "$esc[?25l"
     try {
         while ($true) {
             Clear-Lines $drawn
             $choice = if ($answer) {
-                "$(Paint $colorErr $PSStyle.Foreground.Green "●") $yesLabel $(Paint $colorErr $PSStyle.Dim "/ ○ $noLabel")"
+                "$(Paint $colorErr $ansi.Green "(*)") $yesLabel $(Paint $colorErr $ansi.Dim "/ ( ) $noLabel")"
             } else {
-                "$(Paint $colorErr $PSStyle.Dim "○ $yesLabel /") $(Paint $colorErr $PSStyle.Foreground.Green "●") $noLabel"
+                "$(Paint $colorErr $ansi.Dim "( ) $yesLabel /") $(Paint $colorErr $ansi.Green "(*)") $noLabel"
             }
-            $screen = "$(Paint $colorErr $PSStyle.Foreground.Cyan "◆")  $title`n"
+            $screen = "$(Paint $colorErr $ansi.Cyan "?")  $title`n"
             $drawn = 3
             if ($hint) {
-                $screen += "│  $(Paint $colorErr $PSStyle.Dim $hint)`n"
+                $screen += "|  $(Paint $colorErr $ansi.Dim $hint)`n"
                 $drawn = 4
             }
-            Write-Prompt "$screen│  $choice`n└`n"
+            Write-Prompt "$screen|  $choice`n+`n"
             switch (Read-Key) {
                 { $_ -in "up", "down", "left", "right", "space", "h", "j", "k", "l" } { $answer = -not $answer }
                 "y" { $answer = $true }
@@ -279,12 +289,12 @@ function Read-Confirm([string]$title, [string]$hint, [string]$default, [string]$
             }
         }
     } finally {
-        Write-Prompt "`e[?25h"
+        Write-Prompt "$esc[?25h"
     }
 }
 
 function Read-Text([string]$title, [string]$hint, [string]$default) {
-    Write-Prompt "$(Paint $colorErr $PSStyle.Foreground.Cyan "◆")  $title`n│  $(Paint $colorErr $PSStyle.Dim $hint)`n│  "
+    Write-Prompt "$(Paint $colorErr $ansi.Cyan "?")  $title`n|  $(Paint $colorErr $ansi.Dim $hint)`n|  "
     $reply = [Console]::ReadLine()
     $value = if ([string]::IsNullOrWhiteSpace($reply)) { $default } else { $reply.Trim() }
     if ($value -eq "-") { $value = "" }
@@ -337,7 +347,7 @@ function Join-Labels([string[]]$names) {
 $installedIn = [ordered]@{}
 
 {{fragments}}
-Write-Host "┌  $(Paint $colorOut "$($PSStyle.Bold)$($PSStyle.Foreground.Cyan)" "tightship $(if ($ReleaseTag) { $ReleaseTag } else { "dev" })")"
+Write-Host "+  $(Paint $colorOut "$($ansi.Bold)$($ansi.Cyan)" "tightship $(if ($ReleaseTag) { $ReleaseTag } else { "dev" })")"
 
 $names = @($Harnesses.Keys)
 $detected = @($names | Where-Object { Get-Command $Harnesses[$_].Command -ErrorAction SilentlyContinue })
@@ -458,7 +468,7 @@ if ($finalVaultFolder) {
     }
 }
 
-if ($expandedVault -and -not (Test-Path $expandedVault)) {
+if ($expandedVault -and -not (Test-Path -LiteralPath $expandedVault -ErrorAction Ignore)) {
     if ($InitVault) {
         $finalInitVault = (ConvertTo-Bool "-InitVault" $InitVault) -eq "true"
     } elseif ($interactive) {
@@ -467,7 +477,7 @@ if ($expandedVault -and -not (Test-Path $expandedVault)) {
 }
 
 function Write-Row([string]$label, [string]$text) {
-    Write-Host "│  $(Paint $colorOut $PSStyle.Dim $label.PadRight(15)) $text"
+    Write-Host "|  $(Paint $colorOut $ansi.Dim $label.PadRight(15)) $text"
 }
 
 function Format-OnOff([string]$state) {
@@ -480,8 +490,8 @@ if ($finalInitVault) {
     $vaultSummary += ", created now"
 }
 
-Write-Host "│"
-Write-Host "$(Paint $colorOut $PSStyle.Foreground.Green "◇")  Summary"
+Write-Host "|"
+Write-Host "$(Paint $colorOut $ansi.Green "*")  Summary"
 Write-Row "Harnesses" (Join-Labels $selected)
 if ($skipped.Count -gt 0) {
     Write-Row "Skipped" "$(Join-Labels $skipped), not installed"
@@ -491,10 +501,10 @@ Write-Row "Memory" (Format-OnOff $finalMemory)
 Write-Row "Vault" $vaultSummary
 Write-Row "Status line" (Format-OnOff $finalStatusLine)
 Write-Row "Auto-update" (Format-OnOff $finalAutoUpdate)
-Write-Host "│"
+Write-Host "|"
 
 if ($interactive -and (Read-Confirm "Install with these choices?" "" "true" "Install" "Cancel") -ne "true") {
-    Write-Host "└  Cancelled; nothing was written."
+    Write-Host "+  Cancelled; nothing was written."
     $global:LASTEXITCODE = 0
     return
 }
@@ -504,25 +514,25 @@ foreach ($name in $selected) {
     & "Install-$($Harnesses[$name].Id)"
 }
 
-Write-Host "│"
-Write-Host "$(Paint $colorOut $PSStyle.Foreground.Green "◇")  Installed in"
+Write-Host "|"
+Write-Host "$(Paint $colorOut $ansi.Green "*")  Installed in"
 foreach ($label in $installedIn.Keys) {
     Write-Row $label $installedIn[$label]
 }
-Write-Host "│"
-Write-Host "└  $(Paint $colorOut $PSStyle.Foreground.Green "Installed tightship for $(Join-Labels $selected).")"
+Write-Host "|"
+Write-Host "+  $(Paint $colorOut $ansi.Green "Installed tightship for $(Join-Labels $selected).")"
 $global:LASTEXITCODE = 0
 } catch [System.OperationCanceledException] {
-    [Console]::Error.WriteLine("`n└  Cancelled.")
+    [Console]::Error.WriteLine("`n+  Cancelled.")
     $global:LASTEXITCODE = 130
     if ($PSCommandPath) {
         exit 130
     }
 } catch {
     $lines = @($_.Exception.Message -split "\r?\n")
-    [Console]::Error.WriteLine((Paint $colorErr $PSStyle.Foreground.Red "✖ $($lines[0])"))
+    [Console]::Error.WriteLine((Paint $colorErr $ansi.Red "x $($lines[0])"))
     foreach ($line in $lines | Select-Object -Skip 1) {
-        [Console]::Error.WriteLine((Paint $colorErr $PSStyle.Dim "  $line"))
+        [Console]::Error.WriteLine((Paint $colorErr $ansi.Dim "  $line"))
     }
     $global:LASTEXITCODE = 1
     if ($PSCommandPath) {
