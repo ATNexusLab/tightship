@@ -40,8 +40,10 @@ description: Use before a commit or a pull request, or when CI fails — every g
 
 At each pull request into `develop` or `main`, `.github/workflows/` runs only the gates its files call for:
 `rust.yml` the Rust gates on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git Bash) when the
-workspace, `content/`, `harnesses/`, or `installer/` changes; `docs.yml` markdownlint and the docs build on
-Linux when Markdown or the docs site changes; `scan.yml` the scan on Linux every time.
+workspace, `harnesses/`, or `installer/` changes, and only the build and the tests on Linux when `content/`
+alone changes; `docs.yml` markdownlint on Linux when Markdown changes, plus the docs build when `docs/` or
+`zensical.toml` changes; `scan.yml` the scan on Linux every time. Each reads the pull request's files from
+the GitHub API to pick its jobs and steps.
 
 `rust.yml` writes `.identity-terms` from the repository secret `IDENTITY_TERMS`, so a change to the file is
 copied there with `gh secret set IDENTITY_TERMS < .identity-terms`. It clears `USER`: the build counts the
