@@ -163,7 +163,7 @@ detection — the code:
   interface; its content inferred from the Architecture section and the ADRs, each element marked with
   the milestone that builds it.
 - `docs/requirements/diagrams/` — the use cases, one diagram per area of the SRS.
-- `docs/data-model/` — conceptual, logical, and physical. Its method is `{{skill:database-design}}`.
+- `docs/data-model/` — conceptual and physical. Its method is `{{skill:database-design}}`.
 - `docs/design/` — the brand, the tokens, and every screen by feature, in the tool §2 settled. A project
   with no interface says so in `docs/README.md` instead.
 - Diagrams as `.drawio.svg` in the `diagrams/` folder of the doc each one illustrates.
