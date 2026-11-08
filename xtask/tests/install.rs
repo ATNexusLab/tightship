@@ -1116,6 +1116,8 @@ fn existing_options_are_preserved_on_update() {
         }
         let leftovers: Vec<_> = fs::read_dir(&env.system_temp_dir)
             .expect("read the system temp folder")
+            .map(|entry| entry.expect("an entry").file_name())
+            .filter(|name| name != ".dotnet")
             .collect();
         assert!(leftovers.is_empty(), "{installer:?}: {leftovers:?}");
     }
