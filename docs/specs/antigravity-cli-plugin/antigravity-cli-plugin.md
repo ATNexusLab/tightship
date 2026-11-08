@@ -384,8 +384,9 @@ sha256 (antigravity-cli): <64 lowercase hex digits>
 - **When:** `tightship hook status-line` or `tightship status-line enable` writes `statusLine` into
   `TIGHTSHIP_SETTINGS`.
 - On Windows (`cfg!(windows)`), `settings::command_for(root)` formats
-  `<root>\bin\tightship.cmd status-line render`, unquoted, when `<root>\bin\tightship.cmd` exists: Go
-  escapes every `"` as `\"` under `cmd /c`, which `cmd` cannot read (#89). A path with a space or one of
+  `<root>/bin/tightship.cmd status-line render`, unquoted, when `<root>\bin\tightship.cmd` exists: Go
+  escapes every `"` as `\"` under `cmd /c`, which `cmd` cannot read (#89), and Claude Code runs it under
+  Git Bash, which drops every `\`. A path with a space or one of
   `& ^ ( ) % ! ; = ,` becomes its 8.3 short name, read from `cmd /u`; when none avoids them the hook
   fails and names the path. Otherwise it formats
   `sh "<root>/bin/tightship" status-line render`. `settings::is_ours` matches the launcher or the binary,

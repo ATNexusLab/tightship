@@ -18,8 +18,9 @@ M3, #59), never a project's or a folder's:
 }
 ```
 
-On Windows the command is `<plugin folder>\bin\tightship.cmd status-line render`, with no quotes, because
-Antigravity CLI runs it under `cmd /c` with every `"` escaped. A path with a space or one of
+On Windows the command is `<plugin folder>/bin/tightship.cmd status-line render`, with no quotes, because
+Antigravity CLI runs it under `cmd /c` with every `"` escaped, and with `/` between folders, because Claude
+Code runs it under Git Bash, which drops every `\`. A path with a space or one of
 `& ^ ( ) % ! ; = ,` is written as its 8.3 short name; when none avoids them, the hook fails and names the
 path (#89).
 

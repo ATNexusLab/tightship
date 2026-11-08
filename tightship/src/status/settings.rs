@@ -39,7 +39,8 @@ pub fn command_for(root: &Path) -> Result<String, Failure> {
     {
         let cmd = root.join("bin").join("tightship.cmd");
         if cmd.exists() {
-            return Ok(format!("{} status-line render", readable_unquoted(&cmd)?));
+            let launcher = readable_unquoted(&cmd)?.replace('\\', "/");
+            return Ok(format!("{launcher} status-line render"));
         }
     }
     Ok(format!(
