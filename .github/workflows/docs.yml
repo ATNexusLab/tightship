@@ -12,11 +12,29 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
+      - name: Sort the changed paths
+        id: paths
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PULL: ${{ github.event.pull_request.number }}
+        run: |
+          files=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PULL/files" --paginate \
+            --jq '.[] | .filename, (.previous_filename // empty)')
+          site=false
+          while IFS= read -r path; do
+            case "$path" in
+            docs/* | zensical.toml | .github/workflows/docs.yml) site=true ;;
+            esac
+          done <<< "$files"
+          echo "site=$site" >> "$GITHUB_OUTPUT"
+          echo "site: $site"
+
       - name: actions/checkout v7.0.1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
@@ -24,7 +42,9 @@ jobs:
         run: npx markdownlint-cli2@0.23.3
 
       - name: astral-sh/setup-uv v10.3.0
+        if: steps.paths.outputs.site == 'true'
         uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
 
       - name: zensical build
+        if: steps.paths.outputs.site == 'true'
         run: uvx zensical==0.0.70 build
