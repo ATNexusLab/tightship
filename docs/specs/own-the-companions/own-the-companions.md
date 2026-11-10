@@ -1,9 +1,9 @@
 # Replace the companion plugins with tightship's own pieces
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `content/`, `harnesses/`, `xtask/`, `tightship/src/hook/`, `installer/`, `docs/`
-> **Epic:** —
+> **Epic:** #140
 > **Requirements:** BR-04, BR-05, FR-INS-02, FR-INS-06, FR-INS-10, NFR-PERF-03, NFR-REL-01, OQ-05; new:
 > FR-CTR-08, FR-CTR-09, FR-SKL-06, FR-INS-11
 > **Sprint:** 3
@@ -459,10 +459,10 @@ N/A — tightship keeps no data model; `clean.json` is build output, described a
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Change the requirements: no third-party plugin | `docs/requirements/` through `/requirements`: remove BR-04 and FR-INS-02, rewrite BR-05, add FR-CTR-08, FR-CTR-09, FR-SKL-06, FR-INS-11, remove OQ-05, the CHANGELOG, the roadmap's coverage table, the sprint item | Every requirement this spec names exists with its acceptance criteria | — |
-| 2 | Carry the companions' rules and the prose skill in tightship | `content/contract.md`, `content/skills/plain-prose/`, `content/commands/audit.md`, the contract size test | Scenarios 12, 13, 14 | 1 |
-| 3 | Print the codebase map at session start | `tightship/src/hook/map.rs` and its tests, the hook lines in the three `harnesses/*/plugin/` | Scenarios 9, 10, 11 | 1 |
-| 4 | Remove the companions and every leftover | `harness.toml` ×3 (`[clean]` in, companions out), `xtask/src/build/` (`harness.rs`, `render.rs`, `scripts.rs`, `claude_code.rs`, the checks), the two catalogs, `install.sh` and `install.ps1` ×3, `tightship/src/hook/clean.rs`, the hook lines, `xtask/tests/build.rs`, `install.rs`, `release.rs`, `.agents/skills/session-check`, `.agents/skills/cursor-plugin` | Scenarios 1 to 8, 15, 16 | 2 |
-| 5 | Drop the companions from the docs | `docs/install/` (delete 6 `companions*.md` pages, edit 26 others), `docs/architecture/` (6 pages and `context.drawio.svg`), `docs/release/checklist.md`, `README*.md`, `SECURITY*.md`, `docs/specs/README.md`, `docs/requirements/diagrams/use-cases-install.drawio.svg` | No page outside this spec's folder, the CHANGELOG, and closed specs names a companion | 4 |
+| # | Issue | Title | Scope | Acceptance criterion | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| 1 | #149 | Change the requirements: no third-party plugin | `docs/requirements/` through `/requirements`: remove BR-04 and FR-INS-02, rewrite BR-05, add FR-CTR-08, FR-CTR-09, FR-SKL-06, FR-INS-11, remove OQ-05, the CHANGELOG, the roadmap's coverage table, the sprint item | Every requirement this spec names exists with its acceptance criteria | — |
+| 2 | #150 | Carry the companions' rules and the prose skill in tightship | `content/contract.md`, `content/skills/plain-prose/`, `content/commands/audit.md`, the contract size test | Scenarios 12, 13, 14 | 1 |
+| 3 | #151 | Print the codebase map at session start | `tightship/src/hook/map.rs` and its tests, the hook lines in the three `harnesses/*/plugin/` | Scenarios 9, 10, 11 | 1 |
+| 4 | #152 | Remove the companions and every leftover | Deleting `[[companions]]` reaches 20 consumers: `harness.toml` ×3 (`[clean]` in, companions out), `xtask/src/build/` (`harness.rs`, `render.rs`, `scripts.rs`, `claude_code.rs`, the checks), the two catalogs, `install.sh` and `install.ps1` ×3, `tightship/src/hook/clean.rs`, the hook lines, `xtask/tests/build.rs`, `install.rs`, `release.rs`, `.agents/skills/session-check`, `.agents/skills/cursor-plugin` | Scenarios 1 to 8, 15, 16 | 2 |
+| 5 | #153 | Drop the companions from the docs | `docs/install/` (delete 6 `companions*.md` pages, edit 26 others), `docs/architecture/` (6 pages and `context.drawio.svg`), `docs/release/checklist.md`, `README*.md`, `SECURITY*.md`, `docs/specs/README.md`, `docs/requirements/diagrams/use-cases-install.drawio.svg` | No page outside this spec's folder, the CHANGELOG, and closed specs names a companion | 4 |
