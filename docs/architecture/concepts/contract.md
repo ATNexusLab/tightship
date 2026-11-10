@@ -5,6 +5,8 @@
 The contract is the always-on text that tells the agent how to work
 ([FR-CTR-01](../../requirements/functional/contract.md#fr-ctr-01)). It has one authored copy,
 `content/contract.md`, and each harness renders it into whatever puts text in a session's context.
+Since #140 it also carries the rules the companion plugins held: the smallest change that fully works, in
+**Code**, and the shape of a reply, in **Replies**.
 
 ## How it reaches a Claude Code session
 

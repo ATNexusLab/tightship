@@ -36,8 +36,12 @@ From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.
   `options.toml` inside the plugin's data folder ([options](options.md), M1, #3; M3, #59). The user settings
   can hold secrets in their `env`, so a rewrite keeps the file's permissions, and the temporary file beside it
   is readable only by the adopter (M1, #7). A plugin from before #118 also left a `checkpoints/` folder there,
-  which nothing reads since M3 (#118) and which uninstalling removes. The self-update writes the plugin's own
-  folder in Cursor and Antigravity CLI, and in Claude Code the `autoUpdate` of the plugin's entry in
-  `extraKnownMarketplaces` of the user settings (M3, FR-INS-10).
+  which nothing reads since M3 (#118) and which `tightship hook clean` removes (#140). The self-update writes
+  the plugin's own folder in Cursor and Antigravity CLI, and in Claude Code the `autoUpdate` of the plugin's
+  entry in `extraKnownMarketplaces` of the user settings (M3, FR-INS-10).
+- **Removal:** `tightship hook clean` removes only what the harness's `[clean]` data lists, every path under
+  the home folder: the companion plugins tightship replaced, their catalogs, caches, data folders, the files
+  they wrote, and their entries in the harness's JSON files, plus the older version folders of tightship that
+  the harness marked as orphaned and no session uses (#140). An uninstall runs the harness's own CLI.
 
 The build writes only to `dist/`.

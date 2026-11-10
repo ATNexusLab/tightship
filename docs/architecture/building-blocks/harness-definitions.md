@@ -14,10 +14,10 @@ may name a harness. Each one holds:
 - The text of every capability token.
 - The tools a read-only subagent gets (`Read, Grep, Glob, Bash` in Claude Code;
   `view_file, list_dir, find_by_name, grep_search, run_command` in Antigravity CLI, M3, #59).
-- The companion plugins the plugin depends on, each with its repository, the catalog that lists it where
-  the harness has catalogs (M1, #2), and its kind, `plugin` or `skill`. `[install.companion-steps]` holds the
-  installer line for each kind, in `sh` and in PowerShell, which the build writes once per companion where
-  `install.sh` and `install.ps1` say `{{install:companions}}` (#77).
+- `[clean]`: the leftovers of the companion plugins tightship replaced, and of its own older versions, that
+  `tightship hook clean` removes: the commands that uninstall a plugin, each run while a path exists, the
+  paths, the JSON entries, and the status line text, all under the home folder (#140). The plugin depends on
+  no other plugin since #140, which removed `[[companions]]` and `[install.companion-steps]`.
 - The denylist the neutrality check applies, across every harness in `harnesses/`, to the canonical content
   and to the binary's sources in `tightship/src/` (#78).
 - `[contract] limit`: the most characters one hook may put in the context (M1, #4).
