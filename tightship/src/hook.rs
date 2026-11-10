@@ -1,4 +1,5 @@
 pub mod checkpoint;
+pub mod clean;
 pub mod contract_part;
 pub mod export;
 pub mod map;
