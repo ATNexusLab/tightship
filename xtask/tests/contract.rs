@@ -3,7 +3,7 @@ mod common;
 use std::fs;
 use std::process::Command;
 
-use common::{Repository, assert_fails_with, assert_succeeds};
+use common::{Repository, assert_fails_with, assert_succeeds, content_files, harness_files};
 
 const HARNESS: &str = include_str!("../../harnesses/claude-code/harness.toml");
 
@@ -394,4 +394,51 @@ fn no_contract_writes_no_hooks() {
     assert!(repository.path("dist/claude-code/.claude-plugin").is_dir());
     assert!(!repository.path("dist/claude-code/contract").exists());
     assert!(!repository.path("dist/claude-code/hooks").exists());
+}
+
+#[test]
+fn the_shipped_contract_carries_the_rules_within_its_budget() {
+    let files: Vec<(String, String)> = content_files()
+        .into_iter()
+        .chain(harness_files("cursor"))
+        .chain(harness_files("antigravity-cli"))
+        .collect();
+    let files: Vec<(&str, String)> = files
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.clone()))
+        .collect();
+    let repository = Repository::with(&files);
+    assert_succeeds(&repository.run("build"));
+
+    for harness in ["claude-code", "cursor", "antigravity-cli"] {
+        let folder = repository.path(&format!("dist/{harness}/contract"));
+        let contract: String = fs::read_dir(&folder)
+            .expect("the built contract")
+            .map(|entry| fs::read_to_string(entry.expect("a part").path()).expect("a part's text"))
+            .collect();
+        assert!(
+            contract.chars().count() <= 8000,
+            "{harness}: the contract renders past 8000 characters"
+        );
+        assert!(
+            contract.contains("## Replies"),
+            "{harness}: no Replies section"
+        );
+        assert!(
+            contract.contains("The smallest change that fully works"),
+            "{harness}: no rule on the smallest change"
+        );
+        for companion in ["ponytail", "i-have-adhd", "humanizer"] {
+            assert!(
+                !contract.contains(companion),
+                "{harness}: the contract names {companion}"
+            );
+        }
+        assert!(
+            repository
+                .path(&format!("dist/{harness}/skills/prose-editing/SKILL.md"))
+                .is_file(),
+            "{harness}: no prose-editing skill"
+        );
+    }
 }

@@ -56,6 +56,6 @@ Nothing else overlaps.
 
 | Function | Decision | Where it goes |
 | --- | --- | --- |
-| The editing pass and its tells | Keep, rewritten | The skill `plain-prose`, in `content/skills/plain-prose/` |
+| The editing pass and its tells | Keep, rewritten | The skill `prose-editing`, in `content/skills/prose-editing/` |
 | Pasted, file, and embedded modes | Keep | The same skill |
-| The contract's prose rule | Keep | Points to `plain-prose` |
+| The contract's prose rule | Keep | Points to `prose-editing` |
