@@ -1,5 +1,37 @@
 # Changelog
 
+## 4.0.0 — 2026-11-10
+
+The workflow required ponytail, i-have-adhd, and humanizer, and installed them with itself. The audit of
+epic [#140](https://github.com/ATNexusLab/tightship/issues/140) found that it used a few of their rules
+and functions, small enough to carry, and that each plugin could change them at any release. Change
+request [#149](https://github.com/ATNexusLab/tightship/issues/149) brings the epic's
+[spec](../specs/own-the-companions/own-the-companions.md) into the SRS: tightship carries each of those
+functions itself and removes the three plugins.
+
+**Added**
+
+- FR-CTR-08: the contract carries the rules about code and the shape of a reply.
+- FR-CTR-09: a codebase map reaches the agent at session start.
+- FR-SKL-06: a skill edits prose for people.
+- FR-INS-11: the installer and each session remove what the companions left, and every older plugin
+  version no session uses.
+
+**Changed**
+
+- BR-05: the workflow depends on no third-party plugin. It said the companions own their rules.
+- FR-INS-08: the install guide has no section on the companions, so five subjects instead of six.
+
+**Retired**
+
+- BR-04, the companion plugins are required, and FR-INS-02, the companions are installed with the plugin:
+  the workflow no longer uses them.
+
+**Removed**
+
+- OQ-05, how a plugin installs the companions in Codex: the spec of epic #140 settles it, since no harness
+  installs them.
+
 ## 3.0.1 — 2026-11-08
 
 On a clean Windows machine, pressing Enter through the v1.2.0 installer turned memory on with no vault, and
