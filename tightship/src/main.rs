@@ -34,6 +34,7 @@ Usage: tightship vault path
        tightship options reset
        tightship options disabled <name>
        tightship hook contract-part <file>
+       tightship hook map
        tightship update";
 
 #[derive(Parser)]
@@ -63,6 +64,7 @@ enum HookCommand {
     Checkpoint,
     StatusLine,
     ContractPart { file: String },
+    Map,
     Update,
     MarketplaceAutoUpdate,
 }
@@ -136,6 +138,7 @@ fn main() -> ExitCode {
         Area::Hook(HookCommand::Checkpoint) => hook::checkpoint::run(),
         Area::Hook(HookCommand::StatusLine) => hook::status_line::run(),
         Area::Hook(HookCommand::ContractPart { file }) => hook::contract_part::run(&file),
+        Area::Hook(HookCommand::Map) => hook::map::run(),
         Area::Hook(HookCommand::Update) => hook::update::run(),
         Area::Hook(HookCommand::MarketplaceAutoUpdate) => hook::marketplace_auto_update::run(),
         Area::Update => update::run(),

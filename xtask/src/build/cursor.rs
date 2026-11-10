@@ -59,6 +59,9 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
         .map(|part| json!({ "command": format!("{binary} hook contract-part {}", part.file) }))
         .collect();
     let before_submit = session_start.clone();
+    if !parts.is_empty() && declares("contract") {
+        session_start.push(json!({ "command": format!("{binary} hook map") }));
+    }
     if declares("status_line") {
         session_start.push(json!({ "command": format!("{binary} hook status-line") }));
     }

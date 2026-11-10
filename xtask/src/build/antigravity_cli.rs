@@ -123,6 +123,9 @@ fn hooks(
         .iter()
         .map(|part| command(format!("hook contract-part {}", part.file)))
         .collect();
+    if !parts.is_empty() && declares("contract") {
+        session_hooks.push(command("hook map".to_owned()));
+    }
     if declares("memory") {
         session_hooks.push(command("hook start".to_owned()));
     }

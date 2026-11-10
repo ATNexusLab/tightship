@@ -100,7 +100,7 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
 fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<String>> {
     let declares =
         |name| options.is_some_and(|file| file.declared.iter().any(|option| option.name == name));
-    let commands: Vec<serde_json::Value> = parts
+    let mut commands: Vec<serde_json::Value> = parts
         .iter()
         .map(|part| {
             let contract_option = declares("contract").then_some("contract");
@@ -120,6 +120,12 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
             })
         })
         .collect();
+    if !parts.is_empty() && declares("contract") {
+        commands.push(serde_json::json!({
+            "type": "command",
+            "command": "[ \"$CLAUDE_PLUGIN_OPTION_CONTRACT\" = false ] || sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook map",
+        }));
+    }
     let mut session_start = Vec::new();
     if !commands.is_empty() {
         session_start.push(serde_json::json!({

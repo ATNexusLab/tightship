@@ -140,7 +140,7 @@ to every harness.
 | Variable | Required | Use |
 | --- | --- | --- |
 | The working folder | Yes | The session's folder, where the hook runs |
-| `TIGHTSHIP_OPTION_CONTRACT` | No | `false` prints nothing |
+| The `contract` option | No | Off prints nothing: the hook line's guard in Claude Code, the options file elsewhere |
 
 ### Response
 
@@ -182,8 +182,8 @@ There is no permission: the hooks run as the adopter, and only write where the a
 1. **Files**: `git ls-files` in the session's folder, with a 3-second limit; when git fails or returns
    nothing, a walk of the folder, at most 6 levels deep and skipping names that start with `.`. At most
    20,000 paths are read.
-2. **Kept**: a path made only of letters, digits, and `._@+$()[]/-`, with the extension `py`, `js`, `jsx`,
-   `mjs`, `cjs`, `ts`, `tsx`, `go`, `rs`, `rb`, `java`, `kt`, `php`, `swift`, or `cs`. A path is skipped
+2. **Kept**: a path made only of ASCII letters, digits, and `_.@+$()[]/-`, with the extension `py`, `js`,
+   `jsx`, `mjs`, `cjs`, `ts`, `tsx`, `go`, `rs`, `rb`, `java`, `kt`, `php`, `swift`, or `cs`. A path is skipped
    when a folder in it is `node_modules`, `.git`, `dist`, `build`, `out`, `vendor`, `venv`, `.venv`,
    `__pycache__`, `coverage`, `.next`, `target`, `migrations`, `versions`, `fixtures`, `test`, `tests`,
    `__tests__`, or `spec`, or when its file name starts with `test_` or ends in `_test`, `.test`, `.spec`,
@@ -209,8 +209,8 @@ There is no permission: the hooks run as the adopter, and only write where the a
    at most 30 names, then `, ...`.
 6. **Budget**: 2,000 characters for the lines. A line that does not fit is skipped and counted, and a shorter
    line after it may still fit. The skipped count closes the map as `(\<n\> more folders not listed)`.
-7. **No map**: no line survives, the folder is not readable, or `TIGHTSHIP_OPTION_CONTRACT` is `false`; the
-   hook prints nothing.
+7. **No map**: no line survives, the folder is not readable, or the `contract` option is off; the hook
+   prints nothing.
 
 ### 3. Removing the leftovers
 

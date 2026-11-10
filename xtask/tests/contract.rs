@@ -91,6 +91,10 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
                             "type": "command",
                             "command": "[ \"$CLAUDE_PLUGIN_OPTION_CONTRACT\" = false ] || [ \"$CLAUDE_PLUGIN_OPTION_MEMORY\" = false ] || cat \"${CLAUDE_PLUGIN_ROOT}/contract/memory.md\"",
                         },
+                        {
+                            "type": "command",
+                            "command": "[ \"$CLAUDE_PLUGIN_OPTION_CONTRACT\" = false ] || sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook map",
+                        },
                     ],
                 }, {
                     "matcher": "startup|clear|compact",
@@ -131,7 +135,7 @@ fn the_hooks_honor_the_options() {
         .iter()
         .map(|hook| hook["command"].as_str().expect("a command"))
         .collect();
-    assert_eq!(commands.len(), 2);
+    assert_eq!(commands.len(), 3);
     let part = read(&repository, "dist/claude-code/contract/part-1.md");
     let memory = read(&repository, "dist/claude-code/contract/memory.md");
     fs::create_dir_all(repository.path("vault")).expect("a vault");
@@ -163,6 +167,7 @@ fn the_hooks_honor_the_options() {
     let contract_off = [("CLAUDE_PLUGIN_OPTION_CONTRACT", "false")];
     assert_eq!(run(commands[0], &contract_off), "");
     assert_eq!(run(commands[1], &contract_off), "");
+    assert_eq!(run(commands[2], &contract_off), "");
 
     let memory_lines: Vec<&str> = hooks["hooks"]["SessionStart"]
         .as_array()
