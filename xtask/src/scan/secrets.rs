@@ -3,7 +3,7 @@ use std::io;
 use std::path::Path;
 use std::process::Command;
 
-use crate::diagnostics::{Diagnostic, naming};
+use crate::diagnostics::{Diagnostic, with_path};
 use crate::git;
 
 pub const GITLEAKS_VERSION: &str = "8.30.1";
@@ -20,7 +20,7 @@ pub fn check(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<usize
             )));
             return Ok(commits);
         }
-        result => result.map_err(naming(Path::new("gitleaks")))?,
+        result => result.map_err(with_path(Path::new("gitleaks")))?,
     };
     let found = String::from_utf8_lossy(&version.stdout);
     let found = found.trim().trim_start_matches('v');
@@ -46,8 +46,8 @@ pub fn check(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<usize
         .arg(report.path())
         .arg(root)
         .status()
-        .map_err(naming(Path::new("gitleaks")))?;
-    let text = fs::read_to_string(report.path()).map_err(naming(report.path()))?;
+        .map_err(with_path(Path::new("gitleaks")))?;
+    let text = fs::read_to_string(report.path()).map_err(with_path(report.path()))?;
     let leaks: Vec<serde_json::Value> = serde_json::from_str(&text).map_err(|error| {
         io::Error::other(format!(
             "gitleaks exited with {status} and left no valid report: {error}"

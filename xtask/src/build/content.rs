@@ -6,7 +6,7 @@ use serde::Deserialize;
 
 use super::contract::{self, Contract};
 use super::options::{self, OptionsFile};
-use crate::diagnostics::{Diagnostic, naming};
+use crate::diagnostics::{Diagnostic, with_path};
 use crate::files;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -48,7 +48,7 @@ pub enum SupportingBody {
     Copied(Vec<u8>),
 }
 
-pub struct Supporting {
+pub struct SupportingFile {
     pub skill: String,
     pub relative: String,
     pub path: String,
@@ -64,7 +64,7 @@ pub struct SourceFile {
 pub struct Content {
     pub files: Vec<SourceFile>,
     pub pieces: Vec<Piece>,
-    pub supporting: Vec<Supporting>,
+    pub supporting: Vec<SupportingFile>,
     pub options: Option<OptionsFile>,
     pub contract: Option<Contract>,
     pub vault_template: Option<String>,
@@ -78,7 +78,7 @@ pub fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Conten
         return Ok(content);
     }
     for file in files::files_under(&directory)? {
-        let bytes = fs::read(&file).map_err(naming(&file))?;
+        let bytes = fs::read(&file).map_err(with_path(&file))?;
         let relative: Vec<String> = file
             .strip_prefix(root)
             .map_err(io::Error::other)?
@@ -86,7 +86,7 @@ pub fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Conten
             .map(|component| component.as_os_str().to_string_lossy().into_owned())
             .collect();
         let path = relative.join("/");
-        classify(&mut content, &relative[1..], &path, &bytes, diagnostics);
+        add_file(&mut content, &relative[1..], &path, &bytes, diagnostics);
         content.files.push(SourceFile { path, bytes });
     }
     let contract_file = content
@@ -125,7 +125,7 @@ pub fn is_valid_name(text: &str) -> bool {
         })
 }
 
-fn classify(
+fn add_file(
     content: &mut Content,
     segments: &[String],
     path: &str,
@@ -162,7 +162,7 @@ fn classify(
             } else {
                 SupportingBody::Copied(bytes.to_vec())
             };
-            content.supporting.push(Supporting {
+            content.supporting.push(SupportingFile {
                 skill: (*skill).to_owned(),
                 relative,
                 path: path.to_owned(),

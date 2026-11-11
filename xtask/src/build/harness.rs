@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 use super::content::Kind;
-use crate::diagnostics::{Diagnostic, naming};
+use crate::diagnostics::{Diagnostic, with_path};
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -20,7 +20,7 @@ pub struct Harness {
     pub paths: BTreeMap<String, String>,
     pub references: References,
     pub access: Access,
-    pub contract: Option<ContractTable>,
+    pub contract: Option<ContractLimits>,
     pub capabilities: BTreeMap<String, String>,
     pub neutrality: Neutrality,
     pub clean: Option<Clean>,
@@ -69,7 +69,7 @@ impl Install {
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct ContractTable {
+pub struct ContractLimits {
     pub limit: usize,
     #[serde(rename = "compaction-notice")]
     pub compaction_notice: Option<String>,
@@ -213,7 +213,7 @@ pub fn folders(root: &Path) -> io::Result<Vec<PathBuf>> {
         return Ok(Vec::new());
     }
     let mut folders = fs::read_dir(&directory)
-        .map_err(naming(&directory))?
+        .map_err(with_path(&directory))?
         .map(|entry| entry.map(|entry| entry.path()))
         .collect::<io::Result<Vec<_>>>()?;
     folders.retain(|folder| folder.is_dir());
@@ -255,7 +255,7 @@ pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Ve
             diagnostics.push(Diagnostic::general(format!("{path} is missing")));
             continue;
         }
-        let text = fs::read_to_string(&file).map_err(naming(&file))?;
+        let text = fs::read_to_string(&file).map_err(with_path(&file))?;
         match toml::from_str::<Harness>(&text) {
             Ok(harness) => {
                 for problem in problems(&harness, &text) {

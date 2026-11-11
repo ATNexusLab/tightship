@@ -45,7 +45,7 @@ impl fmt::Display for Diagnostic {
     }
 }
 
-pub fn naming(path: &Path) -> impl FnOnce(io::Error) -> io::Error + '_ {
+pub fn with_path(path: &Path) -> impl FnOnce(io::Error) -> io::Error + '_ {
     move |error| io::Error::new(error.kind(), format!("{}: {error}", path.display()))
 }
 

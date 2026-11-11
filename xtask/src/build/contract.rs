@@ -1,5 +1,5 @@
 use super::content::split_front_matter;
-use super::harness::{ContractTable, Harness};
+use super::harness::{ContractLimits, Harness};
 use super::options::OptionsFile;
 use super::tokens;
 use crate::diagnostics::Diagnostic;
@@ -265,14 +265,14 @@ fn blocks<'contract>(outline: &'contract Outline, harness: &Harness) -> Vec<Bloc
     let preamble = Block {
         subject: "the preamble".to_owned(),
         line: outline.title_line,
-        text: tokens::render(&outline.preamble, harness).0,
+        text: tokens::substitute(&outline.preamble, harness).0,
         gate: None,
         heading: "",
     };
     let sections = outline.sections.iter().map(|section| Block {
         subject: format!("the section \"{}\"", section.heading),
         line: section.line,
-        text: tokens::render(&section.text, harness).0,
+        text: tokens::substitute(&section.text, harness).0,
         gate: outline
             .gated
             .iter()
@@ -289,12 +289,12 @@ fn blocks<'contract>(outline: &'contract Outline, harness: &Harness) -> Vec<Bloc
 fn ungated_parts(
     contract: &Contract,
     harness: &Harness,
-    table: &ContractTable,
+    table: &ContractLimits,
     title: &str,
     blocks: &[Block],
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<Part> {
-    let title = tokens::render(title, harness).0;
+    let title = tokens::substitute(title, harness).0;
     let title_line = |number: usize, total: usize| {
         let heading = format!("# {title} ({number}/{total})");
         match &table.compaction_notice {
@@ -358,7 +358,7 @@ fn gated_parts(
     blocks: &[Block],
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<Part> {
-    let title = tokens::render(&outline.title, harness).0;
+    let title = tokens::substitute(&outline.title, harness).0;
     let mut options: Vec<&str> = Vec::new();
     for (_, option) in &outline.gated {
         if !options.contains(&option.as_str()) {
@@ -373,7 +373,7 @@ fn gated_parts(
             .collect();
         let headings: Vec<String> = group
             .iter()
-            .map(|block| tokens::render(block.heading, harness).0)
+            .map(|block| tokens::substitute(block.heading, harness).0)
             .collect();
         let text = compose(&format!("# {title} ({})", headings.join(", ")), &group);
         let count = length(&text);

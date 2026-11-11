@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
-use crate::diagnostics::naming;
+use crate::diagnostics::with_path;
 
 pub fn root() -> io::Result<PathBuf> {
     let current = env::current_dir()?;
@@ -41,7 +41,7 @@ pub fn version(root: &Path) -> io::Result<String> {
         version: String,
     }
     let cargo_path = root.join("Cargo.toml");
-    let cargo_text = fs::read_to_string(&cargo_path).map_err(naming(&cargo_path))?;
+    let cargo_text = fs::read_to_string(&cargo_path).map_err(with_path(&cargo_path))?;
     let cargo: CargoManifest = toml::from_str(&cargo_text)
         .map_err(|error| io::Error::other(format!("Cargo.toml: {}", error.message())))?;
     Ok(cargo.workspace.package.version)

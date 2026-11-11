@@ -5,19 +5,19 @@ use std::path::Path;
 use super::content::Content;
 use super::harness::Harness;
 use super::words::is_part_of_a_word;
-use crate::diagnostics::{Diagnostic, naming};
+use crate::diagnostics::{Diagnostic, with_path};
 use crate::files::{self, slash_path};
 
 pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Diagnostic>) {
     for file in &content.files {
         let text = String::from_utf8_lossy(&file.bytes);
-        scan(&file.path, &text, harnesses, diagnostics, |harness| {
+        report_harness_terms(&file.path, &text, harnesses, diagnostics, |harness| {
             format!("use a {{{{capability:…}}}} token defined in harnesses/{harness}/harness.toml")
         });
     }
 }
 
-pub fn check_binary(
+pub fn check_binary_sources(
     root: &Path,
     harnesses: &[Harness],
     diagnostics: &mut Vec<Diagnostic>,
@@ -27,17 +27,17 @@ pub fn check_binary(
         return Ok(());
     }
     for file in files::files_under(&sources)? {
-        let text = fs::read_to_string(&file).map_err(naming(&file))?;
+        let text = fs::read_to_string(&file).map_err(with_path(&file))?;
         let relative = file.strip_prefix(root).map_err(io::Error::other)?;
         let path = slash_path(relative);
-        scan(&path, &text, harnesses, diagnostics, |harness| {
+        report_harness_terms(&path, &text, harnesses, diagnostics, |harness| {
             format!("move it to harnesses/{harness}/ and pass it in through the launcher")
         });
     }
     Ok(())
 }
 
-fn scan(
+fn report_harness_terms(
     path: &str,
     text: &str,
     harnesses: &[Harness],

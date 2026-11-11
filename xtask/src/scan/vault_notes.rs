@@ -2,7 +2,7 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use crate::diagnostics::{Diagnostic, naming};
+use crate::diagnostics::{Diagnostic, with_path};
 use crate::git;
 
 pub fn check(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<()> {
@@ -12,7 +12,7 @@ pub fn check(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<()> {
         if !file.is_file() {
             continue;
         }
-        let bytes = fs::read(&file).map_err(naming(&file))?;
+        let bytes = fs::read(&file).map_err(with_path(&file))?;
         if is_vault_note(&String::from_utf8_lossy(&bytes)) {
             diagnostics.push(Diagnostic::general(format!(
                 "{path} is a vault note; vault notes never enter this repository"

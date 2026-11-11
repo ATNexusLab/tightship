@@ -19,7 +19,7 @@ pub struct Token<'text> {
     pub form: Form<'text>,
 }
 
-pub fn scan(text: &str) -> Vec<Token<'_>> {
+pub fn find(text: &str) -> Vec<Token<'_>> {
     let mut tokens = Vec::new();
     let mut line_start = 0;
     for (index, line) in text.split('\n').enumerate() {
@@ -34,7 +34,7 @@ pub fn scan(text: &str) -> Vec<Token<'_>> {
                 line: index + 1,
                 range: line_start + open..line_start + close,
                 text: &line[open..close],
-                form: classify(&line[open + 2..close - 2]),
+                form: form_of(&line[open + 2..close - 2]),
             });
             search_from = close;
         }
@@ -49,7 +49,7 @@ fn replace<'text>(
 ) -> String {
     let mut replaced = String::with_capacity(text.len());
     let mut copied_up_to = 0;
-    for token in scan(text) {
+    for token in find(text) {
         replaced.push_str(&text[copied_up_to..token.range.start]);
         replaced.push_str(&replacement(&token));
         copied_up_to = token.range.end;
@@ -58,7 +58,7 @@ fn replace<'text>(
     replaced
 }
 
-pub fn render<'text>(text: &'text str, harness: &Harness) -> (String, Vec<&'text str>) {
+pub fn substitute<'text>(text: &'text str, harness: &Harness) -> (String, Vec<&'text str>) {
     let mut unresolved = Vec::new();
     let rendered = replace(text, |token| {
         let replacement = match token.form {
@@ -81,7 +81,7 @@ pub fn render<'text>(text: &'text str, harness: &Harness) -> (String, Vec<&'text
     (rendered, unresolved)
 }
 
-fn classify(inner: &str) -> Form<'_> {
+fn form_of(inner: &str) -> Form<'_> {
     let Some((kind, name)) = inner.split_once(':') else {
         return Form::Malformed;
     };

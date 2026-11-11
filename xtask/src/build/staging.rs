@@ -3,7 +3,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use crate::diagnostics::naming;
+use crate::diagnostics::with_path;
 use crate::files::{remove_if_present, slash_path};
 
 pub fn staging_dir(root: &Path, harness_name: &str) -> PathBuf {
@@ -28,9 +28,9 @@ pub fn write_files(
     let bin = staging.join("bin");
     for (file, bytes) in files {
         if let Some(folder) = file.parent() {
-            fs::create_dir_all(folder).map_err(naming(folder))?;
+            fs::create_dir_all(folder).map_err(with_path(folder))?;
         }
-        fs::write(file, bytes).map_err(naming(file))?;
+        fs::write(file, bytes).map_err(with_path(file))?;
         if file.starts_with(&bin) {
             make_executable(file)?;
         }
@@ -41,7 +41,7 @@ pub fn write_files(
 #[cfg(unix)]
 fn make_executable(file: &Path) -> io::Result<()> {
     use std::os::unix::fs::PermissionsExt;
-    fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(naming(file))
+    fs::set_permissions(file, fs::Permissions::from_mode(0o755)).map_err(with_path(file))
 }
 
 #[cfg(not(unix))]
@@ -52,7 +52,7 @@ fn make_executable(_file: &Path) -> io::Result<()> {
 pub fn publish(root: &Path, staging: &Path, harness_name: &str) -> io::Result<()> {
     let target = root.join("dist").join(harness_name);
     remove_if_present(&target)?;
-    fs::rename(staging, &target).map_err(naming(&target))
+    fs::rename(staging, &target).map_err(with_path(&target))
 }
 
 pub fn discard(root: &Path, harness_name: &str) -> io::Result<()> {

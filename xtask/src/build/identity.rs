@@ -4,7 +4,7 @@ use std::io;
 use std::path::Path;
 
 use super::words::is_part_of_a_word;
-use crate::diagnostics::{Diagnostic, naming};
+use crate::diagnostics::{Diagnostic, with_path};
 use crate::git;
 
 pub fn terms(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Option<Vec<String>>> {
@@ -44,7 +44,7 @@ pub fn terms(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Optio
                 ".identity-terms is missing; create it with one line per name, email address, user name, and handle of the maintainer".to_owned(),
             ));
         }
-        Err(error) => return Err(naming(&listed)(error)),
+        Err(error) => return Err(with_path(&listed)(error)),
     }
     let lowercase = terms.iter().map(|term| term.to_lowercase()).collect();
     Ok(complete.then_some(lowercase))
@@ -56,8 +56,8 @@ pub fn check_folder(
     terms: &[String],
     diagnostics: &mut Vec<Diagnostic>,
 ) -> io::Result<()> {
-    for entry in fs::read_dir(folder).map_err(naming(folder))? {
-        let path = entry.map_err(naming(folder))?.path();
+    for entry in fs::read_dir(folder).map_err(with_path(folder))? {
+        let path = entry.map_err(with_path(folder))?.path();
         let file_name = path.file_name().unwrap_or_default().to_string_lossy();
         if holds_a_term(&file_name.to_lowercase(), terms) {
             diagnostics.push(Diagnostic::in_file(
@@ -71,7 +71,7 @@ pub fn check_folder(
             check_folder(&path, &shown, terms, diagnostics)?;
             continue;
         }
-        let bytes = fs::read(&path).map_err(naming(&path))?;
+        let bytes = fs::read(&path).map_err(with_path(&path))?;
         check_text(&String::from_utf8_lossy(&bytes), &shown, terms, diagnostics);
     }
     Ok(())

@@ -4,7 +4,7 @@ use std::path::Path;
 
 use super::harness::Harness;
 use super::scripts::{self, Shell};
-use crate::diagnostics::naming;
+use crate::diagnostics::with_path;
 
 type Registry = fn(&[Harness]) -> String;
 
@@ -21,13 +21,13 @@ pub fn assemble(root: &Path, harnesses: &[Harness]) -> io::Result<Vec<(&'static 
     let mut installers = Vec::new();
     for (file, shell, registry) in FILES {
         let core_path = root.join("installer").join(file);
-        let core = fs::read_to_string(&core_path).map_err(naming(&core_path))?;
+        let core = fs::read_to_string(&core_path).map_err(with_path(&core_path))?;
         let mut fragments = Vec::new();
         for harness in harnesses {
             let path = root.join("harnesses").join(&harness.name).join(file);
-            let text = fs::read_to_string(&path).map_err(naming(&path))?;
+            let text = fs::read_to_string(&path).map_err(with_path(&path))?;
             let source = format!("harnesses/{}/{file}", harness.name);
-            fragments.push(scripts::fill(&text, &source, harness, shell)?);
+            fragments.push(scripts::fill_template(&text, &source, harness, shell)?);
         }
         let unresolved = || io::Error::other(format!("installer/{file}: unresolved tokens"));
         let mut parts = Vec::new();
@@ -103,7 +103,7 @@ fn registry_ps1(harnesses: &[Harness]) -> String {
             format!(
                 "    {} = @{{ Id = {}; Label = {}; Command = {}; MinVersion = {}; Aliases = @({}) }}",
                 quoted(&harness.name),
-                quoted(&scripts::pascal(&harness.name)),
+                quoted(&scripts::kebab_to_pascal(&harness.name)),
                 quoted(&install.label),
                 quoted(&install.command),
                 quoted(&install.min_version),

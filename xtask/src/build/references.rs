@@ -29,7 +29,7 @@ pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Dia
             Diagnostic::at_line(text.path, text.first_line + line - 1, message)
         };
         let mut blanked = text.text.as_bytes().to_vec();
-        for token in tokens::scan(text.text) {
+        for token in tokens::find(text.text) {
             blanked[token.range.clone()].fill(b' ');
             let message = token_error(&token, text.in_piece, &pieces, &boolean_options, harnesses);
             diagnostics.extend(

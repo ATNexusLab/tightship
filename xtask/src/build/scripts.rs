@@ -19,7 +19,7 @@ impl Shell {
     }
 }
 
-pub fn pascal(kebab: &str) -> String {
+pub fn kebab_to_pascal(kebab: &str) -> String {
     kebab
         .split('-')
         .map(|word| {
@@ -29,7 +29,12 @@ pub fn pascal(kebab: &str) -> String {
         .collect()
 }
 
-pub fn fill(text: &str, source: &str, harness: &Harness, shell: Shell) -> io::Result<String> {
+pub fn fill_template(
+    text: &str,
+    source: &str,
+    harness: &Harness,
+    shell: Shell,
+) -> io::Result<String> {
     let mut filled = String::new();
     let mut unresolved = Vec::new();
     let mut rest = text;

@@ -20,7 +20,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use crate::diagnostics::{Diagnostic, naming};
+use crate::diagnostics::{Diagnostic, with_path};
 use crate::diagnostics::{Failure, stop_on_errors};
 use content::{Content, Kind};
 
@@ -99,7 +99,7 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
     let mut names = Vec::new();
     for (file, text) in installers {
         let target = root.join("dist").join(file);
-        fs::write(&target, text).map_err(naming(&target))?;
+        fs::write(&target, text).map_err(with_path(&target))?;
         names.push(format!("dist/{file}"));
     }
     summaries.push(format!("Built {}.", names.join(" and ")));
@@ -121,7 +121,7 @@ fn read_inputs(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Inp
     println!("> Checking references and harness neutrality");
     references::check(&content, &harnesses, diagnostics);
     neutrality::check(&content, &harnesses, diagnostics);
-    neutrality::check_binary(root, &harnesses, diagnostics)?;
+    neutrality::check_binary_sources(root, &harnesses, diagnostics)?;
 
     let mut contract_parts = Vec::new();
     for harness in &harnesses {

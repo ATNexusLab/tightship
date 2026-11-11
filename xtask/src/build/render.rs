@@ -12,7 +12,7 @@ use super::options::OptionsFile;
 use super::scripts::{self, Shell};
 use super::staging;
 use super::tokens;
-use crate::diagnostics::naming;
+use crate::diagnostics::with_path;
 use crate::{files, workspace};
 
 pub struct Layout {
@@ -112,7 +112,7 @@ pub fn manifest(
 }
 
 pub fn resolve(text: &str, path: &str, harness: &Harness) -> io::Result<String> {
-    let (rendered, unresolved) = tokens::render(text, harness);
+    let (rendered, unresolved) = tokens::substitute(text, harness);
     if unresolved.is_empty() {
         Ok(rendered)
     } else {
@@ -249,12 +249,12 @@ fn harness_files(
         match fs::read_to_string(&environment_file) {
             Ok(text) => {
                 let source = format!("harnesses/{}/{environment}", harness.name);
-                let filled = scripts::fill(&text, &source, harness, shell)?;
+                let filled = scripts::fill_template(&text, &source, harness, shell)?;
                 let (header, body) = neutral.split_once('\n').unwrap_or_default();
                 Ok(Some(format!("{header}\n{filled}{body}")))
             }
             Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(None),
-            Err(error) => Err(naming(&environment_file)(error)),
+            Err(error) => Err(with_path(&environment_file)(error)),
         }
     };
     let neutral_sh = include_str!("../../../tightship/launcher.sh");
@@ -281,7 +281,7 @@ fn harness_files(
     if plugin.is_dir() {
         for file in files::files_under(&plugin)? {
             let relative = file.strip_prefix(&plugin).map_err(io::Error::other)?;
-            let bytes = fs::read(&file).map_err(naming(&file))?;
+            let bytes = fs::read(&file).map_err(with_path(&file))?;
             files.push((staging.join(relative), bytes));
         }
     }
@@ -293,7 +293,7 @@ fn binary_files(staging: &Path, binaries: &[Binary]) -> io::Result<Vec<(PathBuf,
     for binary in binaries {
         let file_name = binary.path.file_name().unwrap_or_default();
         let copy = staging.join("bin").join(binary.platform).join(file_name);
-        let bytes = fs::read(&binary.path).map_err(naming(&binary.path))?;
+        let bytes = fs::read(&binary.path).map_err(with_path(&binary.path))?;
         files.push((copy, bytes));
     }
     Ok(files)

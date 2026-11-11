@@ -10,8 +10,8 @@ use zip::{CompressionMethod, DateTime, System, ZipWriter};
 use crate::build::binary::PLATFORMS;
 use crate::build::harness;
 use crate::build::render::pretty_json;
-use crate::build::scripts::pascal;
-use crate::diagnostics::{Diagnostic, naming};
+use crate::build::scripts::kebab_to_pascal;
+use crate::diagnostics::{Diagnostic, with_path};
 use crate::diagnostics::{Failure, stop_on_errors};
 use crate::files::remove_if_present;
 
@@ -37,10 +37,10 @@ pub fn run(root: &Path, tag: &str) -> Result<String, Failure> {
     let staging = dist.join(".package.tmp");
     let packed = pack(root, &staging, tag);
     let published = packed.and_then(|summary| {
-        for entry in fs::read_dir(&staging).map_err(naming(&staging))? {
+        for entry in fs::read_dir(&staging).map_err(with_path(&staging))? {
             let file = entry?.file_name();
             let target = dist.join(&file);
-            fs::rename(staging.join(&file), &target).map_err(naming(&target))?;
+            fs::rename(staging.join(&file), &target).map_err(with_path(&target))?;
         }
         Ok(summary)
     });
@@ -64,7 +64,7 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
     stop_on_errors(&mut diagnostics)?;
 
     remove_if_present(staging)?;
-    fs::create_dir_all(staging).map_err(naming(staging))?;
+    fs::create_dir_all(staging).map_err(with_path(staging))?;
 
     let mut archives = Vec::new();
     let mut catalogs = Vec::new();
@@ -81,7 +81,7 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
         let plugin = dist.join(&harness.name);
         let (bytes, files) = zip_plugin(&plugin, harness.dist.catalog.as_ref())?;
         let archive_path = staging.join(&archive);
-        fs::write(&archive_path, &bytes).map_err(naming(&archive_path))?;
+        fs::write(&archive_path, &bytes).map_err(with_path(&archive_path))?;
         let sha256: String = Sha256::digest(&bytes)
             .iter()
             .map(|byte| format!("{byte:02x}"))
@@ -146,7 +146,8 @@ fn check_dist(
             )));
             continue;
         }
-        let manifest_text = fs::read_to_string(&manifest_path).map_err(naming(&manifest_path))?;
+        let manifest_text =
+            fs::read_to_string(&manifest_path).map_err(with_path(&manifest_path))?;
         let manifest: Manifest = serde_json::from_str(&manifest_text)
             .map_err(|error| io::Error::other(format!("{}: {error}", manifest_path.display())))?;
         for (platform, binary) in PLATFORMS {
@@ -200,7 +201,7 @@ fn zip_plugin(plugin: &Path, catalog: Option<&String>) -> io::Result<(Vec<u8>, u
             .last_modified_time(DateTime::default())
             .unix_permissions(mode);
         let source = plugin.join(file);
-        let bytes = fs::read(&source).map_err(naming(&source))?;
+        let bytes = fs::read(&source).map_err(with_path(&source))?;
         writer.start_file(file, options).map_err(io::Error::other)?;
         writer.write_all(&bytes)?;
     }
@@ -216,7 +217,7 @@ fn write_catalog(
     sha256: &str,
 ) -> Result<(), Failure> {
     println!("> Writing {release_name}");
-    let local_text = fs::read_to_string(local_path).map_err(naming(local_path))?;
+    let local_text = fs::read_to_string(local_path).map_err(with_path(local_path))?;
     let mut catalog: serde_json::Value = serde_json::from_str(&local_text)
         .map_err(|error| io::Error::other(format!("{}: {error}", local_path.display())))?;
     let entry = catalog
@@ -228,7 +229,7 @@ fn write_catalog(
         "sha256": sha256,
     });
     let catalog_path = staging.join(release_name);
-    fs::write(&catalog_path, pretty_json(&catalog)?).map_err(naming(&catalog_path))?;
+    fs::write(&catalog_path, pretty_json(&catalog)?).map_err(with_path(&catalog_path))?;
     Ok(())
 }
 
@@ -244,7 +245,7 @@ fn write_latest(
         "assets": assets,
     });
     let path = staging.join(LATEST);
-    fs::write(&path, pretty_json(&latest)?).map_err(naming(&path))?;
+    fs::write(&path, pretty_json(&latest)?).map_err(with_path(&path))?;
     Ok(())
 }
 
@@ -257,7 +258,7 @@ fn write_installers(
     for installer in ["install.sh", "install.ps1"] {
         println!("> Writing {installer} for {tag}");
         let source = dist.join(installer);
-        let text = fs::read_to_string(&source).map_err(naming(&source))?;
+        let text = fs::read_to_string(&source).map_err(with_path(&source))?;
         let mut lines: Vec<String> = text.lines().map(str::to_owned).collect();
         for InstallerValue {
             name,
@@ -268,7 +269,7 @@ fn write_installers(
             let prefix = if installer == "install.sh" {
                 format!("{}=", name.replace('-', "_").to_uppercase())
             } else {
-                format!("${} = ", pascal(name))
+                format!("${} = ", kebab_to_pascal(name))
             };
             let empty = format!("{prefix}\"\"");
             let mut matching = lines.iter_mut().filter(|line| **line == empty);
@@ -283,13 +284,13 @@ fn write_installers(
             }
         }
         let target = staging.join(installer);
-        fs::write(&target, lines.join("\n") + "\n").map_err(naming(&target))?;
+        fs::write(&target, lines.join("\n") + "\n").map_err(with_path(&target))?;
     }
     Ok(())
 }
 
 fn list_files(folder: &Path, prefix: &str, files: &mut Vec<String>) -> io::Result<()> {
-    for entry in fs::read_dir(folder).map_err(naming(folder))? {
+    for entry in fs::read_dir(folder).map_err(with_path(folder))? {
         let entry = entry?;
         let name = entry.file_name().to_string_lossy().into_owned();
         let relative = format!("{prefix}{name}");
