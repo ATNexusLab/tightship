@@ -28,17 +28,11 @@ pub fn run(vault: &Path, today: Date) -> Result<usize, Failure> {
         );
         titles.push((note.stem(), note.title()));
     }
-    for file in note::markdown_files(vault, &vault.join("notes"))? {
-        let path = vault.join(&file);
-        let text = fs::read_to_string(&path)
-            .map_err(|error| Failure::NoteUnreadable(file.clone(), error))?;
-        let unlinked = titles.iter().fold(text.clone(), |text, (stem, title)| {
+    note::rewrite_all(vault, |_, text| {
+        titles.iter().fold(text.to_owned(), |text, (stem, title)| {
             unlink(&text, stem, title)
-        });
-        if unlinked != text {
-            fs::write(&path, unlinked).map_err(|error| Failure::NoteUnwritable(file, error))?;
-        }
-    }
+        })
+    })?;
     Ok(expired.len())
 }
 

@@ -56,7 +56,7 @@ fn rank<'notes>(
     let terms: Vec<String> = terms.iter().map(|term| fold(term)).collect();
     let mut matches: Vec<(usize, usize, usize, &Note)> = notes
         .iter()
-        .filter(|note| everywhere || [scope, "all"].contains(&note.field("project")))
+        .filter(|note| everywhere || note.is_in_reach(scope))
         .filter_map(|note| {
             let texts = [note.field("why"), note.field("tags"), &note.body].map(fold);
             let occurrences: Vec<usize> = terms

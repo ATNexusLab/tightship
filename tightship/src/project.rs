@@ -1,7 +1,7 @@
 use std::env;
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use crate::failure::Failure;
 
@@ -34,17 +34,6 @@ pub fn repository_root(folder: &Path) -> Option<&Path> {
     folder
         .ancestors()
         .find(|ancestor| ancestor.join(".git").exists())
-}
-
-pub fn named_in_input(pointer: &str) -> Result<PathBuf, Failure> {
-    let unnamed = || Failure::HookInputNoProject(pointer.to_owned());
-    let input = io::read_to_string(io::stdin()).map_err(|_| unnamed())?;
-    let input: serde_json::Value = serde_json::from_str(&input).map_err(|_| unnamed())?;
-    let folder = input
-        .pointer(pointer)
-        .and_then(serde_json::Value::as_str)
-        .ok_or_else(unnamed)?;
-    Ok(PathBuf::from(folder))
 }
 
 pub fn normalize(name: &str) -> String {

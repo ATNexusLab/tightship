@@ -8,6 +8,12 @@ use jiff::civil::Date;
 use crate::failure::Failure;
 use crate::git;
 
+pub const TYPES: [&str; 4] = ["preference", "decision", "gotcha", "project"];
+pub const HANDOFF_TYPE: &str = "handoff";
+pub const SOURCES: [&str; 3] = ["user", "session", "repo"];
+pub const WHY_MIN_WORDS: usize = 5;
+const ID_PREFIX: &str = "mem-";
+
 pub struct Note {
     pub path: PathBuf,
     pub fields: Vec<(String, String)>,
@@ -20,6 +26,10 @@ impl Note {
             .iter()
             .find(|(key, _)| key == name)
             .map_or("", |(_, value)| value.as_str())
+    }
+
+    pub fn is_in_reach(&self, scope: &str) -> bool {
+        [scope, "all"].contains(&self.field("project"))
     }
 
     pub fn is_pinned(&self) -> bool {
@@ -77,7 +87,7 @@ impl Note {
     pub fn id_order(&self) -> (u64, &str) {
         let id = self.field("id");
         let number = id
-            .strip_prefix("mem-")
+            .strip_prefix(ID_PREFIX)
             .and_then(|digits| digits.parse().ok())
             .unwrap_or(u64::MAX);
         (number, id)
@@ -145,6 +155,15 @@ impl NewNote<'_> {
     }
 }
 
+pub fn id(number: u64) -> String {
+    format!("{ID_PREFIX}{number:04}")
+}
+
+pub fn is_valid_id(id: &str) -> bool {
+    id.strip_prefix(ID_PREFIX)
+        .is_some_and(|digits| digits.len() >= 4 && digits.bytes().all(|byte| byte.is_ascii_digit()))
+}
+
 pub fn one_line(text: &str) -> String {
     text.split_whitespace().collect::<Vec<_>>().join(" ")
 }
@@ -175,7 +194,7 @@ pub fn read_body() -> Result<String, Failure> {
 
 pub fn write(vault: &Path, note: &NewNote) -> Result<PathBuf, Failure> {
     let _lock = lock(vault)?;
-    let id = format!("mem-{:04}", highest_id(vault, &read_all(vault)?)? + 1);
+    let id = id(highest_id(vault, &read_all(vault)?)? + 1);
     let slug = slug(note.title);
     let file_name = if slug.is_empty() {
         format!("{id}.md")
@@ -200,7 +219,7 @@ pub fn write(vault: &Path, note: &NewNote) -> Result<PathBuf, Failure> {
     Ok(relative)
 }
 
-pub fn slug(title: &str) -> String {
+fn slug(title: &str) -> String {
     let folded = deunicode::deunicode(title).to_lowercase();
     let words: Vec<&str> = folded
         .split(|character: char| !character.is_ascii_alphanumeric())
@@ -235,7 +254,13 @@ pub fn highest_id(vault: &Path, notes: &[Note]) -> Result<u64, Failure> {
     let from_fields = notes.iter().map(|note| note.field("id").to_owned());
     Ok(from_names
         .chain(from_fields)
-        .filter_map(|name| name.strip_prefix("mem-")?.split('-').next()?.parse().ok())
+        .filter_map(|name| {
+            name.strip_prefix(ID_PREFIX)?
+                .split('-')
+                .next()?
+                .parse()
+                .ok()
+        })
         .max()
         .unwrap_or(0))
 }
@@ -260,6 +285,19 @@ pub fn unclosed(vault: &Path) -> Result<Vec<PathBuf>, Failure> {
         }
     }
     Ok(files)
+}
+
+pub fn rewrite_all(vault: &Path, rewrite: impl Fn(&Path, &str) -> String) -> Result<(), Failure> {
+    for file in markdown_files(vault, &vault.join("notes"))? {
+        let path = vault.join(&file);
+        let text = fs::read_to_string(&path)
+            .map_err(|error| Failure::NoteUnreadable(file.clone(), error))?;
+        let rewritten = rewrite(&file, &text);
+        if rewritten != text {
+            fs::write(&path, rewritten).map_err(|error| Failure::NoteUnwritable(file, error))?;
+        }
+    }
+    Ok(())
 }
 
 fn texts(vault: &Path) -> Result<Vec<(PathBuf, String)>, Failure> {
