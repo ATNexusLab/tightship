@@ -78,6 +78,7 @@ install_cursor() {
   export TIGHTSHIP_DATA="$CURSOR_DATA"
   export TIGHTSHIP_SETTINGS="{{path:config}}/cli-config.json"
   export TIGHTSHIP_ROOT="$plugin_target"
+  step "Removing the plugins tightship replaces" "$plugin_target/bin/tightship" hook clean
   step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ] && [ ! -d "$expanded_vault" ]; then

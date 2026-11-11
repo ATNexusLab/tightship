@@ -93,6 +93,7 @@ function Install-Cursor {
     $env:TIGHTSHIP_DATA = $cursorData
     $env:TIGHTSHIP_SETTINGS = $cursorSettings
     $env:TIGHTSHIP_ROOT = $cursorPlugin
+    Invoke-Step "Removing the plugins tightship replaces" { Invoke-CursorTightship hook clean }
     Invoke-Step "Applying the status line option" { Invoke-CursorTightship hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path -LiteralPath $expandedVault -ErrorAction Ignore)) {
