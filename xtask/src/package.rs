@@ -9,6 +9,7 @@ use zip::{CompressionMethod, DateTime, System, ZipWriter};
 
 use crate::build::binary::PLATFORMS;
 use crate::build::harness;
+use crate::build::render::pretty_json;
 use crate::build::scripts::pascal;
 use crate::diagnostics::{Diagnostic, naming};
 use crate::{Failure, stop_on_errors};
@@ -210,8 +211,7 @@ fn write_catalog(
         "sha256": sha256,
     });
     let catalog_path = staging.join(release_name);
-    let catalog_text = serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n";
-    fs::write(&catalog_path, catalog_text).map_err(naming(&catalog_path))?;
+    fs::write(&catalog_path, pretty_json(&catalog)?).map_err(naming(&catalog_path))?;
     Ok(())
 }
 
@@ -227,8 +227,7 @@ fn write_latest(
         "assets": assets,
     });
     let path = staging.join(LATEST);
-    let text = serde_json::to_string_pretty(&latest).map_err(io::Error::other)? + "\n";
-    fs::write(&path, text).map_err(naming(&path))?;
+    fs::write(&path, pretty_json(&latest)?).map_err(naming(&path))?;
     Ok(())
 }
 

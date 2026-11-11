@@ -1,15 +1,12 @@
 use std::io;
 use std::path::{Path, PathBuf};
 
-use serde::Serialize;
-
 use super::binary::Binary;
-use super::content::{Content, Kind};
+use super::content::Content;
 use super::contract::Part;
 use super::harness::Harness;
-use super::options::OptionsFile;
+use super::options::{self, OptionsFile};
 use super::render;
-use super::staging;
 
 pub fn render(
     root: &Path,
@@ -18,77 +15,22 @@ pub fn render(
     parts: &[Part],
     binaries: &[Binary],
 ) -> io::Result<(PathBuf, usize)> {
-    let staging = staging::staging_dir(root, &harness.name);
-    staging::remove_if_present(&staging)?;
-    let mut written = vec![(
-        staging.join(&harness.dist.manifest),
-        manifest(root, harness, content.options.as_ref())?.into_bytes(),
-    )];
-    if let Some(file) = &harness.dist.catalog {
-        written.push((staging.join(file), render::catalog(harness)?.into_bytes()));
+    let options = content.options.as_ref();
+    let mut extra = Vec::new();
+    if let Some(hooks) = hooks(parts, options, harness.clean.is_some())? {
+        extra.push(("hooks/hooks.json".to_owned(), hooks));
     }
-    for piece in &content.pieces {
-        let file = match piece.kind {
-            Kind::Agent => staging.join("agents").join(format!("{}.md", piece.name)),
-            Kind::Skill | Kind::Command => {
-                staging.join("skills").join(&piece.name).join("SKILL.md")
-            }
-        };
-        written.push((file, render::document(piece, harness, &[])?.into_bytes()));
-    }
-    written.extend(render::supporting_files(&staging, content, harness)?);
-    for part in parts {
-        let file = staging.join("contract").join(&part.file);
-        written.push((file, part.text.clone().into_bytes()));
-    }
-    if let Some(hooks) = hooks(parts, content.options.as_ref(), harness.clean.is_some())? {
-        written.push((staging.join("hooks/hooks.json"), hooks.into_bytes()));
-    }
-    written.extend(render::harness_files(root, &staging, harness)?);
-    written.extend(render::binary_files(&staging, binaries)?);
-    staging::write_files(&staging, &harness.name, &written)?;
-    Ok((staging, written.len()))
-}
-
-fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io::Result<String> {
-    #[derive(Serialize)]
-    struct Author<'harness> {
-        name: &'harness str,
-    }
-    #[derive(Serialize)]
-    struct PluginManifest<'harness> {
-        name: &'harness str,
-        version: String,
-        description: &'harness str,
-        author: Author<'harness>,
-        repository: &'harness str,
-        license: &'harness str,
-        #[serde(
-            rename = "userConfig",
-            skip_serializing_if = "serde_json::Map::is_empty"
-        )]
-        user_config: serde_json::Map<String, serde_json::Value>,
-    }
-    let version = render::workspace_version(root)?;
-    let user_config = render::option_settings(options, harness)?;
-    let plugin = &harness.plugin;
-    let manifest = PluginManifest {
-        name: &plugin.name,
-        version,
-        description: &plugin.description,
-        author: Author {
-            name: &plugin.author,
-        },
-        repository: &plugin.repository,
-        license: &plugin.license,
-        user_config,
+    let layout = render::Layout {
+        manifest: render::manifest(root, harness, Some("userConfig"), options)?,
+        commands_as_files: false,
+        document: |piece, harness| render::document(piece, harness, &[]),
+        extra,
     };
-    Ok(serde_json::to_string_pretty(&manifest).map_err(io::Error::other)? + "\n")
+    render::assemble(root, harness, content, parts, binaries, layout)
 }
 
 fn hooks(parts: &[Part], options: Option<&OptionsFile>, clean: bool) -> io::Result<Option<String>> {
-    let declares =
-        |name| options.is_some_and(|file| file.declared.iter().any(|option| option.name == name));
+    let declares = |name| options::declared(options, name);
     let mut commands: Vec<serde_json::Value> = parts
         .iter()
         .map(|part| {
@@ -179,7 +121,5 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>, clean: bool) -> io::Resu
     let mut events = serde_json::Map::new();
     events.insert("SessionStart".to_owned(), session_start.into());
     let hooks = serde_json::json!({ "hooks": events });
-    Ok(Some(
-        serde_json::to_string_pretty(&hooks).map_err(io::Error::other)? + "\n",
-    ))
+    render::pretty_json(&hooks).map(Some)
 }

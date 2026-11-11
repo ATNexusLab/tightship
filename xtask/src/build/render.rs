@@ -6,11 +6,109 @@ use serde::{Deserialize, Serialize};
 
 use super::binary::Binary;
 use super::content::{self, Content, Kind, Piece, SupportingBody};
+use super::contract::Part;
 use super::harness::Harness;
 use super::options::OptionsFile;
 use super::scripts::{self, Shell};
+use super::staging;
 use super::tokens;
 use crate::diagnostics::naming;
+
+pub struct Layout {
+    pub manifest: String,
+    pub commands_as_files: bool,
+    pub document: fn(&Piece, &Harness) -> io::Result<String>,
+    pub extra: Vec<(String, String)>,
+}
+
+pub fn assemble(
+    root: &Path,
+    harness: &Harness,
+    content: &Content,
+    parts: &[Part],
+    binaries: &[Binary],
+    layout: Layout,
+) -> io::Result<(PathBuf, usize)> {
+    let staging = staging::staging_dir(root, &harness.name);
+    staging::remove_if_present(&staging)?;
+    let mut written = vec![(
+        staging.join(&harness.dist.manifest),
+        layout.manifest.into_bytes(),
+    )];
+    if let Some(file) = &harness.dist.catalog {
+        written.push((staging.join(file), catalog(harness)?.into_bytes()));
+    }
+    for piece in &content.pieces {
+        let file = match piece.kind {
+            Kind::Agent => staging.join("agents").join(format!("{}.md", piece.name)),
+            Kind::Command if layout.commands_as_files => {
+                staging.join("commands").join(format!("{}.md", piece.name))
+            }
+            Kind::Skill | Kind::Command => {
+                staging.join("skills").join(&piece.name).join("SKILL.md")
+            }
+        };
+        written.push((file, (layout.document)(piece, harness)?.into_bytes()));
+    }
+    written.extend(supporting_files(&staging, content, harness)?);
+    for part in parts {
+        let file = staging.join("contract").join(&part.file);
+        written.push((file, part.text.clone().into_bytes()));
+    }
+    for (file, text) in layout.extra {
+        written.push((staging.join(file), text.into_bytes()));
+    }
+    written.extend(harness_files(root, &staging, harness)?);
+    written.extend(binary_files(&staging, binaries)?);
+    staging::write_files(&staging, &harness.name, &written)?;
+    Ok((staging, written.len()))
+}
+
+pub fn pretty_json(value: &impl Serialize) -> io::Result<String> {
+    Ok(serde_json::to_string_pretty(value).map_err(io::Error::other)? + "\n")
+}
+
+pub fn manifest(
+    root: &Path,
+    harness: &Harness,
+    options_key: Option<&str>,
+    options: Option<&OptionsFile>,
+) -> io::Result<String> {
+    #[derive(Serialize)]
+    struct Author<'harness> {
+        name: &'harness str,
+    }
+    #[derive(Serialize)]
+    struct PluginManifest<'harness> {
+        name: &'harness str,
+        version: String,
+        description: &'harness str,
+        author: Author<'harness>,
+        repository: &'harness str,
+        license: &'harness str,
+        #[serde(flatten)]
+        options: serde_json::Map<String, serde_json::Value>,
+    }
+    let mut flattened = serde_json::Map::new();
+    if let Some(key) = options_key {
+        let settings = option_settings(options, harness)?;
+        if !settings.is_empty() {
+            flattened.insert(key.to_owned(), settings.into());
+        }
+    }
+    let plugin = &harness.plugin;
+    pretty_json(&PluginManifest {
+        name: &plugin.name,
+        version: workspace_version(root)?,
+        description: &plugin.description,
+        author: Author {
+            name: &plugin.author,
+        },
+        repository: &plugin.repository,
+        license: &plugin.license,
+        options: flattened,
+    })
+}
 
 pub fn resolve(text: &str, path: &str, harness: &Harness) -> io::Result<String> {
     let (rendered, unresolved) = tokens::render(text, harness);
@@ -24,7 +122,7 @@ pub fn resolve(text: &str, path: &str, harness: &Harness) -> io::Result<String> 
     }
 }
 
-pub fn workspace_version(root: &Path) -> io::Result<String> {
+fn workspace_version(root: &Path) -> io::Result<String> {
     #[derive(Deserialize)]
     struct CargoManifest {
         workspace: Workspace,
@@ -44,7 +142,7 @@ pub fn workspace_version(root: &Path) -> io::Result<String> {
     Ok(cargo.workspace.package.version)
 }
 
-pub fn catalog(harness: &Harness) -> io::Result<String> {
+fn catalog(harness: &Harness) -> io::Result<String> {
     #[derive(Serialize)]
     struct Owner<'harness> {
         name: &'harness str,
@@ -76,10 +174,10 @@ pub fn catalog(harness: &Harness) -> io::Result<String> {
             description: &plugin.description,
         }],
     };
-    Ok(serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n")
+    pretty_json(&catalog)
 }
 
-pub fn option_settings(
+fn option_settings(
     options: Option<&OptionsFile>,
     harness: &Harness,
 ) -> io::Result<serde_json::Map<String, serde_json::Value>> {
@@ -137,7 +235,7 @@ pub fn document(
     Ok(document)
 }
 
-pub fn supporting_files(
+fn supporting_files(
     staging: &Path,
     content: &Content,
     harness: &Harness,
@@ -159,7 +257,7 @@ pub fn supporting_files(
     Ok(files)
 }
 
-pub fn harness_files(
+fn harness_files(
     root: &Path,
     staging: &Path,
     harness: &Harness,
@@ -196,8 +294,7 @@ pub fn harness_files(
         {
             paths.push(serde_json::json!({ "path": "{appdata}/ponytail/" }));
         }
-        let text = serde_json::to_string_pretty(&data).map_err(io::Error::other)? + "\n";
-        files.push((staging.join("clean.json"), text.into_bytes()));
+        files.push((staging.join("clean.json"), pretty_json(&data)?.into_bytes()));
     }
     let plugin = folder.join("plugin");
     if plugin.is_dir() {
@@ -210,7 +307,7 @@ pub fn harness_files(
     Ok(files)
 }
 
-pub fn binary_files(staging: &Path, binaries: &[Binary]) -> io::Result<Vec<(PathBuf, Vec<u8>)>> {
+fn binary_files(staging: &Path, binaries: &[Binary]) -> io::Result<Vec<(PathBuf, Vec<u8>)>> {
     let mut files = Vec::new();
     for binary in binaries {
         let file_name = binary.path.file_name().unwrap_or_default();

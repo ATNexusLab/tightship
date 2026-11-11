@@ -124,12 +124,7 @@ fn outline(
                 ),
             ));
         }
-        let is_declared = options.is_some_and(|file| {
-            file.declared
-                .iter()
-                .any(|declared| declared.name == *option)
-        });
-        if !is_declared {
+        if !super::options::declared(options, option) {
             diagnostics.push(Diagnostic::in_file(
                 path,
                 format!(

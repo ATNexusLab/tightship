@@ -10,7 +10,7 @@ mod installer;
 mod neutrality;
 mod options;
 mod references;
-mod render;
+pub mod render;
 pub mod scripts;
 mod staging;
 mod tokens;

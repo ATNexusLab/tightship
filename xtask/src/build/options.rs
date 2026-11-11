@@ -24,6 +24,16 @@ pub struct OptionsFile {
     pub declared: Vec<UserOption>,
 }
 
+impl OptionsFile {
+    pub fn declares(&self, name: &str) -> bool {
+        self.declared.iter().any(|option| option.name == name)
+    }
+}
+
+pub fn declared(options: Option<&OptionsFile>, name: &str) -> bool {
+    options.is_some_and(|file| file.declares(name))
+}
+
 pub fn is_option_name(name: &str) -> bool {
     name.len() <= 64
         && name.starts_with(|character: char| character.is_ascii_lowercase())
