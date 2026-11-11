@@ -2,6 +2,7 @@ use std::io;
 use std::path::Path;
 use std::process::{Command, Output};
 
+use super::release::is_sha256;
 use crate::failure::Failure;
 
 pub fn download(url: &str, file: &Path) -> Result<(), Failure> {
@@ -62,7 +63,7 @@ pub fn sha256(file: &Path, archive: &str) -> Result<String, Failure> {
     printed
         .split_whitespace()
         .next()
-        .filter(|sha256| sha256.len() == 64 && sha256.bytes().all(|byte| byte.is_ascii_hexdigit()))
+        .filter(|sha256| is_sha256(sha256))
         .map(str::to_ascii_lowercase)
         .ok_or_else(|| failed(format!("it printed {:?}", printed.trim())))
 }

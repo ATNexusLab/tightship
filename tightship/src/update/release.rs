@@ -98,9 +98,7 @@ impl Release {
         let sha256 = asset
             .get("sha256")
             .and_then(Value::as_str)
-            .filter(|sha256| {
-                sha256.len() == 64 && sha256.bytes().all(|byte| byte.is_ascii_hexdigit())
-            })
+            .filter(|sha256| is_sha256(sha256))
             .ok_or_else(invalid)?;
         Ok(Self {
             version,
@@ -117,4 +115,8 @@ fn is_plain_name(name: &str) -> bool {
         && name
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-' | b'_'))
+}
+
+pub fn is_sha256(text: &str) -> bool {
+    text.len() == 64 && text.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
