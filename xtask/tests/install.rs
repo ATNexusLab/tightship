@@ -488,7 +488,7 @@ fn assert_exit(installer: Installer, output: &Output, code: i32) {
     );
 }
 
-fn assert_fails_with(installer: Installer, output: &Output, message: &str) {
+fn assert_installer_fails_with(installer: Installer, output: &Output, message: &str) {
     assert_exit(installer, output, 1);
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
@@ -653,7 +653,7 @@ fn scenario_11_installer_rejects_unknown_harness() {
         let env = MockEnvironment::new();
 
         let output = env.run(installer, &["--harness", "unknown-harness", "--yes"]);
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             "error: unknown harness unknown-harness; expected antigravity-cli, claude-code, cursor, or all",
@@ -680,7 +680,7 @@ fn scenario_11_installer_rejects_an_option_that_is_not_a_boolean() {
                 "--yes",
             ],
         );
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             &format!(
@@ -707,7 +707,7 @@ exit 0
         );
 
         let output = env.run(installer, &["--harness", "antigravity-cli", "--yes"]);
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             "error: agy 1.4.0 or later is required; found 1.3.0",
@@ -731,7 +731,7 @@ fn scenario_11_installer_rejects_missing_agy() {
         let env = MockEnvironment::new();
 
         let output = env.run(installer, &["--harness", "antigravity-cli", "--yes"]);
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             "error: agy 1.4.0 or later is required; found not installed",
@@ -755,7 +755,7 @@ exit 0
         );
 
         let output = env.run(installer, &["--harness", "claude-code", "--yes"]);
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             "error: claude 2.1.295 or later is required; found 2.0.0",
@@ -769,7 +769,7 @@ fn scenario_11_installer_rejects_missing_claude() {
         let env = MockEnvironment::new();
 
         let output = env.run(installer, &["--harness", "claude-code", "--yes"]);
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             "error: claude 2.1.295 or later is required; found not installed",
@@ -783,7 +783,7 @@ fn non_interactive_without_yes_fails_with_standard_input_error() {
         let env = MockEnvironment::new();
 
         let output = env.run(installer, &["--harness", "antigravity-cli"]);
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             &format!(
@@ -801,7 +801,7 @@ fn an_installer_outside_a_release_downloads_nothing() {
         env.add_mock_script("agy", AGY_THAT_INSTALLS);
 
         let output = env.run(installer, &["--harness", "antigravity-cli", "--yes"]);
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             &format!(
@@ -863,7 +863,7 @@ fn a_released_installer_refuses_a_zip_whose_sha256_differs() {
             &["--harness", "antigravity-cli", "--yes"],
         );
 
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             &format!(
@@ -912,7 +912,7 @@ exit 0
             &["--harness", "antigravity-cli", "--yes"],
         );
 
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             "error: failed to download tightship-antigravity-cli.zip",
@@ -952,7 +952,7 @@ exit 3
             ],
         );
 
-        assert_fails_with(
+        assert_installer_fails_with(
             installer,
             &output,
             "error: Installing tightship for Antigravity CLI failed",

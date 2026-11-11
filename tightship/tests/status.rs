@@ -600,13 +600,7 @@ fn scenario_9_status_line_enables_renders_and_restores_via_options_toml() {
     );
     sandbox.write("data/options.toml", "status_line = true\n");
 
-    let mut hook_cmd = sandbox.tightship(&["hook", "status-line"]);
-    hook_cmd
-        .env("TIGHTSHIP_SETTINGS", sandbox.path("config/settings.json"))
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", ROOT)
-        .env("TIGHTSHIP_STATUS_LINE_REFRESH", "60");
-    let output = run(&mut hook_cmd);
+    let output = hook(&sandbox, None);
     assert_succeeds(&output);
 
     assert_eq!(
@@ -631,13 +625,7 @@ fn scenario_9_status_line_enables_renders_and_restores_via_options_toml() {
     assert!(rendered_text.lines().count() >= 2, "{rendered_text}");
 
     sandbox.write("data/options.toml", "status_line = false\n");
-    let mut restore_cmd = sandbox.tightship(&["hook", "status-line"]);
-    restore_cmd
-        .env("TIGHTSHIP_SETTINGS", sandbox.path("config/settings.json"))
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", ROOT)
-        .env("TIGHTSHIP_STATUS_LINE_REFRESH", "60");
-    let output = run(&mut restore_cmd);
+    let output = hook(&sandbox, None);
     assert_succeeds(&output);
 
     assert_eq!(
@@ -726,12 +714,12 @@ fn on_windows_the_status_line_command_runs_through_every_shell_from_a_folder_wit
 
 const CURSOR_OURS: &str = "\"${CURSOR_PLUGIN_ROOT}/bin/tightship\" status-line render";
 
-fn cursor_status_line(sandbox: &Sandbox, arguments: &[&str]) -> Output {
+fn cursor_status_line(sandbox: &Sandbox, arguments: &[&str], root: &str) -> Output {
     let mut command = sandbox.tightship(arguments);
     command
         .env("TIGHTSHIP_SETTINGS", sandbox.path("config/cli-config.json"))
         .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", ROOT)
+        .env("TIGHTSHIP_ROOT", root)
         .env("TIGHTSHIP_STATUS_LINE_COMMAND", CURSOR_OURS);
     run(&mut command)
 }
@@ -746,7 +734,7 @@ fn cursor_session_start_writes_status_line_when_the_option_is_on() {
     sandbox.write("config/cli-config.json", MINE);
     fs::create_dir_all(sandbox.path("data")).expect("the data folder");
 
-    let output = cursor_status_line(&sandbox, &["hook", "status-line"]);
+    let output = cursor_status_line(&sandbox, &["hook", "status-line"], ROOT);
 
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
@@ -773,7 +761,7 @@ fn cursor_turning_the_option_off_restores_the_previous_cli_status_line() {
         &pretty(&json!({ "status_line": false })),
     );
 
-    let output = cursor_status_line(&sandbox, &["hook", "status-line"]);
+    let output = cursor_status_line(&sandbox, &["hook", "status-line"], ROOT);
 
     assert_succeeds(&output);
     assert_eq!(
@@ -792,13 +780,7 @@ fn cursor_status_line_keeps_the_plugin_root_token_when_the_plugin_folder_changes
     );
     sandbox.write("data/status-line.json", r#"{"state": "on"}"#);
 
-    let mut command = sandbox.tightship(&["hook", "status-line"]);
-    command
-        .env("TIGHTSHIP_SETTINGS", sandbox.path("config/cli-config.json"))
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_ROOT", "/plugins/0.2.0")
-        .env("TIGHTSHIP_STATUS_LINE_COMMAND", CURSOR_OURS);
-    let output = run(&mut command);
+    let output = cursor_status_line(&sandbox, &["hook", "status-line"], "/plugins/0.2.0");
 
     assert_succeeds(&output);
     assert_eq!(

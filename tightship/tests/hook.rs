@@ -3,15 +3,9 @@ mod common;
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Output};
 
-use common::{Sandbox, assert_succeeds, note, run, stderr_of, stdout_of, with_stdin};
-
-fn project(sandbox: &Sandbox, name: &str) -> PathBuf {
-    let folder = sandbox.path(name);
-    fs::create_dir_all(folder.join(".git")).expect("the project's .git");
-    folder
-}
+use common::{Sandbox, assert_succeeds, note, project, run, stderr_of, stdout_of, with_stdin};
 
 fn hook(sandbox: &Sandbox, subcommand: &str, working_directory: &Path) -> Command {
     let mut command = sandbox.tightship(&["hook", subcommand]);
@@ -28,6 +22,14 @@ fn hook_output(sandbox: &Sandbox) -> PathBuf {
         "hook-output.json",
         include_str!("../../harnesses/antigravity-cli/plugin/hook-output.json"),
     )
+}
+
+fn contract_part(sandbox: &Sandbox, file: &str) -> Output {
+    run(sandbox
+        .tightship(&["hook", "contract-part", file])
+        .env("TIGHTSHIP_ROOT", sandbox.path(""))
+        .env("TIGHTSHIP_DATA", sandbox.path("data"))
+        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(sandbox)))
 }
 
 fn export_line(sandbox: &Sandbox) -> String {
@@ -440,12 +442,7 @@ fn scenario_4_session_start_injects_contract_and_memory_as_inject_steps_json() {
         "# Memory (2/2)\nRule 2: Keep the vault.\n",
     );
 
-    let mut contract_cmd = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
-    contract_cmd
-        .env("TIGHTSHIP_ROOT", sandbox.path(""))
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
-    let output = run(&mut contract_cmd);
+    let output = contract_part(&sandbox, "part-1.md");
     assert_succeeds(&output);
     let stdout = stdout_of(&output);
     let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
@@ -454,12 +451,7 @@ fn scenario_4_session_start_injects_contract_and_memory_as_inject_steps_json() {
         "# Contract (1/2)\nRule 1: Always verify.\n"
     );
 
-    let mut memory_cmd = sandbox.tightship(&["hook", "contract-part", "memory.md"]);
-    memory_cmd
-        .env("TIGHTSHIP_ROOT", sandbox.path(""))
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
-    let output = run(&mut memory_cmd);
+    let output = contract_part(&sandbox, "memory.md");
     assert_succeeds(&output);
     let stdout = stdout_of(&output);
     let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
@@ -480,7 +472,7 @@ fn scenario_4_session_start_injects_contract_and_memory_as_inject_steps_json() {
     let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
     let msg = json["injectSteps"][0]["systemMessage"]["systemMessage"]
         .as_str()
-        .unwrap();
+        .expect("the injected message");
     assert!(msg.contains("mem-0001"), "{msg}");
     assert!(msg.contains("**Goal:** ship plugin"), "{msg}");
 }
@@ -500,12 +492,7 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     sandbox.write("contract/part-1.md", "# Contract (1/2)\nRule 1\n");
     sandbox.write("contract/memory.md", "# Memory (2/2)\nRule 2\n");
 
-    let mut contract_cmd = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
-    contract_cmd
-        .env("TIGHTSHIP_ROOT", sandbox.path(""))
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
-    let output = run(&mut contract_cmd);
+    let output = contract_part(&sandbox, "part-1.md");
     assert_succeeds(&output);
     let json: serde_json::Value = serde_json::from_str(&stdout_of(&output)).expect("valid JSON");
     assert_eq!(
@@ -513,12 +500,7 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
         "# Contract (1/2)\nRule 1\n"
     );
 
-    let mut memory_cmd = sandbox.tightship(&["hook", "contract-part", "memory.md"]);
-    memory_cmd
-        .env("TIGHTSHIP_ROOT", sandbox.path(""))
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
-    let output = run(&mut memory_cmd);
+    let output = contract_part(&sandbox, "memory.md");
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
 
@@ -532,21 +514,11 @@ fn scenario_5_turning_contract_or_memory_off_suppresses_their_hooks() {
     assert_eq!(stdout_of(&output), "");
 
     sandbox.write("data/options.toml", "contract = false\n");
-    let mut contract_cmd1 = sandbox.tightship(&["hook", "contract-part", "part-1.md"]);
-    contract_cmd1
-        .env("TIGHTSHIP_ROOT", sandbox.path(""))
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
-    let output = run(&mut contract_cmd1);
+    let output = contract_part(&sandbox, "part-1.md");
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
 
-    let mut contract_cmd2 = sandbox.tightship(&["hook", "contract-part", "memory.md"]);
-    contract_cmd2
-        .env("TIGHTSHIP_ROOT", sandbox.path(""))
-        .env("TIGHTSHIP_DATA", sandbox.path("data"))
-        .env("TIGHTSHIP_HOOK_OUTPUT", hook_output(&sandbox));
-    let output = run(&mut contract_cmd2);
+    let output = contract_part(&sandbox, "memory.md");
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
 }
