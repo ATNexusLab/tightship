@@ -5,6 +5,7 @@ use std::path::Path;
 use serde_json::Value;
 
 use crate::failure::Failure;
+use crate::files::strip_byte_order_mark;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Version(u64, u64, u64);
@@ -39,7 +40,7 @@ impl Manifest {
         let invalid = || Failure::ManifestInvalid(path.to_path_buf());
         let text = fs::read_to_string(path).map_err(|_| invalid())?;
         let value: Value =
-            serde_json::from_str(text.trim_start_matches('\u{feff}')).map_err(|_| invalid())?;
+            serde_json::from_str(strip_byte_order_mark(&text)).map_err(|_| invalid())?;
         let text_of = |name| value.get(name).and_then(Value::as_str);
         let name = text_of("name").filter(|name| !name.is_empty());
         let version = text_of("version").and_then(Version::parse);
@@ -68,7 +69,7 @@ impl Release {
     pub fn parse(text: &str, url: &str, harness: &str) -> Result<Self, Failure> {
         let invalid = || Failure::UpdateReleaseInvalid(url.to_owned());
         let value: Value =
-            serde_json::from_str(text.trim_start_matches('\u{feff}')).map_err(|_| invalid())?;
+            serde_json::from_str(strip_byte_order_mark(text)).map_err(|_| invalid())?;
         let version = value
             .get("version")
             .and_then(Value::as_str)

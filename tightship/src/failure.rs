@@ -2,6 +2,27 @@ use std::fmt;
 use std::io;
 use std::path::PathBuf;
 
+pub const USAGE: &str = "\
+Usage: tightship vault path
+       tightship vault init <folder>
+       tightship vault search [--everywhere] <term>...
+       tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project>
+                           --title <title> --why <line> --source <user|session|repo>
+                           [--tags <a,b>] [--pin] [--created <YYYY-MM-DD>] < body
+       tightship vault lint
+       tightship vault sync
+       tightship vault handoff release --title <title> < body
+       tightship vault handoff claim
+       tightship status-line render
+       tightship options set <name> <value>
+       tightship options list
+       tightship options reset
+       tightship options disabled <name>
+       tightship hook contract-part <file>
+       tightship hook map
+       tightship hook clean
+       tightship update";
+
 pub enum Failure {
     VaultNotSet,
     VaultNotAbsolute(PathBuf),
@@ -43,6 +64,7 @@ pub enum Failure {
     SettingsUnwritable(PathBuf, io::Error),
     StatusRecordInvalid(PathBuf),
     StatusRecordUnwritable(PathBuf, io::Error),
+    #[cfg(windows)]
     StatusLinePathUnreadable(PathBuf),
     OptionsInvalid(PathBuf),
     OptionsValueInvalid(PathBuf, String),
@@ -228,6 +250,7 @@ impl fmt::Display for Failure {
                 "cannot write the status line record {}: {error}",
                 path.display()
             ),
+            #[cfg(windows)]
             Self::StatusLinePathUnreadable(path) => write!(
                 formatter,
                 "the status line cannot run {}: cmd reads a space or one of & ^ ( ) % ! ; = , in its path, and no 8.3 short name avoids it; move the plugin to a folder without them",
@@ -258,7 +281,7 @@ impl fmt::Display for Failure {
                 "{} is not JSON with a \"{{text}}\" slot for the hook's output",
                 path.display()
             ),
-            Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", crate::USAGE),
+            Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", USAGE),
             Self::OptionsIo(message) => write!(formatter, "{message}"),
             Self::OptionsInvalidValue(name) => {
                 write!(formatter, "{name} must be true or false")

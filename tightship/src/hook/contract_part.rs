@@ -13,7 +13,7 @@ pub fn run(file: &str) -> Result<(), Failure> {
     {
         return Ok(());
     }
-    let root = crate::variable("TIGHTSHIP_ROOT")?;
+    let root = crate::env::variable("TIGHTSHIP_ROOT")?;
     let path = contract_file(&root, file)?;
     let text =
         fs::read_to_string(&path).map_err(|error| Failure::ContractPartUnreadable(path, error))?;

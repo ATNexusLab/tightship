@@ -13,10 +13,7 @@ pub fn scope(vault: &Path) -> Result<String, Failure> {
 }
 
 pub fn scope_of(vault: &Path, folder: &Path) -> Result<String, Failure> {
-    let top = folder
-        .ancestors()
-        .find(|ancestor| ancestor.join(".git").exists())
-        .unwrap_or(folder);
+    let top = repository_root(folder).unwrap_or(folder);
     let name = normalize(&top.file_name().unwrap_or_default().to_string_lossy());
     let scopes = scope_folders(vault)?;
     if scopes.contains(&name) {
@@ -31,6 +28,12 @@ pub fn scope_of(vault: &Path, folder: &Path) -> Result<String, Failure> {
         })
         .max_by_key(String::len);
     Ok(prefix.unwrap_or(name))
+}
+
+pub fn repository_root(folder: &Path) -> Option<&Path> {
+    folder
+        .ancestors()
+        .find(|ancestor| ancestor.join(".git").exists())
 }
 
 pub fn named_in_input(pointer: &str) -> Result<PathBuf, Failure> {

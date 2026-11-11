@@ -4,16 +4,17 @@ pub mod contract_part;
 pub mod export;
 pub mod map;
 pub mod marketplace_auto_update;
+pub mod settings;
 pub mod start;
 pub mod status_line;
 pub mod update;
 
-use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::ops::BitOr;
 use std::path::{Path, PathBuf};
 
+use crate::env::optional_variable;
 use crate::failure::Failure;
 
 const CHECKPOINT: &str = "\
@@ -53,9 +54,7 @@ pub fn emit_checkpoint(text: &str) -> Result<(), Failure> {
 }
 
 fn template(variable: &str) -> Option<PathBuf> {
-    env::var_os(variable)
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
+    optional_variable(variable)
 }
 
 fn emit_shaped(text: &str, template: Option<PathBuf>) -> Result<(), Failure> {
@@ -100,10 +99,7 @@ fn fill(value: &mut serde_json::Value, text: &str) -> bool {
 }
 
 fn export_vault(folder: &Path) -> Result<(), Failure> {
-    let Some(file) = env::var_os("TIGHTSHIP_ENV_FILE")
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-    else {
+    let Some(file) = optional_variable("TIGHTSHIP_ENV_FILE") else {
         return Ok(());
     };
     OpenOptions::new()

@@ -1,11 +1,12 @@
 use std::env;
 use std::fs;
-use std::io;
 use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
+use crate::env::{expand_tilde, optional_variable};
 use crate::failure::Failure;
+use crate::files::{pretty_json, read_if_present, strip_byte_order_mark};
 
 const OPTION_NAMES: &[&str] = &[
     "contract",
@@ -14,10 +15,9 @@ const OPTION_NAMES: &[&str] = &[
     "auto_update",
     "vault_folder",
 ];
-const BYTE_ORDER_MARK: char = '\u{feff}';
 
 fn options_json() -> Result<PathBuf, Failure> {
-    Ok(crate::variable("TIGHTSHIP_DATA")?.join("options.json"))
+    Ok(crate::env::variable("TIGHTSHIP_DATA")?.join("options.json"))
 }
 
 pub fn disabled(name: &str) -> Result<bool, Failure> {
@@ -59,9 +59,8 @@ pub fn set(name: &str, value: &str) -> Result<(), Failure> {
 
 pub fn list() -> Result<(), Failure> {
     let table = read_table(&options_json()?)?;
-    let text = serde_json::to_string_pretty(&Value::Object(table))
-        .map_err(|error| Failure::OptionsIo(error.to_string()))?;
-    println!("{text}");
+    let text = pretty_json(&table).map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    print!("{text}");
     Ok(())
 }
 
@@ -87,11 +86,12 @@ fn read_table(path: &Path) -> Result<serde_json::Map<String, Value>, Failure> {
 }
 
 fn read_file(path: &Path) -> Result<Option<serde_json::Map<String, Value>>, Failure> {
-    let text = match fs::read_to_string(path) {
-        Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(None),
-        read => read.map_err(|error| Failure::OptionsUnreadable(path.to_path_buf(), error))?,
+    let Some(text) = read_if_present(path)
+        .map_err(|error| Failure::OptionsUnreadable(path.to_path_buf(), error))?
+    else {
+        return Ok(None);
     };
-    let text = text.trim_start_matches(BYTE_ORDER_MARK);
+    let text = strip_byte_order_mark(&text);
     let value = if path
         .extension()
         .is_some_and(|extension| extension == "toml")
@@ -112,9 +112,8 @@ fn write_table(path: &Path, table: &serde_json::Map<String, Value>) -> Result<()
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| Failure::OptionsIo(error.to_string()))?;
     }
-    let text = serde_json::to_string_pretty(&Value::Object(table.clone()))
-        .map_err(|error| Failure::OptionsIo(error.to_string()))?;
-    fs::write(path, format!("{text}\n")).map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    let text = pretty_json(table).map_err(|error| Failure::OptionsIo(error.to_string()))?;
+    fs::write(path, text).map_err(|error| Failure::OptionsIo(error.to_string()))?;
     Ok(())
 }
 
@@ -147,11 +146,11 @@ impl Options {
 }
 
 pub fn load() -> Result<Options, Failure> {
-    let (file, table) = match env::var_os("TIGHTSHIP_DATA").filter(|value| !value.is_empty()) {
+    let (file, table) = match optional_variable("TIGHTSHIP_DATA") {
         None => (PathBuf::new(), serde_json::Map::new()),
         Some(data) => {
-            let json_file = Path::new(&data).join("options.json");
-            let toml_file = Path::new(&data).join("options.toml");
+            let json_file = data.join("options.json");
+            let toml_file = data.join("options.toml");
             match read_file(&json_file)? {
                 Some(table) => (json_file, table),
                 None => {
@@ -173,9 +172,8 @@ pub fn load() -> Result<Options, Failure> {
             ));
         }
     };
-    let vault_folder = env::var_os("TIGHTSHIP_VAULT")
-        .filter(|value| !value.is_empty())
-        .map(|value| expand_tilde(Path::new(&value)))
+    let vault_folder = optional_variable("TIGHTSHIP_VAULT")
+        .map(|value| expand_tilde(&value))
         .or(file_vault_folder);
 
     let mut options = Options {
@@ -192,32 +190,4 @@ pub fn load() -> Result<Options, Failure> {
     options.status_line = options.is_enabled("status_line")?;
     options.auto_update = options.is_enabled("auto_update")?;
     Ok(options)
-}
-
-fn expand_tilde(path: &Path) -> PathBuf {
-    let path_str = path.to_string_lossy();
-    if path_str == "~"
-        && let Some(home) = home_dir()
-    {
-        return home;
-    } else if let Some(rest) = path_str
-        .strip_prefix("~/")
-        .or_else(|| path_str.strip_prefix(r"~\"))
-        && let Some(home) = home_dir()
-    {
-        return home.join(rest);
-    }
-    path.to_path_buf()
-}
-
-pub(crate) fn home_dir() -> Option<PathBuf> {
-    #[cfg(windows)]
-    {
-        if let Some(profile) = env::var_os("USERPROFILE").filter(|value| !value.is_empty()) {
-            return Some(PathBuf::from(profile));
-        }
-    }
-    env::var_os("HOME")
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
 }

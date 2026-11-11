@@ -1,8 +1,8 @@
 use std::fs;
-use std::io;
 use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
+use crate::files::read_if_present;
 
 pub const START: &str = "<!-- tightship:rules:start -->";
 pub const END: &str = "<!-- tightship:rules:end -->";
@@ -15,11 +15,9 @@ pub fn block() -> String {
 pub fn run(vault: &Path) -> Result<bool, Failure> {
     let path = vault.join("AGENTS.md");
     let file = PathBuf::from("AGENTS.md");
-    let text = match fs::read_to_string(&path) {
-        Ok(text) => text,
-        Err(error) if error.kind() == io::ErrorKind::NotFound => String::new(),
-        Err(error) => return Err(Failure::NoteUnreadable(file, error)),
-    };
+    let text = read_if_present(&path)
+        .map_err(|error| Failure::NoteUnreadable(file.clone(), error))?
+        .unwrap_or_default();
     let Some(updated) = with_block(&text)? else {
         return Ok(false);
     };

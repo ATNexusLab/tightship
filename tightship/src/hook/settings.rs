@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use serde_json::{Map, Value};
 
 use crate::failure::Failure;
+use crate::files::{pretty_json, read_if_present, remove_file_if_present};
 
 const RECORD: &str = "status-line.json";
 
@@ -80,10 +81,10 @@ fn readable_unquoted(path: &Path) -> Result<String, Failure> {
 }
 
 pub fn read_settings(path: &Path) -> Result<Map<String, Value>, Failure> {
-    let text = match fs::read_to_string(path) {
-        Ok(text) => text,
-        Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(Map::new()),
-        Err(error) => return Err(Failure::SettingsUnreadable(path.to_path_buf(), error)),
+    let Some(text) = read_if_present(path)
+        .map_err(|error| Failure::SettingsUnreadable(path.to_path_buf(), error))?
+    else {
+        return Ok(Map::new());
     };
     match serde_json::from_str(&text) {
         Ok(Value::Object(settings)) => Ok(settings),
@@ -101,9 +102,7 @@ pub fn write_settings(path: &Path, settings: &Map<String, Value>) -> Result<(), 
     let mut temporary = target.clone().into_os_string();
     temporary.push(".tightship.tmp");
     let temporary = PathBuf::from(temporary);
-    let text = serde_json::to_string_pretty(settings)
-        .map_err(|error| unwritable(io::Error::other(error)))?
-        + "\n";
+    let text = pretty_json(settings).map_err(unwritable)?;
     let permissions = match fs::metadata(&target) {
         Ok(metadata) => Some(metadata.permissions()),
         Err(error) if error.kind() == io::ErrorKind::NotFound => None,
@@ -134,8 +133,12 @@ pub fn write_settings(path: &Path, settings: &Map<String, Value>) -> Result<(), 
     Ok(())
 }
 
+pub fn record_path(data: &Path) -> PathBuf {
+    data.join(RECORD)
+}
+
 pub fn read_previous(data: &Path) -> Result<Option<Value>, Failure> {
-    let path = data.join(RECORD);
+    let path = record_path(data);
     let invalid = || Failure::StatusRecordInvalid(path.clone());
     let text = match fs::read_to_string(&path) {
         Ok(text) => text,
@@ -158,27 +161,20 @@ pub fn read_previous(data: &Path) -> Result<Option<Value>, Failure> {
 }
 
 pub fn write_record(data: &Path, previous: Option<&Value>) -> Result<(), Failure> {
-    let path = data.join(RECORD);
+    let path = record_path(data);
     let mut fields = Map::new();
     fields.insert("state".to_owned(), "on".into());
     if let Some(previous) = previous {
         fields.insert("previous".to_owned(), previous.clone());
     }
     let unwritable = |error| Failure::StatusRecordUnwritable(path.clone(), error);
-    let text = serde_json::to_string_pretty(&fields)
-        .map_err(|error| unwritable(io::Error::other(error)))?
-        + "\n";
+    let text = pretty_json(&fields).map_err(unwritable)?;
     fs::create_dir_all(data)
         .and_then(|()| fs::write(&path, text))
         .map_err(unwritable)
 }
 
 pub fn remove_record(data: &Path) -> Result<(), Failure> {
-    let path = data.join(RECORD);
-    match fs::remove_file(&path) {
-        Err(error) if error.kind() != io::ErrorKind::NotFound => {
-            Err(Failure::StatusRecordUnwritable(path, error))
-        }
-        _ => Ok(()),
-    }
+    let path = record_path(data);
+    remove_file_if_present(&path).map_err(|error| Failure::StatusRecordUnwritable(path, error))
 }

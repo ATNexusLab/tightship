@@ -7,6 +7,7 @@ use jiff::Timestamp;
 use serde_json::{Map, Value, json};
 
 use crate::failure::Failure;
+use crate::files::{pretty_json, remove_file_if_present};
 
 const STATE: &str = "update.json";
 const LOCK: &str = "update.lock";
@@ -99,10 +100,10 @@ pub fn write(data: &Path, state: &State) -> Result<(), Failure> {
         fields.insert("error".to_owned(), error.as_str().into());
     }
     let path = data.join(STATE);
-    let text = serde_json::to_string_pretty(&fields)
-        .map_err(|error| Failure::UpdateStateUnwritable(path.clone(), io::Error::other(error)))?;
+    let text = pretty_json(&fields)
+        .map_err(|error| Failure::UpdateStateUnwritable(path.clone(), error))?;
     fs::create_dir_all(data)
-        .and_then(|()| fs::write(&path, text + "\n"))
+        .and_then(|()| fs::write(&path, text))
         .map_err(|error| Failure::UpdateStateUnwritable(path, error))
 }
 
@@ -130,12 +131,7 @@ pub fn lock(data: &Path) -> Result<Option<Lock>, Failure> {
                 if !abandoned {
                     return Ok(None);
                 }
-                match fs::remove_file(&path) {
-                    Err(error) if error.kind() != io::ErrorKind::NotFound => {
-                        return Err(unwritable(error));
-                    }
-                    _ => {}
-                }
+                remove_file_if_present(&path).map_err(unwritable)?;
             }
             Err(error) => return Err(unwritable(error)),
         }

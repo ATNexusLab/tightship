@@ -1,13 +1,13 @@
 use serde_json::{Value, json};
 
+use super::settings;
 use crate::failure::Failure;
-use crate::status::settings;
 use crate::update::release::Manifest;
 
 pub fn run() -> Result<(), Failure> {
     let options = crate::options::load()?;
-    let manifest = Manifest::read(&crate::variable("TIGHTSHIP_MANIFEST")?)?;
-    let settings_path = crate::variable("TIGHTSHIP_SETTINGS")?;
+    let manifest = Manifest::read(&crate::env::variable("TIGHTSHIP_MANIFEST")?)?;
+    let settings_path = crate::env::variable("TIGHTSHIP_SETTINGS")?;
     let read = settings::read_settings(&settings_path)?;
     let mut user_settings = read.clone();
     let invalid = || Failure::SettingsInvalid(settings_path.clone());

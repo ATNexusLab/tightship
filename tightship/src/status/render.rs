@@ -1,3 +1,5 @@
+use crate::env::optional_variable;
+use crate::project::repository_root;
 use std::env;
 use std::fs;
 use std::io;
@@ -60,11 +62,7 @@ const CACHE: &str = "rate-limits.json";
 const WINDOWS: [&str; 2] = ["five_hour", "seven_day"];
 
 fn remember_from_cache(session: &mut Value) {
-    let Some(folder) = env::var_os("TIGHTSHIP_DATA")
-        .filter(|folder| !folder.is_empty())
-        .map(PathBuf::from)
-        .filter(|folder| folder.is_dir())
-    else {
+    let Some(folder) = optional_variable("TIGHTSHIP_DATA").filter(|folder| folder.is_dir()) else {
         return;
     };
     let file = folder.join(CACHE);
@@ -132,9 +130,7 @@ fn write_cache(file: &Path, remembered: &Map<String, Value>) -> io::Result<()> {
 }
 
 fn read_branch(folder: &Path) -> Option<String> {
-    let repository = folder
-        .ancestors()
-        .find(|ancestor| ancestor.join(".git").exists())?;
+    let repository = repository_root(folder)?;
     let mut git_folder: PathBuf = repository.join(".git");
     if git_folder.is_file() {
         let pointer = fs::read_to_string(&git_folder).ok()?;

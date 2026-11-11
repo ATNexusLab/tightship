@@ -7,13 +7,19 @@ pub fn is_installed() -> bool {
     !matches!(probe, Err(error) if error.kind() == io::ErrorKind::NotFound)
 }
 
-pub fn run(folder: &Path, arguments: &[&str]) -> Result<String, String> {
-    let output = Command::new("git")
+pub fn command(folder: &Path) -> Command {
+    let mut command = Command::new("git");
+    command
         .arg("-C")
         .arg(folder)
         .args(["-c", "core.quotePath=false"])
+        .env("GIT_TERMINAL_PROMPT", "0");
+    command
+}
+
+pub fn run(folder: &Path, arguments: &[&str]) -> Result<String, String> {
+    let output = command(folder)
         .args(arguments)
-        .env("GIT_TERMINAL_PROMPT", "0")
         .output()
         .map_err(|error| error.to_string())?;
     if !output.status.success() {

@@ -3,7 +3,7 @@ use std::env;
 use std::fs::{self, File};
 use std::io::Read;
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
@@ -86,11 +86,8 @@ pub fn run() -> Result<(), Failure> {
 }
 
 fn tracked(folder: &Path) -> Option<Vec<String>> {
-    let mut child = Command::new("git")
-        .arg("-C")
-        .arg(folder)
-        .args(["-c", "core.quotePath=false", "ls-files"])
-        .env("GIT_TERMINAL_PROMPT", "0")
+    let mut child = crate::git::command(folder)
+        .arg("ls-files")
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())

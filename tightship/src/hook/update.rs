@@ -5,7 +5,7 @@ use crate::failure::Failure;
 use crate::update::state;
 
 pub fn run() -> Result<(), Failure> {
-    let data = crate::variable("TIGHTSHIP_DATA")?;
+    let data = crate::env::variable("TIGHTSHIP_DATA")?;
     let mut pending = state::read(&data);
     if let Some(notice) = pending.notice.take() {
         super::emit(&notice.text())?;
