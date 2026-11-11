@@ -1,3 +1,5 @@
+//! `tightship status-line render`: reads the session from stdin and prints the status line.
+
 use std::env;
 use std::fs;
 use std::io;
@@ -10,6 +12,11 @@ use super::rate_limits::remember_from_cache;
 use crate::failure::Failure;
 use crate::project::repository_root;
 
+/// Prints the status line rows for the session the harness sends on stdin.
+///
+/// # Errors
+///
+/// When stdin cannot be read or is not a JSON object.
 pub fn run() -> Result<(), Failure> {
     let input = io::read_to_string(io::stdin())
         .map_err(|error| Failure::StatusInputInvalid(error.to_string()))?;

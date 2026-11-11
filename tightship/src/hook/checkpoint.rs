@@ -1,3 +1,5 @@
+//! The checkpoint hook: asks the agent, before the context is compacted, whether anything belongs in the vault.
+
 use crate::failure::Failure;
 
 const CHECKPOINT: &str = "\
@@ -26,6 +28,11 @@ start, a space that holds about thirty.
 
 Nothing durable? Ignore this and carry on.";
 
+/// Prints the checkpoint when memory is on and a vault folder is set.
+///
+/// # Errors
+///
+/// When the options cannot be read or the text cannot be emitted.
 pub fn run() -> Result<(), Failure> {
     let options = crate::options::load()?;
     if !options.memory {

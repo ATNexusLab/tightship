@@ -1,3 +1,6 @@
+//! The names a source file declares at its top level, read line by line for each language.
+
+/// The functions, types, and classes the text declares, for the language its extension names.
 pub fn names(extension: &str, text: &str) -> Vec<String> {
     let mut found: Vec<String> = Vec::new();
     for line in text.lines() {

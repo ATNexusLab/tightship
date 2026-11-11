@@ -1,9 +1,16 @@
+//! The marketplace hook: keeps the harness's auto-update of the plugin in step with the option.
+
 use serde_json::{Value, json};
 
 use super::settings;
 use crate::failure::Failure;
 use crate::update::release::Manifest;
 
+/// Sets `autoUpdate` on the plugin's marketplace in the user's settings, writing only when it changed.
+///
+/// # Errors
+///
+/// When the manifest or the settings are invalid, or the settings cannot be written.
 pub fn run() -> Result<(), Failure> {
     let options = crate::options::load()?;
     let manifest = Manifest::read(&crate::env::variable("TIGHTSHIP_MANIFEST")?)?;

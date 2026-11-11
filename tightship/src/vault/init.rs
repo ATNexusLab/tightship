@@ -1,3 +1,5 @@
+//! `tightship vault init`: creates an empty vault as a git repository.
+
 use std::fs;
 use std::io;
 use std::path::{self, Path};
@@ -5,6 +7,11 @@ use std::path::{self, Path};
 use crate::failure::Failure;
 use crate::git;
 
+/// Creates the vault in the folder, with its rules and the `all` scope.
+///
+/// # Errors
+///
+/// When git is missing, the folder is not empty, or it cannot be written or initialized.
 pub fn run(folder: &Path) -> Result<(), Failure> {
     let unwritable = |error: io::Error| Failure::InitUnwritable(folder.to_path_buf(), error);
     if !git::is_installed() {

@@ -1,3 +1,5 @@
+//! The map hook: lists the names each folder of the project declares, so the agent reuses them.
+
 mod names;
 
 use std::collections::HashMap;
@@ -62,6 +64,11 @@ const PRIORITY_WORDS: [&str; 12] = [
     "api",
 ];
 
+/// Prints the codebase map of the working folder, from the files git tracks or else a bounded walk.
+///
+/// # Errors
+///
+/// When the options are invalid or the map cannot be emitted.
 pub fn run() -> Result<(), Failure> {
     if !crate::options::load()?.contract {
         return Ok(());
@@ -101,9 +108,11 @@ fn tracked(folder: &Path) -> Option<Vec<String>> {
     thread::spawn(move || {
         let mut output = Vec::new();
         let read = stdout.read_to_end(&mut output).map(|_| output);
+        // The receiver is gone once the time limit passed, and nothing waits for the output.
         let _ = sender.send(read);
     });
     let Ok(Ok(output)) = receiver.recv_timeout(GIT_LIMIT) else {
+        // A git that does not answer in time falls back to walking the folder.
         let _ = child.kill();
         let _ = child.wait();
         return None;

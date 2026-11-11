@@ -1,3 +1,5 @@
+//! Removing notes past their age, and the links other notes had to them.
+
 use std::fs;
 use std::path::Path;
 
@@ -7,6 +9,11 @@ use jiff::civil::Date;
 use super::note::{self, Note};
 use crate::failure::Failure;
 
+/// Removes the expired notes, unlinks them from the others, and returns how many it removed.
+///
+/// # Errors
+///
+/// When a note cannot be read, removed, or rewritten.
 pub fn run(vault: &Path, today: Date) -> Result<usize, Failure> {
     let notes = note::read_all(vault)?;
     let expired: Vec<&Note> = notes

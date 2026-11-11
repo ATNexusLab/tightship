@@ -1,3 +1,5 @@
+//! The status line's rows, cut to the terminal's width: pure, from the session the harness sends.
+
 use std::path::Path;
 
 use jiff::Timestamp;
@@ -23,6 +25,7 @@ impl Segment {
     }
 }
 
+/// The identity row and the usage row, each fitted to the width by shortening, then dropping, its least important parts.
 pub fn rows(session: &Value, branch: Option<&str>, width: Option<usize>) -> Vec<String> {
     let mut identity = identity_row(session, branch);
     if let (Some(branch), Some(width)) = (branch, width)
@@ -201,6 +204,7 @@ fn paint(code: &str, text: &str) -> String {
     format!("\x1b[{code}m{text}\x1b[0m")
 }
 
+/// The string at the JSON pointer of the session, when there is one.
 pub fn text<'session>(session: &'session Value, pointer: &str) -> Option<&'session str> {
     session.pointer(pointer).and_then(Value::as_str)
 }

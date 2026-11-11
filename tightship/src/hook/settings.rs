@@ -1,3 +1,5 @@
+//! The harness's settings file and the record of the status line tightship replaced in it.
+
 use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
@@ -10,6 +12,7 @@ use crate::files::{pretty_json, read_if_present, remove_file_if_present};
 
 const RECORD: &str = "status-line.json";
 
+/// Whether the status line runs a `tightship` binary from a plugin's `bin/` folder.
 pub fn is_ours(status_line: &Value) -> bool {
     let Some(command) = status_line.get("command").and_then(Value::as_str) else {
         return false;
@@ -29,6 +32,11 @@ pub fn is_ours(status_line: &Value) -> bool {
         && (folder == Some("bin") || above == Some("bin"))
 }
 
+/// The command that renders tightship's status line from the plugin at the root.
+///
+/// # Errors
+///
+/// On Windows, when the launcher's path has characters `cmd` reads and no short form without them.
 pub fn command_for(root: &Path) -> Result<String, Failure> {
     if let Some(command) = env::var("TIGHTSHIP_STATUS_LINE_COMMAND")
         .ok()
@@ -80,6 +88,11 @@ fn readable_unquoted(path: &Path) -> Result<String, Failure> {
     Ok(short.to_owned())
 }
 
+/// The settings as a JSON object, empty when the file does not exist.
+///
+/// # Errors
+///
+/// When the file cannot be read or is not a JSON object.
 pub fn read_settings(path: &Path) -> Result<Map<String, Value>, Failure> {
     let Some(text) = read_if_present(path)
         .map_err(|error| Failure::SettingsUnreadable(path.to_path_buf(), error))?
@@ -92,6 +105,11 @@ pub fn read_settings(path: &Path) -> Result<Map<String, Value>, Failure> {
     }
 }
 
+/// Writes the settings through a temporary file, keeping the file's permissions and a symlink's target.
+///
+/// # Errors
+///
+/// When the file or its folder cannot be written.
 pub fn write_settings(path: &Path, settings: &Map<String, Value>) -> Result<(), Failure> {
     let unwritable = |error| Failure::SettingsUnwritable(path.to_path_buf(), error);
     let target = match fs::canonicalize(path) {
@@ -133,10 +151,16 @@ pub fn write_settings(path: &Path, settings: &Map<String, Value>) -> Result<(), 
     Ok(())
 }
 
+/// The file that records the status line tightship replaced.
 pub fn record_path(data: &Path) -> PathBuf {
     data.join(RECORD)
 }
 
+/// The status line tightship replaced, or `None` when there was none or no record exists.
+///
+/// # Errors
+///
+/// When the record cannot be read or is not in the shape `write_record` leaves.
 pub fn read_previous(data: &Path) -> Result<Option<Value>, Failure> {
     let path = record_path(data);
     let invalid = || Failure::StatusRecordInvalid(path.clone());
@@ -160,6 +184,11 @@ pub fn read_previous(data: &Path) -> Result<Option<Value>, Failure> {
     }
 }
 
+/// Records that tightship's status line is on, and the one it replaced.
+///
+/// # Errors
+///
+/// When the record cannot be written.
 pub fn write_record(data: &Path, previous: Option<&Value>) -> Result<(), Failure> {
     let path = record_path(data);
     let mut fields = Map::new();
@@ -174,6 +203,11 @@ pub fn write_record(data: &Path, previous: Option<&Value>) -> Result<(), Failure
         .map_err(unwritable)
 }
 
+/// Removes the record, doing nothing when there is none.
+///
+/// # Errors
+///
+/// When the record exists and cannot be removed.
 pub fn remove_record(data: &Path) -> Result<(), Failure> {
     let path = record_path(data);
     remove_file_if_present(&path).map_err(|error| Failure::StatusRecordUnwritable(path, error))

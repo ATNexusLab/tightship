@@ -1,3 +1,5 @@
+//! The vault context a session starts with: the project's handoff, debts, and pinned notes, under a cap.
+
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -38,6 +40,7 @@ fn length(text: &str) -> usize {
     text.encode_utf16().count()
 }
 
+/// The context of the scope, and how many pinned notes the cap cut.
 pub fn render(vault: &Path, scope: &str, notes: &[Note]) -> (String, usize) {
     let vault = vault.display();
     let mut text = format!(

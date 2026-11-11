@@ -1,3 +1,5 @@
+//! The hooks a harness runs, and how their text reaches it: plain or inside the harness's JSON shape.
+
 pub mod checkpoint;
 pub mod clean;
 pub mod contract_part;
@@ -17,10 +19,20 @@ use std::path::{Path, PathBuf};
 use crate::env::optional_variable;
 use crate::failure::Failure;
 
+/// Prints the text for the harness, inside the JSON shape `TIGHTSHIP_HOOK_OUTPUT` names when it is set.
+///
+/// # Errors
+///
+/// When the shape file cannot be read or has no `{text}` slot.
 pub fn emit(text: &str) -> Result<(), Failure> {
     emit_shaped(text, template("TIGHTSHIP_HOOK_OUTPUT"))
 }
 
+/// Prints the memory checkpoint, in the shape `TIGHTSHIP_CHECKPOINT_OUTPUT` names, or else as `emit` does.
+///
+/// # Errors
+///
+/// When the shape file cannot be read or has no `{text}` slot.
 pub fn emit_checkpoint(text: &str) -> Result<(), Failure> {
     let shape =
         template("TIGHTSHIP_CHECKPOINT_OUTPUT").or_else(|| template("TIGHTSHIP_HOOK_OUTPUT"));

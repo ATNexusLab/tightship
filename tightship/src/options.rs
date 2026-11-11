@@ -1,3 +1,5 @@
+//! The plugin's options: read from the environment, then `options.json` or `options.toml`, and set by the user.
+
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -20,6 +22,11 @@ fn options_json() -> Result<PathBuf, Failure> {
     Ok(crate::env::variable("TIGHTSHIP_DATA")?.join("options.json"))
 }
 
+/// Whether an on/off option is off, for `tightship options disabled`.
+///
+/// # Errors
+///
+/// When the name is unknown or names the vault folder, or the options are invalid.
 pub fn disabled(name: &str) -> Result<bool, Failure> {
     validate_name(name)?;
     if name == "vault_folder" {
@@ -38,6 +45,11 @@ fn validate_name(name: &str) -> Result<(), Failure> {
     }
 }
 
+/// Stores an option's value in `options.json`.
+///
+/// # Errors
+///
+/// When the name is unknown, an on/off value is not `true` or `false`, or the file cannot be read or written.
 pub fn set(name: &str, value: &str) -> Result<(), Failure> {
     validate_name(name)?;
     let path = options_json()?;
@@ -57,6 +69,11 @@ pub fn set(name: &str, value: &str) -> Result<(), Failure> {
     Ok(())
 }
 
+/// Prints the options stored in `options.json`.
+///
+/// # Errors
+///
+/// When the file cannot be read or is invalid.
 pub fn list() -> Result<(), Failure> {
     let table = read_table(&options_json()?)?;
     let text = pretty_json(&table).map_err(|error| Failure::OptionsIo(error.to_string()))?;
@@ -64,6 +81,11 @@ pub fn list() -> Result<(), Failure> {
     Ok(())
 }
 
+/// Removes `options.json`, so every option goes back to its default.
+///
+/// # Errors
+///
+/// When the file exists and cannot be removed.
 pub fn reset() -> Result<(), Failure> {
     let path = options_json()?;
     if path.is_file() {
@@ -117,6 +139,7 @@ fn write_table(path: &Path, table: &serde_json::Map<String, Value>) -> Result<()
     Ok(())
 }
 
+/// The options a command runs with.
 pub struct Options {
     pub contract: bool,
     pub memory: bool,
@@ -128,6 +151,11 @@ pub struct Options {
 }
 
 impl Options {
+    /// Whether an on/off option is on: its `TIGHTSHIP_<NAME>` variable first, then the file, then on.
+    ///
+    /// # Errors
+    ///
+    /// When the file holds a value that is not a boolean.
     pub fn is_enabled(&self, name: &str) -> Result<bool, Failure> {
         let variable = format!("TIGHTSHIP_{}", name.to_ascii_uppercase().replace('-', "_"));
         if let Some(value) = env::var_os(variable).filter(|value| !value.is_empty()) {
@@ -144,6 +172,11 @@ impl Options {
     }
 }
 
+/// Reads the options, with the environment over the file and the file over the defaults.
+///
+/// # Errors
+///
+/// When the options file cannot be read or holds an invalid value.
 pub fn load() -> Result<Options, Failure> {
     let (file, table) = match optional_variable("TIGHTSHIP_DATA") {
         None => (PathBuf::new(), serde_json::Map::new()),

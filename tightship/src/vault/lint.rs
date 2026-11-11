@@ -1,9 +1,16 @@
+//! `tightship vault lint`: reports the notes that break the vault's rules.
+
 use std::collections::{BTreeSet, HashMap, HashSet};
 
 use super::context;
 use super::note::{self, Note};
 use crate::failure::Failure;
 
+/// Prints each note's problems and each scope whose pinned notes do not fit the session start.
+///
+/// # Errors
+///
+/// When the vault cannot be read, or `LintFailed` when anything was reported.
 pub fn run() -> Result<(), Failure> {
     let vault = super::folder()?;
     let notes = note::read_all(&vault)?;

@@ -1,17 +1,27 @@
+//! The vault's rules, kept between two markers in its `AGENTS.md`.
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
 use crate::files::read_if_present;
 
+/// The line that opens the rules block.
 pub const START: &str = "<!-- tightship:rules:start -->";
+/// The line that closes the rules block.
 pub const END: &str = "<!-- tightship:rules:end -->";
 const TEMPLATE: &str = include_str!("../../../content/vault-template/AGENTS.md");
 
+/// The rules block, markers included.
 pub fn block() -> String {
     format!("{START}\n{TEMPLATE}{END}\n")
 }
 
+/// Writes the current rules into the vault's `AGENTS.md`, and returns whether it changed.
+///
+/// # Errors
+///
+/// When the markers are broken, or the file cannot be read or written.
 pub fn run(vault: &Path) -> Result<bool, Failure> {
     let path = vault.join("AGENTS.md");
     let file = PathBuf::from("AGENTS.md");

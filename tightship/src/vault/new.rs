@@ -1,3 +1,5 @@
+//! `tightship vault new`: writes a note from its fields and the body on stdin.
+
 use std::path::{Component, Path};
 
 use clap::Args;
@@ -8,6 +10,7 @@ use super::note::{self, NewNote};
 use crate::failure::Failure;
 use crate::project;
 
+/// The fields of a new note, as the command line gives them.
 #[derive(Args)]
 pub struct Arguments {
     #[arg(long)]
@@ -28,6 +31,11 @@ pub struct Arguments {
     created: Option<String>,
 }
 
+/// Validates the fields, writes the note under its scope, and prints its path.
+///
+/// # Errors
+///
+/// When a field or the body is invalid, or the vault cannot be read or written.
 pub fn run(arguments: &Arguments) -> Result<(), Failure> {
     if let Some(scope) = &arguments.scope {
         validate_scope(scope)?;

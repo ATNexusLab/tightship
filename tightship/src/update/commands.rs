@@ -1,3 +1,5 @@
+//! The system tools an update runs: `curl`, `sha256sum` or `shasum`, and `unzip`, or PowerShell on Windows.
+
 use std::io;
 use std::path::Path;
 use std::process::{Command, Output};
@@ -5,6 +7,11 @@ use std::process::{Command, Output};
 use super::release::is_sha256;
 use crate::failure::Failure;
 
+/// Downloads the URL to the file, over https or from a local file only.
+///
+/// # Errors
+///
+/// When the URL has another scheme, the tool is missing, or the download fails.
 pub fn download(url: &str, file: &Path) -> Result<(), Failure> {
     let failed = |message| Failure::UpdateDownloadFailed(url.to_owned(), message);
     if !url.starts_with("https://") && !url.starts_with("file://") {
@@ -41,6 +48,11 @@ pub fn download(url: &str, file: &Path) -> Result<(), Failure> {
     run(&mut command, tool, failed).map(drop)
 }
 
+/// The lowercase SHA-256 of the file.
+///
+/// # Errors
+///
+/// When no tool can hash the file or it prints something else than a hash.
 pub fn sha256(file: &Path, archive: &str) -> Result<String, Failure> {
     let failed = |message| Failure::UpdateChecksumFailed(archive.to_owned(), message);
     #[cfg(windows)]
@@ -68,6 +80,11 @@ pub fn sha256(file: &Path, archive: &str) -> Result<String, Failure> {
         .ok_or_else(|| failed(format!("it printed {:?}", printed.trim())))
 }
 
+/// Extracts the zip archive into the folder.
+///
+/// # Errors
+///
+/// When the tool is missing or the extraction fails.
 pub fn extract(file: &Path, folder: &Path, archive: &str) -> Result<(), Failure> {
     let failed = |message| Failure::UpdateExtractFailed(archive.to_owned(), message);
     #[cfg(windows)]

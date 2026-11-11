@@ -1,3 +1,5 @@
+//! The clean hook: removes what the plugins tightship replaces left behind on the machine.
+
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -39,6 +41,11 @@ impl Outcome {
     }
 }
 
+/// Runs the commands and removes the paths, JSON members, and status lines the `TIGHTSHIP_CLEAN` file lists, then reports.
+///
+/// # Errors
+///
+/// When the report cannot be emitted; a leftover that cannot be removed is reported, not failed.
 pub fn run() -> Result<(), Failure> {
     let Some(leftovers) = optional_variable("TIGHTSHIP_CLEAN")
         .and_then(|file| fs::read_to_string(file).ok())
@@ -160,6 +167,7 @@ fn run_line(line: &str) -> Result<bool, String> {
                 thread::sleep(Duration::from_millis(50));
             }
             Ok(None) => {
+                // The command already timed out; that is the failure reported.
                 let _ = child.kill();
                 let _ = child.wait();
                 return Err(format!(

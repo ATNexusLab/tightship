@@ -1,3 +1,5 @@
+//! `tightship vault sync`: commits, rebases on the remote, renumbers colliding ids, expires notes, and pushes.
+
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
@@ -8,6 +10,11 @@ use super::{expire, rules};
 use crate::failure::Failure;
 use crate::git;
 
+/// Syncs the vault with its remote, or keeps it local when it has none.
+///
+/// # Errors
+///
+/// When a rebase is under way, there is no upstream, or a git step fails.
 pub fn run() -> Result<(), Failure> {
     let vault = super::folder()?;
     if is_under_way(&vault)? {

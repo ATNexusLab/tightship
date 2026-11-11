@@ -1,7 +1,10 @@
+//! Every way a command fails, each with the message the user reads.
+
 use std::fmt;
 use std::io;
 use std::path::PathBuf;
 
+/// The usage text printed for `--help` and named by a usage failure.
 pub const USAGE: &str = "\
 Usage: tightship vault path
        tightship vault init <folder>
@@ -23,6 +26,7 @@ Usage: tightship vault path
        tightship hook clean
        tightship update";
 
+/// A failure of a command, grouped by the area it comes from.
 pub enum Failure {
     Usage(String),
     VariableNotSet(&'static str),

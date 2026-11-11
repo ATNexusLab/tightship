@@ -1,3 +1,5 @@
+//! What the last update check left in `update.json`, and the lock that keeps two checks apart.
+
 use std::fs::{self, OpenOptions};
 use std::io;
 use std::path::{Path, PathBuf};
@@ -14,6 +16,7 @@ const LOCK: &str = "update.lock";
 const CHECK_INTERVAL_SECONDS: i64 = 86_400;
 const ABANDONED_LOCK: Duration = Duration::from_secs(3_600);
 
+/// When the last check ran, the notice it left for the next session, and the error it hit.
 #[derive(Default)]
 pub struct State {
     pub checked_at: Option<Timestamp>,
@@ -21,6 +24,7 @@ pub struct State {
     pub error: Option<String>,
 }
 
+/// An update installed, or one refused for its checksum, to tell the user once.
 pub struct Notice {
     pub refused: bool,
     pub from: String,
@@ -28,6 +32,7 @@ pub struct Notice {
 }
 
 impl Notice {
+    /// The notice the session start shows the agent.
     pub fn text(&self) -> String {
         let Self { from, to, .. } = self;
         if self.refused {
@@ -43,6 +48,7 @@ impl Notice {
 }
 
 impl State {
+    /// Whether a day has passed since the last check, or none ran.
     pub fn is_check_due(&self) -> bool {
         self.checked_at.is_none_or(|checked_at| {
             Timestamp::now().duration_since(checked_at).as_secs() > CHECK_INTERVAL_SECONDS
@@ -50,7 +56,9 @@ impl State {
     }
 }
 
+/// The state in the data folder, empty when there is none or it is invalid.
 pub fn read(data: &Path) -> State {
+    // A missing or broken state only makes the next check run sooner; it never stops a session.
     fs::read_to_string(data.join(STATE))
         .ok()
         .and_then(|text| serde_json::from_str(&text).ok())
@@ -84,6 +92,11 @@ fn parse(value: &Value) -> Option<State> {
     Some(state)
 }
 
+/// Writes the state to the data folder.
+///
+/// # Errors
+///
+/// When the file or its folder cannot be written.
 pub fn write(data: &Path, state: &State) -> Result<(), Failure> {
     let mut fields = Map::new();
     if let Some(checked_at) = state.checked_at {
@@ -107,14 +120,21 @@ pub fn write(data: &Path, state: &State) -> Result<(), Failure> {
         .map_err(|error| Failure::UpdateStateUnwritable(path, error))
 }
 
+/// The lock of a running check, removed when dropped.
 pub struct Lock(PathBuf);
 
 impl Drop for Lock {
     fn drop(&mut self) {
+        // A lock left behind is taken over once it is an hour old.
         let _ = fs::remove_file(&self.0);
     }
 }
 
+/// Takes the lock, or returns `None` when another check holds it; a lock an hour old is taken over.
+///
+/// # Errors
+///
+/// When the lock file cannot be created or removed.
 pub fn lock(data: &Path) -> Result<Option<Lock>, Failure> {
     let path = data.join(LOCK);
     let unwritable = |error| Failure::UpdateStateUnwritable(path.clone(), error);

@@ -1,3 +1,5 @@
+//! `tightship vault handoff`: leaves the session's work as a note for the next one, or takes it.
+
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -9,6 +11,7 @@ use super::note::{self, NewNote, Note};
 use crate::failure::Failure;
 use crate::project;
 
+/// The handoff subcommands.
 #[derive(Subcommand)]
 pub enum Command {
     Release {
@@ -18,6 +21,11 @@ pub enum Command {
     Claim,
 }
 
+/// Releases or claims a handoff.
+///
+/// # Errors
+///
+/// When the title or body is invalid, or the vault cannot be read or written.
 pub fn run(command: &Command) -> Result<(), Failure> {
     match command {
         Command::Release { title } => release(title),
@@ -25,6 +33,7 @@ pub fn run(command: &Command) -> Result<(), Failure> {
     }
 }
 
+/// The handoffs of the scope, the most recently updated first.
 pub fn in_scope<'notes>(notes: &'notes [Note], scope: &str) -> Vec<&'notes Note> {
     let mut handoffs: Vec<&Note> = notes
         .iter()
@@ -37,6 +46,7 @@ pub fn in_scope<'notes>(notes: &'notes [Note], scope: &str) -> Vec<&'notes Note>
     handoffs
 }
 
+/// The heading a handoff is shown under.
 pub fn heading(handoff: &Note, scope: &str) -> String {
     format!(
         "Handoff — {scope} · {} · {}",
@@ -45,6 +55,7 @@ pub fn heading(handoff: &Note, scope: &str) -> String {
     )
 }
 
+/// The labels a handoff body needs and does not start a line with.
 pub fn missing_labels(body: &str) -> Vec<&'static str> {
     [
         "**Goal:**",

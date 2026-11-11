@@ -1,3 +1,5 @@
+//! `tightship update`: checks GitHub Releases for a newer plugin, verifies it, and swaps it in.
+
 mod apply;
 mod commands;
 pub mod release;
@@ -13,6 +15,11 @@ use crate::files::remove_folder_if_present;
 use release::{Manifest, Release, Version};
 use state::Notice;
 
+/// Installs a newer release when there is one, recording the check and a notice for the next session.
+///
+/// # Errors
+///
+/// When the manifest is invalid, or a download, the checksum, the extraction, or the swap fails.
 pub fn run() -> Result<(), Failure> {
     if !crate::options::load()?.auto_update {
         return Ok(());
@@ -84,6 +91,7 @@ fn check(
     remove_folder_if_present(&work).map_err(unwritable)?;
     fs::create_dir_all(&work).map_err(unwritable)?;
     let Some(release) = newer_release(&work, manifest, harness)? else {
+        // The work folder is scratch, emptied again at the start of the next check.
         let _ = fs::remove_dir_all(&work);
         return Ok(None);
     };
@@ -92,6 +100,7 @@ fn check(
     remove_folder_if_present(&staging)
         .map_err(|error| Failure::UpdateApplyFailed(staging.clone(), error))?;
     let applied = install(root, &staging, &archive, &release.archive);
+    // The work folder is scratch, emptied again at the start of the next check.
     let _ = fs::remove_dir_all(&work);
     applied?;
     Ok(Some(release.version))
@@ -129,6 +138,7 @@ fn download_verified(
     )?;
     let actual = commands::sha256(&archive, &release.archive)?;
     if actual != release.sha256 {
+        // The integrity failure is what matters; the work folder is emptied at the next check.
         let _ = fs::remove_dir_all(work);
         return Err(Failure::UpdateIntegrity {
             archive: release.archive.clone(),
@@ -145,6 +155,7 @@ fn install(root: &Path, staging: &Path, archive: &Path, archive_name: &str) -> R
         .and_then(|()| apply::check_plain(staging, archive_name))
         .and_then(|()| apply::place_windows_hooks(staging))
         .and_then(|()| apply::swap(root, staging));
+    // The staging folder is removed again before the next install.
     let _ = fs::remove_dir_all(staging);
     applied
 }

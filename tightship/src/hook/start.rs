@@ -1,3 +1,5 @@
+//! The start hook: gives the session the vault's context for the project, or says why there is none.
+
 use std::env;
 use std::io;
 use std::path::PathBuf;
@@ -6,6 +8,11 @@ use crate::failure::Failure;
 use crate::project;
 use crate::vault::{self, context, note};
 
+/// Prints the vault context of the project's scope, or a note on a vault that is not set up.
+///
+/// # Errors
+///
+/// When the options, the notes, or the hook input cannot be read, or the context cannot be emitted.
 pub fn run() -> Result<(), Failure> {
     let options = crate::options::load()?;
     if !options.memory {

@@ -1,3 +1,5 @@
+//! The status-line hook: puts tightship's status line in the harness's settings, or gives the user's back.
+
 use std::env;
 use std::path::Path;
 
@@ -6,6 +8,11 @@ use serde_json::{Map, Value};
 use super::settings;
 use crate::failure::Failure;
 
+/// Turns the status line on, refreshes it, or puts back the one it replaced, as the option says.
+///
+/// # Errors
+///
+/// When the options, the settings, or the record are invalid, or the settings cannot be written.
 pub fn run() -> Result<(), Failure> {
     let options = crate::options::load()?;
     let settings_path = crate::env::variable("TIGHTSHIP_SETTINGS")?;

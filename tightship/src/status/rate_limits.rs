@@ -1,3 +1,5 @@
+//! The rate limits a session last reported, cached so a session that reports none still shows them.
+
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -10,6 +12,7 @@ use crate::env::optional_variable;
 const CACHE: &str = "rate-limits.json";
 const WINDOWS: [&str; 2] = ["five_hour", "seven_day"];
 
+/// Fills the session's missing rate limits from the cache while they are current, and caches the ones it has.
 pub fn remember_from_cache(session: &mut Value) {
     let Some(folder) = optional_variable("TIGHTSHIP_DATA").filter(|folder| folder.is_dir()) else {
         return;
@@ -21,6 +24,7 @@ pub fn remember_from_cache(session: &mut Value) {
         .unwrap_or_default();
     let remembered = remember_windows(session, cached.clone(), Timestamp::now().as_second());
     if remembered != cached {
+        // The cache only fills a session that reports no rate limits; a failed write must not break the line.
         let _ = write_cache(&file, &remembered);
     }
 }
@@ -73,6 +77,7 @@ fn write_cache(file: &Path, remembered: &Map<String, Value>) -> io::Result<()> {
     let temporary = PathBuf::from(temporary);
     let written = fs::write(&temporary, text).and_then(|()| fs::rename(&temporary, file));
     if written.is_err() {
+        // The write already failed; that error is the one returned.
         let _ = fs::remove_file(&temporary);
     }
     written
