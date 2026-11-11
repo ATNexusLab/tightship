@@ -1,19 +1,146 @@
+//! The layout every plugin shares: manifest, catalog, pieces, contract, launchers, and binaries.
+
+pub mod binary;
+pub mod contract;
+pub mod installer;
+pub mod scripts;
+pub mod staging;
+pub mod tokens;
+
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-use super::binary::Binary;
-use super::content::{self, Content, Kind, Piece, SupportingBody};
-use super::harness::Harness;
-use super::options::OptionsFile;
-use super::scripts::{self, Shell};
-use super::tokens;
-use crate::diagnostics::naming;
+use crate::build::check::content::{Content, Kind, Piece, SupportingBody};
+use crate::build::check::options::OptionsFile;
+use crate::build::harness::Harness;
+use crate::diagnostics::with_path;
+use crate::{files, workspace};
+use binary::Binary;
+use contract::Part;
+use scripts::Shell;
 
+/// What a harness adds to the shared layout.
+pub struct Layout {
+    pub manifest: String,
+    pub commands_as_files: bool,
+    pub document: fn(&Piece, &Harness) -> io::Result<String>,
+    pub extra: Vec<(String, String)>,
+}
+
+/// Writes a plugin into its staging folder and returns the folder with the number of files.
+///
+/// # Errors
+///
+/// When a piece does not render, or a file cannot be read or written.
+pub fn assemble(
+    root: &Path,
+    harness: &Harness,
+    content: &Content,
+    parts: &[Part],
+    binaries: &[Binary],
+    layout: Layout,
+) -> io::Result<(PathBuf, usize)> {
+    let staging = staging::staging_dir(root, &harness.name);
+    files::remove_if_present(&staging)?;
+    let mut written = vec![(
+        staging.join(&harness.dist.manifest),
+        layout.manifest.into_bytes(),
+    )];
+    if let Some(file) = &harness.dist.catalog {
+        written.push((staging.join(file), catalog(harness)?.into_bytes()));
+    }
+    for piece in &content.pieces {
+        let file = match piece.kind {
+            Kind::Agent => staging.join("agents").join(format!("{}.md", piece.name)),
+            Kind::Command if layout.commands_as_files => {
+                staging.join("commands").join(format!("{}.md", piece.name))
+            }
+            Kind::Skill | Kind::Command => {
+                staging.join("skills").join(&piece.name).join("SKILL.md")
+            }
+        };
+        written.push((file, (layout.document)(piece, harness)?.into_bytes()));
+    }
+    written.extend(supporting_files(&staging, content, harness)?);
+    for part in parts {
+        let file = staging.join("contract").join(&part.file);
+        written.push((file, part.text.clone().into_bytes()));
+    }
+    for (file, text) in layout.extra {
+        written.push((staging.join(file), text.into_bytes()));
+    }
+    written.extend(harness_files(root, &staging, harness)?);
+    written.extend(binary_files(&staging, binaries)?);
+    staging::write_files(&staging, &harness.name, &written)?;
+    Ok((staging, written.len()))
+}
+
+/// Pretty JSON with a final newline.
+///
+/// # Errors
+///
+/// When the value cannot be serialized.
+pub fn pretty_json(value: &impl Serialize) -> io::Result<String> {
+    Ok(serde_json::to_string_pretty(value).map_err(io::Error::other)? + "\n")
+}
+
+/// The plugin manifest, with the options under `options_key` when the harness takes them.
+///
+/// # Errors
+///
+/// When `Cargo.toml` cannot be read or an option does not render.
+pub fn manifest(
+    root: &Path,
+    harness: &Harness,
+    options_key: Option<&str>,
+    options: Option<&OptionsFile>,
+) -> io::Result<String> {
+    #[derive(Serialize)]
+    struct Author<'harness> {
+        name: &'harness str,
+    }
+    #[derive(Serialize)]
+    struct PluginManifest<'harness> {
+        name: &'harness str,
+        version: String,
+        description: &'harness str,
+        author: Author<'harness>,
+        repository: &'harness str,
+        license: &'harness str,
+        #[serde(flatten)]
+        options: serde_json::Map<String, serde_json::Value>,
+    }
+    let mut flattened = serde_json::Map::new();
+    if let Some(key) = options_key {
+        let settings = option_settings(options, harness)?;
+        if !settings.is_empty() {
+            flattened.insert(key.to_owned(), settings.into());
+        }
+    }
+    let plugin = &harness.plugin;
+    pretty_json(&PluginManifest {
+        name: &plugin.name,
+        version: workspace::version(root)?,
+        description: &plugin.description,
+        author: Author {
+            name: &plugin.author,
+        },
+        repository: &plugin.repository,
+        license: &plugin.license,
+        options: flattened,
+    })
+}
+
+/// Replaces every token of a text with the harness's value.
+///
+/// # Errors
+///
+/// When a token has no value for this harness.
 pub fn resolve(text: &str, path: &str, harness: &Harness) -> io::Result<String> {
-    let (rendered, unresolved) = tokens::render(text, harness);
+    let (rendered, unresolved) = tokens::substitute(text, harness);
     if unresolved.is_empty() {
         Ok(rendered)
     } else {
@@ -24,27 +151,7 @@ pub fn resolve(text: &str, path: &str, harness: &Harness) -> io::Result<String> 
     }
 }
 
-pub fn workspace_version(root: &Path) -> io::Result<String> {
-    #[derive(Deserialize)]
-    struct CargoManifest {
-        workspace: Workspace,
-    }
-    #[derive(Deserialize)]
-    struct Workspace {
-        package: Package,
-    }
-    #[derive(Deserialize)]
-    struct Package {
-        version: String,
-    }
-    let cargo_path = root.join("Cargo.toml");
-    let cargo_text = fs::read_to_string(&cargo_path).map_err(naming(&cargo_path))?;
-    let cargo: CargoManifest = toml::from_str(&cargo_text)
-        .map_err(|error| io::Error::other(format!("Cargo.toml: {}", error.message())))?;
-    Ok(cargo.workspace.package.version)
-}
-
-pub fn catalog(harness: &Harness) -> io::Result<String> {
+fn catalog(harness: &Harness) -> io::Result<String> {
     #[derive(Serialize)]
     struct Owner<'harness> {
         name: &'harness str,
@@ -76,10 +183,10 @@ pub fn catalog(harness: &Harness) -> io::Result<String> {
             description: &plugin.description,
         }],
     };
-    Ok(serde_json::to_string_pretty(&catalog).map_err(io::Error::other)? + "\n")
+    pretty_json(&catalog)
 }
 
-pub fn option_settings(
+fn option_settings(
     options: Option<&OptionsFile>,
     harness: &Harness,
 ) -> io::Result<serde_json::Map<String, serde_json::Value>> {
@@ -100,6 +207,11 @@ pub fn option_settings(
     Ok(settings)
 }
 
+/// A piece as Markdown with YAML front matter, adding `agent_fields` to an agent's.
+///
+/// # Errors
+///
+/// When the piece has no valid front matter or a token stays unresolved.
 pub fn document(
     piece: &Piece,
     harness: &Harness,
@@ -137,7 +249,7 @@ pub fn document(
     Ok(document)
 }
 
-pub fn supporting_files(
+fn supporting_files(
     staging: &Path,
     content: &Content,
     harness: &Harness,
@@ -159,7 +271,7 @@ pub fn supporting_files(
     Ok(files)
 }
 
-pub fn harness_files(
+fn harness_files(
     root: &Path,
     staging: &Path,
     harness: &Harness,
@@ -170,12 +282,12 @@ pub fn harness_files(
         match fs::read_to_string(&environment_file) {
             Ok(text) => {
                 let source = format!("harnesses/{}/{environment}", harness.name);
-                let filled = scripts::fill(&text, &source, harness, shell)?;
+                let filled = scripts::fill_template(&text, &source, harness, shell)?;
                 let (header, body) = neutral.split_once('\n').unwrap_or_default();
                 Ok(Some(format!("{header}\n{filled}{body}")))
             }
             Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(None),
-            Err(error) => Err(naming(&environment_file)(error)),
+            Err(error) => Err(with_path(&environment_file)(error)),
         }
     };
     let neutral_sh = include_str!("../../../tightship/launcher.sh");
@@ -196,26 +308,25 @@ pub fn harness_files(
         {
             paths.push(serde_json::json!({ "path": "{appdata}/ponytail/" }));
         }
-        let text = serde_json::to_string_pretty(&data).map_err(io::Error::other)? + "\n";
-        files.push((staging.join("clean.json"), text.into_bytes()));
+        files.push((staging.join("clean.json"), pretty_json(&data)?.into_bytes()));
     }
     let plugin = folder.join("plugin");
     if plugin.is_dir() {
-        for file in content::files_under(&plugin)? {
+        for file in files::files_under(&plugin)? {
             let relative = file.strip_prefix(&plugin).map_err(io::Error::other)?;
-            let bytes = fs::read(&file).map_err(naming(&file))?;
+            let bytes = fs::read(&file).map_err(with_path(&file))?;
             files.push((staging.join(relative), bytes));
         }
     }
     Ok(files)
 }
 
-pub fn binary_files(staging: &Path, binaries: &[Binary]) -> io::Result<Vec<(PathBuf, Vec<u8>)>> {
+fn binary_files(staging: &Path, binaries: &[Binary]) -> io::Result<Vec<(PathBuf, Vec<u8>)>> {
     let mut files = Vec::new();
     for binary in binaries {
         let file_name = binary.path.file_name().unwrap_or_default();
         let copy = staging.join("bin").join(binary.platform).join(file_name);
-        let bytes = fs::read(&binary.path).map_err(naming(&binary.path))?;
+        let bytes = fs::read(&binary.path).map_err(with_path(&binary.path))?;
         files.push((copy, bytes));
     }
     Ok(files)

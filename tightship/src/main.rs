@@ -1,13 +1,14 @@
+//! The `tightship` entry point: parses the command line, runs the command, and reports a failure.
+
 mod failure;
-mod git;
 mod hook;
 mod options;
 mod project;
 mod status;
+mod system;
 mod update;
 mod vault;
 
-use std::env;
 use std::panic;
 use std::path::PathBuf;
 use std::process::{self, ExitCode};
@@ -16,27 +17,6 @@ use clap::error::{ContextKind, ContextValue, ErrorKind};
 use clap::{Parser, Subcommand};
 
 use failure::Failure;
-
-pub const USAGE: &str = "\
-Usage: tightship vault path
-       tightship vault init <folder>
-       tightship vault search [--everywhere] <term>...
-       tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project>
-                           --title <title> --why <line> --source <user|session|repo>
-                           [--tags <a,b>] [--pin] [--created <YYYY-MM-DD>] < body
-       tightship vault lint
-       tightship vault sync
-       tightship vault handoff release --title <title> < body
-       tightship vault handoff claim
-       tightship status-line render
-       tightship options set <name> <value>
-       tightship options list
-       tightship options reset
-       tightship options disabled <name>
-       tightship hook contract-part <file>
-       tightship hook map
-       tightship hook clean
-       tightship update";
 
 #[derive(Parser)]
 #[command(name = "tightship")]
@@ -104,13 +84,6 @@ enum VaultCommand {
     Handoff(vault::handoff::Command),
 }
 
-pub fn variable(name: &'static str) -> Result<PathBuf, Failure> {
-    env::var_os(name)
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-        .ok_or(Failure::VariableNotSet(name))
-}
-
 fn main() -> ExitCode {
     panic::set_hook(Box::new(|info| {
         let message = info.payload_as_str().unwrap_or("no message");
@@ -120,7 +93,7 @@ fn main() -> ExitCode {
     let arguments = match Arguments::try_parse() {
         Ok(arguments) => arguments,
         Err(error) if error.kind() == ErrorKind::DisplayHelp => {
-            println!("{USAGE}");
+            println!("{}", failure::USAGE);
             return ExitCode::SUCCESS;
         }
         Err(error) => return report(&Failure::Usage(usage_problem(&error))),

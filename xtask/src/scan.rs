@@ -1,10 +1,17 @@
+//! `cargo xtask scan`: no secret in the git history and no vault note in the working tree.
+
 mod secrets;
 mod vault_notes;
 
 use std::path::Path;
 
-use crate::{Failure, stop_on_errors};
+use crate::diagnostics::{Failure, stop_on_errors};
 
+/// Runs both scans and reports every finding at once.
+///
+/// # Errors
+///
+/// When a scan finds something, or git or gitleaks cannot run.
 pub fn run(root: &Path) -> Result<String, Failure> {
     println!(
         "> Scanning the git history for secrets (gitleaks {})",

@@ -1,7 +1,14 @@
+//! Runs git in the repository.
+
 use std::io;
 use std::path::Path;
 use std::process::Command;
 
+/// Runs git with these arguments and returns what it printed.
+///
+/// # Errors
+///
+/// When git cannot run or exits with an error.
 pub fn run(root: &Path, arguments: &[&str]) -> io::Result<String> {
     let output = Command::new("git")
         .args(arguments)

@@ -1,3 +1,5 @@
+//! The installed plugin's manifest and the release `latest.json` describes.
+
 use std::fmt;
 use std::fs;
 use std::path::Path;
@@ -5,7 +7,9 @@ use std::path::Path;
 use serde_json::Value;
 
 use crate::failure::Failure;
+use crate::system::files::strip_byte_order_mark;
 
+/// A plain `major.minor.patch` version, ordered by its numbers.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Version(u64, u64, u64);
 
@@ -28,6 +32,7 @@ impl fmt::Display for Version {
     }
 }
 
+/// What the installed plugin's manifest says about it.
 pub struct Manifest {
     pub name: String,
     pub version: Version,
@@ -35,11 +40,16 @@ pub struct Manifest {
 }
 
 impl Manifest {
+    /// Reads the manifest's name, version, and repository.
+    ///
+    /// # Errors
+    ///
+    /// When the file cannot be read or one of them is missing or invalid.
     pub fn read(path: &Path) -> Result<Self, Failure> {
         let invalid = || Failure::ManifestInvalid(path.to_path_buf());
         let text = fs::read_to_string(path).map_err(|_| invalid())?;
         let value: Value =
-            serde_json::from_str(text.trim_start_matches('\u{feff}')).map_err(|_| invalid())?;
+            serde_json::from_str(strip_byte_order_mark(&text)).map_err(|_| invalid())?;
         let text_of = |name| value.get(name).and_then(Value::as_str);
         let name = text_of("name").filter(|name| !name.is_empty());
         let version = text_of("version").and_then(Version::parse);
@@ -57,6 +67,7 @@ impl Manifest {
     }
 }
 
+/// The latest release, with the archive and checksum of one harness.
 pub struct Release {
     pub version: Version,
     pub tag: String,
@@ -65,10 +76,15 @@ pub struct Release {
 }
 
 impl Release {
+    /// Reads the release from `latest.json`, for the harness.
+    ///
+    /// # Errors
+    ///
+    /// When the text is invalid, or the release has no archive for the harness.
     pub fn parse(text: &str, url: &str, harness: &str) -> Result<Self, Failure> {
         let invalid = || Failure::UpdateReleaseInvalid(url.to_owned());
         let value: Value =
-            serde_json::from_str(text.trim_start_matches('\u{feff}')).map_err(|_| invalid())?;
+            serde_json::from_str(strip_byte_order_mark(text)).map_err(|_| invalid())?;
         let version = value
             .get("version")
             .and_then(Value::as_str)
@@ -97,9 +113,7 @@ impl Release {
         let sha256 = asset
             .get("sha256")
             .and_then(Value::as_str)
-            .filter(|sha256| {
-                sha256.len() == 64 && sha256.bytes().all(|byte| byte.is_ascii_hexdigit())
-            })
+            .filter(|sha256| is_sha256(sha256))
             .ok_or_else(invalid)?;
         Ok(Self {
             version,
@@ -116,4 +130,9 @@ fn is_plain_name(name: &str) -> bool {
         && name
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-' | b'_'))
+}
+
+/// Whether the text is a SHA-256 in hexadecimal.
+pub fn is_sha256(text: &str) -> bool {
+    text.len() == 64 && text.bytes().all(|byte| byte.is_ascii_hexdigit())
 }

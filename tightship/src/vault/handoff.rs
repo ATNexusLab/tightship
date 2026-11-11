@@ -1,3 +1,5 @@
+//! `tightship vault handoff`: leaves the session's work as a note for the next one, or takes it.
+
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -9,6 +11,7 @@ use super::note::{self, NewNote, Note};
 use crate::failure::Failure;
 use crate::project;
 
+/// The handoff subcommands.
 #[derive(Subcommand)]
 pub enum Command {
     Release {
@@ -18,6 +21,11 @@ pub enum Command {
     Claim,
 }
 
+/// Releases or claims a handoff.
+///
+/// # Errors
+///
+/// When the title or body is invalid, or the vault cannot be read or written.
 pub fn run(command: &Command) -> Result<(), Failure> {
     match command {
         Command::Release { title } => release(title),
@@ -25,10 +33,11 @@ pub fn run(command: &Command) -> Result<(), Failure> {
     }
 }
 
+/// The handoffs of the scope, the most recently updated first.
 pub fn in_scope<'notes>(notes: &'notes [Note], scope: &str) -> Vec<&'notes Note> {
     let mut handoffs: Vec<&Note> = notes
         .iter()
-        .filter(|note| note.field("type") == "handoff" && note.field("project") == scope)
+        .filter(|note| note.field("type") == note::HANDOFF_TYPE && note.field("project") == scope)
         .collect();
     handoffs.sort_by(|first, second| {
         (second.field("updated"), second.id_order())
@@ -37,10 +46,18 @@ pub fn in_scope<'notes>(notes: &'notes [Note], scope: &str) -> Vec<&'notes Note>
     handoffs
 }
 
-fn release(title: &str) -> Result<(), Failure> {
-    let title = note::title(title)?;
-    let body = note::read_body()?;
-    let missing: Vec<&'static str> = [
+/// The heading a handoff is shown under.
+pub fn heading(handoff: &Note, scope: &str) -> String {
+    format!(
+        "Handoff — {scope} · {} · {}",
+        handoff.field("id"),
+        handoff.age()
+    )
+}
+
+/// The labels a handoff body needs and does not start a line with.
+pub fn missing_labels(body: &str) -> Vec<&'static str> {
+    [
         "**Goal:**",
         "**Done:**",
         "**Next step:**",
@@ -49,7 +66,13 @@ fn release(title: &str) -> Result<(), Failure> {
     ]
     .into_iter()
     .filter(|label| !body.lines().any(|line| line.starts_with(label)))
-    .collect();
+    .collect()
+}
+
+fn release(title: &str) -> Result<(), Failure> {
+    let title = note::title(title)?;
+    let body = note::read_body()?;
+    let missing = missing_labels(&body);
     if !missing.is_empty() {
         return Err(Failure::HandoffBodyIncomplete(missing));
     }
@@ -67,7 +90,7 @@ fn release(title: &str) -> Result<(), Failure> {
         &vault,
         &NewNote {
             scope: &scope,
-            kind: "handoff",
+            kind: note::HANDOFF_TYPE,
             title: &title,
             why: "without it the next session, on another machine or harness, starts blind on work already in flight",
             tags: Vec::new(),
@@ -107,12 +130,7 @@ fn claim() -> Result<(), Failure> {
         if claimed > 0 {
             println!();
         }
-        println!(
-            "# Handoff — {scope} · {} · {}\n\n{}",
-            handoff.field("id"),
-            handoff.age(),
-            handoff.body
-        );
+        println!("# {}\n\n{}", heading(handoff, &scope), handoff.body);
         claimed += 1;
     }
     if claimed == 0 {

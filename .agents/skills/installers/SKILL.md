@@ -14,7 +14,7 @@ counterpart in the other.
 closes the adopter's terminal. The one `catch` at the top prints the message as a plain line, since pwsh's
 own rendering wraps it across decorated lines, and exits 1 only when the installer runs as a file.
 
-Both installers print ASCII only, and `xtask/tests/install.rs` rejects any other byte: Windows PowerShell 5.1
+Both installers print ASCII only, and `xtask/tests/install/` rejects any other byte: Windows PowerShell 5.1
 decodes `irm` in the local code page, and a console font or a `LANG=C` terminal may lack the glyph.
 `install.ps1` also runs on Windows PowerShell 5.1, which lacks what pwsh 7 adds: `` `e `` is a plain `e`
 there, so escapes use `$esc`; `$PSStyle` does not exist, so colors come from `$ansi`; `Set-Content

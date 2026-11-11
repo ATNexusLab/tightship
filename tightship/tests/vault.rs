@@ -9,14 +9,8 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use common::{
-    Sandbox, assert_fails_with, assert_succeeds, note, run, stderr_of, stdout_of, with_stdin,
+    BLOCK, Sandbox, assert_fails_with, assert_succeeds, note, run, stderr_of, stdout_of, with_stdin,
 };
-
-const BLOCK: &str = concat!(
-    "<!-- tightship:rules:start -->\n",
-    include_str!("../../content/vault-template/AGENTS.md"),
-    "<!-- tightship:rules:end -->\n"
-);
 
 #[test]
 fn init_creates_a_vault_from_the_template() {
@@ -503,8 +497,7 @@ fn scenario_8_tightship_vault_reads_vault_folder_from_options_toml() {
     let home = sandbox.path("home");
     let vault = home.join("ai-memory");
     fs::create_dir_all(&vault).expect("create vault dir");
-    let project = sandbox.path("tightship");
-    fs::create_dir_all(project.join(".git")).expect("the project's .git");
+    let project = common::project(&sandbox, "tightship");
 
     sandbox.write(
         "home/ai-memory/notes/tightship/mem-0001-a-note.md",

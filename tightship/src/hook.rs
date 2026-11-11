@@ -1,51 +1,38 @@
+//! The hooks a harness runs, and how their text reaches it: plain or inside the harness's JSON shape.
+
 pub mod checkpoint;
 pub mod clean;
 pub mod contract_part;
 pub mod export;
 pub mod map;
 pub mod marketplace_auto_update;
+pub mod settings;
 pub mod start;
 pub mod status_line;
 pub mod update;
 
-use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::ops::BitOr;
 use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
+use crate::system::env::optional_variable;
 
-const CHECKPOINT: &str = "\
-MEMORY CHECKPOINT — did anything this session become a durable fact?
-
-Only these enter the vault:
-1. A rule or preference the user stated — type `preference`.
-2. A decision plus its why, one that outlives this task — type `decision`.
-3. A trap that cost real time and will recur — type `gotcha`.
-4. A project fact that lives in no repo, not the code, not git, not the docs — type `project`.
-
-Everything else stays out: derivable from the repo, session state, task progress, whatever merely
-seemed interesting. The test is the `why` field — if you cannot write in one line what not knowing
-it would cost later, it does not qualify.
-
-To write one (single step, then tell the user in one line what landed):
-  tightship vault new [--scope <scope|all>] --type <preference|decision|gotcha|project> \\
-    --title \"...\" --why \"...\" --tags a,b --source <user|session|repo> <<'EOF'
-  <body>
-  EOF
-
-The note is then reached with `tightship vault search`, which reads the title, the `why`, the tags and the
-body — so put in them the words someone hitting this again would type. Add `--pin` only for a
-standing fact the work needs before it knows to search: pinned notes are listed at every session
-start, a space that holds about thirty.
-
-Nothing durable? Ignore this and carry on.";
-
+/// Prints the text for the harness, inside the JSON shape `TIGHTSHIP_HOOK_OUTPUT` names when it is set.
+///
+/// # Errors
+///
+/// When the shape file cannot be read or has no `{text}` slot.
 pub fn emit(text: &str) -> Result<(), Failure> {
     emit_shaped(text, template("TIGHTSHIP_HOOK_OUTPUT"))
 }
 
+/// Prints the memory checkpoint, in the shape `TIGHTSHIP_CHECKPOINT_OUTPUT` names, or else as `emit` does.
+///
+/// # Errors
+///
+/// When the shape file cannot be read or has no `{text}` slot.
 pub fn emit_checkpoint(text: &str) -> Result<(), Failure> {
     let shape =
         template("TIGHTSHIP_CHECKPOINT_OUTPUT").or_else(|| template("TIGHTSHIP_HOOK_OUTPUT"));
@@ -53,9 +40,7 @@ pub fn emit_checkpoint(text: &str) -> Result<(), Failure> {
 }
 
 fn template(variable: &str) -> Option<PathBuf> {
-    env::var_os(variable)
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
+    optional_variable(variable)
 }
 
 fn emit_shaped(text: &str, template: Option<PathBuf>) -> Result<(), Failure> {
@@ -100,10 +85,7 @@ fn fill(value: &mut serde_json::Value, text: &str) -> bool {
 }
 
 fn export_vault(folder: &Path) -> Result<(), Failure> {
-    let Some(file) = env::var_os("TIGHTSHIP_ENV_FILE")
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-    else {
+    let Some(file) = optional_variable("TIGHTSHIP_ENV_FILE") else {
         return Ok(());
     };
     OpenOptions::new()

@@ -2,6 +2,8 @@ use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
+use std::thread;
+use std::time::Duration;
 
 use tempfile::TempDir;
 
@@ -50,14 +52,46 @@ impl Sandbox {
             .env_remove("TIGHTSHIP_AUTO_UPDATE")
             .env_remove("TIGHTSHIP_CLEAN")
             .env_remove("TIGHTSHIP_CONFIG")
+            .env_remove("TIGHTSHIP_CONTRACT")
+            .env_remove("TIGHTSHIP_MEMORY")
+            .env_remove("TIGHTSHIP_HOOK_OUTPUT")
+            .env_remove("TIGHTSHIP_CHECKPOINT_OUTPUT")
+            .env_remove("TIGHTSHIP_MODEL_PREFIX")
+            .env_remove("TIGHTSHIP_PROJECT_POINTER")
+            .env_remove("TIGHTSHIP_STATUS_LINE_COMMAND")
+            .env_remove("TIGHTSHIP_UPDATE_FILE")
+            .env_remove("TIGHTSHIP_UPDATE_FOLDER")
+            .env_remove("TIGHTSHIP_UPDATE_URL")
             .env("GIT_CONFIG_GLOBAL", self.write(".gitconfig", ""))
             .env("GIT_CONFIG_NOSYSTEM", "1");
         command
     }
 }
 
+pub const BLOCK: &str = concat!(
+    "<!-- tightship:rules:start -->\n",
+    include_str!("../../../content/vault-template/AGENTS.md"),
+    "<!-- tightship:rules:end -->\n"
+);
+
+pub fn project(sandbox: &Sandbox, name: &str) -> PathBuf {
+    let folder = sandbox.path(name);
+    fs::create_dir_all(folder.join(".git")).expect("the project's .git");
+    folder
+}
+
 pub fn run(command: &mut Command) -> Output {
-    command.output().expect("the command runs")
+    // On Linux, a process another test thread forks keeps a just-written binary open for writing
+    // until it execs, and running the binary in that window fails with ETXTBSY (rust-lang/rust#114554).
+    for attempt in 1..=5 {
+        match command.output() {
+            Err(error) if error.kind() == io::ErrorKind::ExecutableFileBusy && attempt < 5 => {
+                thread::sleep(Duration::from_millis(50 * attempt));
+            }
+            output => return output.expect("the command runs"),
+        }
+    }
+    unreachable!("the last attempt returns")
 }
 
 pub fn stdout_of(output: &Output) -> String {

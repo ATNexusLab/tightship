@@ -1,9 +1,18 @@
+//! The start hook: gives the session the vault's context for the project, or says why there is none.
+
 use std::env;
+use std::io;
+use std::path::PathBuf;
 
 use crate::failure::Failure;
 use crate::project;
 use crate::vault::{self, context, note};
 
+/// Prints the vault context of the project's scope, or a note on a vault that is not set up.
+///
+/// # Errors
+///
+/// When the options, the notes, or the hook input cannot be read, or the context cannot be emitted.
 pub fn run() -> Result<(), Failure> {
     let options = crate::options::load()?;
     if !options.memory {
@@ -35,10 +44,21 @@ pub fn run() -> Result<(), Failure> {
     };
     let notes = note::read_all(&folder)?;
     let scope = match env::var("TIGHTSHIP_PROJECT_POINTER") {
-        Ok(pointer) => project::scope_of(&folder, &project::named_in_input(&pointer)?)?,
+        Ok(pointer) => project::scope_of(&folder, &named_in_input(&pointer)?)?,
         Err(_) => project::scope(&folder)?,
     };
     let (memory_context, _) = context::render(&folder, &scope, &notes);
     super::export_vault(&folder)?;
     super::emit(&memory_context)
+}
+
+fn named_in_input(pointer: &str) -> Result<PathBuf, Failure> {
+    let unnamed = || Failure::HookInputNoProject(pointer.to_owned());
+    let input = io::read_to_string(io::stdin()).map_err(|_| unnamed())?;
+    let input: serde_json::Value = serde_json::from_str(&input).map_err(|_| unnamed())?;
+    let folder = input
+        .pointer(pointer)
+        .and_then(serde_json::Value::as_str)
+        .ok_or_else(unnamed)?;
+    Ok(PathBuf::from(folder))
 }

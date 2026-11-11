@@ -1,4 +1,5 @@
-use std::env;
+//! The clean hook: removes what the plugins tightship replaces left behind on the machine.
+
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -8,8 +9,9 @@ use std::time::{Duration, Instant};
 
 use serde_json::Value;
 
+use super::settings;
 use crate::failure::Failure;
-use crate::status::settings;
+use crate::system::env::optional_variable;
 
 const COMMAND_LIMIT: Duration = Duration::from_secs(30);
 
@@ -39,9 +41,13 @@ impl Outcome {
     }
 }
 
+/// Runs the commands and removes the paths, JSON members, and status lines the `TIGHTSHIP_CLEAN` file lists, then reports.
+///
+/// # Errors
+///
+/// When the report cannot be emitted; a leftover that cannot be removed is reported, not failed.
 pub fn run() -> Result<(), Failure> {
-    let Some(leftovers) = env::var_os("TIGHTSHIP_CLEAN")
-        .filter(|value| !value.is_empty())
+    let Some(leftovers) = optional_variable("TIGHTSHIP_CLEAN")
         .and_then(|file| fs::read_to_string(file).ok())
         .and_then(|text| parse(&text))
     else {
@@ -122,12 +128,12 @@ fn parse(text: &str) -> Option<Leftovers> {
 
 fn expand(entry: &str) -> Option<PathBuf> {
     let (base, rest) = if let Some(rest) = entry.strip_prefix("~/") {
-        (crate::options::home_dir()?, rest)
+        (crate::system::env::home_dir()?, rest)
     } else if let Some(rest) = entry.strip_prefix("{config}/") {
-        (crate::variable("TIGHTSHIP_CONFIG").ok()?, rest)
+        (crate::system::env::variable("TIGHTSHIP_CONFIG").ok()?, rest)
     } else {
         let rest = entry.strip_prefix("{appdata}/")?;
-        (crate::variable("APPDATA").ok()?, rest)
+        (crate::system::env::variable("APPDATA").ok()?, rest)
     };
     Some(
         rest.split('/')
@@ -161,6 +167,7 @@ fn run_line(line: &str) -> Result<bool, String> {
                 thread::sleep(Duration::from_millis(50));
             }
             Ok(None) => {
+                // The command already timed out; that is the failure reported.
                 let _ = child.kill();
                 let _ = child.wait();
                 return Err(format!(
@@ -232,7 +239,7 @@ fn clear_status_line(contains: &str, outcome: &mut Outcome) {
             .and_then(Value::as_str)
             .is_some_and(|command| command.contains(contains))
     };
-    if let Ok(path) = crate::variable("TIGHTSHIP_SETTINGS") {
+    if let Ok(path) = crate::system::env::variable("TIGHTSHIP_SETTINGS") {
         let removed = settings::read_settings(&path).and_then(|mut fields| {
             if !fields.get("statusLine").is_some_and(names) {
                 return Ok(false);
@@ -242,20 +249,20 @@ fn clear_status_line(contains: &str, outcome: &mut Outcome) {
         });
         outcome.record(&path.display().to_string(), removed.map_err(reason));
     }
-    if let Ok(data) = crate::variable("TIGHTSHIP_DATA") {
+    if let Ok(data) = crate::system::env::variable("TIGHTSHIP_DATA") {
         let removed = settings::read_previous(&data).and_then(|previous| {
             if !previous.as_ref().is_some_and(names) {
                 return Ok(false);
             }
             settings::write_record(&data, None).map(|()| true)
         });
-        let record = data.join("status-line.json");
+        let record = settings::record_path(&data);
         outcome.record(&record.display().to_string(), removed.map_err(reason));
     }
 }
 
 fn remove_previous_versions(outcome: &mut Outcome) {
-    let Some(running) = crate::variable("TIGHTSHIP_ROOT")
+    let Some(running) = crate::system::env::variable("TIGHTSHIP_ROOT")
         .ok()
         .and_then(|root| fs::canonicalize(root).ok())
     else {
