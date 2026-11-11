@@ -3,41 +3,19 @@ use super::harness::Harness;
 use super::tokens::{self, Form, Token};
 use crate::diagnostics::Diagnostic;
 
+struct Text<'content> {
+    path: &'content str,
+    text: &'content str,
+    first_line: usize,
+    in_piece: bool,
+}
+
 pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Diagnostic>) {
     let pieces: Vec<(Kind, &str)> = content
         .pieces
         .iter()
         .map(|piece| (piece.kind, piece.name.as_str()))
         .collect();
-    let bodies = content.pieces.iter().map(|piece| {
-        (
-            piece.path.as_str(),
-            piece.body.as_str(),
-            piece.body_line,
-            true,
-        )
-    });
-    let supporting = content
-        .supporting
-        .iter()
-        .filter_map(|supporting| match &supporting.body {
-            SupportingBody::Markdown(text) => {
-                Some((supporting.path.as_str(), text.as_str(), 1, false))
-            }
-            SupportingBody::Copied(_) => None,
-        });
-    let options = content
-        .options
-        .iter()
-        .map(|file| (file.path.as_str(), file.text.as_str(), 1, false));
-    let contract = content
-        .contract
-        .iter()
-        .map(|contract| (contract.path.as_str(), contract.text.as_str(), 1, false));
-    let vault_template = content
-        .vault_template
-        .iter()
-        .map(|text| ("content/vault-template/AGENTS.md", text.as_str(), 1, false));
     let boolean_options: Vec<&str> = content
         .options
         .iter()
@@ -46,19 +24,14 @@ pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Dia
         .map(|option| option.name.as_str())
         .collect();
     let forms = literal_forms(&pieces);
-    let texts = bodies
-        .chain(supporting)
-        .chain(options)
-        .chain(contract)
-        .chain(vault_template);
-    for (path, text, first_line, in_piece) in texts {
+    for text in texts(content) {
         let report = |line: usize, message: String| {
-            Diagnostic::at_line(path, first_line + line - 1, message)
+            Diagnostic::at_line(text.path, text.first_line + line - 1, message)
         };
-        let mut blanked = text.as_bytes().to_vec();
-        for token in tokens::scan(text) {
+        let mut blanked = text.text.as_bytes().to_vec();
+        for token in tokens::scan(text.text) {
             blanked[token.range.clone()].fill(b' ');
-            let message = token_error(&token, in_piece, &pieces, &boolean_options, harnesses);
+            let message = token_error(&token, text.in_piece, &pieces, &boolean_options, harnesses);
             diagnostics.extend(
                 message
                     .into_iter()
@@ -84,6 +57,46 @@ pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Dia
             }
         }
     }
+}
+
+fn texts(content: &Content) -> Vec<Text<'_>> {
+    let whole_file = |path, text| Text {
+        path,
+        text,
+        first_line: 1,
+        in_piece: false,
+    };
+    let bodies = content.pieces.iter().map(|piece| Text {
+        path: &piece.path,
+        text: &piece.body,
+        first_line: piece.body_line,
+        in_piece: true,
+    });
+    let supporting = content
+        .supporting
+        .iter()
+        .filter_map(|supporting| match &supporting.body {
+            SupportingBody::Markdown(text) => Some(whole_file(&supporting.path, text)),
+            SupportingBody::Copied(_) => None,
+        });
+    let options = content
+        .options
+        .iter()
+        .map(|file| whole_file(&file.path, &file.text));
+    let contract = content
+        .contract
+        .iter()
+        .map(|contract| whole_file(&contract.path, &contract.text));
+    let vault_template = content
+        .vault_template
+        .iter()
+        .map(|text| whole_file("content/vault-template/AGENTS.md", text));
+    bodies
+        .chain(supporting)
+        .chain(options)
+        .chain(contract)
+        .chain(vault_template)
+        .collect()
 }
 
 fn token_error(

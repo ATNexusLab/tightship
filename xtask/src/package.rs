@@ -50,13 +50,91 @@ pub fn run(root: &Path, tag: &str) -> Result<String, Failure> {
     published
 }
 
+struct InstallerValue {
+    name: String,
+    value: String,
+    required: bool,
+}
+
 fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
     let dist = root.join("dist");
     let mut diagnostics = Vec::new();
     let harnesses = harness::read_all(root, &mut diagnostics)?;
-    let mut manifests = Vec::new();
+    let manifests = check_dist(&dist, &harnesses, tag, &mut diagnostics)?;
+    stop_on_errors(&mut diagnostics)?;
 
-    for harness in &harnesses {
+    remove_if_present(staging)?;
+    fs::create_dir_all(staging).map_err(naming(staging))?;
+
+    let mut archives = Vec::new();
+    let mut catalogs = Vec::new();
+    let mut values = vec![InstallerValue {
+        name: "release-tag".to_owned(),
+        value: tag.to_owned(),
+        required: true,
+    }];
+    let mut assets = serde_json::Map::new();
+    let mut shas = Vec::new();
+    for (harness, manifest) in harnesses.iter().zip(&manifests) {
+        let archive = format!("{}-{}.zip", harness.plugin.name, harness.name);
+        println!("> Packing {archive}");
+        let plugin = dist.join(&harness.name);
+        let (bytes, files) = zip_plugin(&plugin, harness.dist.catalog.as_ref())?;
+        let archive_path = staging.join(&archive);
+        fs::write(&archive_path, &bytes).map_err(naming(&archive_path))?;
+        let sha256: String = Sha256::digest(&bytes)
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect();
+
+        if let Some(catalog) = &harness.dist.catalog {
+            let url = format!("{}/releases/download/{tag}/{archive}", manifest.repository);
+            let release_catalog = release_catalog_name(&harness.name);
+            write_catalog(
+                &plugin.join(catalog),
+                staging,
+                &release_catalog,
+                &url,
+                &sha256,
+            )?;
+            catalogs.push(format!("dist/{release_catalog}"));
+        }
+        archives.push(format!("dist/{archive} ({files} files)"));
+        assets.insert(
+            harness.name.clone(),
+            serde_json::json!({ "archive": archive, "sha256": sha256 }),
+        );
+        shas.push(format!("sha256 ({}): {sha256}", harness.name));
+        values.push(InstallerValue {
+            name: format!("{}-sha256", harness.name),
+            value: sha256,
+            required: false,
+        });
+    }
+    write_latest(staging, tag, assets)?;
+    write_installers(&dist, staging, &values, tag)?;
+
+    let catalog_summary = if catalogs.is_empty() {
+        String::new()
+    } else {
+        format!(", {}", catalogs.join(", "))
+    };
+    Ok(format!(
+        "Packed {}{}, dist/{LATEST}, and the installers for {tag}.\n{}",
+        archives.join(", "),
+        catalog_summary,
+        shas.join("\n")
+    ))
+}
+
+fn check_dist(
+    dist: &Path,
+    harnesses: &[harness::Harness],
+    tag: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> io::Result<Vec<Manifest>> {
+    let mut manifests = Vec::new();
+    for harness in harnesses {
         let name = &harness.name;
         println!("> Reading dist/{name}/");
         let plugin = dist.join(name);
@@ -101,87 +179,33 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
             )));
         }
     }
-    stop_on_errors(&mut diagnostics)?;
+    Ok(manifests)
+}
 
-    remove_if_present(staging)?;
-    fs::create_dir_all(staging).map_err(naming(staging))?;
-
-    let mut parts = Vec::new();
-    let mut catalogs = Vec::new();
-    let mut values = vec![("release-tag".to_owned(), tag.to_owned(), true)];
-    let mut assets = serde_json::Map::new();
-    for (harness, manifest) in harnesses.iter().zip(&manifests) {
-        let archive = format!("{}-{}.zip", harness.plugin.name, harness.name);
-        println!("> Packing {archive}");
-        let plugin = dist.join(&harness.name);
-        let mut files = Vec::new();
-        list_files(&plugin, "", &mut files)?;
-        files.retain(|file| Some(file) != harness.dist.catalog.as_ref());
-        files.sort();
-
-        let mut writer = ZipWriter::new(io::Cursor::new(Vec::new()));
-        for file in &files {
-            let mode = if file.starts_with("bin/") {
-                0o755
-            } else {
-                0o644
-            };
-            let options = SimpleFileOptions::default()
-                .compression_method(CompressionMethod::Deflated)
-                .system(System::Unix)
-                .last_modified_time(DateTime::default())
-                .unix_permissions(mode);
-            let source = plugin.join(file);
-            let bytes = fs::read(&source).map_err(naming(&source))?;
-            writer.start_file(file, options).map_err(io::Error::other)?;
-            writer.write_all(&bytes)?;
-        }
-        let bytes = writer.finish().map_err(io::Error::other)?.into_inner();
-        let archive_path = staging.join(&archive);
-        fs::write(&archive_path, &bytes).map_err(naming(&archive_path))?;
-        let sha256: String = Sha256::digest(&bytes)
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect();
-
-        if let Some(catalog) = &harness.dist.catalog {
-            let url = format!("{}/releases/download/{tag}/{archive}", manifest.repository);
-            let release_catalog = release_catalog_name(&harness.name);
-            write_catalog(
-                &plugin.join(catalog),
-                staging,
-                &release_catalog,
-                &url,
-                &sha256,
-            )?;
-            catalogs.push(format!("dist/{release_catalog}"));
-        }
-        parts.push(format!("dist/{archive} ({} files)", files.len()));
-        assets.insert(
-            harness.name.clone(),
-            serde_json::json!({ "archive": archive, "sha256": sha256 }),
-        );
-        values.push((format!("{}-sha256", harness.name), sha256, false));
+fn zip_plugin(plugin: &Path, catalog: Option<&String>) -> io::Result<(Vec<u8>, usize)> {
+    let mut files = Vec::new();
+    list_files(plugin, "", &mut files)?;
+    files.retain(|file| Some(file) != catalog);
+    files.sort();
+    let mut writer = ZipWriter::new(io::Cursor::new(Vec::new()));
+    for file in &files {
+        let mode = if file.starts_with("bin/") {
+            0o755
+        } else {
+            0o644
+        };
+        let options = SimpleFileOptions::default()
+            .compression_method(CompressionMethod::Deflated)
+            .system(System::Unix)
+            .last_modified_time(DateTime::default())
+            .unix_permissions(mode);
+        let source = plugin.join(file);
+        let bytes = fs::read(&source).map_err(naming(&source))?;
+        writer.start_file(file, options).map_err(io::Error::other)?;
+        writer.write_all(&bytes)?;
     }
-    write_latest(staging, tag, assets)?;
-    write_installers(&dist, staging, &values, tag)?;
-
-    let shas: Vec<String> = harnesses
-        .iter()
-        .zip(&values[1..])
-        .map(|(harness, (_, sha256, _))| format!("sha256 ({}): {sha256}", harness.name))
-        .collect();
-    let catalog_summary = if catalogs.is_empty() {
-        String::new()
-    } else {
-        format!(", {}", catalogs.join(", "))
-    };
-    Ok(format!(
-        "Packed {}{}, dist/{LATEST}, and the installers for {tag}.\n{}",
-        parts.join(", "),
-        catalog_summary,
-        shas.join("\n")
-    ))
+    let bytes = writer.finish().map_err(io::Error::other)?.into_inner();
+    Ok((bytes, files.len()))
 }
 
 fn write_catalog(
@@ -227,7 +251,7 @@ fn write_latest(
 fn write_installers(
     dist: &Path,
     staging: &Path,
-    values: &[(String, String, bool)],
+    values: &[InstallerValue],
     tag: &str,
 ) -> Result<(), Failure> {
     for installer in ["install.sh", "install.ps1"] {
@@ -235,7 +259,12 @@ fn write_installers(
         let source = dist.join(installer);
         let text = fs::read_to_string(&source).map_err(naming(&source))?;
         let mut lines: Vec<String> = text.lines().map(str::to_owned).collect();
-        for (name, value, required) in values {
+        for InstallerValue {
+            name,
+            value,
+            required,
+        } in values
+        {
             let prefix = if installer == "install.sh" {
                 format!("{}=", name.replace('-', "_").to_uppercase())
             } else {

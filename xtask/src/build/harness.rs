@@ -221,6 +221,27 @@ pub fn folders(root: &Path) -> io::Result<Vec<PathBuf>> {
     Ok(folders)
 }
 
+fn problems(harness: &Harness, text: &str) -> Vec<String> {
+    let mut problems = Vec::new();
+    let limit = harness.contract.as_ref().map(|table| table.limit);
+    if limit.is_some_and(|limit| !(1..=1_000_000).contains(&limit)) {
+        problems.push("[contract] limit must be 1 to 1000000".to_owned());
+    }
+    problems.extend(
+        harness
+            .clean
+            .as_ref()
+            .map(Clean::problems)
+            .unwrap_or_default(),
+    );
+    for companion in companions_outside_clean(text) {
+        problems.push(format!(
+            "{companion} is named outside [clean]; tightship depends on no other plugin"
+        ));
+    }
+    problems
+}
+
 pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Vec<Harness>> {
     let mut harnesses = Vec::new();
     for folder in &folders(root)? {
@@ -237,28 +258,8 @@ pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Ve
         let text = fs::read_to_string(&file).map_err(naming(&file))?;
         match toml::from_str::<Harness>(&text) {
             Ok(harness) => {
-                let limit = harness.contract.as_ref().map(|table| table.limit);
-                if limit.is_some_and(|limit| !(1..=1_000_000).contains(&limit)) {
-                    diagnostics.push(Diagnostic::in_file(
-                        &path,
-                        "[contract] limit must be 1 to 1000000".to_owned(),
-                    ));
-                }
-                let problems = harness
-                    .clean
-                    .as_ref()
-                    .map(Clean::problems)
-                    .unwrap_or_default();
-                for problem in problems {
+                for problem in problems(&harness, &text) {
                     diagnostics.push(Diagnostic::in_file(&path, problem));
-                }
-                for companion in companions_outside_clean(&text) {
-                    diagnostics.push(Diagnostic::in_file(
-                        &path,
-                        format!(
-                            "{companion} is named outside [clean]; tightship depends on no other plugin"
-                        ),
-                    ));
                 }
                 harnesses.push(Harness { name, ..harness });
             }

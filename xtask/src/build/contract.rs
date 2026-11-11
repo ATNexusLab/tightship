@@ -1,5 +1,5 @@
 use super::content::split_front_matter;
-use super::harness::Harness;
+use super::harness::{ContractTable, Harness};
 use super::options::OptionsFile;
 use super::tokens;
 use crate::diagnostics::Diagnostic;
@@ -64,6 +64,19 @@ fn outline(
         }
         None => (Vec::new(), text, 1),
     };
+    let Some(mut outline) = scan_body(body, body_line) else {
+        diagnostics.push(Diagnostic::in_file(
+            path,
+            "the contract opens with no # title".to_owned(),
+        ));
+        return None;
+    };
+    check_gated(path, &gated, &outline.sections, options, diagnostics);
+    outline.gated = gated;
+    Some(outline)
+}
+
+fn scan_body(body: &str, body_line: usize) -> Option<Outline> {
     let mut title = None;
     let mut preamble = Vec::new();
     let mut sections: Vec<Section> = Vec::new();
@@ -84,13 +97,7 @@ fn outline(
             if line.trim().is_empty() {
                 continue;
             }
-            let Some(heading) = line.strip_prefix("# ").filter(|_| is_text) else {
-                diagnostics.push(Diagnostic::in_file(
-                    path,
-                    "the contract opens with no # title".to_owned(),
-                ));
-                return None;
-            };
+            let heading = line.strip_prefix("# ").filter(|_| is_text)?;
             title = Some((heading.trim().to_owned(), body_line + index));
             continue;
         }
@@ -105,17 +112,27 @@ fn outline(
             (None, None) => preamble.push(line),
         }
     }
-    let Some((title, title_line)) = title else {
-        diagnostics.push(Diagnostic::in_file(
-            path,
-            "the contract opens with no # title".to_owned(),
-        ));
-        return None;
-    };
+    let (title, title_line) = title?;
     for section in &mut sections {
         section.text = section.text.trim_end().to_owned();
     }
-    for (heading, option) in &gated {
+    Some(Outline {
+        title,
+        title_line,
+        preamble: preamble.join("\n").trim().to_owned(),
+        sections,
+        gated: Vec::new(),
+    })
+}
+
+fn check_gated(
+    path: &str,
+    gated: &[(String, String)],
+    sections: &[Section],
+    options: Option<&OptionsFile>,
+    diagnostics: &mut Vec<Diagnostic>,
+) {
+    for (heading, option) in gated {
         if !sections.iter().any(|section| section.heading == *heading) {
             diagnostics.push(Diagnostic::in_file(
                 path,
@@ -133,13 +150,6 @@ fn outline(
             ));
         }
     }
-    Some(Outline {
-        title,
-        title_line,
-        preamble: preamble.join("\n").trim().to_owned(),
-        sections,
-        gated,
-    })
 }
 
 fn gates(
@@ -188,18 +198,21 @@ fn gates(
     is_valid.then_some(gated)
 }
 
+struct Block<'contract> {
+    subject: String,
+    line: usize,
+    text: String,
+    gate: Option<&'contract str>,
+    heading: &'contract str,
+}
+
+const MOST_CHARACTERS: usize = 8000;
+
 pub fn pack(
     contract: &Contract,
     harness: &Harness,
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<Part> {
-    struct Block<'contract> {
-        subject: String,
-        line: usize,
-        text: String,
-        gate: Option<&'contract str>,
-        heading: &'contract str,
-    }
     let Some(outline) = &contract.outline else {
         return Vec::new();
     };
@@ -210,25 +223,56 @@ pub fn pack(
         ));
         return Vec::new();
     };
-    let limit = table.limit;
-    let render = |text: &str| tokens::render(text, harness).0;
-    let length = |text: &str| text.encode_utf16().count();
-    let compose = |title_line: &str, blocks: &[&Block]| {
-        let texts: Vec<&str> = blocks.iter().map(|block| block.text.as_str()).collect();
-        format!("{title_line}\n\n{}\n", texts.join("\n\n"))
-    };
-    let title = render(&outline.title);
+    let blocks = blocks(outline, harness);
+    let mut parts = ungated_parts(
+        contract,
+        harness,
+        table,
+        &outline.title,
+        &blocks,
+        diagnostics,
+    );
+    parts.extend(gated_parts(
+        contract,
+        harness,
+        table.limit,
+        outline,
+        &blocks,
+        diagnostics,
+    ));
+    let count: usize = parts.iter().map(|part| length(&part.text)).sum();
+    if count > MOST_CHARACTERS {
+        diagnostics.push(Diagnostic::in_file(
+            &contract.path,
+            format!(
+                "the contract renders to {count} characters with every option on; NFR-PERF-03 allows {MOST_CHARACTERS}"
+            ),
+        ));
+    }
+    parts
+}
+
+fn length(text: &str) -> usize {
+    text.encode_utf16().count()
+}
+
+fn compose(title_line: &str, blocks: &[&Block]) -> String {
+    let texts: Vec<&str> = blocks.iter().map(|block| block.text.as_str()).collect();
+    format!("{title_line}\n\n{}\n", texts.join("\n\n"))
+}
+
+fn blocks<'contract>(outline: &'contract Outline, harness: &Harness) -> Vec<Block<'contract>> {
     let preamble = Block {
         subject: "the preamble".to_owned(),
         line: outline.title_line,
-        text: render(&outline.preamble),
+        text: tokens::render(&outline.preamble, harness).0,
         gate: None,
         heading: "",
     };
     let sections = outline.sections.iter().map(|section| Block {
         subject: format!("the section \"{}\"", section.heading),
         line: section.line,
-        text: render(&section.text),
+        text: tokens::render(&section.text, harness).0,
         gate: outline
             .gated
             .iter()
@@ -236,12 +280,21 @@ pub fn pack(
             .map(|(_, option)| option.as_str()),
         heading: &section.heading,
     });
-    let blocks: Vec<Block> = std::iter::once(preamble)
+    std::iter::once(preamble)
         .filter(|block| !block.text.is_empty())
         .chain(sections)
-        .collect();
-    let ungated: Vec<&Block> = blocks.iter().filter(|block| block.gate.is_none()).collect();
+        .collect()
+}
 
+fn ungated_parts(
+    contract: &Contract,
+    harness: &Harness,
+    table: &ContractTable,
+    title: &str,
+    blocks: &[Block],
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<Part> {
+    let title = tokens::render(title, harness).0;
     let title_line = |number: usize, total: usize| {
         let heading = format!("# {title} ({number}/{total})");
         match &table.compaction_notice {
@@ -249,13 +302,14 @@ pub fn pack(
             _ => heading,
         }
     };
+    let ungated: Vec<&Block> = blocks.iter().filter(|block| block.gate.is_none()).collect();
     let pack_with = |total: usize| {
         let mut groups: Vec<Vec<&Block>> = Vec::new();
         for block in &ungated {
             let title_line = title_line(groups.len().max(1), total);
             let joins = groups.last().is_some_and(|group| {
                 let candidate: Vec<&Block> = group.iter().copied().chain([*block]).collect();
-                length(&compose(&title_line, &candidate)) <= limit
+                length(&compose(&title_line, &candidate)) <= table.limit
             });
             match groups.last_mut() {
                 Some(group) if joins => group.push(block),
@@ -264,26 +318,26 @@ pub fn pack(
         }
         groups
     };
+    // The title carries the number of parts, so packing repeats until that number holds.
     let mut total = 1;
     let mut groups = pack_with(total);
     while groups.len() != total {
         total = groups.len();
         groups = pack_with(total);
     }
-
     let mut parts = Vec::new();
     for (index, group) in groups.iter().enumerate() {
         let number = index + 1;
         let text = compose(&title_line(number, total), group);
         let count = length(&text);
-        if count > limit {
+        if count > table.limit {
             let block = group[0];
             diagnostics.push(Diagnostic::at_line(
                 &contract.path,
                 block.line,
                 format!(
-                    "{} renders to {count} characters with its title; {} takes at most {limit} per hook",
-                    block.subject, harness.name
+                    "{} renders to {count} characters with its title; {} takes at most {} per hook",
+                    block.subject, harness.name, table.limit
                 ),
             ));
         }
@@ -293,19 +347,34 @@ pub fn pack(
             gate: None,
         });
     }
+    parts
+}
 
+fn gated_parts(
+    contract: &Contract,
+    harness: &Harness,
+    limit: usize,
+    outline: &Outline,
+    blocks: &[Block],
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<Part> {
+    let title = tokens::render(&outline.title, harness).0;
     let mut options: Vec<&str> = Vec::new();
     for (_, option) in &outline.gated {
         if !options.contains(&option.as_str()) {
             options.push(option);
         }
     }
+    let mut parts = Vec::new();
     for option in options {
         let group: Vec<&Block> = blocks
             .iter()
             .filter(|block| block.gate == Some(option))
             .collect();
-        let headings: Vec<String> = group.iter().map(|block| render(block.heading)).collect();
+        let headings: Vec<String> = group
+            .iter()
+            .map(|block| tokens::render(block.heading, harness).0)
+            .collect();
         let text = compose(&format!("# {title} ({})", headings.join(", ")), &group);
         let count = length(&text);
         if count > limit {
@@ -322,16 +391,6 @@ pub fn pack(
             text,
             gate: Some(option.to_owned()),
         });
-    }
-    const MOST_CHARACTERS: usize = 8000;
-    let count: usize = parts.iter().map(|part| length(&part.text)).sum();
-    if count > MOST_CHARACTERS {
-        diagnostics.push(Diagnostic::in_file(
-            &contract.path,
-            format!(
-                "the contract renders to {count} characters with every option on; NFR-PERF-03 allows {MOST_CHARACTERS}"
-            ),
-        ));
     }
     parts
 }

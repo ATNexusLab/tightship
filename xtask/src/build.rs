@@ -18,7 +18,7 @@ mod words;
 
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::diagnostics::{Diagnostic, naming};
 use crate::diagnostics::{Failure, stop_on_errors};
@@ -46,31 +46,7 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
         binary::check_prebuilt(folder, &mut diagnostics);
         stop_on_errors(&mut diagnostics)?;
     }
-    println!("> Reading content/");
-    let content = content::read(root, &mut diagnostics)?;
-    let harnesses = harness::read_all(root, &mut diagnostics)?;
-    if harnesses.is_empty() {
-        diagnostics.push(Diagnostic::general(
-            "no harnesses found in harnesses/".to_owned(),
-        ));
-    }
-
-    println!("> Checking references and harness neutrality");
-    references::check(&content, &harnesses, &mut diagnostics);
-    neutrality::check(&content, &harnesses, &mut diagnostics);
-    neutrality::check_binary(root, &harnesses, &mut diagnostics)?;
-
-    let mut contract_parts = Vec::new();
-    for harness in &harnesses {
-        let parts = match &content.contract {
-            Some(contract) => {
-                println!("> Packing the contract for {}", harness.name);
-                contract::pack(contract, harness, &mut diagnostics)
-            }
-            None => Vec::new(),
-        };
-        contract_parts.push(parts);
-    }
+    let (content, harnesses, contract_parts) = read_inputs(root, &mut diagnostics)?;
     stop_on_errors(&mut diagnostics)?;
 
     let binaries = match prebuilt {
@@ -89,18 +65,7 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
     let mut rendered = Vec::new();
     for (harness, parts) in harnesses.iter().zip(&contract_parts) {
         println!("> Rendering {} into dist/{}/", harness.name, harness.name);
-        let (staging, files) = match harness.name.as_str() {
-            "claude-code" => claude_code::render(root, harness, &content, parts, &binaries)?,
-            "antigravity-cli" => {
-                antigravity_cli::render(root, harness, &content, parts, &binaries)?
-            }
-            "cursor" => cursor::render(root, harness, &content, parts, &binaries)?,
-            unknown => {
-                return Err(Failure::Io(io::Error::other(format!(
-                    "unknown harness \"{unknown}\""
-                ))));
-            }
-        };
+        let (staging, files) = render_harness(root, harness, &content, parts, &binaries)?;
         if let Some(terms) = &terms {
             println!("> Scanning dist/{}/ for identity terms", harness.name);
             identity::check_folder(
@@ -139,6 +104,52 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
     }
     summaries.push(format!("Built {}.", names.join(" and ")));
     Ok(summaries.join("\n"))
+}
+
+type Inputs = (Content, Vec<harness::Harness>, Vec<Vec<contract::Part>>);
+
+fn read_inputs(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Inputs> {
+    println!("> Reading content/");
+    let content = content::read(root, diagnostics)?;
+    let harnesses = harness::read_all(root, diagnostics)?;
+    if harnesses.is_empty() {
+        diagnostics.push(Diagnostic::general(
+            "no harnesses found in harnesses/".to_owned(),
+        ));
+    }
+
+    println!("> Checking references and harness neutrality");
+    references::check(&content, &harnesses, diagnostics);
+    neutrality::check(&content, &harnesses, diagnostics);
+    neutrality::check_binary(root, &harnesses, diagnostics)?;
+
+    let mut contract_parts = Vec::new();
+    for harness in &harnesses {
+        let parts = match &content.contract {
+            Some(contract) => {
+                println!("> Packing the contract for {}", harness.name);
+                contract::pack(contract, harness, diagnostics)
+            }
+            None => Vec::new(),
+        };
+        contract_parts.push(parts);
+    }
+    Ok((content, harnesses, contract_parts))
+}
+
+fn render_harness(
+    root: &Path,
+    harness: &harness::Harness,
+    content: &Content,
+    parts: &[contract::Part],
+    binaries: &[binary::Binary],
+) -> io::Result<(PathBuf, usize)> {
+    match harness.name.as_str() {
+        "claude-code" => claude_code::render(root, harness, content, parts, binaries),
+        "antigravity-cli" => antigravity_cli::render(root, harness, content, parts, binaries),
+        "cursor" => cursor::render(root, harness, content, parts, binaries),
+        unknown => Err(io::Error::other(format!("unknown harness \"{unknown}\""))),
+    }
 }
 
 fn summary(content: &Content, harness_name: &str, files: usize) -> String {
