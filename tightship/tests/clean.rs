@@ -30,12 +30,16 @@ fn leftovers(extra: serde_json::Value) -> serde_json::Value {
     let mut data = serde_json::json!({
         "names": ["ponytail", "humanizer"],
         "commands": [{ "when": "{config}/plugins/marketplaces/ponytail", "run": "echo ran > uninstalled" }],
-        "paths": ["{config}/plugins/cache/ponytail", "{config}/.ponytail-active", "~/.config/ponytail"],
+        "paths": [
+            { "path": "{config}/plugins/cache/ponytail/" },
+            { "path": "{config}/.ponytail-active" },
+            { "path": "~/.config/ponytail/" },
+        ],
         "json": [
             { "file": "{config}/settings.json", "remove": "/enabledPlugins/ponytail@ponytail" },
             { "file": "~/manifest.json", "remove": "/imports[name=ponytail]" },
         ],
-        "status-line": ["ponytail-statusline"],
+        "status-line": [{ "contains": "ponytail-statusline" }],
     });
     if let (Some(data), serde_json::Value::Object(extra)) = (data.as_object_mut(), extra) {
         data.extend(extra);
@@ -130,7 +134,7 @@ fn no_clean_data_does_nothing() {
     sandbox.write("home/.ponytail-active", "full");
     let output = clean(
         &sandbox,
-        &serde_json::json!({ "names": "not a list", "paths": ["~/.ponytail-active"] }),
+        &serde_json::json!({ "names": "not a list", "paths": [{ "path": "~/.ponytail-active" }] }),
     );
     assert_succeeds(&output);
     assert_eq!(stdout_of(&output), "");
@@ -184,7 +188,7 @@ fn a_leftover_that_cannot_be_removed_is_reported_and_the_rest_still_goes() {
     let lines: Vec<&str> = stdout.lines().collect();
     assert_eq!(lines[0], REMOVED.trim_end());
     assert!(
-        lines[1].starts_with("tightship could not remove ~/.config/ponytail: ")
+        lines[1].starts_with("tightship could not remove ~/.config/ponytail/: ")
             && lines[1].ends_with(". It tries again at the next session."),
         "{stdout}"
     );

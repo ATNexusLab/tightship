@@ -50,7 +50,7 @@ pub fn run() -> Result<(), Failure> {
     let mut outcome = Outcome::default();
     for (when, line) in &leftovers.commands {
         if expand(when).is_some_and(|path| path.exists()) {
-            outcome.record(when, run_command(line));
+            outcome.record(when, run_line(line));
         }
     }
     for entry in &leftovers.paths {
@@ -89,6 +89,13 @@ fn parse(text: &str) -> Option<Leftovers> {
             .map(|item| item.as_str().map(str::to_owned))
             .collect()
     };
+    let field = |key: &str, name: &str| -> Option<Vec<String>> {
+        data.get(key)
+            .map_or(Some(&Vec::new()), Value::as_array)?
+            .iter()
+            .map(|item| item.get(name)?.as_str().map(str::to_owned))
+            .collect()
+    };
     let pairs = |key: &str, first: &str, second: &str| -> Option<Vec<(String, String)>> {
         data.get(key)
             .map_or(Some(&Vec::new()), Value::as_array)?
@@ -107,9 +114,9 @@ fn parse(text: &str) -> Option<Leftovers> {
             .get("previous-versions")
             .map_or(Some(false), Value::as_bool)?,
         commands: pairs("commands", "when", "run")?,
-        paths: strings("paths")?,
+        paths: field("paths", "path")?,
         json: pairs("json", "file", "remove")?,
-        status_lines: strings("status-line")?,
+        status_lines: field("status-line", "contains")?,
     })
 }
 
@@ -129,7 +136,7 @@ fn expand(entry: &str) -> Option<PathBuf> {
     )
 }
 
-fn run_command(line: &str) -> Result<bool, String> {
+fn run_line(line: &str) -> Result<bool, String> {
     let mut command = if cfg!(windows) {
         let mut command = Command::new("powershell");
         command.args(["-NoProfile", "-Command", line]);

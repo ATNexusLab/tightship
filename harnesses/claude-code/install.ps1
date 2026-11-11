@@ -24,7 +24,6 @@ function Invoke-ClaudeCodeTightship([string]$root) {
 }
 
 function Install-ClaudeCode {
-    {{install:companions}}
     if ($FromDir) {
         try { & claude plugin marketplace add $FromDir *> $null } catch {}
     } else {

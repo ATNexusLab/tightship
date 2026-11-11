@@ -27,8 +27,6 @@ claude_code_root() {
 }
 
 install_claude_code() {
-  {{install:companions}}
-
   if [ -n "$FROM_DIR" ]; then
     quietly claude plugin marketplace add "$FROM_DIR"
   else

@@ -32,18 +32,7 @@ function Invoke-AntigravityCliTightship {
     }
 }
 
-function Install-Skill([string]$name, [string]$repository) {
-    $skillDir = "{{path:skills}}/$name"
-    if (-not (Test-Path $skillDir)) {
-        New-Item -ItemType Directory -Force -Path $skillDir | Out-Null
-    }
-    $skillFile = Join-Path $skillDir "SKILL.md"
-    Invoke-Step "Downloading the $name skill" { Invoke-RestMethod -Uri "https://raw.githubusercontent.com/$repository/main/SKILL.md" -OutFile $skillFile }
-}
-
 function Install-AntigravityCli {
-    {{install:companions}}
-
     $sourceDir = $null
     $tempZipFolder = $null
     if ($FromDir) {

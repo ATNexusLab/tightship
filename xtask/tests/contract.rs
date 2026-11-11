@@ -109,7 +109,7 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
                     "matcher": "startup",
                     "hooks": [{
                         "type": "command",
-                        "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
+                        "command": "TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook clean; TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
                     }],
                 }, {
                     "matcher": "startup",
@@ -398,7 +398,9 @@ fn no_contract_writes_no_hooks() {
     assert_succeeds(&repository.run("build"));
     assert!(repository.path("dist/claude-code/.claude-plugin").is_dir());
     assert!(!repository.path("dist/claude-code/contract").exists());
-    assert!(!repository.path("dist/claude-code/hooks").exists());
+    let hooks = fs::read_to_string(repository.path("dist/claude-code/hooks/hooks.json"))
+        .expect("the clean-up hook");
+    assert!(!hooks.contains("contract"), "{hooks}");
 }
 
 #[test]

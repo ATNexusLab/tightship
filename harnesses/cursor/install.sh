@@ -41,40 +41,6 @@ write_cursor_options() {
   fi
 }
 
-install_cursor_companion() {
-  _name="$1"
-  _repo="$2"
-  _dest="{{path:plugins}}/${_name}"
-  _work="$WORK_DIR/companion-${_name}"
-  mkdir -p "$_work"
-  _zip="${_work}/${_name}.zip"
-  _url="https://github.com/${_repo}/archive/refs/heads/main.zip"
-  if ! download_file "$_url" "$_zip"; then
-    _url="https://github.com/${_repo}/archive/refs/heads/master.zip"
-    download_file "$_url" "$_zip" || return 1
-  fi
-  unzip -q "$_zip" -d "$_work" || return 1
-  _archive="${_repo##*/}"
-  if [ -d "${_work}/${_name}-main" ]; then
-    _root="${_work}/${_name}-main"
-  elif [ -d "${_work}/${_archive}-main" ]; then
-    _root="${_work}/${_archive}-main"
-  elif [ -d "${_work}/${_name}-master" ]; then
-    _root="${_work}/${_name}-master"
-  elif [ -d "${_work}/${_archive}-master" ]; then
-    _root="${_work}/${_archive}-master"
-  else
-    _root=$(find "$_work" -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '__MACOSX' | head -1)
-  fi
-  if [ -z "$_root" ] || [ ! -d "$_root" ]; then
-    echo "error: companion archive for ${_name} had no root folder" >&2
-    return 1
-  fi
-  rm -rf "$_dest"
-  mkdir -p "$_dest" || return 1
-  cp -R "${_root}/." "$_dest/" || return 1
-}
-
 sync_cursor_plugin() {
   _target="$1"
   _source="$2"
@@ -84,8 +50,6 @@ sync_cursor_plugin() {
 }
 
 install_cursor() {
-  {{install:companions}}
-
   source_dir=""
   if [ -n "$FROM_DIR" ]; then
     source_dir="$FROM_DIR"

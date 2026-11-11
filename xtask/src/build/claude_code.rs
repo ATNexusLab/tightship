@@ -41,7 +41,7 @@ pub fn render(
         let file = staging.join("contract").join(&part.file);
         written.push((file, part.text.clone().into_bytes()));
     }
-    if let Some(hooks) = hooks(parts, content.options.as_ref())? {
+    if let Some(hooks) = hooks(parts, content.options.as_ref(), harness.clean.is_some())? {
         written.push((staging.join("hooks/hooks.json"), hooks.into_bytes()));
     }
     written.extend(render::harness_files(root, &staging, harness)?);
@@ -63,8 +63,6 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
         author: Author<'harness>,
         repository: &'harness str,
         license: &'harness str,
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        dependencies: Vec<String>,
         #[serde(
             rename = "userConfig",
             skip_serializing_if = "serde_json::Map::is_empty"
@@ -83,21 +81,12 @@ fn manifest(root: &Path, harness: &Harness, options: Option<&OptionsFile>) -> io
         },
         repository: &plugin.repository,
         license: &plugin.license,
-        dependencies: harness
-            .companions
-            .iter()
-            .map(|companion| {
-                companion
-                    .marketplace(&harness.name)
-                    .map(|marketplace| format!("{}@{}", companion.plugin, marketplace))
-            })
-            .collect::<io::Result<_>>()?,
         user_config,
     };
     Ok(serde_json::to_string_pretty(&manifest).map_err(io::Error::other)? + "\n")
 }
 
-fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<String>> {
+fn hooks(parts: &[Part], options: Option<&OptionsFile>, clean: bool) -> io::Result<Option<String>> {
     let declares =
         |name| options.is_some_and(|file| file.declared.iter().any(|option| option.name == name));
     let mut commands: Vec<serde_json::Value> = parts
@@ -158,13 +147,21 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
             }),
         ]);
     }
-    if declares("status_line") {
+    let settings = "TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\"";
+    let binary = "sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\"";
+    let startup: Vec<String> = [
+        clean.then(|| format!("{settings} {binary} hook clean")),
+        declares("status_line").then(|| {
+            format!("TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" {settings} {binary} hook status-line")
+        }),
+    ]
+    .into_iter()
+    .flatten()
+    .collect();
+    if !startup.is_empty() {
         session_start.push(serde_json::json!({
             "matcher": "startup",
-            "hooks": [{
-                "type": "command",
-                "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
-            }],
+            "hooks": [{ "type": "command", "command": startup.join("; ") }],
         }));
     }
     if declares("auto_update") {
