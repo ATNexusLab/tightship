@@ -1,3 +1,5 @@
+//! What the Claude Code plugin adds to the shared layout: its manifest options and its hooks.
+
 use std::io;
 use std::path::{Path, PathBuf};
 
@@ -8,6 +10,11 @@ use super::harness::Harness;
 use super::options::{self, OptionsFile};
 use super::render;
 
+/// Renders the Claude Code plugin into its staging folder and returns it with the number of files.
+///
+/// # Errors
+///
+/// When a piece does not render or a file cannot be written.
 pub fn render(
     root: &Path,
     harness: &Harness,

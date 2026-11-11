@@ -1,3 +1,5 @@
+//! Keeps the maintainer's identity out of what the build ships.
+
 use std::env;
 use std::fs;
 use std::io;
@@ -7,6 +9,11 @@ use super::words::is_part_of_a_word;
 use crate::diagnostics::{Diagnostic, with_path};
 use crate::git;
 
+/// The maintainer's identity terms, lowercase; `None` when git or `.identity-terms` leaves one unknown.
+///
+/// # Errors
+///
+/// When git cannot run or `.identity-terms` cannot be read.
 pub fn terms(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Option<Vec<String>>> {
     let mut terms = Vec::new();
     let mut complete = true;
@@ -50,6 +57,11 @@ pub fn terms(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Optio
     Ok(complete.then_some(lowercase))
 }
 
+/// Reports each file or name under a folder that holds an identity term.
+///
+/// # Errors
+///
+/// When a file or folder cannot be read.
 pub fn check_folder(
     folder: &Path,
     shown_as: &str,
@@ -77,6 +89,7 @@ pub fn check_folder(
     Ok(())
 }
 
+/// Reports each line of a text that holds an identity term.
 pub fn check_text(text: &str, shown_as: &str, terms: &[String], diagnostics: &mut Vec<Diagnostic>) {
     for (index, line) in text.to_lowercase().split('\n').enumerate() {
         if holds_a_term(line, terms) {

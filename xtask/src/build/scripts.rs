@@ -1,7 +1,10 @@
+//! Fills the tokens of an install script or a launcher for one harness and one shell.
+
 use std::io;
 
 use super::harness::Harness;
 
+/// The shell a script is written for.
 #[derive(Clone, Copy)]
 pub enum Shell {
     Sh,
@@ -19,6 +22,7 @@ impl Shell {
     }
 }
 
+/// `antigravity-cli` as `AntigravityCli`.
 pub fn kebab_to_pascal(kebab: &str) -> String {
     kebab
         .split('-')
@@ -29,6 +33,11 @@ pub fn kebab_to_pascal(kebab: &str) -> String {
         .collect()
 }
 
+/// Fills each `{{path:…}}` and `{{install:…}}` token, indenting a multi-line value like its token.
+///
+/// # Errors
+///
+/// When a token has no value for this harness.
 pub fn fill_template(
     text: &str,
     source: &str,

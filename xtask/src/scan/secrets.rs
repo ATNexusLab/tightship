@@ -1,3 +1,5 @@
+//! Scans every commit of every branch for secrets with gitleaks.
+
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -6,8 +8,14 @@ use std::process::Command;
 use crate::diagnostics::{Diagnostic, with_path};
 use crate::git;
 
+/// The gitleaks release the scan requires.
 pub const GITLEAKS_VERSION: &str = "8.30.1";
 
+/// Reports each secret gitleaks finds, and returns the number of commits scanned.
+///
+/// # Errors
+///
+/// When git or gitleaks cannot run.
 pub fn check(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<usize> {
     let commits = git::run(root, &["rev-list", "--all", "--count"])?
         .trim()

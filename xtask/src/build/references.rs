@@ -1,3 +1,5 @@
+//! Checks every token and every literal reference to a piece in `content/`.
+
 use super::content::{Content, Kind, SupportingBody};
 use super::harness::Harness;
 use super::tokens::{self, Form, Token};
@@ -10,6 +12,7 @@ struct Text<'content> {
     in_piece: bool,
 }
 
+/// Reports each malformed or unknown token, and each piece named without one.
 pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Diagnostic>) {
     let pieces: Vec<(Kind, &str)> = content
         .pieces

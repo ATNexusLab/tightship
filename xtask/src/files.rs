@@ -1,9 +1,16 @@
+//! File system helpers the commands share.
+
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
 use crate::diagnostics::with_path;
 
+/// Every file under a folder, sorted.
+///
+/// # Errors
+///
+/// When a folder cannot be read, or an entry is a symbolic link.
 pub fn files_under(directory: &Path) -> io::Result<Vec<PathBuf>> {
     let mut entries = fs::read_dir(directory)
         .map_err(with_path(directory))?
@@ -30,6 +37,11 @@ pub fn files_under(directory: &Path) -> io::Result<Vec<PathBuf>> {
     Ok(files)
 }
 
+/// Removes a folder and everything in it; a folder that is not there is fine.
+///
+/// # Errors
+///
+/// When the folder is there but cannot be removed.
 pub fn remove_if_present(folder: &Path) -> io::Result<()> {
     match fs::remove_dir_all(folder) {
         Err(error) if error.kind() != io::ErrorKind::NotFound => Err(with_path(folder)(error)),
@@ -37,6 +49,7 @@ pub fn remove_if_present(folder: &Path) -> io::Result<()> {
     }
 }
 
+/// A path with `/` between its parts on every platform.
 pub fn slash_path(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }

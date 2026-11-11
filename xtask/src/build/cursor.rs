@@ -1,3 +1,5 @@
+//! What the Cursor plugin adds to the shared layout: commands as files, its hooks, and read-only agents.
+
 use std::io;
 use std::path::{Path, PathBuf};
 
@@ -10,6 +12,11 @@ use super::harness::Harness;
 use super::options::{self, OptionsFile};
 use super::render;
 
+/// Renders the Cursor plugin into its staging folder and returns it with the number of files.
+///
+/// # Errors
+///
+/// When a piece does not render or a file cannot be written.
 pub fn render(
     root: &Path,
     harness: &Harness,

@@ -1,3 +1,5 @@
+//! Joins `installer/` and each harness's install steps into `install.sh` and `install.ps1`.
+
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -13,6 +15,11 @@ const FILES: [(&str, Shell, Registry); 2] = [
     ("install.ps1", Shell::Pwsh, registry_ps1),
 ];
 
+/// Both installers, each with every harness's fragment and registry filled in.
+///
+/// # Errors
+///
+/// When a script cannot be read or a token stays unresolved.
 pub fn assemble(root: &Path, harnesses: &[Harness]) -> io::Result<Vec<(&'static str, String)>> {
     let repository = harnesses
         .first()

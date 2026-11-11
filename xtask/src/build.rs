@@ -1,3 +1,5 @@
+//! `cargo xtask build`: checks `content/` and `harnesses/`, then renders one plugin per harness into `dist/`.
+
 mod antigravity_cli;
 pub mod binary;
 mod claude_code;
@@ -24,6 +26,11 @@ use crate::diagnostics::{Diagnostic, with_path};
 use crate::diagnostics::{Failure, stop_on_errors};
 use content::{Content, Kind};
 
+/// Builds every plugin and both installers, removing what a failed build left in `dist/`.
+///
+/// # Errors
+///
+/// When a check fails, or when a file cannot be read, compiled, or written.
 pub fn run(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure> {
     let built = build_plugin(root, prebuilt);
     if built.is_err()

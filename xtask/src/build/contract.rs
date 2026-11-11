@@ -1,9 +1,12 @@
+//! Packs the working contract into parts that fit each harness's limit per session-start hook.
+
 use super::content::split_front_matter;
 use super::harness::{ContractLimits, Harness};
 use super::options::OptionsFile;
 use super::tokens;
 use crate::diagnostics::Diagnostic;
 
+/// The contract file, with its outline when it parsed with no problem.
 pub struct Contract {
     pub path: String,
     pub text: String,
@@ -24,12 +27,14 @@ struct Section {
     text: String,
 }
 
+/// One file of the packed contract and the option that gates it, if any.
 pub struct Part {
     pub file: String,
     pub text: String,
     pub gate: Option<String>,
 }
 
+/// Reads the contract's front matter and sections, reporting each problem as a diagnostic.
 pub fn read(
     path: &str,
     text: String,
@@ -208,6 +213,7 @@ struct Block<'contract> {
 
 const MOST_CHARACTERS: usize = 8000;
 
+/// Packs the contract for one harness: numbered parts first, then one part per gating option.
 pub fn pack(
     contract: &Contract,
     harness: &Harness,

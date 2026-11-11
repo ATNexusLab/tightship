@@ -1,3 +1,5 @@
+//! The layout every plugin shares: manifest, catalog, pieces, contract, launchers, and binaries.
+
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -15,6 +17,7 @@ use super::tokens;
 use crate::diagnostics::with_path;
 use crate::{files, workspace};
 
+/// What a harness adds to the shared layout.
 pub struct Layout {
     pub manifest: String,
     pub commands_as_files: bool,
@@ -22,6 +25,11 @@ pub struct Layout {
     pub extra: Vec<(String, String)>,
 }
 
+/// Writes a plugin into its staging folder and returns the folder with the number of files.
+///
+/// # Errors
+///
+/// When a piece does not render, or a file cannot be read or written.
 pub fn assemble(
     root: &Path,
     harness: &Harness,
@@ -65,10 +73,20 @@ pub fn assemble(
     Ok((staging, written.len()))
 }
 
+/// Pretty JSON with a final newline.
+///
+/// # Errors
+///
+/// When the value cannot be serialized.
 pub fn pretty_json(value: &impl Serialize) -> io::Result<String> {
     Ok(serde_json::to_string_pretty(value).map_err(io::Error::other)? + "\n")
 }
 
+/// The plugin manifest, with the options under `options_key` when the harness takes them.
+///
+/// # Errors
+///
+/// When `Cargo.toml` cannot be read or an option does not render.
 pub fn manifest(
     root: &Path,
     harness: &Harness,
@@ -111,6 +129,11 @@ pub fn manifest(
     })
 }
 
+/// Replaces every token of a text with the harness's value.
+///
+/// # Errors
+///
+/// When a token has no value for this harness.
 pub fn resolve(text: &str, path: &str, harness: &Harness) -> io::Result<String> {
     let (rendered, unresolved) = tokens::substitute(text, harness);
     if unresolved.is_empty() {
@@ -179,6 +202,11 @@ fn option_settings(
     Ok(settings)
 }
 
+/// A piece as Markdown with YAML front matter, adding `agent_fields` to an agent's.
+///
+/// # Errors
+///
+/// When the piece has no valid front matter or a token stays unresolved.
 pub fn document(
     piece: &Piece,
     harness: &Harness,

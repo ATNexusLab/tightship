@@ -1,3 +1,5 @@
+//! The Cargo workspace the commands run in.
+
 use std::env;
 use std::fs;
 use std::io;
@@ -7,6 +9,11 @@ use serde::Deserialize;
 
 use crate::diagnostics::with_path;
 
+/// The nearest folder above the current one whose `Cargo.toml` declares a workspace.
+///
+/// # Errors
+///
+/// When there is no such folder or a `Cargo.toml` cannot be read.
 pub fn root() -> io::Result<PathBuf> {
     let current = env::current_dir()?;
     for folder in current.ancestors() {
@@ -27,6 +34,11 @@ pub fn root() -> io::Result<PathBuf> {
     )))
 }
 
+/// The workspace's package version, which every plugin carries.
+///
+/// # Errors
+///
+/// When `Cargo.toml` cannot be read or parsed.
 pub fn version(root: &Path) -> io::Result<String> {
     #[derive(Deserialize)]
     struct CargoManifest {

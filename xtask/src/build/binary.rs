@@ -1,3 +1,5 @@
+//! The `tightship` binaries a plugin ships: compiled for this machine, or copied from a release build.
+
 use std::env;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -5,6 +7,7 @@ use std::process::Command;
 
 use crate::diagnostics::Diagnostic;
 
+/// Each platform folder under `bin/` and the binary's file name in it.
 pub const PLATFORMS: [(&str, &str); 4] = [
     ("macos", "tightship"),
     ("linux-x64", "tightship"),
@@ -12,11 +15,17 @@ pub const PLATFORMS: [(&str, &str); 4] = [
     ("windows-x64", "tightship.exe"),
 ];
 
+/// A built binary and the platform folder it goes into.
 pub struct Binary {
     pub platform: &'static str,
     pub path: PathBuf,
 }
 
+/// The platform folder of the machine running the build.
+///
+/// # Errors
+///
+/// When the machine is none of the four platforms.
 pub fn platform() -> io::Result<&'static str> {
     match (env::consts::OS, env::consts::ARCH) {
         ("macos", _) => Ok("macos"),
@@ -29,6 +38,11 @@ pub fn platform() -> io::Result<&'static str> {
     }
 }
 
+/// Compiles `tightship` in release mode, with the home and workspace paths remapped out of it.
+///
+/// # Errors
+///
+/// When cargo cannot run or the build fails.
 pub fn compile(platform: &'static str) -> io::Result<Binary> {
     let workspace = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -57,6 +71,7 @@ pub fn compile(platform: &'static str) -> io::Result<Binary> {
     })
 }
 
+/// Reports each of the four platform binaries missing from a `--binaries` folder.
 pub fn check_prebuilt(folder: &Path, diagnostics: &mut Vec<Diagnostic>) {
     for (platform, file_name) in PLATFORMS {
         if !folder.join(platform).join(file_name).is_file() {
@@ -68,6 +83,7 @@ pub fn check_prebuilt(folder: &Path, diagnostics: &mut Vec<Diagnostic>) {
     }
 }
 
+/// The four platform binaries of a `--binaries` folder.
 pub fn prebuilt(folder: &Path) -> Vec<Binary> {
     PLATFORMS
         .into_iter()

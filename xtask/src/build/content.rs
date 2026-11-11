@@ -1,3 +1,5 @@
+//! Reads `content/`, the one authored copy of every piece, and checks its layout and front matter.
+
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -9,6 +11,7 @@ use super::options::{self, OptionsFile};
 use crate::diagnostics::{Diagnostic, with_path};
 use crate::files;
 
+/// The three kinds of piece a plugin ships.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
     Skill,
@@ -17,6 +20,7 @@ pub enum Kind {
 }
 
 impl Kind {
+    /// The word the kind goes by in messages and tokens.
     pub fn noun(self) -> &'static str {
         match self {
             Self::Skill => "skill",
@@ -26,6 +30,7 @@ impl Kind {
     }
 }
 
+/// The front matter a piece declares.
 #[derive(Deserialize)]
 pub struct FrontMatter {
     pub description: String,
@@ -34,6 +39,7 @@ pub struct FrontMatter {
     pub access: Option<String>,
 }
 
+/// A skill, command, or agent, with where its body starts in its file.
 pub struct Piece {
     pub kind: Kind,
     pub name: String,
@@ -43,11 +49,13 @@ pub struct Piece {
     pub body_line: usize,
 }
 
+/// A supporting file's body: Markdown that tokens fill, or bytes copied as they are.
 pub enum SupportingBody {
     Markdown(String),
     Copied(Vec<u8>),
 }
 
+/// A file a skill carries next to its `SKILL.md`.
 pub struct SupportingFile {
     pub skill: String,
     pub relative: String,
@@ -55,11 +63,13 @@ pub struct SupportingFile {
     pub body: SupportingBody,
 }
 
+/// A file of `content/` as read from disk.
 pub struct SourceFile {
     pub path: String,
     pub bytes: Vec<u8>,
 }
 
+/// Everything read from `content/`.
 #[derive(Default)]
 pub struct Content {
     pub files: Vec<SourceFile>,
@@ -70,6 +80,11 @@ pub struct Content {
     pub vault_template: Option<String>,
 }
 
+/// Reads `content/`, reporting each problem as a diagnostic.
+///
+/// # Errors
+///
+/// When a file cannot be read, or one is a symbolic link.
 pub fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Content> {
     let mut content = Content::default();
     let directory = root.join("content");
@@ -115,6 +130,7 @@ pub fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Conten
     Ok(content)
 }
 
+/// Whether a piece name is kebab case of at most 64 characters.
 pub fn is_valid_name(text: &str) -> bool {
     text.len() <= 64
         && text.starts_with(|character: char| character.is_ascii_lowercase())
@@ -231,6 +247,7 @@ fn parse_piece(
     }
 }
 
+/// Splits a `+++` front matter from its body, with the line the body starts on.
 pub fn split_front_matter(text: &str) -> Option<(&str, &str, usize)> {
     let after_opening = text.strip_prefix("+++\n")?;
     let mut offset = 0;

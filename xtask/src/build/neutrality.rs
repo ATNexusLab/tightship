@@ -1,3 +1,5 @@
+//! Checks that only a harness's own folder names it, its paths, or its tools.
+
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -8,6 +10,7 @@ use super::words::is_part_of_a_word;
 use crate::diagnostics::{Diagnostic, with_path};
 use crate::files::{self, slash_path};
 
+/// Reports each line of `content/` that names a harness.
 pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Diagnostic>) {
     for file in &content.files {
         let text = String::from_utf8_lossy(&file.bytes);
@@ -17,6 +20,11 @@ pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Dia
     }
 }
 
+/// Reports each line of `tightship/src/` that names a harness.
+///
+/// # Errors
+///
+/// When a source file cannot be read.
 pub fn check_binary_sources(
     root: &Path,
     harnesses: &[Harness],

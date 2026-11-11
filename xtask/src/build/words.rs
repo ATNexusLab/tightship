@@ -1,3 +1,6 @@
+//! Word boundaries for the checks that look for a term in a line.
+
+/// Whether a term found at `start` sits inside a longer word; a term with punctuation at an end never does.
 pub fn is_part_of_a_word(line: &str, start: usize, term: &str) -> bool {
     let is_word_character = |character: char| character.is_alphanumeric() || character == '_';
     let whole_word_only =

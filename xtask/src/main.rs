@@ -1,3 +1,5 @@
+//! The `cargo xtask` entry point: parses the command, finds the workspace, and reports the outcome.
+
 mod build;
 mod diagnostics;
 mod files;

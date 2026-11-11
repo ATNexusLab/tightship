@@ -1,3 +1,5 @@
+//! `cargo xtask package <tag>`: zips each built plugin and writes the release's catalogs, `latest.json`, and installers.
+
 use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
@@ -32,6 +34,11 @@ struct Manifest {
     repository: String,
 }
 
+/// Packs the release for a tag into `dist/`, removing its staging folder whatever happens.
+///
+/// # Errors
+///
+/// When `dist/` is incomplete, the tag does not match the version, or a file cannot be written.
 pub fn run(root: &Path, tag: &str) -> Result<String, Failure> {
     let dist = root.join("dist");
     let staging = dist.join(".package.tmp");

@@ -1,7 +1,10 @@
+//! Reads `content/options.toml`, the options a plugin offers its adopter.
+
 use serde::Deserialize;
 
 use crate::diagnostics::Diagnostic;
 
+/// One option as declared.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct UserOption {
@@ -13,11 +16,13 @@ pub struct UserOption {
 }
 
 impl UserOption {
+    /// Whether the option holds a folder rather than an on/off value.
     pub fn is_directory(&self) -> bool {
         self.kind == "directory"
     }
 }
 
+/// The options file and the options it declares when it is valid.
 pub struct OptionsFile {
     pub path: String,
     pub text: String,
@@ -25,15 +30,18 @@ pub struct OptionsFile {
 }
 
 impl OptionsFile {
+    /// Whether the file declares an option of this name.
     pub fn declares(&self, name: &str) -> bool {
         self.declared.iter().any(|option| option.name == name)
     }
 }
 
+/// Whether an options file is there and declares an option of this name.
 pub fn declared(options: Option<&OptionsFile>, name: &str) -> bool {
     options.is_some_and(|file| file.declares(name))
 }
 
+/// Whether a name is 1 to 64 lowercase letters, digits, and underscores, starting with a letter.
 pub fn is_option_name(name: &str) -> bool {
     name.len() <= 64
         && name.starts_with(|character: char| character.is_ascii_lowercase())
@@ -42,6 +50,7 @@ pub fn is_option_name(name: &str) -> bool {
         })
 }
 
+/// Parses the options file, reporting each problem as a diagnostic.
 pub fn read(path: &str, text: String, diagnostics: &mut Vec<Diagnostic>) -> OptionsFile {
     #[derive(Deserialize)]
     #[serde(deny_unknown_fields)]

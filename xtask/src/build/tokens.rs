@@ -1,9 +1,12 @@
+//! Finds and substitutes the `{{<kind>:<name>}}` tokens of the canonical content.
+
 use std::ops::Range;
 
 use super::content::{Kind, is_valid_name};
 use super::harness::Harness;
 use super::options::is_option_name;
 
+/// What a token refers to.
 pub enum Form<'text> {
     Piece(Kind, &'text str),
     Capability(&'text str),
@@ -12,6 +15,7 @@ pub enum Form<'text> {
     Malformed,
 }
 
+/// A token, where it is, and what it refers to.
 pub struct Token<'text> {
     pub line: usize,
     pub range: Range<usize>,
@@ -19,6 +23,7 @@ pub struct Token<'text> {
     pub form: Form<'text>,
 }
 
+/// Every token of a text, in order; a token never spans two lines.
 pub fn find(text: &str) -> Vec<Token<'_>> {
     let mut tokens = Vec::new();
     let mut line_start = 0;
@@ -58,6 +63,7 @@ fn replace<'text>(
     replaced
 }
 
+/// The text with each token replaced by the harness's value, and the tokens left unresolved.
 pub fn substitute<'text>(text: &'text str, harness: &Harness) -> (String, Vec<&'text str>) {
     let mut unresolved = Vec::new();
     let rendered = replace(text, |token| {
