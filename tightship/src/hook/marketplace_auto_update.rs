@@ -13,8 +13,8 @@ use crate::update::release::Manifest;
 /// When the manifest or the settings are invalid, or the settings cannot be written.
 pub fn run() -> Result<(), Failure> {
     let options = crate::options::load()?;
-    let manifest = Manifest::read(&crate::env::variable("TIGHTSHIP_MANIFEST")?)?;
-    let settings_path = crate::env::variable("TIGHTSHIP_SETTINGS")?;
+    let manifest = Manifest::read(&crate::system::env::variable("TIGHTSHIP_MANIFEST")?)?;
+    let settings_path = crate::system::env::variable("TIGHTSHIP_SETTINGS")?;
     let read = settings::read_settings(&settings_path)?;
     let mut user_settings = read.clone();
     let invalid = || Failure::SettingsInvalid(settings_path.clone());

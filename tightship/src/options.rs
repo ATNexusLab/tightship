@@ -6,9 +6,9 @@ use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
-use crate::env::{expand_tilde, optional_variable};
 use crate::failure::Failure;
-use crate::files::{pretty_json, read_if_present, strip_byte_order_mark};
+use crate::system::env::{expand_tilde, optional_variable};
+use crate::system::files::{pretty_json, read_if_present, strip_byte_order_mark};
 
 const OPTION_NAMES: &[&str] = &[
     "contract",
@@ -19,7 +19,7 @@ const OPTION_NAMES: &[&str] = &[
 ];
 
 fn options_json() -> Result<PathBuf, Failure> {
-    Ok(crate::env::variable("TIGHTSHIP_DATA")?.join("options.json"))
+    Ok(crate::system::env::variable("TIGHTSHIP_DATA")?.join("options.json"))
 }
 
 /// Whether an on/off option is off, for `tightship options disabled`.

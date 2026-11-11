@@ -15,9 +15,9 @@ use crate::failure::Failure;
 /// When the options, the settings, or the record are invalid, or the settings cannot be written.
 pub fn run() -> Result<(), Failure> {
     let options = crate::options::load()?;
-    let settings_path = crate::env::variable("TIGHTSHIP_SETTINGS")?;
-    let data = crate::env::variable("TIGHTSHIP_DATA")?;
-    let root = crate::env::variable("TIGHTSHIP_ROOT")?;
+    let settings_path = crate::system::env::variable("TIGHTSHIP_SETTINGS")?;
+    let data = crate::system::env::variable("TIGHTSHIP_DATA")?;
+    let root = crate::system::env::variable("TIGHTSHIP_ROOT")?;
     let previous = settings::read_previous(&data)?;
     let user_settings = settings::read_settings(&settings_path)?;
     let ours = user_settings

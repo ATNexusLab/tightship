@@ -7,7 +7,7 @@ use std::path::Path;
 use serde_json::Value;
 
 use crate::failure::Failure;
-use crate::files::strip_byte_order_mark;
+use crate::system::files::strip_byte_order_mark;
 
 /// A plain `major.minor.patch` version, ordered by its numbers.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

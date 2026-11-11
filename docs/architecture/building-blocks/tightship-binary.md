@@ -43,7 +43,8 @@ status line run the launcher through `sh`, and the launcher restores the executa
 own when an install dropped it.
 
 Inside, the code is split by domain, `vault/`, `hook/`, `status/` (M1, #7), and `update/`, with
-`options.rs` (M3, #59), a pure core, and the I/O at the edges, and it depends on `clap`, `jiff`,
+`options.rs` (M3, #59), a pure core, and the I/O at the edges, `system/` holding the environment, file,
+and git helpers every domain shares, and it depends on `clap`, `jiff`,
 `serde_json`, `deunicode`, `unicode-width` (M1, #7), and `toml` (M3, #59)
 ([ADR 0002](../../decisions/0002-tightship-binary-modules-and-dependencies.md)). `update/` downloads,
 hashes, and extracts through `curl`, `sha256sum` or `shasum`, and `unzip` on macOS and Linux, and through

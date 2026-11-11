@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
-use crate::files::read_if_present;
+use crate::system::files::read_if_present;
 
 /// The line that opens the rules block.
 pub const START: &str = "<!-- tightship:rules:start -->";

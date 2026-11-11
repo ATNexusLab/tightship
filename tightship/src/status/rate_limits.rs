@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use jiff::Timestamp;
 use serde_json::{Map, Value};
 
-use crate::env::optional_variable;
+use crate::system::env::optional_variable;
 
 const CACHE: &str = "rate-limits.json";
 const WINDOWS: [&str; 2] = ["five_hour", "seven_day"];

@@ -12,7 +12,7 @@ use crate::update::state;
 ///
 /// When the options are invalid, the state cannot be written, or the update cannot start.
 pub fn run() -> Result<(), Failure> {
-    let data = crate::env::variable("TIGHTSHIP_DATA")?;
+    let data = crate::system::env::variable("TIGHTSHIP_DATA")?;
     let mut pending = state::read(&data);
     if let Some(notice) = pending.notice.take() {
         super::emit(&notice.text())?;

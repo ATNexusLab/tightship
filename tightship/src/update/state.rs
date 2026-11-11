@@ -9,7 +9,7 @@ use jiff::Timestamp;
 use serde_json::{Map, Value, json};
 
 use crate::failure::Failure;
-use crate::files::{pretty_json, remove_file_if_present};
+use crate::system::files::{pretty_json, remove_file_if_present};
 
 const STATE: &str = "update.json";
 const LOCK: &str = "update.lock";

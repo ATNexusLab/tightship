@@ -16,8 +16,8 @@ use std::io::Write;
 use std::ops::BitOr;
 use std::path::{Path, PathBuf};
 
-use crate::env::optional_variable;
 use crate::failure::Failure;
+use crate::system::env::optional_variable;
 
 /// Prints the text for the harness, inside the JSON shape `TIGHTSHIP_HOOK_OUTPUT` names when it is set.
 ///

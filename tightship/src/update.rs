@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 use jiff::Timestamp;
 
 use crate::failure::Failure;
-use crate::files::remove_folder_if_present;
+use crate::system::files::remove_folder_if_present;
 use release::{Manifest, Release, Version};
 use state::Notice;
 
@@ -24,10 +24,10 @@ pub fn run() -> Result<(), Failure> {
     if !crate::options::load()?.auto_update {
         return Ok(());
     }
-    let data = crate::env::variable("TIGHTSHIP_DATA")?;
-    let root = crate::env::variable("TIGHTSHIP_ROOT")?;
-    let manifest_path = crate::env::variable("TIGHTSHIP_MANIFEST")?;
-    let harness = crate::env::variable("TIGHTSHIP_HARNESS")?;
+    let data = crate::system::env::variable("TIGHTSHIP_DATA")?;
+    let root = crate::system::env::variable("TIGHTSHIP_ROOT")?;
+    let manifest_path = crate::system::env::variable("TIGHTSHIP_MANIFEST")?;
+    let harness = crate::system::env::variable("TIGHTSHIP_HARNESS")?;
     let Some(_lock) = state::lock(&data)? else {
         println!("Another tightship update is running.");
         return Ok(());

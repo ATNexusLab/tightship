@@ -8,7 +8,7 @@ use jiff::Zoned;
 use super::note::{self, Note};
 use super::{expire, rules};
 use crate::failure::Failure;
-use crate::git;
+use crate::system::git;
 
 /// Syncs the vault with its remote, or keeps it local when it has none.
 ///

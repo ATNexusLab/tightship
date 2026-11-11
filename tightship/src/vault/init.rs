@@ -5,7 +5,7 @@ use std::io;
 use std::path::{self, Path};
 
 use crate::failure::Failure;
-use crate::git;
+use crate::system::git;
 
 /// Creates the vault in the folder, with its rules and the `all` scope.
 ///

@@ -1,13 +1,11 @@
 //! The `tightship` entry point: parses the command line, runs the command, and reports a failure.
 
-mod env;
 mod failure;
-mod files;
-mod git;
 mod hook;
 mod options;
 mod project;
 mod status;
+mod system;
 mod update;
 mod vault;
 

@@ -96,7 +96,7 @@ pub fn run() -> Result<(), Failure> {
 }
 
 fn tracked(folder: &Path) -> Option<Vec<String>> {
-    let mut child = crate::git::command(folder)
+    let mut child = crate::system::git::command(folder)
         .arg("ls-files")
         .stdin(Stdio::null())
         .stdout(Stdio::piped())

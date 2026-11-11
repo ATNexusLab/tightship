@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use serde_json::{Map, Value};
 
 use crate::failure::Failure;
-use crate::files::{pretty_json, read_if_present, remove_file_if_present};
+use crate::system::files::{pretty_json, read_if_present, remove_file_if_present};
 
 const RECORD: &str = "status-line.json";
 

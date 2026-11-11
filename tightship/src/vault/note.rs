@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use jiff::civil::Date;
 
 use crate::failure::Failure;
-use crate::git;
+use crate::system::git;
 
 /// The types a note written with `tightship vault new` may have.
 pub const TYPES: [&str; 4] = ["preference", "decision", "gotcha", "project"];

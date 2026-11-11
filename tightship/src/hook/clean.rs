@@ -10,8 +10,8 @@ use std::time::{Duration, Instant};
 use serde_json::Value;
 
 use super::settings;
-use crate::env::optional_variable;
 use crate::failure::Failure;
+use crate::system::env::optional_variable;
 
 const COMMAND_LIMIT: Duration = Duration::from_secs(30);
 
@@ -128,12 +128,12 @@ fn parse(text: &str) -> Option<Leftovers> {
 
 fn expand(entry: &str) -> Option<PathBuf> {
     let (base, rest) = if let Some(rest) = entry.strip_prefix("~/") {
-        (crate::env::home_dir()?, rest)
+        (crate::system::env::home_dir()?, rest)
     } else if let Some(rest) = entry.strip_prefix("{config}/") {
-        (crate::env::variable("TIGHTSHIP_CONFIG").ok()?, rest)
+        (crate::system::env::variable("TIGHTSHIP_CONFIG").ok()?, rest)
     } else {
         let rest = entry.strip_prefix("{appdata}/")?;
-        (crate::env::variable("APPDATA").ok()?, rest)
+        (crate::system::env::variable("APPDATA").ok()?, rest)
     };
     Some(
         rest.split('/')
@@ -239,7 +239,7 @@ fn clear_status_line(contains: &str, outcome: &mut Outcome) {
             .and_then(Value::as_str)
             .is_some_and(|command| command.contains(contains))
     };
-    if let Ok(path) = crate::env::variable("TIGHTSHIP_SETTINGS") {
+    if let Ok(path) = crate::system::env::variable("TIGHTSHIP_SETTINGS") {
         let removed = settings::read_settings(&path).and_then(|mut fields| {
             if !fields.get("statusLine").is_some_and(names) {
                 return Ok(false);
@@ -249,7 +249,7 @@ fn clear_status_line(contains: &str, outcome: &mut Outcome) {
         });
         outcome.record(&path.display().to_string(), removed.map_err(reason));
     }
-    if let Ok(data) = crate::env::variable("TIGHTSHIP_DATA") {
+    if let Ok(data) = crate::system::env::variable("TIGHTSHIP_DATA") {
         let removed = settings::read_previous(&data).and_then(|previous| {
             if !previous.as_ref().is_some_and(names) {
                 return Ok(false);
@@ -262,7 +262,7 @@ fn clear_status_line(contains: &str, outcome: &mut Outcome) {
 }
 
 fn remove_previous_versions(outcome: &mut Outcome) {
-    let Some(running) = crate::env::variable("TIGHTSHIP_ROOT")
+    let Some(running) = crate::system::env::variable("TIGHTSHIP_ROOT")
         .ok()
         .and_then(|root| fs::canonicalize(root).ok())
     else {
