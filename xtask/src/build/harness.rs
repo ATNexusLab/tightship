@@ -3,7 +3,7 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::content::Kind;
 use crate::diagnostics::{Diagnostic, naming};
@@ -23,8 +23,7 @@ pub struct Harness {
     pub contract: Option<ContractTable>,
     pub capabilities: BTreeMap<String, String>,
     pub neutrality: Neutrality,
-    #[serde(default)]
-    pub companions: Vec<Companion>,
+    pub clean: Option<Clean>,
 }
 
 #[derive(Deserialize)]
@@ -55,22 +54,6 @@ pub struct Install {
     pub min_version: String,
     #[serde(default)]
     pub aliases: Vec<String>,
-    #[serde(rename = "companion-steps", default)]
-    pub companion_steps: CompanionSteps,
-}
-
-#[derive(Deserialize, Default)]
-#[serde(deny_unknown_fields)]
-pub struct CompanionSteps {
-    pub plugin: Option<Steps>,
-    pub skill: Option<Steps>,
-}
-
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Steps {
-    pub sh: String,
-    pub ps1: String,
 }
 
 impl Install {
@@ -92,33 +75,88 @@ pub struct ContractTable {
     pub compaction_notice: Option<String>,
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Companion {
-    pub plugin: String,
-    pub marketplace: Option<String>,
-    pub repository: String,
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
+pub struct Clean {
+    pub names: Vec<String>,
     #[serde(default)]
-    pub kind: CompanionKind,
+    pub previous_versions: bool,
+    #[serde(default)]
+    pub commands: Vec<CleanCommand>,
+    #[serde(default)]
+    pub paths: Vec<CleanPath>,
+    #[serde(default)]
+    pub json: Vec<CleanJson>,
+    #[serde(default)]
+    pub status_line: Vec<CleanStatusLine>,
 }
 
-#[derive(Deserialize, Default, Clone, Copy)]
-#[serde(rename_all = "lowercase")]
-pub enum CompanionKind {
-    #[default]
-    Plugin,
-    Skill,
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CleanCommand {
+    pub when: String,
+    pub run: String,
 }
 
-impl Companion {
-    pub fn marketplace(&self, harness: &str) -> io::Result<&str> {
-        self.marketplace.as_deref().ok_or_else(|| {
-            io::Error::other(format!(
-                "harnesses/{harness}/harness.toml: companion \"{}\" has no marketplace",
-                self.plugin
-            ))
-        })
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CleanPath {
+    pub path: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CleanJson {
+    pub file: String,
+    pub remove: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CleanStatusLine {
+    pub contains: String,
+}
+
+const COMPANIONS: [&str; 3] = ["ponytail", "i-have-adhd", "humanizer"];
+
+impl Clean {
+    fn problems(&self) -> Vec<String> {
+        let mut problems = Vec::new();
+        let well_named = |name: &String| {
+            (1..=64).contains(&name.len())
+                && name
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+        };
+        if !(1..=10).contains(&self.names.len()) || !self.names.iter().all(well_named) {
+            problems.push("[clean] names must be 1 to 10 names of [a-z0-9-]{1,64}".to_owned());
+        }
+        let paths = self
+            .commands
+            .iter()
+            .map(|command| &command.when)
+            .chain(self.paths.iter().map(|path| &path.path))
+            .chain(self.json.iter().map(|json| &json.file));
+        for path in paths {
+            let in_home = path.starts_with("~/") || path.starts_with("{config}/");
+            if !in_home || path.split('/').any(|part| part == "..") {
+                problems.push(format!("[clean] path {path} is outside the home folder"));
+            }
+        }
+        problems
     }
+}
+
+fn companions_outside_clean(text: &str) -> Vec<&'static str> {
+    let Ok(mut table) = text.parse::<toml::Table>() else {
+        return Vec::new();
+    };
+    table.remove("clean");
+    let rest = table.to_string();
+    COMPANIONS
+        .into_iter()
+        .filter(|name| rest.contains(name))
+        .collect()
 }
 
 #[derive(Deserialize)]
@@ -199,6 +237,22 @@ pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Ve
                     diagnostics.push(Diagnostic::in_file(
                         &path,
                         "[contract] limit must be 1 to 1000000".to_owned(),
+                    ));
+                }
+                let problems = harness
+                    .clean
+                    .as_ref()
+                    .map(Clean::problems)
+                    .unwrap_or_default();
+                for problem in problems {
+                    diagnostics.push(Diagnostic::in_file(&path, problem));
+                }
+                for companion in companions_outside_clean(&text) {
+                    diagnostics.push(Diagnostic::in_file(
+                        &path,
+                        format!(
+                            "{companion} is named outside [clean]; tightship depends on no other plugin"
+                        ),
                     ));
                 }
                 harnesses.push(Harness { name, ..harness });

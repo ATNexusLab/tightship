@@ -61,25 +61,15 @@ pub fn catalog(harness: &Harness) -> io::Result<String> {
         name: &'harness str,
         owner: Owner<'harness>,
         description: &'harness str,
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        allow_cross_marketplace_dependencies_on: Vec<&'harness str>,
         plugins: [Entry<'harness>; 1],
     }
     let plugin = &harness.plugin;
-    let mut marketplaces = Vec::new();
-    for companion in &harness.companions {
-        let marketplace = companion.marketplace(&harness.name)?;
-        if !marketplaces.contains(&marketplace) {
-            marketplaces.push(marketplace);
-        }
-    }
     let catalog = Catalog {
         name: &plugin.name,
         owner: Owner {
             name: &plugin.author,
         },
         description: &plugin.description,
-        allow_cross_marketplace_dependencies_on: marketplaces,
         plugins: [Entry {
             name: &plugin.name,
             source: "./",
@@ -197,6 +187,17 @@ pub fn harness_files(
     let neutral_cmd = include_str!("../../../tightship/launcher.cmd");
     if let Some(cmd) = launcher(neutral_cmd, "launcher-env.cmd", Shell::Cmd)? {
         files.push((staging.join("bin/tightship.cmd"), cmd.into_bytes()));
+    }
+    if let Some(clean) = &harness.clean {
+        let mut data = serde_json::to_value(clean).map_err(io::Error::other)?;
+        if let Some(paths) = data
+            .get_mut("paths")
+            .and_then(serde_json::Value::as_array_mut)
+        {
+            paths.push(serde_json::json!({ "path": "{appdata}/ponytail/" }));
+        }
+        let text = serde_json::to_string_pretty(&data).map_err(io::Error::other)? + "\n";
+        files.push((staging.join("clean.json"), text.into_bytes()));
     }
     let plugin = folder.join("plugin");
     if plugin.is_dir() {

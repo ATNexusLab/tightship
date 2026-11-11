@@ -75,7 +75,6 @@ Then, by hand:
   the lines the pre-plugin install added.
 - The pre-plugin setup kept a file you already had, such as your own `README.md`, as
   `<name>.bak`. Rename it back.
-- Keep `.i-have-adhd-always`, the i-have-adhd companion's switch.
 
 Any other skill, command, or hook in `~/.claude` is yours, and stays.
 

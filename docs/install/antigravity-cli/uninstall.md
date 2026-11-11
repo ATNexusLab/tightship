@@ -30,14 +30,4 @@ agy plugin uninstall tightship
 Remove-Item -Recurse -Force "$HOME\.gemini\config\plugin_data\tightship"
 ```
 
-## 3. Optionally remove companions
-
-If you no longer use the companions with other plugins:
-
-```sh
-agy plugin uninstall ponytail
-agy plugin uninstall i-have-adhd
-rm -rf ~/.gemini/config/skills/humanizer
-```
-
 Your vault is never touched.

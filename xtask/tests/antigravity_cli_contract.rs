@@ -65,7 +65,9 @@ fn the_hooks_name_the_launcher_relative_to_the_plugin_folder_without_quotes() {
                     "SessionStart": [
                         command("hook contract-part part-1.md"),
                         command("hook contract-part memory.md"),
+                        command("hook map"),
                         command("hook start"),
+                        command("hook clean"),
                         command("hook status-line"),
                         command("hook update"),
                     ],

@@ -38,11 +38,6 @@ sozinho ganha o mesmo rigor que um time exigiria.
 | Status line | Opcional. Gravada nas suas configurações só enquanto você a deixa ligada |
 | Atualização automática | Ligada, a menos que você a desligue. Cada release nova se instala sozinha, e a sessão seguinte avisa |
 
-Três plugins companheiros são instalados junto. O [ponytail](https://github.com/DietrichGebert/ponytail)
-mantém o código no mais simples que funciona. O [i-have-adhd](https://github.com/ayghri/i-have-adhd)
-molda as respostas para você agir sobre elas. O [humanizer](https://github.com/blader/humanizer) evita que
-a prosa pareça gerada.
-
 ## Como uma mudança anda
 
 ```text
@@ -118,7 +113,7 @@ O guia de instalação tem versão em português. O resto da documentação est�
 | Onde | O quê |
 | --- | --- |
 | [Guia de instalação (Claude Code)](docs/install/claude-code/README.pt-BR.md) | Instalação, opções, atualizações, desinstalação, migração |
-| [Guia de instalação (Cursor)](docs/install/cursor/README.pt-BR.md) | Instalação, companheiros, opções, atualizações, desinstalação |
+| [Guia de instalação (Cursor)](docs/install/cursor/README.pt-BR.md) | Instalação, opções, atualizações, desinstalação |
 | [Guia de instalação (Antigravity CLI)](docs/install/antigravity-cli/README.pt-BR.md) | Instalação, opções, atualizações, desinstalação, migração |
 | [Requisitos](docs/requirements/README.md) | A SRS versionada: cada requisito e seus critérios de aceite |
 | [Arquitetura](docs/architecture/README.md) | O mapa do sistema, nas seções do arc42 com diagramas C4 |

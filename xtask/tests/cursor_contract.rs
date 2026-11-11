@@ -118,6 +118,8 @@ fn cursor_contract_hooks_call_contract_part_on_session_start_and_every_prompt() 
         serde_json::json!([
             { "command": part },
             { "command": memory_part },
+            { "command": format!("{binary} hook map") },
+            { "command": format!("{binary} hook clean") },
             { "command": memory_start },
             { "command": update }
         ])

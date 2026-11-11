@@ -19,7 +19,7 @@ echo '{"auto_update":"false"}' | claude plugin configure tightship@tightship --v
 
 ## Using the installer
 
-Rerunning the installer updates tightship and its three companions, and keeps the options you chose before:
+Rerunning the installer updates tightship and keeps the options you chose before:
 
 ```sh
 curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | \

@@ -184,3 +184,61 @@ step of the workflow in the skill or command of that step.
 - **FR-CTR-07.1** — Given a rule that applies to one step of the workflow, when the contract and the
   shipped pieces are searched for it, then it is in the skill or command of that step and not in the
   contract.
+
+<a id="fr-ctr-08"></a>
+
+## FR-CTR-08 — The contract carries the code and reply rules
+
+> As an adopter, I want the rules for writing code and shaping a reply in the contract, so that every
+> session follows them with no other plugin installed.
+
+The system shall ship in the contract the rules for making the smallest change that fully works and for
+the shape of the agent's replies.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The companions carried these rules, and the contract left them to them. With the companions gone ([BR-05](../business-rules.md#br-05)), the rules still apply to every task, so they belong in the contract ([FR-CTR-07](#fr-ctr-07)). |
+| Source | Maintainer, change request [#149](https://github.com/ATNexusLab/tightship/issues/149); the [spec of epic #140](../../specs/own-the-companions/own-the-companions.md) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M3 |
+| Since | v4.0.0 |
+
+**Acceptance criteria**
+
+- **FR-CTR-08.1** — Given the shipped contract, when its rules on code are read, then they require the
+  smallest change that fully works, a bug fixed at its root, and one small test for new non-trivial logic.
+- **FR-CTR-08.2** — Given the shipped contract, when its rules on replies are read, then they require a
+  reply to open with the answer or the next action, long work to say where it stands, and a reply that
+  ends work to name what was skipped or not checked.
+- **FR-CTR-08.3** — Given the contract rendered with every option on, when it is measured and read, then it
+  stays within [NFR-PERF-03](../non-functional/performance.md#nfr-perf-03) and names no other plugin.
+
+<a id="fr-ctr-09"></a>
+
+## FR-CTR-09 — A codebase map at session start
+
+> As an adopter, I want the agent to see what already exists in my repository when a session starts, so
+> that it reuses code instead of writing it again.
+
+The system shall place in the agent's context, at session start and while the contract is on, a map of the
+session's folder that names the top-level declarations of each source folder.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | A companion printed this map, and the contract's rule to reuse what exists works only when the agent knows what exists. |
+| Source | Maintainer, change request [#149](https://github.com/ATNexusLab/tightship/issues/149); the [spec of epic #140](../../specs/own-the-companions/own-the-companions.md) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M3 |
+| Since | v4.0.0 |
+
+**Acceptance criteria**
+
+- **FR-CTR-09.1** — Given a repository with source files and the contract on, when a session starts, then
+  the agent's context holds one line per source folder with its top-level names, and no test, generated,
+  or vendored file appears in it.
+- **FR-CTR-09.2** — Given a repository whose map exceeds the size its spec sets, when a session starts,
+  then the map ends with the number of folders it left out.
+- **FR-CTR-09.3** — Given the contract off, or a folder where no source file declares a name, when a
+  session starts, then no map reaches the agent's context.

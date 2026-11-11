@@ -48,6 +48,8 @@ impl Sandbox {
             .env_remove("TIGHTSHIP_MANIFEST")
             .env_remove("TIGHTSHIP_HARNESS")
             .env_remove("TIGHTSHIP_AUTO_UPDATE")
+            .env_remove("TIGHTSHIP_CLEAN")
+            .env_remove("TIGHTSHIP_CONFIG")
             .env("GIT_CONFIG_GLOBAL", self.write(".gitconfig", ""))
             .env("GIT_CONFIG_NOSYSTEM", "1");
         command

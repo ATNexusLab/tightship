@@ -15,6 +15,8 @@ The one program the plugin ships, with a subcommand per function. Epic #5 builds
 | `tightship hook contract-part <file>` | The plugin's hooks in Cursor (M2, #58) and Antigravity CLI (#89) | Prints one packed contract part from `${TIGHTSHIP_ROOT}/contract/` unless its option is `false` |
 | `tightship hook update` | The session-start hook in Cursor and Antigravity CLI | Prints the pending update notice once, and starts `tightship update` as a detached process when the last check is more than a day old |
 | `tightship update` | That hook, or the adopter | Downloads the latest release when it is newer, checks its sha256, and swaps the plugin's files in place, rolling back on failure |
+| `tightship hook map` | The session-start hook, unless the contract option is off | Prints the codebase map of the session's folder: one line per folder with its top-level names, at most 2,000 characters (#140) |
+| `tightship hook clean` | The session-start hook at `startup`, and the installer | Removes every leftover `clean.json` lists that still exists, and every older version folder of the plugin no session uses (#140) |
 | `tightship hook marketplace-auto-update` | Claude Code's hook, at `startup` | Writes `autoUpdate` on the plugin's entry in `extraKnownMarketplaces`, following the `auto_update` option |
 | `tightship options set\|list\|reset\|disabled` | The adopter | Edits `${TIGHTSHIP_DATA}/options.json`; `disabled` exits 0 when the option is `false`, and rejects `vault_folder`, which is no on/off option (#99) |
 

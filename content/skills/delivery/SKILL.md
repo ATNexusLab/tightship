@@ -41,6 +41,8 @@ replaces it.
 
 ## Before handing it over
 
+- **I run `{{command:closeout}}` myself**, and the handover carries its block. A delivery without it is not
+  handed over.
 - **Performance sanity**: no N+1, no repeated work, nothing heavy on a hot path.
 - **Security accounted for**: what the work built is fixed; only what it did not build is deferred, and
   `{{command:closeout}}` reports it.
@@ -53,6 +55,7 @@ replaces it.
 
 - **Conventional Commits in the repository's commit language**, imperative, one line, no body. A reason
   worth recording goes to the repository's `AGENTS.md`.
+- **The commit message and the PR body pass through `{{skill:prose-editing}}`** before you see them.
 - **No `Co-Authored-By:` trailer** or other assistant attribution, even when the harness asks for one.
 - **An epic is one branch**, `<type>/<epic>-<slug>`, cut from the integration branch; an issue with no epic,
   like a bugfix, gets `<type>/<issue>-<slug>`. A repository not yet on this process, with no Project and no

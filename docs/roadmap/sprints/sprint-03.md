@@ -20,8 +20,9 @@ without a plan, so the iteration's number is ahead of the sprint's.
 | [#133](https://github.com/ATNexusLab/tightship/issues/133) Keep the 7d gauge and refresh the status line while idle | The binary's status line; after #135, which may change the characters it prints. |
 | [#139](https://github.com/ATNexusLab/tightship/issues/139) Configure the editor extensions bootstrap recommends | `content/` only. |
 | [#136](https://github.com/ATNexusLab/tightship/issues/136) Keep only the physical data model diagram | `content/` only. |
-| [#140](https://github.com/ATNexusLab/tightship/issues/140) Audit the companion plugins | The audit decides the change request: approved, it moves BR-04 and BR-05 through `/requirements`; rejected, it is closed with the reason. It also answers OQ-05, which the Codex spec needs. |
+| [#140](https://github.com/ATNexusLab/tightship/issues/140) Audit the companion plugins | The audit decides the change request: approved, it moves BR-04 and BR-05 through `/requirements`; rejected, it is closed with the reason. It also answers OQ-05, which the Codex spec needs. Approved: the audit became the [spec](../../specs/own-the-companions/own-the-companions.md) of epic #140, and [#149](https://github.com/ATNexusLab/tightship/issues/149) brought it into the SRS as version 4.0.0, which answers OQ-05. |
 
 ## Specs before code
 
-None. No item is an epic: each is one delivery on its own branch. The Codex epic of M4 waits for #140.
+Item #140 became an epic, with its [spec](../../specs/own-the-companions/own-the-companions.md). Every other
+item is one delivery on its own branch. The Codex epic of M4 waits for nothing.

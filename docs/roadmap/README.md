@@ -49,13 +49,15 @@ Released in [v1.1.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.1.0
 | --- | --- | --- |
 | Antigravity CLI plugin | [#59](https://github.com/ATNexusLab/tightship/issues/59) | NFR-FLEX-03, FR-INS-09 |
 | Curate the vault and the contract | [#120](https://github.com/ATNexusLab/tightship/issues/120) | FR-CTR-06, FR-CTR-07, FR-SKL-04, FR-SKL-05, FR-MEM-12, FR-MEM-13, NFR-PERF-03 |
+| Own the companions | [#140](https://github.com/ATNexusLab/tightship/issues/140) | FR-CTR-08, FR-CTR-09, FR-SKL-06, FR-INS-11, BR-05 |
 
 By [BR-01](../requirements/business-rules.md#br-01), it is built alongside M2 and never released before
 it.
 
 Epic #120 and the auto-update of FR-INS-10 shipped after it, in
 [v1.2.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.2.0), for every harness of M1 to M3.
-FR-INS-10 has no epic: [#128](https://github.com/ATNexusLab/tightship/pull/128) delivered it.
+FR-INS-10 has no epic: [#128](https://github.com/ATNexusLab/tightship/pull/128) delivered it. Epic #140
+ships in the release after v1.2.0, for the same harnesses.
 
 ## M4 — Codex
 
@@ -66,9 +68,9 @@ GitHub Milestone: [M4 — Codex](https://github.com/ATNexusLab/tightship/milesto
 | --- | --- | --- |
 | Codex plugin | [#142](https://github.com/ATNexusLab/tightship/issues/142) | NFR-FLEX-04 |
 
-One epic carries the whole harness, as in M2 and M3. Its spec settles OQ-04, OQ-05, OQ-06, and OQ-08, and
-waits for the audit of the companion plugins ([#140](https://github.com/ATNexusLab/tightship/issues/140)),
-which answers OQ-05.
+One epic carries the whole harness, as in M2 and M3. Its spec settles OQ-04, OQ-06, and OQ-08. The
+[spec of epic #140](../specs/own-the-companions/own-the-companions.md) answered OQ-05: no harness installs
+a companion plugin, Codex included.
 
 ## Requirement coverage
 
@@ -83,11 +85,14 @@ Every approved requirement of M1 to M4 maps to exactly one epic.
 | FR-CTR-05 | #8 | M1 |
 | FR-CTR-06 | #120 | M3 |
 | FR-CTR-07 | #120 | M3 |
+| FR-CTR-08 | #140 | M3 |
+| FR-CTR-09 | #140 | M3 |
 | FR-SKL-01 | #2 | M1 |
 | FR-SKL-02 | #2 | M1 |
 | FR-SKL-03 | #1 | M1 |
 | FR-SKL-04 | #120 | M3 |
 | FR-SKL-05 | #120 | M3 |
+| FR-SKL-06 | #140 | M3 |
 | FR-VER-01 | #2 | M1 |
 | FR-VER-02 | #2 | M1 |
 | FR-MEM-01 | #5 | M1 |
@@ -107,7 +112,7 @@ Every approved requirement of M1 to M4 maps to exactly one epic.
 | FR-STL-02 | #7 | M1 |
 | FR-STL-03 | #7 | M1 |
 | FR-INS-01 | #2 | M1 |
-| FR-INS-02 | #2 | M1 |
+| FR-INS-02 | #2, retired in 4.0.0 | M1 |
 | FR-INS-03 | #3 | M1 |
 | FR-INS-04 | #3 | M1 |
 | FR-INS-05 | #3 | M1 |
@@ -116,6 +121,7 @@ Every approved requirement of M1 to M4 maps to exactly one epic.
 | FR-INS-08 | #8 | M1 |
 | FR-INS-09 | #59 | M3 |
 | FR-INS-10 | none: delivered by #128 | M3 |
+| FR-INS-11 | #140 | M3 |
 | NFR-FLEX-01 | #8 | M1 |
 | NFR-FLEX-02 | #58 | M2 |
 | NFR-FLEX-03 | #59 | M3 |
@@ -134,8 +140,8 @@ Every approved requirement of M1 to M4 maps to exactly one epic.
 | BR-01 | #8 | M1 |
 | BR-02 | #1 | M1 |
 | BR-03 | #1 | M1 |
-| BR-04 | #2 | M1 |
-| BR-05 | #4 | M1 |
+| BR-04 | #2, retired in 4.0.0 | M1 |
+| BR-05 | #4, and #140 since 4.0.0 | M1, M3 |
 
 ## Sprints
 

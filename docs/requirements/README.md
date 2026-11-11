@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 3.0.1 · **Date:** 2026-11-08 · [Changelog](CHANGELOG.md)
+**Version:** 4.0.0 · **Date:** 2026-11-10 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -26,7 +26,7 @@ In scope:
 - The contract, the skills, the commands, and the verifier.
 - The memory layer and the vault template, as an option.
 - The status line, as an option.
-- Installation with the companion plugins, the choice of options, update, uninstall, and the guided
+- Installation, the choice of options, update, uninstall, and the guided
   migration from the pre-plugin install.
 
 Out of scope:
@@ -59,11 +59,14 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-CTR-05](functional/contract.md#fr-ctr-05) | Behavior without the contract is documented | Must | approved | M1 |
 | [FR-CTR-06](functional/contract.md#fr-ctr-06) | Hard lines and conventions | Must | approved | M3 |
 | [FR-CTR-07](functional/contract.md#fr-ctr-07) | The contract holds only what every task needs | Must | approved | M3 |
+| [FR-CTR-08](functional/contract.md#fr-ctr-08) | The contract carries the code and reply rules | Must | approved | M3 |
+| [FR-CTR-09](functional/contract.md#fr-ctr-09) | A codebase map at session start | Must | approved | M3 |
 | [FR-SKL-01](functional/skills.md#fr-skl-01) | Skills available | Must | approved | M1 |
 | [FR-SKL-02](functional/skills.md#fr-skl-02) | Commands invocable | Must | approved | M1 |
 | [FR-SKL-03](functional/skills.md#fr-skl-03) | References resolve | Must | approved | M1 |
 | [FR-SKL-04](functional/skills.md#fr-skl-04) | The bootstrap writes a lean repository contract | Must | approved | M3 |
 | [FR-SKL-05](functional/skills.md#fr-skl-05) | The bootstrap writes project skills | Must | approved | M3 |
+| [FR-SKL-06](functional/skills.md#fr-skl-06) | A skill edits prose for people | Must | approved | M3 |
 | [FR-VER-01](functional/verifier.md#fr-ver-01) | Verifier can be dispatched | Must | approved | M1 |
 | [FR-VER-02](functional/verifier.md#fr-ver-02) | Verifier changes only a private copy | Must | approved | M1 |
 | [FR-MEM-01](functional/memory.md#fr-mem-01) | Memory context at session start | Must | approved | M1 |
@@ -83,7 +86,7 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-STL-02](functional/status-line.md#fr-stl-02) | The status line option is the consent | Must | approved | M1 |
 | [FR-STL-03](functional/status-line.md#fr-stl-03) | Turning it off restores the previous setting | Should | approved | M1 |
 | [FR-INS-01](functional/install.md#fr-ins-01) | Install through the harness's plugin mechanism | Must | approved | M1 |
-| [FR-INS-02](functional/install.md#fr-ins-02) | Companions are installed with the plugin | Must | approved | M1 |
+| [FR-INS-02](functional/install.md#fr-ins-02) | Companions are installed with the plugin | Must | retired | M1 |
 | [FR-INS-03](functional/install.md#fr-ins-03) | Choose the options | Must | approved | M1 |
 | [FR-INS-04](functional/install.md#fr-ins-04) | Change a choice after installation | Should | approved | M1 |
 | [FR-INS-05](functional/install.md#fr-ins-05) | Update keeps the choices | Must | approved | M1 |
@@ -92,6 +95,7 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-INS-08](functional/install.md#fr-ins-08) | Install guide per harness | Must | approved | M1 |
 | [FR-INS-09](functional/install.md#fr-ins-09) | One installer for every harness | Must | approved | M3 |
 | [FR-INS-10](functional/install.md#fr-ins-10) | The plugin keeps itself updated | Must | approved | M3 |
+| [FR-INS-11](functional/install.md#fr-ins-11) | What the replaced plugins left is removed | Must | approved | M3 |
 | [NFR-FLEX-01](non-functional/flexibility.md#nfr-flex-01) | Claude Code is supported | Must | approved | M1 |
 | [NFR-FLEX-02](non-functional/flexibility.md#nfr-flex-02) | Cursor is supported, editor and command line | Must | approved | M2 |
 | [NFR-FLEX-03](non-functional/flexibility.md#nfr-flex-03) | Antigravity CLI is supported | Must | approved | M3 |
@@ -110,5 +114,5 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [BR-01](business-rules.md#br-01) | Harness order and milestones | Must | approved | M1 |
 | [BR-02](business-rules.md#br-02) | One place to edit | Must | approved | M1 |
 | [BR-03](business-rules.md#br-03) | English content, with Portuguese translations | Must | approved | M1 |
-| [BR-04](business-rules.md#br-04) | The companion plugins are required | Must | approved | M1 |
-| [BR-05](business-rules.md#br-05) | Companion plugins own their rules | Must | approved | M1 |
+| [BR-04](business-rules.md#br-04) | The companion plugins are required | Must | retired | M1 |
+| [BR-05](business-rules.md#br-05) | The workflow depends on no third-party plugin | Must | approved | M1 |

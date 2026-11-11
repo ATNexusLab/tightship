@@ -210,7 +210,7 @@ fn expand_tilde(path: &Path) -> PathBuf {
     path.to_path_buf()
 }
 
-fn home_dir() -> Option<PathBuf> {
+pub(crate) fn home_dir() -> Option<PathBuf> {
     #[cfg(windows)]
     {
         if let Some(profile) = env::var_os("USERPROFILE").filter(|value| !value.is_empty()) {

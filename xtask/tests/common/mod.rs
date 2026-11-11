@@ -88,23 +88,32 @@ impl Repository {
 }
 
 pub fn harness_files(harness: &str) -> Vec<(String, String)> {
+    files_under(&format!("harnesses/{harness}"))
+}
+
+#[allow(dead_code)]
+pub fn content_files() -> Vec<(String, String)> {
+    files_under("content")
+}
+
+fn files_under(relative: &str) -> Vec<(String, String)> {
     fn walk(folder: &Path, prefix: &str, files: &mut Vec<(String, String)>) {
-        for entry in fs::read_dir(folder).expect("a harness folder") {
+        for entry in fs::read_dir(folder).expect("a repository folder") {
             let entry = entry.expect("an entry");
             let relative = format!("{prefix}/{}", entry.file_name().to_string_lossy());
             if entry.file_type().expect("a file type").is_dir() {
                 walk(&entry.path(), &relative, files);
             } else {
-                let text = fs::read_to_string(entry.path()).expect("a harness file");
+                let text = fs::read_to_string(entry.path()).expect("a repository file");
                 files.push((relative, text));
             }
         }
     }
     let folder = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../harnesses")
-        .join(harness);
+        .join("..")
+        .join(relative);
     let mut files = Vec::new();
-    walk(&folder, &format!("harnesses/{harness}"), &mut files);
+    walk(&folder, relative, &mut files);
     files
 }
 

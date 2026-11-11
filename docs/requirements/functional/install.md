@@ -35,24 +35,26 @@ The system shall be installable from this repository with the harness's own plug
 > As an adopter, I want the companion plugins installed with the workflow, so that I never run it without
 > them.
 
-The system shall install ponytail, i-have-adhd, and humanizer together with the plugin in every harness
-whose plugin mechanism allows it.
+The system shall install the companion plugins together with the plugin in every harness whose plugin
+mechanism allows it.
 
 | Attribute | Value |
 | --- | --- |
 | Rationale | [BR-04](../business-rules.md#br-04) makes them required. |
-| Source | Maintainer, elicitation 2026-10-14 |
+| Source | Maintainer, elicitation 2026-10-14; retired by [#149](https://github.com/ATNexusLab/tightship/issues/149) |
 | Priority | Must |
-| Status | approved |
+| Status | retired |
 | Milestone | M1 |
-| Since | v1.0.0 |
+| Since | v1.0.0, retired in v4.0.0 |
+
+Retired in version 4.0.0, with [BR-04](../business-rules.md#br-04): the plugin installs no other plugin
+([BR-05](../business-rules.md#br-05)) and removes the companions it installed before
+([FR-INS-11](#fr-ins-11)).
 
 **Acceptance criteria**
 
-- **FR-INS-02.1** — Given a harness whose plugin mechanism installs dependencies, when the adopter
-  installs the plugin, then the three companions are installed too.
-- **FR-INS-02.2** — Given a harness whose plugin mechanism does not, when the adopter follows the install
-  guide, then the guide installs the three companions before the plugin.
+- **FR-INS-02.1** — Retired in version 4.0.0, with FR-INS-02.
+- **FR-INS-02.2** — Retired in version 4.0.0, with FR-INS-02.
 
 <a id="fr-ins-03"></a>
 
@@ -182,22 +184,22 @@ merged, keeping the personal settings and the vault.
 > As an adopter, I want an install guide for my harness, so that I install, configure, update, and remove
 > the plugin without asking anyone.
 
-The system shall provide, for each supported harness, a guide covering installation, the companions, the
-options, update, uninstall, and migration.
+The system shall provide, for each supported harness, a guide covering installation, the options, update,
+uninstall, and migration.
 
 | Attribute | Value |
 | --- | --- |
 | Rationale | Each harness's plugin commands differ. |
-| Source | Analysis 2026-10-14, approved by the maintainer |
+| Source | Analysis 2026-10-14, approved by the maintainer; changed by [#149](https://github.com/ATNexusLab/tightship/issues/149) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
-| Since | v1.0.0 |
+| Since | v1.0.0, changed in v4.0.0 |
 
 **Acceptance criteria**
 
 - **FR-INS-08.1** — Given a supported harness, when the adopter opens its guide, then it holds a section
-  for each of the six subjects.
+  for each of the five subjects.
 
 <a id="fr-ins-09"></a>
 
@@ -261,3 +263,40 @@ adopter, while the `auto_update` option is on, and tell the adopter in the next 
 - **FR-INS-10.4** — Given the downloaded release does not match the checksum its release published, when the
   update runs, then nothing changes in the plugin, and the next session tells the adopter the update was
   refused.
+
+<a id="fr-ins-11"></a>
+
+## FR-INS-11 — What the replaced plugins left is removed
+
+> As an adopter, I want the plugins the workflow replaced removed with everything they left, so that no
+> rule of theirs reaches my sessions beside the workflow's.
+
+The system shall remove, when the installer installs the plugin and when a session starts, every plugin,
+file, and setting the companion plugins left on the adopter's machine, and every older version of the
+plugin that no session uses.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Version 1.2.0 installed the companions with the plugin, and [BR-05](../business-rules.md#br-05) now rules them out. Left in place, their rules load beside the contract, and the harness keeps every older version of the plugin on the disk. |
+| Source | Maintainer, change request [#149](https://github.com/ATNexusLab/tightship/issues/149); the [spec of epic #140](../../specs/own-the-companions/own-the-companions.md) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M3 |
+| Since | v4.0.0 |
+
+**Acceptance criteria**
+
+- **FR-INS-11.1** — Given a harness where the plugin installed the companions, when the update reaches the
+  plugin and a session starts, then the companions, their catalogs, caches, data folders, files, and
+  settings entries are gone, and the session tells the adopter once which plugins it removed.
+- **FR-INS-11.2** — Given a harness with companion leftovers, when the adopter runs the installer, then the
+  leftovers are gone when it finishes.
+- **FR-INS-11.3** — Given a machine with no leftover, when a session starts, then the session says nothing
+  about them.
+- **FR-INS-11.4** — Given a leftover that cannot be removed, when a session starts, then the session names
+  it with the reason, every other leftover is removed, and the next session tries it again.
+- **FR-INS-11.5** — Given a status line in the settings, when the leftovers are removed, then the
+  adopter's own status line stays, and the companions' status line does not come back when the adopter
+  later turns the plugin's status line off.
+- **FR-INS-11.6** — Given an older version of the plugin on the disk, when a session starts, then that
+  version is removed unless a session uses it, and the running version is untouched.

@@ -1,6 +1,8 @@
 pub mod checkpoint;
+pub mod clean;
 pub mod contract_part;
 pub mod export;
+pub mod map;
 pub mod marketplace_auto_update;
 pub mod start;
 pub mod status_line;

@@ -24,7 +24,6 @@ function Invoke-ClaudeCodeTightship([string]$root) {
 }
 
 function Install-ClaudeCode {
-    {{install:companions}}
     if ($FromDir) {
         try { & claude plugin marketplace add $FromDir *> $null } catch {}
     } else {
@@ -72,6 +71,7 @@ function Install-ClaudeCode {
     $env:TIGHTSHIP_SETTINGS = Join-Path $claudeConfig "settings.json"
     $env:TIGHTSHIP_DATA = $claudeData
     $env:TIGHTSHIP_ROOT = $claudeRoot
+    Invoke-Step "Removing the plugins tightship replaces" { Invoke-ClaudeCodeTightship $claudeRoot hook clean }
     Invoke-Step "Applying the status line option" { Invoke-ClaudeCodeTightship $claudeRoot hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path -LiteralPath $expandedVault -ErrorAction Ignore)) {

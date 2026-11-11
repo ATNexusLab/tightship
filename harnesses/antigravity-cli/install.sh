@@ -17,15 +17,7 @@ read_options_antigravity_cli() {
   existing_vault_folder=$(grep -E '^[[:space:]]*vault_folder[[:space:]]*=' "$_options" | sed -E 's/^[[:space:]]*vault_folder[[:space:]]*=[[:space:]]*//' | sed -E -e 's/^[[:space:]]*"((\\.|[^"\\])*)"[[:space:]]*$/\1/' -e 's/\\(.)/\1/g' || true)
 }
 
-install_skill() {
-  skill_dir="{{path:skills}}/$1"
-  mkdir -p "$skill_dir"
-  step "Downloading the $1 skill" download_file "https://raw.githubusercontent.com/$2/main/SKILL.md" "$skill_dir/SKILL.md"
-}
-
 install_antigravity_cli() {
-  {{install:companions}}
-
   source_dir=""
   if [ -n "$FROM_DIR" ]; then
     source_dir="$FROM_DIR"
@@ -67,6 +59,7 @@ install_antigravity_cli() {
   } > "$ANTIGRAVITY_CLI_DATA/options.toml"
 
   export TIGHTSHIP_DATA="$ANTIGRAVITY_CLI_DATA"
+  step "Removing the plugins tightship replaces" "$plugin_target/bin/tightship" hook clean
   step "Applying the status line option" "$plugin_target/bin/tightship" hook status-line
 
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ] && [ ! -d "$expanded_vault" ]; then

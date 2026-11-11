@@ -41,7 +41,7 @@ pub fn render(
         let file = staging.join("contract").join(&part.file);
         written.push((file, part.text.clone().into_bytes()));
     }
-    if let Some(hooks) = hooks(parts, content.options.as_ref())? {
+    if let Some(hooks) = hooks(parts, content.options.as_ref(), harness.clean.is_some())? {
         written.push((staging.join("hooks/hooks.json"), hooks.into_bytes()));
     }
     written.extend(render::harness_files(root, &staging, harness)?);
@@ -50,7 +50,7 @@ pub fn render(
     Ok((staging, written.len()))
 }
 
-fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<String>> {
+fn hooks(parts: &[Part], options: Option<&OptionsFile>, clean: bool) -> io::Result<Option<String>> {
     let declares =
         |name| options.is_some_and(|file| file.declared.iter().any(|option| option.name == name));
     let binary = "${CURSOR_PLUGIN_ROOT}/bin/tightship";
@@ -59,6 +59,12 @@ fn hooks(parts: &[Part], options: Option<&OptionsFile>) -> io::Result<Option<Str
         .map(|part| json!({ "command": format!("{binary} hook contract-part {}", part.file) }))
         .collect();
     let before_submit = session_start.clone();
+    if !parts.is_empty() && declares("contract") {
+        session_start.push(json!({ "command": format!("{binary} hook map") }));
+    }
+    if clean {
+        session_start.push(json!({ "command": format!("{binary} hook clean") }));
+    }
     if declares("status_line") {
         session_start.push(json!({ "command": format!("{binary} hook status-line") }));
     }

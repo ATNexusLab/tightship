@@ -52,35 +52,7 @@ function Write-CursorOptions {
     [System.IO.File]::WriteAllText((Join-Path $cursorData "options.json"), $json, [System.Text.UTF8Encoding]::new($false))
 }
 
-function Install-CursorCompanion([string]$name, [string]$repository) {
-    $work = Join-Path $workDir "companion-$name"
-    New-Item -ItemType Directory -Force -Path $work | Out-Null
-    $zipDest = Join-Path $work "$name.zip"
-    $url = "https://github.com/$repository/archive/refs/heads/main.zip"
-    Invoke-Step "Installing the $name companion" {
-        try {
-            Invoke-RestMethod -Uri $url -OutFile $zipDest
-        } catch {
-            $url = "https://github.com/$repository/archive/refs/heads/master.zip"
-            Invoke-RestMethod -Uri $url -OutFile $zipDest
-        }
-        $extracted = Join-Path $work "extracted"
-        Expand-Archive -Path $zipDest -DestinationPath $extracted -Force
-        $root = Get-ChildItem -Path $extracted -Directory |
-            Where-Object { $_.Name -notlike '__MACOSX*' } |
-            Select-Object -First 1
-        $dest = Join-Path "{{path:plugins}}" $name
-        if (Test-Path $dest) {
-            Remove-Item -Recurse -Force $dest
-        }
-        New-Item -ItemType Directory -Force -Path $dest | Out-Null
-        Copy-Item -Path (Join-Path $root.FullName "*") -Destination $dest -Recurse -Force
-    }
-}
-
 function Install-Cursor {
-    {{install:companions}}
-
     $sourceDir = $null
     $tempZipFolder = $null
     if ($FromDir) {
@@ -121,6 +93,7 @@ function Install-Cursor {
     $env:TIGHTSHIP_DATA = $cursorData
     $env:TIGHTSHIP_SETTINGS = $cursorSettings
     $env:TIGHTSHIP_ROOT = $cursorPlugin
+    Invoke-Step "Removing the plugins tightship replaces" { Invoke-CursorTightship hook clean }
     Invoke-Step "Applying the status line option" { Invoke-CursorTightship hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path -LiteralPath $expandedVault -ErrorAction Ignore)) {

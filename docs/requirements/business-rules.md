@@ -65,35 +65,43 @@ English, and the English version prevails. The root `README.md`, `CONTRIBUTING.m
 
 ## BR-04 — The companion plugins are required
 
-The workflow is used with ponytail, i-have-adhd, and humanizer installed. The plugin installs them with
-itself where the harness allows it ([FR-INS-02](functional/install.md#fr-ins-02)).
+The workflow is used with the companion plugins installed. The plugin installs them with itself where the
+harness allows it ([FR-INS-02](functional/install.md#fr-ins-02)).
 
 | Attribute | Value |
 | --- | --- |
 | Rationale | The contract leaves simplicity, response shape, and prose cleanup to them, so without them those rules are missing. |
-| Source | Maintainer, elicitation 2026-10-14 |
+| Source | Maintainer, elicitation 2026-10-14; retired by [#149](https://github.com/ATNexusLab/tightship/issues/149) |
 | Priority | Must |
-| Status | approved |
+| Status | retired |
 | Milestone | M1 |
-| Since | v1.0.0 |
+| Since | v1.0.0, retired in v4.0.0 |
+
+Retired in version 4.0.0: the plugin carries what it used from the companions, in the contract
+([FR-CTR-08](functional/contract.md#fr-ctr-08)), the codebase map
+([FR-CTR-09](functional/contract.md#fr-ctr-09)), and the prose skill
+([FR-SKL-06](functional/skills.md#fr-skl-06)), and removes what the companions left
+([FR-INS-11](functional/install.md#fr-ins-11)). [BR-05](#br-05) keeps it from depending on them again.
 
 <a id="br-05"></a>
 
-## BR-05 — Companion plugins own their rules
+## BR-05 — The workflow depends on no third-party plugin
 
-The workflow states no rule and ships no function that ponytail, i-have-adhd, or humanizer provides at the
-version the plugin installs.
+The workflow installs no plugin but its own, and no manifest, catalog, harness definition, or installer of
+the workflow names another plugin, except in the list of the plugins the workflow removes.
 
 | Attribute | Value |
 | --- | --- |
-| Rationale | A rule kept in two products diverges. A companion's rules change between versions, so the comparison holds only against the version the plugin installs. |
-| Source | Maintainer, elicitation 2026-10-14; change request [#30](https://github.com/ATNexusLab/tightship/issues/30) |
+| Rationale | A third-party plugin changes its rules at any release, at a version the workflow cannot pin in every harness, and a rule the contract leaves to it disappears with it. The audit of epic [#140](https://github.com/ATNexusLab/tightship/issues/140) found what the workflow used from the companions small enough to carry itself. |
+| Source | Maintainer, elicitation 2026-10-14; change requests [#30](https://github.com/ATNexusLab/tightship/issues/30) and [#149](https://github.com/ATNexusLab/tightship/issues/149) |
 | Priority | Must |
 | Status | approved |
 | Milestone | M1 |
-| Since | v1.0.0, changed in v1.5.0 |
+| Since | v1.0.0, changed in v1.5.0 and v4.0.0 |
 
 **Acceptance criteria**
 
-- **BR-05.1** — Given the shipped contract and pieces, when each rule is compared with the companions at the
-  versions the plugin's manifest declares, then no rule restates one a companion states.
+- **BR-05.1** — Given a harness definition that names another plugin outside the list of the plugins the
+  workflow removes, when the plugins are built, then the build fails and names that harness.
+- **BR-05.2** — Given a machine with no plugin installed, when the adopter installs the workflow in each
+  supported harness, then no plugin, catalog, or skill other than the workflow's is installed.

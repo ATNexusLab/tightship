@@ -42,9 +42,6 @@ No Windows usando o PowerShell:
   -Harness antigravity-cli -Yes
 ```
 
-O instalador também reinstala os companheiros a partir dos repositórios deles, e é assim que eles se
-atualizam.
-
 ## Atualização manual
 
 Baixe o `tightship-antigravity-cli.zip` do release mais recente, extraia e reinstale:
@@ -63,17 +60,3 @@ No Git Bash do Windows, troque a última linha pelos hooks do Windows:
 ```sh
 mv -f ~/.gemini/config/plugins/tightship/hooks.windows.json ~/.gemini/config/plugins/tightship/hooks.json
 ```
-
-## Atualização dos companheiros
-
-O Antigravity CLI não tem comando de atualização para um plugin de fora do seu catálogo oficial, então
-reinstale cada companheiro a partir do repositório dele:
-
-```sh
-agy plugin install https://github.com/DietrichGebert/ponytail
-agy plugin install https://github.com/ayghri/i-have-adhd
-curl -fsSL https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md \
-  -o ~/.gemini/config/skills/humanizer/SKILL.md
-```
-
-As novas versões passam a valer na próxima sessão.

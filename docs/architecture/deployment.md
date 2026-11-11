@@ -37,30 +37,26 @@ catalog `marketplace.json`, with an `archive` source naming the Claude Code zip'
 An adopter can install for Claude Code, Antigravity CLI, or both in one command with `install.sh` (`curl -fsSL
 .../install.sh | sh`) on macOS, Linux, and Git Bash or `install.ps1` (`irm .../install.ps1 | iex`) on Windows
 PowerShell, which prompts interactively for the harnesses and the [options](concepts/options.md) (or takes CLI
-flags), installs the three companions and `tightship`, and writes the options (M3, #59).
+flags), removes what the companion plugins left (#140), installs `tightship`, and writes the options (M3, #59).
 
-**Claude Code** (M1, #2, #3, #8): the adopter (or `install.sh` / `install.ps1`) adds the catalogs of ponytail
-(`DietrichGebert/ponytail`), i-have-adhd (`ayghri/i-have-adhd`), and humanizer (`blader/humanizer`), then the
-plugin's catalog, and runs `claude plugin install tightship@tightship`. Claude Code installs the three
-companions as the plugin's dependencies. The catalog committed at the repository root,
+**Claude Code** (M1, #2, #3, #8): the adopter (or `install.sh` / `install.ps1`) adds the plugin's
+catalog and runs `claude plugin install tightship@tightship`. The catalog committed at the repository root,
 `.claude-plugin/marketplace.json`, has an `archive` source at the latest release's zip, with no `sha256`, so an
 update arrives through the `version` of the latest release's `plugin.json` and no release changes the file
 (M1, #8, #48). The adopter chooses the [options](concepts/options.md) in the dialog of `/plugin install`, or
 with `--config <name>=false` on the shell's install, and changes them later with `/plugin configure` or `claude
 plugin configure`. With `auto_update` on, the plugin's `startup` hook turns on Claude Code's auto-update for
-the catalog, and a rerun of the installer updates the plugin and its companions. Before uninstalling, the
+the catalog, and a rerun of the installer updates the plugin. Before uninstalling, the
 adopter turns `status_line` off and opens one session, which puts
 their own status line back; `claude plugin uninstall tightship@tightship --prune -y` then deletes the options,
-the plugin's data folder, and the companions it installed.
+and the plugin's data folder.
 
 **Antigravity CLI** (M3, #59): `install.sh` / `install.ps1` (or the manual commands in
-`docs/install/antigravity-cli/`) runs `agy plugin install` for `DietrichGebert/ponytail` and
-`ayghri/i-have-adhd`, installs `blader/humanizer`'s `SKILL.md` into `~/.gemini/config/skills/humanizer/`,
-extracts `tightship-antigravity-cli.zip` and runs `agy plugin install`, writes
+`docs/install/antigravity-cli/`) extracts `tightship-antigravity-cli.zip` and runs `agy plugin install`, writes
 `~/.gemini/config/plugin_data/tightship/options.toml`, and runs `tightship hook status-line`. The adopter
 changes options later by editing `options.toml` or rerunning the installer. With `auto_update` on, the plugin
 updates itself from the latest release; a rerun of the installer or `agy plugin install` also updates
-it, and the installer is what updates the companions. Before uninstalling, the adopter sets
+it. Before uninstalling, the adopter sets
 `status_line = false` in `options.toml` and runs `tightship hook status-line` (or opens one session) to
 restore their previous `statusLine`, then removes `~/.gemini/config/plugins/tightship` and
 `~/.gemini/config/plugin_data/tightship`.

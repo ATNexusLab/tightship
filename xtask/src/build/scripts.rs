@@ -1,6 +1,6 @@
 use std::io;
 
-use super::harness::{CompanionKind, Harness};
+use super::harness::Harness;
 
 #[derive(Clone, Copy)]
 pub enum Shell {
@@ -65,35 +65,7 @@ pub fn fill(text: &str, source: &str, harness: &Harness, shell: Shell) -> io::Re
 fn value(token: &str, harness: &Harness, shell: Shell) -> Option<String> {
     match token.split_once(':')? {
         ("path", name) => harness.paths.get(name).map(|relative| shell.home(relative)),
-        ("install", "companions") => companion_steps(harness, shell),
         ("install", name) => harness.install.field(name).map(str::to_owned),
         _ => None,
     }
-}
-
-fn companion_steps(harness: &Harness, shell: Shell) -> Option<String> {
-    let steps = &harness.install.companion_steps;
-    let lines = harness.companions.iter().map(|companion| {
-        let kind = match companion.kind {
-            CompanionKind::Plugin => steps.plugin.as_ref(),
-            CompanionKind::Skill => steps.skill.as_ref(),
-        }?;
-        let template = match shell {
-            Shell::Sh => &kind.sh,
-            Shell::Pwsh => &kind.ps1,
-            Shell::Cmd => return None,
-        };
-        Some(
-            template
-                .replace("{plugin}", &companion.plugin)
-                .replace(
-                    "{marketplace}",
-                    companion.marketplace.as_deref().unwrap_or_default(),
-                )
-                .replace("{repository}", &companion.repository),
-        )
-    });
-    lines
-        .collect::<Option<Vec<String>>>()
-        .map(|lines| lines.join("\n"))
 }

@@ -27,8 +27,6 @@ claude_code_root() {
 }
 
 install_claude_code() {
-  {{install:companions}}
-
   if [ -n "$FROM_DIR" ]; then
     quietly claude plugin marketplace add "$FROM_DIR"
   else
@@ -56,6 +54,7 @@ install_claude_code() {
   export TIGHTSHIP_SETTINGS="$_config/settings.json"
   export TIGHTSHIP_DATA="$_config/plugins/data/tightship-tightship"
   export TIGHTSHIP_ROOT="$_root"
+  step "Removing the plugins tightship replaces" sh "$_root/bin/tightship" hook clean
   step "Applying the status line option" sh "$_root/bin/tightship" hook status-line
 
   if [ "$INIT_VAULT" = "true" ] && [ -n "$VAULT_FOLDER" ] && [ ! -d "$expanded_vault" ]; then

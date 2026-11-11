@@ -11,13 +11,9 @@ The Claude rows use the preparation below; the Cursor row uses the Cursor prepar
 ## Prepare each system
 
 1. Check that `claude --version` is 2.1.295 or later.
-2. From `develop`, run `cargo xtask build` in the clone, add the companions' three catalogs and the build's
-   own catalog, then install:
+2. From `develop`, run `cargo xtask build` in the clone, add the build's catalog, then install:
 
    ```sh
-   claude plugin marketplace add DietrichGebert/ponytail
-   claude plugin marketplace add ayghri/i-have-adhd
-   claude plugin marketplace add blader/humanizer
    claude plugin marketplace add ./dist/claude-code
    claude plugin install tightship@tightship
    ```
@@ -34,10 +30,9 @@ On Windows, run every command in Git Bash.
 On the same three systems, after the steps above:
 
 1. Check that the Cursor editor is 3.25.6 or later and `agent --version` reports 2026.10.14 or later.
-2. Reuse the build of Claude preparation step 2, so `dist/cursor/` exists.
-3. Add the three companion catalogs per `docs/install/cursor/companions.md` (marketplace add only; no
-   tightship install). Reuse the scratch vault and repository from Claude preparation step 3 when a later row
-   needs them; the NFR-FLEX-02.1 row below needs only step 2.
+2. Reuse the build of Claude preparation step 2, so `dist/cursor/` exists. Reuse the scratch vault and
+   repository from Claude preparation step 3 when a later row needs them; the NFR-FLEX-02.1 row below needs
+   only this step.
 
 On Windows, run every command in Git Bash.
 
@@ -46,8 +41,6 @@ On Windows, run every command in Git Bash.
 | Criterion | How it is checked | macOS | Linux | Windows |
 | --- | --- | --- | --- | --- |
 | FR-INS-01.1 | Manual: after step 2, `claude plugin list` shows `tightship@tightship` at the version of `Cargo.toml` with no error, and a session lists its skills and commands | | | |
-| FR-INS-02.1 | Manual: after step 2, `claude plugin list` shows `ponytail`, `i-have-adhd`, and `humanizer` | | | |
-| FR-INS-02.2 | n/a: Claude Code installs dependencies, so `install.md` adds the companions' catalogs first | n/a | n/a | n/a |
 | FR-INS-03.1 | Manual: reinstall with `--config memory=false --config status_line=false`; the next session has no vault context and no status line offer | | | |
 | FR-INS-03.2 | Manual: install with no `--config`; the next session loads the contract and the vault's pinned notes | | | |
 | FR-INS-04.1 | Manual: `echo '{"memory":"false"}' \| claude plugin configure tightship@tightship --values-stdin`; the next session has no vault context | | | |
@@ -55,11 +48,17 @@ On Windows, run every command in Git Bash.
 | FR-INS-06.1 | Manual: follow `docs/install/claude-code/uninstall.md`; `~/.claude` holds no tightship file or option, and `git -C <vault> status` is clean | | | |
 | FR-INS-07.1 | Manual: on a configuration with the baseline merged in, follow `migration.md`; `/hooks` shows no `vault.py` hook, and each skill and command appears once | | | |
 | FR-INS-07.2 | Manual: after the same migration, `diff -r` against the backup shows only the files the migration lists, and the vault's `git status` is clean | | | |
-| FR-INS-08.1 | Manual: `docs/install/claude-code/README.md` links install, companions, options, update, uninstall, and migration | | | |
+| FR-INS-08.1 | Manual: `docs/install/claude-code/README.md` links install, options, update, uninstall, and migration | | | |
 | FR-INS-10.1 | Manual: once the release is published, the previous release installed in Cursor and in Antigravity CLI reaches this one at the second session start, and `claude plugin marketplace list --json` shows `autoUpdate` on for `tightship`. Test: `tightship/tests/update.rs` `a_newer_release_replaces_the_plugin_and_keeps_the_options`. Skipped on the first release with `latest.json` | | | |
 | FR-INS-10.2 | Manual: the session after that update tells the adopter both versions, and the next one does not. Test: `tightship/tests/update.rs` `the_notice_is_printed_once` | | | |
 | FR-INS-10.3 | Test: `tightship/tests/update.rs` `the_option_off_leaves_the_plugin_as_it_is` | | | |
 | FR-INS-10.4 | Test: `tightship/tests/update.rs` `a_mismatched_checksum_changes_nothing_and_is_announced` | | | |
+| FR-INS-11.1 | Manual: on a system where the previous release's installer installed the plugin, run `claude plugin update tightship@tightship` against this build; the next session names the plugins it removed, the one after says nothing, and `claude plugin list` shows only `tightship@tightship`. Test: `tightship/tests/clean.rs` `removes_every_listed_leftover_and_says_so_once` | | | |
+| FR-INS-11.2 | Manual: on another such system, run this build's installer; when it finishes, `claude plugin list` shows only `tightship@tightship` | | | |
+| FR-INS-11.3 | Test: `tightship/tests/clean.rs` `nothing_left_prints_nothing_and_runs_no_command` | | | |
+| FR-INS-11.4 | Test: `tightship/tests/clean.rs` `a_leftover_that_cannot_be_removed_is_reported_and_the_rest_still_goes` and `a_failed_command_is_reported_and_tried_again` | | | |
+| FR-INS-11.5 | Test: `tightship/tests/clean.rs` `the_adopters_own_status_line_stays` and `ponytails_status_line_is_never_restored` | | | |
+| FR-INS-11.6 | Manual: after the FR-INS-11.1 update and a second session, the plugin cache holds only this version's folder. Test: `tightship/tests/clean.rs` `an_older_version_no_session_uses_is_removed_silently` | | | |
 
 ## Skills, commands, and verifier
 

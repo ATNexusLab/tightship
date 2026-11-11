@@ -52,7 +52,12 @@ pub fn render(
         ("hooks.json", "bin/tightship"),
         ("hooks.windows.json", r"bin\tightship"),
     ] {
-        if let Some(hooks) = hooks(parts, content.options.as_ref(), launcher)? {
+        if let Some(hooks) = hooks(
+            parts,
+            content.options.as_ref(),
+            launcher,
+            harness.clean.is_some(),
+        )? {
             written.push((staging.join(file), hooks.into_bytes()));
         }
     }
@@ -110,6 +115,7 @@ fn hooks(
     parts: &[Part],
     options: Option<&OptionsFile>,
     launcher: &str,
+    clean: bool,
 ) -> io::Result<Option<String>> {
     let declares =
         |name| options.is_some_and(|file| file.declared.iter().any(|option| option.name == name));
@@ -123,8 +129,14 @@ fn hooks(
         .iter()
         .map(|part| command(format!("hook contract-part {}", part.file)))
         .collect();
+    if !parts.is_empty() && declares("contract") {
+        session_hooks.push(command("hook map".to_owned()));
+    }
     if declares("memory") {
         session_hooks.push(command("hook start".to_owned()));
+    }
+    if clean {
+        session_hooks.push(command("hook clean".to_owned()));
     }
     if declares("status_line") {
         session_hooks.push(command("hook status-line".to_owned()));

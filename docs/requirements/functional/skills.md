@@ -129,3 +129,29 @@ as a skill in the repository's `.agents/skills/` folder, and make it reachable f
   bootstrap command, then `.agents/skills/<name>/SKILL.md` holds that procedure.
 - **FR-SKL-05.2** — Given a supported harness that does not read `.agents/skills/`, when a session starts
   in a repository with project skills, then the harness lists them.
+
+<a id="fr-skl-06"></a>
+
+## FR-SKL-06 — A skill edits prose for people
+
+> As an adopter, I want a skill that removes the tells of machine writing from prose meant for people, so
+> that docs, pull requests, and issues read as written by their author.
+
+The system shall ship a skill that edits prose written for people so that it reads as written by its
+author, without changing what it says.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The contract sent every text for people through a companion that did this. With the companions gone ([BR-05](../business-rules.md#br-05)), the workflow carries the skill itself. |
+| Source | Maintainer, change request [#149](https://github.com/ATNexusLab/tightship/issues/149); the [spec of epic #140](../../specs/own-the-companions/own-the-companions.md) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M3 |
+| Since | v4.0.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-06.1** — Given the built plugin in a supported harness, when the skill list is read, then the
+  prose skill is listed with its description, and the contract's rule on prose names it.
+- **FR-SKL-06.2** — Given a text the skill edited, when the result is compared with the original, then
+  every claim, fact, name, number, date, and quote of the original is in it.

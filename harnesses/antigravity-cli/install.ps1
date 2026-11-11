@@ -32,18 +32,7 @@ function Invoke-AntigravityCliTightship {
     }
 }
 
-function Install-Skill([string]$name, [string]$repository) {
-    $skillDir = "{{path:skills}}/$name"
-    if (-not (Test-Path $skillDir)) {
-        New-Item -ItemType Directory -Force -Path $skillDir | Out-Null
-    }
-    $skillFile = Join-Path $skillDir "SKILL.md"
-    Invoke-Step "Downloading the $name skill" { Invoke-RestMethod -Uri "https://raw.githubusercontent.com/$repository/main/SKILL.md" -OutFile $skillFile }
-}
-
 function Install-AntigravityCli {
-    {{install:companions}}
-
     $sourceDir = $null
     $tempZipFolder = $null
     if ($FromDir) {
@@ -97,6 +86,7 @@ auto_update = $finalAutoUpdate
     [System.IO.File]::WriteAllText((Join-Path $antigravityCliData "options.toml"), ($tomlContent + "`n"), [System.Text.UTF8Encoding]::new($false))
 
     $env:TIGHTSHIP_DATA = $antigravityCliData
+    Invoke-Step "Removing the plugins tightship replaces" { Invoke-AntigravityCliTightship hook clean }
     Invoke-Step "Applying the status line option" { Invoke-AntigravityCliTightship hook status-line }
 
     if ($finalInitVault -and $finalVaultFolder -and -not (Test-Path -LiteralPath $expandedVault -ErrorAction Ignore)) {

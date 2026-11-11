@@ -3,7 +3,7 @@ mod common;
 use std::fs;
 use std::process::Command;
 
-use common::{Repository, assert_fails_with, assert_succeeds};
+use common::{Repository, assert_fails_with, assert_succeeds, content_files, harness_files};
 
 const HARNESS: &str = include_str!("../../harnesses/claude-code/harness.toml");
 
@@ -91,6 +91,10 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
                             "type": "command",
                             "command": "[ \"$CLAUDE_PLUGIN_OPTION_CONTRACT\" = false ] || [ \"$CLAUDE_PLUGIN_OPTION_MEMORY\" = false ] || cat \"${CLAUDE_PLUGIN_ROOT}/contract/memory.md\"",
                         },
+                        {
+                            "type": "command",
+                            "command": "[ \"$CLAUDE_PLUGIN_OPTION_CONTRACT\" = false ] || sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook map",
+                        },
                     ],
                 }, {
                     "matcher": "startup|clear|compact",
@@ -105,7 +109,7 @@ fn the_contract_renders_into_parts_gated_files_and_session_start_hooks() {
                     "matcher": "startup",
                     "hooks": [{
                         "type": "command",
-                        "command": "TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
+                        "command": "TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook clean; TIGHTSHIP_STATUS_LINE=\"$CLAUDE_PLUGIN_OPTION_STATUS_LINE\" TIGHTSHIP_SETTINGS=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json\" TIGHTSHIP_DATA=\"$CLAUDE_PLUGIN_DATA\" TIGHTSHIP_ROOT=\"$CLAUDE_PLUGIN_ROOT\" sh \"${CLAUDE_PLUGIN_ROOT}/bin/tightship\" hook status-line",
                     }],
                 }, {
                     "matcher": "startup",
@@ -131,7 +135,7 @@ fn the_hooks_honor_the_options() {
         .iter()
         .map(|hook| hook["command"].as_str().expect("a command"))
         .collect();
-    assert_eq!(commands.len(), 2);
+    assert_eq!(commands.len(), 3);
     let part = read(&repository, "dist/claude-code/contract/part-1.md");
     let memory = read(&repository, "dist/claude-code/contract/memory.md");
     fs::create_dir_all(repository.path("vault")).expect("a vault");
@@ -163,6 +167,7 @@ fn the_hooks_honor_the_options() {
     let contract_off = [("CLAUDE_PLUGIN_OPTION_CONTRACT", "false")];
     assert_eq!(run(commands[0], &contract_off), "");
     assert_eq!(run(commands[1], &contract_off), "");
+    assert_eq!(run(commands[2], &contract_off), "");
 
     let memory_lines: Vec<&str> = hooks["hooks"]["SessionStart"]
         .as_array()
@@ -393,5 +398,54 @@ fn no_contract_writes_no_hooks() {
     assert_succeeds(&repository.run("build"));
     assert!(repository.path("dist/claude-code/.claude-plugin").is_dir());
     assert!(!repository.path("dist/claude-code/contract").exists());
-    assert!(!repository.path("dist/claude-code/hooks").exists());
+    let hooks = fs::read_to_string(repository.path("dist/claude-code/hooks/hooks.json"))
+        .expect("the clean-up hook");
+    assert!(!hooks.contains("contract"), "{hooks}");
+}
+
+#[test]
+fn the_shipped_contract_carries_the_rules_within_its_budget() {
+    let files: Vec<(String, String)> = content_files()
+        .into_iter()
+        .chain(harness_files("cursor"))
+        .chain(harness_files("antigravity-cli"))
+        .collect();
+    let files: Vec<(&str, String)> = files
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.clone()))
+        .collect();
+    let repository = Repository::with(&files);
+    assert_succeeds(&repository.run("build"));
+
+    for harness in ["claude-code", "cursor", "antigravity-cli"] {
+        let folder = repository.path(&format!("dist/{harness}/contract"));
+        let contract: String = fs::read_dir(&folder)
+            .expect("the built contract")
+            .map(|entry| fs::read_to_string(entry.expect("a part").path()).expect("a part's text"))
+            .collect();
+        assert!(
+            contract.chars().count() <= 8000,
+            "{harness}: the contract renders past 8000 characters"
+        );
+        assert!(
+            contract.contains("## Replies"),
+            "{harness}: no Replies section"
+        );
+        assert!(
+            contract.contains("The smallest change that fully works"),
+            "{harness}: no rule on the smallest change"
+        );
+        for companion in ["ponytail", "i-have-adhd", "humanizer"] {
+            assert!(
+                !contract.contains(companion),
+                "{harness}: the contract names {companion}"
+            );
+        }
+        assert!(
+            repository
+                .path(&format!("dist/{harness}/skills/prose-editing/SKILL.md"))
+                .is_file(),
+            "{harness}: no prose-editing skill"
+        );
+    }
 }

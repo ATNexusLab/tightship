@@ -21,19 +21,13 @@ O início dessa sessão devolve o seu `statusLine` anterior, ou remove a chave s
 claude plugin uninstall tightship@tightship --prune -y
 ```
 
-`--prune` também remove os companheiros que a instalação adicionou e a pasta de dados do plugin. Um
-companheiro que você mesmo instalou fica. O Claude Code apaga as opções do tightship das suas configurações
-de usuário.
+`--prune` também remove a pasta de dados do plugin. O Claude Code apaga as opções do tightship das suas
+configurações de usuário.
 
-## 3. Remova os catálogos
+## 3. Remova o catálogo
 
 ```sh
 claude plugin marketplace remove tightship
-claude plugin marketplace remove ponytail
-claude plugin marketplace remove i-have-adhd
-claude plugin marketplace remove humanizer
 ```
-
-Mantenha o catálogo de um companheiro se você ainda usa esse companheiro.
 
 O seu vault nunca é tocado.

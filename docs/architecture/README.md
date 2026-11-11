@@ -38,7 +38,6 @@ Dashed boxes are not built yet. Every element belongs to the milestone in its la
 | Adopter | Person | Installs the plugin, picks its options, invokes its commands |
 | This repository | External system, GitHub | Holds the canonical source and the catalog each harness installs from |
 | Claude Code, Cursor, Antigravity CLI, Codex | External systems, one milestone each ([BR-01](../requirements/business-rules.md#br-01)) | Load the plugin in its harness's own format |
-| Companion plugins | External systems | Installed with the plugin where the harness allows it ([FR-INS-02](../requirements/functional/install.md#fr-ins-02)); in Claude Code, as the plugin's dependencies, each from its own catalog (M1, #2); in Antigravity CLI, by `install.sh` / `install.ps1` or the install guide's commands (M3, #59) |
 | Vault | External system, the adopter's git repository | Notes and handoffs the memory layer reads and writes |
 
 Out of scope: [the SRS's list](../requirements/README.md#scope).
@@ -130,7 +129,7 @@ See [the non-functional requirements](../requirements/non-functional/README.md).
 ## Risks and technical debt
 
 The known risks are the SRS's [assumptions and dependencies](../requirements/overview.md#assumptions-and-dependencies):
-each harness's plugin format and the companion plugins can change without notice.
+each harness's plugin format can change without notice.
 
 ## Glossary
 

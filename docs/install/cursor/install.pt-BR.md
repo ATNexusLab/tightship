@@ -10,8 +10,7 @@ Code como **Imported**, e as mesmas peças seriam carregadas duas vezes.
 ## Instalador de um comando
 
 Rode o instalador direto dos GitHub Releases. Ele detecta os CLIs instalados, pergunta suas opções, instala
-os companheiros e o tightship em `~/.cursor/plugins/local/`, grava seu `options.json` e configura a status
-line do CLI.
+o tightship em `~/.cursor/plugins/local/`, grava seu `options.json` e configura a status line do CLI.
 
 No Linux e no macOS:
 
@@ -86,7 +85,7 @@ política; peça ao administrador para permitir importação local de plugins, o
 
 ## Instalação manual
 
-Se preferir cada passo, conclua [os companheiros](companions.pt-BR.md) primeiro e depois:
+Se preferir cada passo:
 
 ### 1. Baixe e instale o tightship
 
@@ -122,8 +121,7 @@ Recarregue a janela do editor depois de copiar a pasta do plugin.
 
 ## Confira
 
-Em Customize → Plugins, o tightship aparece como **Local** com skills e comandos listados. ponytail,
-i-have-adhd e humanizer também ficam em **Local**.
+Em Customize → Plugins, o tightship aparece como **Local** com skills e comandos listados.
 
 Numa sessão interativa do `agent`, pergunte quais comandos slash estão disponíveis. A resposta deve listar
 `/spec` e os outros comandos do workflow.

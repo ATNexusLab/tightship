@@ -29,8 +29,9 @@ hands the binary that command, with `${CURSOR_PLUGIN_ROOT}` left for the CLI to 
 `TIGHTSHIP_STATUS_LINE_COMMAND` (#78). The CLI runs hooks in the plugin's folder, so the launcher sets
 `TIGHTSHIP_PROJECT_POINTER` to `/workspace_roots/0`, where the hook's input names the project.
 
-Companion plugins have no `dependencies` field in Cursor's manifest. The unified installer copies each
-companion into `~/.cursor/plugins/local/<name>/` before `tightship` (M2, #58; #85).
+The plugin depends on no other plugin (#140). Its session-start hook runs `tightship hook clean`, which
+removes the companion plugins the installer of M2 copied into `~/.cursor/plugins/local/<name>/`, and
+`tightship hook map` unless the contract option is off.
 
 **It never** gets edited. Every change goes to the canonical content or `harnesses/cursor/harness.toml`, then
 through the build.

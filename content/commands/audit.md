@@ -69,6 +69,14 @@ count.
 
 For each surviving finding, search the backlog via `gh` for an issue that already owns it.
 
+## Debt markers
+
+While the agents run, list every `shortcut:` marker in the target yourself, with no agent:
+`git grep -n "shortcut:"` over it, or a search of the path when it is not tracked. Each one becomes a line
+`file:line — the limit — when to upgrade`, with `no trigger` in place of the last part when the marker
+names none. A marker is debt already written down, never a finding: it is neither verified nor counted with
+the findings.
+
 ## Report — short, then one at a time
 
 In the chat's language, with no jargon the scenario does not explain:
@@ -77,6 +85,7 @@ In the chat's language, with no jargon the scenario does not explain:
 2. A triage table: `#` · severity · the problem in one plain sentence · `path:line` · owning issue
    (`#N` or `—`).
 3. One line: `Decisions to review: N · Low: N · Refuted: N`. Their detail comes only when I ask.
+   Then the debt markers, one per line, or "no debt markers".
 4. **Finding 1 of N** in detail: what happens (the scenario) · why it matters · where (`path:line` with
    the snippet) · the fix and its effort.
 5. Stop and wait for my call on it: fix now · issue · drop. Then the next finding, the same way.

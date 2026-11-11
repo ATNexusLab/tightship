@@ -7,9 +7,8 @@ skill and per command, and `agents/<name>.md` for the subagent. Commands ship as
 Code documents its `commands/` folder as legacy and runs a skill as a command.
 
 The same folder is the plugin's catalog, `.claude-plugin/marketplace.json`, with the plugin's source `./`
-(M1, #2). The manifest declares the three companion plugins as dependencies, each from its own catalog, and
-the catalog allows those catalogs, so Claude Code installs the companions with the plugin and reuses any the
-adopter already has. The manifest also declares the [options](../concepts/options.md) as `userConfig`, each a
+(M1, #2). The manifest declares no dependency, and the catalog allows no other catalog (#140). The manifest
+also declares the [options](../concepts/options.md) as `userConfig`, each a
 boolean on by default (M1, #3).
 
 Its first hooks carry the [contract](../concepts/contract.md): `hooks/hooks.json` runs one `sh` line per file
@@ -24,6 +23,10 @@ state, since turning the option off is what puts the adopter's status line back.
 `statusLine` itself, so the binary writes it into the adopter's user settings while the option is on
 ([status line](../concepts/status-line.md), M1, #7).
 
+The status line hook's command runs `tightship hook clean` first, which removes what the companion plugins
+and older versions of tightship left, from `clean.json` (#140). Another `SessionStart` hook, on
+`startup|clear|compact`, runs `tightship hook map` unless the contract option is off (#140).
+
 Another `startup` hook runs `tightship hook marketplace-auto-update`, which sets `autoUpdate` on the
 plugin's marketplace entry in the user settings from the `auto_update` option, so Claude Code installs each
 release by itself ([auto-update spec](../../specs/auto-update/update-the-plugin.md)).
@@ -34,6 +37,6 @@ install that drops the executable bit still runs it (M1, #8).
 **It never** gets edited. Every change goes to the canonical content or the harness definition, then
 through the build.
 
-**To try it:** `claude --plugin-dir dist/claude-code`. **To install it:** add the companions' catalogs, then
+**To try it:** `claude --plugin-dir dist/claude-code`. **To install it:**
 `claude plugin marketplace add ./dist/claude-code` and `claude plugin install tightship@tightship`. Epic #8
 moves the catalog to the repository root, pointing at the release's zip.

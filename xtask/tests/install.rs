@@ -40,20 +40,10 @@ if [ "$1" = "--version" ]; then
 fi
 if [ "$1" = "plugin" ] && [ "$2" = "install" ]; then
     target="$3"
-    case "$target" in
-        *ponytail)
-            mkdir -p "$HOME/.gemini/config/plugins/ponytail"
-            ;;
-        *i-have-adhd)
-            mkdir -p "$HOME/.gemini/config/plugins/i-have-adhd"
-            ;;
-        *)
-            mkdir -p "$HOME/.gemini/config/plugins/tightship"
-            if [ -d "$target" ]; then
-                cp -R "$target"/* "$HOME/.gemini/config/plugins/tightship/"
-            fi
-            ;;
-    esac
+    mkdir -p "$HOME/.gemini/config/plugins/tightship"
+    if [ -d "$target" ]; then
+        cp -R "$target"/* "$HOME/.gemini/config/plugins/tightship/"
+    fi
     exit 0
 fi
 exit 0
@@ -104,10 +94,6 @@ impl Installer {
     }
 }
 
-fn download_cache_name(url: &str) -> String {
-    url.replace("https://", "").replace('/', "_")
-}
-
 struct MockEnvironment {
     temp_dir: TempDir,
     bin_dir: PathBuf,
@@ -126,7 +112,6 @@ impl MockEnvironment {
         for folder in [&bin_dir, &home_dir, &downloads_dir, &system_temp_dir] {
             fs::create_dir_all(folder).expect("a mock folder");
         }
-        fs::write(downloads_dir.join("SKILL.md"), "humanizer\n").expect("the humanizer download");
         let environment = Self {
             temp_dir,
             bin_dir,
@@ -493,78 +478,6 @@ fn cursor_from_dir() -> String {
         .to_owned()
 }
 
-fn companion_zip(plugin: &str) -> Vec<u8> {
-    fn walk(folder: &Path, prefix: &str, files: &mut Vec<String>) {
-        for entry in fs::read_dir(folder).expect("a folder") {
-            let entry = entry.expect("an entry");
-            let relative = format!("{prefix}{}", entry.file_name().to_string_lossy());
-            if entry.file_type().expect("a file type").is_dir() {
-                walk(&entry.path(), &format!("{relative}/"), files);
-            } else {
-                files.push(relative);
-            }
-        }
-    }
-
-    let temp = tempfile::tempdir().expect("a temporary directory");
-    let root_name = format!("{plugin}-main");
-    let folder = temp.path().join(&root_name);
-    let manifest = folder.join(".claude-plugin/plugin.json");
-    fs::create_dir_all(manifest.parent().expect("manifest parent")).expect("companion folders");
-    fs::write(&manifest, format!(r#"{{"name":"{plugin}"}}"#)).expect("companion manifest");
-
-    let mut files = Vec::new();
-    walk(&folder, &format!("{root_name}/"), &mut files);
-    files.sort();
-
-    let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
-    for file in &files {
-        let options = SimpleFileOptions::default()
-            .compression_method(CompressionMethod::Deflated)
-            .system(System::Unix)
-            .unix_permissions(0o644);
-        writer.start_file(file, options).expect("a zip entry");
-        writer
-            .write_all(&fs::read(temp.path().join(file)).expect("a companion file"))
-            .expect("the zip entry");
-    }
-    writer.finish().expect("a zip").into_inner()
-}
-
-#[test]
-#[cfg(unix)]
-fn companion_zip_unpacks_like_github_main_branch() {
-    let bytes = companion_zip("ponytail");
-    let temp = tempfile::tempdir().expect("a temporary directory");
-    let zip_path = temp.path().join("ponytail.zip");
-    fs::write(&zip_path, bytes).expect("write zip");
-    let status = Command::new("unzip")
-        .arg("-q")
-        .arg(&zip_path)
-        .arg("-d")
-        .arg(temp.path())
-        .status()
-        .expect("unzip runs");
-    assert!(status.success(), "unzip failed: {status:?}");
-    assert!(
-        temp.path()
-            .join("ponytail-main/.claude-plugin/plugin.json")
-            .is_file()
-    );
-}
-
-fn seed_companion_downloads(downloads: &Path) {
-    for (plugin, repo) in [
-        ("ponytail", "DietrichGebert/ponytail"),
-        ("i-have-adhd", "ayghri/i-have-adhd"),
-        ("humanizer", "blader/humanizer"),
-    ] {
-        let url = format!("https://github.com/{repo}/archive/refs/heads/main.zip");
-        let key = download_cache_name(&url);
-        fs::write(downloads.join(key), companion_zip(plugin)).expect("companion zip");
-    }
-}
-
 fn assert_exit(installer: Installer, output: &Output, code: i32) {
     assert_eq!(
         output.status.code(),
@@ -679,8 +592,16 @@ fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
             );
         }
         let plugins = env.home_dir.join(".gemini/config/plugins");
-        assert!(plugins.join("ponytail").is_dir(), "{installer:?}");
-        assert!(plugins.join("i-have-adhd").is_dir(), "{installer:?}");
+        for companion in COMPANIONS {
+            assert!(
+                !plugins.join(companion).exists(),
+                "{installer:?}: {companion}"
+            );
+        }
+        assert!(
+            !env.home_dir.join(".gemini/config/skills").exists(),
+            "{installer:?}"
+        );
         assert!(
             plugins.join("tightship/plugin.json").is_file(),
             "{installer:?}"
@@ -702,12 +623,6 @@ fn scenario_10_interactive_and_flag_driven_install_antigravity_cli() {
         );
         assert!(
             !plugins.join("tightship/hooks.windows.json").exists(),
-            "{installer:?}"
-        );
-        assert!(
-            env.home_dir
-                .join(".gemini/config/skills/humanizer/SKILL.md")
-                .is_file(),
             "{installer:?}"
         );
 
@@ -1021,9 +936,6 @@ if [ "$1" = "--version" ]; then
     echo "agy 1.4.0"
     exit 0
 fi
-case "$3" in
-    *ponytail|*i-have-adhd) exit 0 ;;
-esac
 exit 3
 "#,
         );
@@ -1089,7 +1001,6 @@ fn existing_options_are_preserved_on_update() {
         .expect("the Antigravity CLI download");
         fs::write(env.downloads_dir.join("tightship-cursor.zip"), &cursor_zip)
             .expect("the Cursor download");
-        seed_companion_downloads(&env.downloads_dir);
         env.add_mock_script("agy", AGY_THAT_INSTALLS);
         env.add_mock_script("agent", AGENT_VERSION);
         env.add_mock_script("claude", &claude_that_installs());
@@ -1178,8 +1089,6 @@ exit 0
         let claude_arguments = fs::read_to_string(env.home_dir.join("claude-arguments"))
             .expect("read claude arguments");
         for called in [
-            "plugin marketplace update ponytail",
-            "plugin update ponytail@ponytail",
             "plugin marketplace update tightship",
             "plugin update tightship@tightship",
         ] {
@@ -1192,6 +1101,12 @@ exit 0
             !claude_arguments.contains("plugin install"),
             "{installer:?}: {claude_arguments}"
         );
+        for companion in COMPANIONS {
+            assert!(
+                !claude_arguments.contains(companion),
+                "{installer:?}: {claude_arguments}"
+            );
+        }
         let values: serde_json::Value = serde_json::from_str(
             &fs::read_to_string(env.home_dir.join("claude-values")).expect("read the values"),
         )
@@ -1309,7 +1224,6 @@ fn enter_on_every_question_installs_the_checked_harnesses_with_the_defaults() {
         .expect("the Antigravity CLI download");
         fs::write(env.downloads_dir.join("tightship-cursor.zip"), &cursor_zip)
             .expect("the Cursor download");
-        seed_companion_downloads(&env.downloads_dir);
         env.add_mock_script("agy", AGY_THAT_INSTALLS);
         env.add_mock_script("agent", AGENT_VERSION);
         env.add_mock_script(
@@ -1511,17 +1425,121 @@ fn a_failed_install_through_iex_leaves_the_session_open() {
     );
 }
 
+const COMPANIONS: [&str; 3] = ["ponytail", "i-have-adhd", "humanizer"];
+
+fn seed(path: &Path, text: &str) {
+    fs::create_dir_all(path.parent().expect("a parent")).expect("a leftover folder");
+    fs::write(path, text).expect("a leftover file");
+}
+
+#[test]
+fn scenario_2_the_installer_removes_the_companions_in_cursor_and_antigravity_cli() {
+    for installer in INSTALLERS {
+        let env = MockEnvironment::new();
+        env.add_mock_script("agent", AGENT_VERSION);
+        env.add_mock_script(
+            "agy",
+            &AGY_THAT_INSTALLS.replacen(
+                "if [ \"$1\" = \"--version\" ]",
+                "echo \"$*\" >> \"$HOME/agy-arguments\"\nif [ \"$1\" = \"--version\" ]",
+                1,
+            ),
+        );
+        let home = &env.home_dir;
+        for companion in COMPANIONS {
+            seed(
+                &home.join(format!(".cursor/plugins/local/{companion}/plugin.json")),
+                "{}",
+            );
+        }
+        seed(&home.join(".cursor/.ponytail-active"), "full");
+        seed(&home.join(".config/ponytail/band/ledger.jsonl"), "{}");
+        seed(
+            &home.join(".gemini/config/plugins/ponytail/plugin.json"),
+            "{}",
+        );
+        seed(
+            &home.join(".gemini/config/plugins/i-have-adhd/plugin.json"),
+            "{}",
+        );
+        seed(
+            &home.join(".gemini/config/skills/humanizer/SKILL.md"),
+            "humanizer",
+        );
+        seed(
+            &home.join(".gemini/config/config.json"),
+            r#"{"plugins": {"ponytail": {}, "i-have-adhd": {}, "other": {}}}"#,
+        );
+        seed(
+            &home.join(".gemini/config/import_manifest.json"),
+            r#"{"imports": [{"name": "ponytail"}, {"name": "i-have-adhd"}, {"name": "other"}]}"#,
+        );
+
+        for (harness, from_dir) in [
+            ("cursor", cursor_from_dir()),
+            ("antigravity-cli", from_dir()),
+        ] {
+            let output = env.run(
+                installer,
+                &["--harness", harness, "--from-dir", &from_dir, "--yes"],
+            );
+            assert_exit(installer, &output, 0);
+            assert!(
+                String::from_utf8_lossy(&output.stdout)
+                    .contains("ok  Removing the plugins tightship replaces"),
+                "{installer:?} {harness}: {}",
+                String::from_utf8_lossy(&output.stdout)
+            );
+        }
+
+        for gone in [
+            ".cursor/plugins/local/ponytail",
+            ".cursor/plugins/local/i-have-adhd",
+            ".cursor/plugins/local/humanizer",
+            ".cursor/.ponytail-active",
+            ".config/ponytail",
+            ".gemini/config/plugins/ponytail",
+            ".gemini/config/plugins/i-have-adhd",
+            ".gemini/config/skills/humanizer",
+        ] {
+            assert!(!home.join(gone).exists(), "{installer:?}: {gone} is left");
+        }
+        let json = |file: &str| -> serde_json::Value {
+            serde_json::from_str(&fs::read_to_string(home.join(file)).expect("a JSON file"))
+                .expect("valid JSON")
+        };
+        assert_eq!(
+            json(".gemini/config/config.json"),
+            serde_json::json!({ "plugins": { "other": {} } }),
+            "{installer:?}"
+        );
+        assert_eq!(
+            json(".gemini/config/import_manifest.json"),
+            serde_json::json!({ "imports": [{ "name": "other" }] }),
+            "{installer:?}"
+        );
+        let agy_arguments = fs::read_to_string(home.join("agy-arguments")).expect("agy ran");
+        for uninstalled in ["plugin uninstall ponytail", "plugin uninstall i-have-adhd"] {
+            assert!(
+                agy_arguments.lines().any(|line| line == uninstalled),
+                "{installer:?}: {agy_arguments}"
+            );
+        }
+        assert!(
+            home.join(".cursor/plugins/local/tightship").is_dir()
+                && home.join(".gemini/config/plugins/tightship").is_dir(),
+            "{installer:?}"
+        );
+    }
+}
+
 #[test]
 fn scenario_12_interactive_and_flag_driven_install_cursor() {
     for installer in INSTALLERS {
         let env = MockEnvironment::new();
-        seed_companion_downloads(&env.downloads_dir);
         env.add_mock_script("agent", AGENT_VERSION);
         let plugins = env.home_dir.join(".cursor/plugins/local");
-        let removed_upstream = [
-            plugins.join("tightship/skills/removed/SKILL.md"),
-            plugins.join("ponytail/skills/removed/SKILL.md"),
-        ];
+        let removed_upstream = [plugins.join("tightship/skills/removed/SKILL.md")];
         for stale in &removed_upstream {
             fs::create_dir_all(stale.parent().expect("a parent")).expect("stale folder");
             fs::write(stale, "stale\n").expect("stale skill");
@@ -1560,13 +1578,10 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
                 stale.display()
             );
         }
-        for companion in ["ponytail", "i-have-adhd", "humanizer"] {
+        for companion in COMPANIONS {
             assert!(
-                plugins
-                    .join(companion)
-                    .join(".claude-plugin/plugin.json")
-                    .is_file(),
-                "{installer:?}: companion {companion} missing"
+                !plugins.join(companion).exists(),
+                "{installer:?}: {companion}"
             );
         }
         assert!(
@@ -1594,7 +1609,6 @@ fn scenario_12_interactive_and_flag_driven_install_cursor() {
 fn a_dash_on_the_vault_question_leaves_the_vault_unset() {
     for installer in INSTALLERS {
         let env = MockEnvironment::new();
-        seed_companion_downloads(&env.downloads_dir);
         env.add_mock_script("agent", AGENT_VERSION);
 
         let from_dir = cursor_from_dir();
