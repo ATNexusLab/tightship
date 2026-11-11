@@ -2,6 +2,8 @@ use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
+use std::thread;
+use std::time::Duration;
 
 use tempfile::TempDir;
 
@@ -79,7 +81,17 @@ pub fn project(sandbox: &Sandbox, name: &str) -> PathBuf {
 }
 
 pub fn run(command: &mut Command) -> Output {
-    command.output().expect("the command runs")
+    // On Linux, a process another test thread forks keeps a just-written binary open for writing
+    // until it execs, and running the binary in that window fails with ETXTBSY (rust-lang/rust#114554).
+    for attempt in 1..=5 {
+        match command.output() {
+            Err(error) if error.kind() == io::ErrorKind::ExecutableFileBusy && attempt < 5 => {
+                thread::sleep(Duration::from_millis(50 * attempt));
+            }
+            output => return output.expect("the command runs"),
+        }
+    }
+    unreachable!("the last attempt returns")
 }
 
 pub fn stdout_of(output: &Output) -> String {
