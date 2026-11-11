@@ -36,6 +36,11 @@ The map: [docs/architecture/](docs/architecture/README.md).
 
 - Prose in `docs/` wraps at about 105 columns; the lint stops a line past 110, outside tables.
 - `<a>` is the only HTML allowed in Markdown: the anchors of requirement IDs.
+- The Rust code carries short comments, and this rule overrides the global contract's:
+  - every module opens with a one-line `//!` saying what it holds;
+  - every function and type seen outside its file has a one-line `///` saying what it does, and one that
+    returns `Result` adds an `# Errors` section saying when it fails;
+  - a `//` line comment explains only why a decision was taken, never what the code does.
 
 ## Branches
 
