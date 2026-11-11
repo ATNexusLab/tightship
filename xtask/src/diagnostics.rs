@@ -48,3 +48,22 @@ impl fmt::Display for Diagnostic {
 pub fn naming(path: &Path) -> impl FnOnce(io::Error) -> io::Error + '_ {
     move |error| io::Error::new(error.kind(), format!("{}: {error}", path.display()))
 }
+
+pub enum Failure {
+    Checks(Vec<Diagnostic>),
+    Io(io::Error),
+}
+
+impl From<io::Error> for Failure {
+    fn from(error: io::Error) -> Self {
+        Self::Io(error)
+    }
+}
+
+pub fn stop_on_errors(diagnostics: &mut Vec<Diagnostic>) -> Result<(), Failure> {
+    if diagnostics.is_empty() {
+        return Ok(());
+    }
+    diagnostics.sort();
+    Err(Failure::Checks(std::mem::take(diagnostics)))
+}

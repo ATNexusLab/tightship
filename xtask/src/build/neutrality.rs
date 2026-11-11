@@ -2,10 +2,11 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use super::content::{self, Content};
+use super::content::Content;
 use super::harness::Harness;
 use super::words::is_part_of_a_word;
 use crate::diagnostics::{Diagnostic, naming};
+use crate::files::{self, slash_path};
 
 pub fn check(content: &Content, harnesses: &[Harness], diagnostics: &mut Vec<Diagnostic>) {
     for file in &content.files {
@@ -25,10 +26,10 @@ pub fn check_binary(
     if !sources.is_dir() {
         return Ok(());
     }
-    for file in content::files_under(&sources)? {
+    for file in files::files_under(&sources)? {
         let text = fs::read_to_string(&file).map_err(naming(&file))?;
         let relative = file.strip_prefix(root).map_err(io::Error::other)?;
-        let path = relative.to_string_lossy().replace('\\', "/");
+        let path = slash_path(relative);
         scan(&path, &text, harnesses, diagnostics, |harness| {
             format!("move it to harnesses/{harness}/ and pass it in through the launcher")
         });

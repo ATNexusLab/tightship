@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
@@ -207,7 +207,7 @@ impl Neutrality {
     }
 }
 
-pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Vec<Harness>> {
+pub fn folders(root: &Path) -> io::Result<Vec<PathBuf>> {
     let directory = root.join("harnesses");
     if !directory.is_dir() {
         return Ok(Vec::new());
@@ -216,9 +216,14 @@ pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Ve
         .map_err(naming(&directory))?
         .map(|entry| entry.map(|entry| entry.path()))
         .collect::<io::Result<Vec<_>>>()?;
+    folders.retain(|folder| folder.is_dir());
     folders.sort();
+    Ok(folders)
+}
+
+pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Vec<Harness>> {
     let mut harnesses = Vec::new();
-    for folder in folders.iter().filter(|folder| folder.is_dir()) {
+    for folder in &folders(root)? {
         let name = folder
             .file_name()
             .map(|name| name.to_string_lossy().into_owned())

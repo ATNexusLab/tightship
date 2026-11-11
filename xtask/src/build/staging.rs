@@ -4,16 +4,10 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 use crate::diagnostics::naming;
+use crate::files::{remove_if_present, slash_path};
 
 pub fn staging_dir(root: &Path, harness_name: &str) -> PathBuf {
     root.join("dist").join(format!(".{harness_name}.tmp"))
-}
-
-pub fn remove_if_present(folder: &Path) -> io::Result<()> {
-    match fs::remove_dir_all(folder) {
-        Err(error) if error.kind() != io::ErrorKind::NotFound => Err(naming(folder)(error)),
-        _ => Ok(()),
-    }
 }
 
 pub fn write_files(
@@ -25,7 +19,7 @@ pub fn write_files(
     for (file, _) in files {
         if !paths.insert(file) {
             let relative = file.strip_prefix(staging).map_err(io::Error::other)?;
-            let path = relative.to_string_lossy().replace('\\', "/");
+            let path = slash_path(relative);
             return Err(io::Error::other(format!(
                 "dist/{harness_name}/{path}: two sources write this file"
             )));
@@ -63,6 +57,6 @@ pub fn publish(root: &Path, staging: &Path, harness_name: &str) -> io::Result<()
 
 pub fn discard(root: &Path, harness_name: &str) -> io::Result<()> {
     let dist = root.join("dist");
-    remove_if_present(&dist.join(format!(".{harness_name}.tmp")))?;
+    remove_if_present(&staging_dir(root, harness_name))?;
     remove_if_present(&dist.join(harness_name))
 }

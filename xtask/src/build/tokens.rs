@@ -43,7 +43,7 @@ pub fn scan(text: &str) -> Vec<Token<'_>> {
     tokens
 }
 
-pub fn replace<'text>(
+fn replace<'text>(
     text: &'text str,
     mut replacement: impl FnMut(&Token<'text>) -> String,
 ) -> String {

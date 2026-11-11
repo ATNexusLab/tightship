@@ -12,7 +12,8 @@ use crate::build::harness;
 use crate::build::render::pretty_json;
 use crate::build::scripts::pascal;
 use crate::diagnostics::{Diagnostic, naming};
-use crate::{Failure, stop_on_errors};
+use crate::diagnostics::{Failure, stop_on_errors};
+use crate::files::remove_if_present;
 
 const CLAUDE_CATALOG: &str = "marketplace.json";
 const LATEST: &str = "latest.json";
@@ -43,11 +44,8 @@ pub fn run(root: &Path, tag: &str) -> Result<String, Failure> {
         }
         Ok(summary)
     });
-    match fs::remove_dir_all(&staging) {
-        Err(error) if error.kind() != io::ErrorKind::NotFound => {
-            eprintln!("error: {}", naming(&staging)(error));
-        }
-        _ => {}
+    if let Err(error) = remove_if_present(&staging) {
+        eprintln!("error: {error}");
     }
     published
 }
@@ -105,12 +103,7 @@ fn pack(root: &Path, staging: &Path, tag: &str) -> Result<String, Failure> {
     }
     stop_on_errors(&mut diagnostics)?;
 
-    match fs::remove_dir_all(staging) {
-        Err(error) if error.kind() != io::ErrorKind::NotFound => {
-            return Err(naming(staging)(error).into());
-        }
-        _ => {}
-    }
+    remove_if_present(staging)?;
     fs::create_dir_all(staging).map_err(naming(staging))?;
 
     let mut parts = Vec::new();

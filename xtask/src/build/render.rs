@@ -2,10 +2,10 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::binary::Binary;
-use super::content::{self, Content, Kind, Piece, SupportingBody};
+use super::content::{Content, Kind, Piece, SupportingBody};
 use super::contract::Part;
 use super::harness::Harness;
 use super::options::OptionsFile;
@@ -13,6 +13,7 @@ use super::scripts::{self, Shell};
 use super::staging;
 use super::tokens;
 use crate::diagnostics::naming;
+use crate::{files, workspace};
 
 pub struct Layout {
     pub manifest: String,
@@ -30,7 +31,7 @@ pub fn assemble(
     layout: Layout,
 ) -> io::Result<(PathBuf, usize)> {
     let staging = staging::staging_dir(root, &harness.name);
-    staging::remove_if_present(&staging)?;
+    files::remove_if_present(&staging)?;
     let mut written = vec![(
         staging.join(&harness.dist.manifest),
         layout.manifest.into_bytes(),
@@ -99,7 +100,7 @@ pub fn manifest(
     let plugin = &harness.plugin;
     pretty_json(&PluginManifest {
         name: &plugin.name,
-        version: workspace_version(root)?,
+        version: workspace::version(root)?,
         description: &plugin.description,
         author: Author {
             name: &plugin.author,
@@ -120,26 +121,6 @@ pub fn resolve(text: &str, path: &str, harness: &Harness) -> io::Result<String> 
             unresolved.join(", ")
         )))
     }
-}
-
-fn workspace_version(root: &Path) -> io::Result<String> {
-    #[derive(Deserialize)]
-    struct CargoManifest {
-        workspace: Workspace,
-    }
-    #[derive(Deserialize)]
-    struct Workspace {
-        package: Package,
-    }
-    #[derive(Deserialize)]
-    struct Package {
-        version: String,
-    }
-    let cargo_path = root.join("Cargo.toml");
-    let cargo_text = fs::read_to_string(&cargo_path).map_err(naming(&cargo_path))?;
-    let cargo: CargoManifest = toml::from_str(&cargo_text)
-        .map_err(|error| io::Error::other(format!("Cargo.toml: {}", error.message())))?;
-    Ok(cargo.workspace.package.version)
 }
 
 fn catalog(harness: &Harness) -> io::Result<String> {
@@ -298,7 +279,7 @@ fn harness_files(
     }
     let plugin = folder.join("plugin");
     if plugin.is_dir() {
-        for file in content::files_under(&plugin)? {
+        for file in files::files_under(&plugin)? {
             let relative = file.strip_prefix(&plugin).map_err(io::Error::other)?;
             let bytes = fs::read(&file).map_err(naming(&file))?;
             files.push((staging.join(relative), bytes));

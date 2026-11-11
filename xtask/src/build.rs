@@ -21,16 +21,16 @@ use std::io;
 use std::path::Path;
 
 use crate::diagnostics::{Diagnostic, naming};
-use crate::{Failure, stop_on_errors};
+use crate::diagnostics::{Failure, stop_on_errors};
 use content::{Content, Kind};
 
 pub fn run(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure> {
     let built = build_plugin(root, prebuilt);
     if built.is_err()
-        && let Ok(entries) = fs::read_dir(root.join("harnesses"))
+        && let Ok(folders) = harness::folders(root)
     {
-        for entry in entries.flatten().filter(|entry| entry.path().is_dir()) {
-            let name = entry.file_name().to_string_lossy().into_owned();
+        for folder in folders {
+            let name = folder.file_name().unwrap_or_default().to_string_lossy();
             if let Err(error) = staging::discard(root, &name) {
                 eprintln!("error: {error}");
             }

@@ -3,7 +3,7 @@ mod vault_notes;
 
 use std::path::Path;
 
-use crate::{Failure, stop_on_errors};
+use crate::diagnostics::{Failure, stop_on_errors};
 
 pub fn run(root: &Path) -> Result<String, Failure> {
     println!(

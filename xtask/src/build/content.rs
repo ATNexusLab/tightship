@@ -1,12 +1,13 @@
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use serde::Deserialize;
 
 use super::contract::{self, Contract};
 use super::options::{self, OptionsFile};
 use crate::diagnostics::{Diagnostic, naming};
+use crate::files;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
@@ -76,7 +77,7 @@ pub fn read(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Conten
         diagnostics.push(Diagnostic::general("content/ is missing".to_owned()));
         return Ok(content);
     }
-    for file in files_under(&directory)? {
+    for file in files::files_under(&directory)? {
         let bytes = fs::read(&file).map_err(naming(&file))?;
         let relative: Vec<String> = file
             .strip_prefix(root)
@@ -122,32 +123,6 @@ pub fn is_valid_name(text: &str) -> bool {
         && text.chars().all(|character| {
             character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
         })
-}
-
-pub fn files_under(directory: &Path) -> io::Result<Vec<PathBuf>> {
-    let mut entries = fs::read_dir(directory)
-        .map_err(naming(directory))?
-        .map(|entry| entry.map(|entry| entry.path()))
-        .collect::<io::Result<Vec<PathBuf>>>()?;
-    entries.sort();
-    let mut files = Vec::new();
-    for entry in entries {
-        let file_type = fs::symlink_metadata(&entry)
-            .map_err(naming(&entry))?
-            .file_type();
-        if file_type.is_symlink() {
-            return Err(io::Error::other(format!(
-                "{} is a symbolic link; the build reads only real files",
-                entry.display()
-            )));
-        }
-        if file_type.is_dir() {
-            files.extend(files_under(&entry)?);
-        } else {
-            files.push(entry);
-        }
-    }
-    Ok(files)
 }
 
 fn classify(
