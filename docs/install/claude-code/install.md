@@ -2,12 +2,12 @@
 
 English · [Português](install.pt-BR.md)
 
-Install tightship with the one-command installer, or add the catalogs and install by hand.
+Install tightship with the one-command installer, or add the catalog and install by hand.
 
 ## One-command installer
 
-The installer detects your CLIs, asks for your options, adds the companions' catalogs and tightship's,
-installs the plugin, and applies your options. Nothing is written until you choose Install on the summary.
+The installer detects your CLIs, asks for your options, adds tightship's catalog, installs the
+plugin, and applies your options. Nothing is written until you choose Install on the summary.
 
 On Linux and macOS:
 
@@ -35,30 +35,20 @@ Antigravity CLI as well.
 
 ## Manual installation
 
-tightship depends on three companion plugins, each listed in its own catalog. Add those three catalogs first,
-then tightship's, which is this repository, then install once:
+Add tightship's catalog, which is this repository, then install:
 
 ```sh
-claude plugin marketplace add DietrichGebert/ponytail
-claude plugin marketplace add ayghri/i-have-adhd
-claude plugin marketplace add blader/humanizer
 claude plugin marketplace add ATNexusLab/tightship
 claude plugin install tightship@tightship
 ```
 
-The install adds the companions along with the plugin:
-
 ```text
-✔ Successfully installed plugin: tightship@tightship (scope: user) (+ 3 dependencies: ponytail, i-have-adhd, humanizer)
+✔ Successfully installed plugin: tightship@tightship (scope: user)
 ```
-
-If a companion's catalog is missing, Claude Code warns that the dependency was not installed, and tightship
-does not load. Add the missing catalog and run the install again.
 
 The install asks for no option from the shell. Set them as you install with `--config`, or in the next
 session's dialog: see [the options](options.md).
 
 ## Check it
 
-Run `claude plugin list`. `tightship@tightship` shows with no error, and so do `ponytail`, `i-have-adhd`, and
-`humanizer`.
+Run `claude plugin list`. `tightship@tightship` shows with no error.

@@ -16,11 +16,10 @@ agent.
 
 | Page | What it covers |
 | --- | --- |
-| [The companions](companions.md) | The three plugins to install before tightship |
 | [Installation](install.md) | The unified installer and a manual local-folder path |
 | [The options](options.md) | `options.json`, the Configure dialog, and the `tightship options` commands |
 | [Update](update.md) | New versions, by themselves or through the installer |
-| [Uninstall](uninstall.md) | Removing tightship, your options folder, and optional companion cleanup |
+| [Uninstall](uninstall.md) | Removing tightship, and your options folder |
 
 ## Try it from a clone
 

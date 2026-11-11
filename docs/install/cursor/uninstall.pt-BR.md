@@ -38,15 +38,4 @@ Remove-Item -Recurse -Force "$HOME\.cursor\tightship"
 
 Remover o plugin em Customize → Plugins equivale quando ele está instalado como **Local**.
 
-## 3. Remova os companheiros, se quiser
-
-Você instalou ponytail, i-have-adhd e humanizer separadamente em [os companheiros](companions.pt-BR.md).
-Remova-os só quando não os usar mais com outros plugins:
-
-```sh
-rm -rf ~/.cursor/plugins/local/ponytail
-rm -rf ~/.cursor/plugins/local/i-have-adhd
-rm -rf ~/.cursor/plugins/local/humanizer
-```
-
 O seu vault nunca é apagado.

@@ -7,8 +7,7 @@ Instale o tightship usando o instalador unificado interativo, ou execute cada pa
 ## Instalador de um comando
 
 Execute o instalador diretamente a partir dos lançamentos no GitHub. Ele detecta seus CLIs instalados,
-pergunta pelas suas opções, instala os companheiros e o tightship, grava seu `options.toml` e configura a sua
-status line.
+pergunta pelas suas opções, instala o tightship, grava seu `options.toml` e configura a sua status line.
 
 No Linux e macOS:
 
@@ -85,17 +84,7 @@ curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/inst
 
 Se preferir executar cada passo manualmente:
 
-### 1. Instale os companheiros
-
-```sh
-agy plugin install https://github.com/DietrichGebert/ponytail
-agy plugin install https://github.com/ayghri/i-have-adhd
-mkdir -p ~/.gemini/config/skills/humanizer
-curl -fsSL https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md \
-  -o ~/.gemini/config/skills/humanizer/SKILL.md
-```
-
-### 2. Baixe e instale o tightship
+### 1. Baixe e instale o tightship
 
 Baixe o `tightship-antigravity-cli.zip` do release mais recente, extraia e instale:
 
@@ -114,7 +103,7 @@ No Git Bash do Windows, troque a última linha pelos hooks do Windows:
 mv -f ~/.gemini/config/plugins/tightship/hooks.windows.json ~/.gemini/config/plugins/tightship/hooks.json
 ```
 
-### 3. Escreva suas opções
+### 2. Escreva suas opções
 
 Crie o arquivo `~/.gemini/config/plugin_data/tightship/options.toml`:
 
@@ -126,7 +115,7 @@ auto_update = true
 vault_folder = "~/ai-memory"
 ```
 
-### 4. Ative a status line
+### 3. Ative a status line
 
 ```sh
 ~/.gemini/config/plugins/tightship/bin/tightship hook status-line
@@ -134,4 +123,4 @@ vault_folder = "~/ai-memory"
 
 ## Conferência
 
-Execute `agy plugin list`. `tightship`, `ponytail` e `i-have-adhd` aparecem como instalados.
+Execute `agy plugin list`. `tightship` aparece como instalado.

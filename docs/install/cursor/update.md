@@ -29,8 +29,7 @@ To turn it off:
 
 ## Using the installer
 
-Rerunning the installer replaces tightship and its companions with their latest versions, and keeps your
-options:
+Rerunning the installer replaces tightship with its latest version, and keeps your options:
 
 ```sh
 curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | \
@@ -43,8 +42,6 @@ On Windows in PowerShell:
 & ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) `
   -Harness cursor -Yes
 ```
-
-The companions are updated only this way.
 
 ## By hand
 

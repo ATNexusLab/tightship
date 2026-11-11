@@ -10,8 +10,8 @@ Do not install tightship as a Claude Code plugin on the same machine. Cursor can
 ## One-command installer
 
 Run the installer directly from GitHub Releases. It detects your installed CLIs, prompts for your options,
-installs the companions and tightship into `~/.cursor/plugins/local/`, writes your `options.json`, and
-configures your CLI status line.
+installs tightship into `~/.cursor/plugins/local/`, writes your `options.json`, and configures your CLI
+status line.
 
 On Linux and macOS:
 
@@ -86,7 +86,7 @@ ask your administrator to allow local plugin imports, or use a personal Cursor a
 
 ## Manual installation
 
-If you prefer to run each step by hand, follow [The companions](companions.md) first, then:
+If you prefer to run each step by hand:
 
 ### 1. Download and install tightship
 
@@ -122,8 +122,7 @@ Reload the editor window after copying the plugin folder.
 
 ## Check it
 
-Under Customize → Plugins, tightship shows as **Local** with its skills and commands listed. ponytail,
-i-have-adhd, and humanizer are installed under **Local** as well.
+Under Customize → Plugins, tightship shows as **Local** with its skills and commands listed.
 
 In an interactive `agent` session, ask which slash commands are available. The answer should list `/spec` and
 the other workflow commands.

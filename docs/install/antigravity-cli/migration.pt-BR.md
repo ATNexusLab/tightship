@@ -22,8 +22,7 @@ Copy-Item -Recurse "$HOME\.gemini" "$HOME\.gemini.before-tightship"
 ## 2. Remova skills duplicadas avulsas
 
 Se você havia copiado skills ou comandos do tightship diretamente para `~/.gemini/config/skills/`, eles serão
-carregados duas vezes ao lado do plugin. Remova as cópias avulsas, mantendo suas skills pessoais e o
-`humanizer`:
+carregados duas vezes ao lado do plugin. Remova as cópias avulsas, mantendo suas skills pessoais:
 
 ```sh
 cd ~/.gemini/config/skills && rm -rf \

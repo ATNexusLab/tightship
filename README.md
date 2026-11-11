@@ -37,11 +37,6 @@ alone gets the same rigor a team would demand.
 | Status line | Optional. Written to your settings only while you have it turned on |
 | Auto-update | On unless you turn it off. Each new release installs by itself, and the next session says so |
 
-Three companion plugins install with it. [ponytail](https://github.com/DietrichGebert/ponytail) keeps the
-code to the simplest thing that works. [i-have-adhd](https://github.com/ayghri/i-have-adhd) shapes answers
-so you can act on them. [humanizer](https://github.com/blader/humanizer) keeps prose from reading as
-generated.
-
 ## How a change moves
 
 ```text
@@ -114,7 +109,7 @@ lists every gate.
 | Where | What |
 | --- | --- |
 | [Install guide (Claude Code)](docs/install/claude-code/README.md) | Installing, options, updates, uninstalling, migration |
-| [Install guide (Cursor)](docs/install/cursor/README.md) | Installing, companions, options, updates, uninstalling |
+| [Install guide (Cursor)](docs/install/cursor/README.md) | Installing, options, updates, uninstalling |
 | [Install guide (Antigravity CLI)](docs/install/antigravity-cli/README.md) | Installing, options, updates, uninstalling, migration |
 | [Requirements](docs/requirements/README.md) | The versioned SRS: every requirement and its acceptance criteria |
 | [Architecture](docs/architecture/README.md) | The system map, in arc42 sections with C4 diagrams |
