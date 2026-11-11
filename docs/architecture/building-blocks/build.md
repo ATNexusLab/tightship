@@ -13,7 +13,10 @@ The maintainer's tool. It never runs on an adopter's machine.
 | `cargo xtask scan` | Runs gitleaks over the whole history and looks for vault notes in the working tree |
 
 The code is split by command: `xtask/src/build/`, `xtask/src/package.rs`, and `xtask/src/scan/`, with
-`git.rs` and `diagnostics.rs` shared at the root ([ADR 0002](../../decisions/0002-tightship-binary-modules-and-dependencies.md)).
+`diagnostics.rs`, `files.rs`, `git.rs`, and `workspace.rs` shared at the root
+([ADR 0002](../../decisions/0002-tightship-binary-modules-and-dependencies.md)). Inside `build/`, `check/`
+reads and checks the input, `render/` lays out the plugin every harness shares, and `harnesses/` holds what
+each harness adds to it.
 
 **It never** writes outside `dist/`, and never leaves a half-written plugin behind: it writes into a
 temporary folder and renames it only when every check passed.

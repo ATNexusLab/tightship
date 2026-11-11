@@ -6,8 +6,8 @@ use std::path::Path;
 
 use serde::Deserialize;
 
-use super::contract::{self, Contract};
-use super::options::{self, OptionsFile};
+use crate::build::check::options::{self, OptionsFile};
+use crate::build::render::contract::{self, Contract};
 use crate::diagnostics::{Diagnostic, with_path};
 use crate::files;
 

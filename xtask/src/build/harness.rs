@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use super::content::Kind;
+use crate::build::check::content::Kind;
 use crate::diagnostics::{Diagnostic, with_path};
 
 /// One harness's data, named after its folder.

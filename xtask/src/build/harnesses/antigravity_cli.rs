@@ -3,12 +3,12 @@
 use std::io;
 use std::path::{Path, PathBuf};
 
-use super::binary::Binary;
-use super::content::{Content, Kind, Piece, split_front_matter};
-use super::contract::Part;
-use super::harness::Harness;
-use super::options::{self, OptionsFile};
-use super::render;
+use crate::build::check::content::{Content, Kind, Piece, split_front_matter};
+use crate::build::check::options::{self, OptionsFile};
+use crate::build::harness::Harness;
+use crate::build::render;
+use crate::build::render::binary::Binary;
+use crate::build::render::contract::Part;
 
 /// Renders the Antigravity CLI plugin into its staging folder and returns it with the number of files.
 ///
@@ -47,7 +47,10 @@ pub fn render(
     render::assemble(root, harness, content, parts, binaries, layout)
 }
 
-fn contract_skill(contract: &super::contract::Contract, harness: &Harness) -> io::Result<String> {
+fn contract_skill(
+    contract: &crate::build::render::contract::Contract,
+    harness: &Harness,
+) -> io::Result<String> {
     let body = match split_front_matter(&contract.text) {
         Some((_, body, _)) => body,
         None => &contract.text,

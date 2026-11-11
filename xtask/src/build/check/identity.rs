@@ -5,7 +5,7 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use super::words::is_part_of_a_word;
+use crate::build::check::words::is_part_of_a_word;
 use crate::diagnostics::{Diagnostic, with_path};
 use crate::git;
 

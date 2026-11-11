@@ -2,9 +2,9 @@
 
 use std::ops::Range;
 
-use super::content::{Kind, is_valid_name};
-use super::harness::Harness;
-use super::options::is_option_name;
+use crate::build::check::content::{Kind, is_valid_name};
+use crate::build::check::options::is_option_name;
+use crate::build::harness::Harness;
 
 /// What a token refers to.
 pub enum Form<'text> {

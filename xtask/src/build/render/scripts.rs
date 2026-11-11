@@ -2,7 +2,7 @@
 
 use std::io;
 
-use super::harness::Harness;
+use crate::build::harness::Harness;
 
 /// The shell a script is written for.
 #[derive(Clone, Copy)]

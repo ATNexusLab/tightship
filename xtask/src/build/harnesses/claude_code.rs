@@ -3,12 +3,12 @@
 use std::io;
 use std::path::{Path, PathBuf};
 
-use super::binary::Binary;
-use super::content::Content;
-use super::contract::Part;
-use super::harness::Harness;
-use super::options::{self, OptionsFile};
-use super::render;
+use crate::build::check::content::Content;
+use crate::build::check::options::{self, OptionsFile};
+use crate::build::harness::Harness;
+use crate::build::render;
+use crate::build::render::binary::Binary;
+use crate::build::render::contract::Part;
 
 /// Renders the Claude Code plugin into its staging folder and returns it with the number of files.
 ///

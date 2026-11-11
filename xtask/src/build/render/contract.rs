@@ -1,9 +1,9 @@
 //! Packs the working contract into parts that fit each harness's limit per session-start hook.
 
-use super::content::split_front_matter;
-use super::harness::{ContractLimits, Harness};
-use super::options::OptionsFile;
-use super::tokens;
+use crate::build::check::content::split_front_matter;
+use crate::build::check::options::OptionsFile;
+use crate::build::harness::{ContractLimits, Harness};
+use crate::build::render::tokens;
 use crate::diagnostics::Diagnostic;
 
 /// The contract file, with its outline when it parsed with no problem.
@@ -146,7 +146,7 @@ fn check_gated(
                 ),
             ));
         }
-        if !super::options::declared(options, option) {
+        if !crate::build::check::options::declared(options, option) {
             diagnostics.push(Diagnostic::in_file(
                 path,
                 format!(

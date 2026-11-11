@@ -5,12 +5,12 @@ use std::path::{Path, PathBuf};
 
 use serde_json::json;
 
-use super::binary::Binary;
-use super::content::{Content, Piece};
-use super::contract::Part;
-use super::harness::Harness;
-use super::options::{self, OptionsFile};
-use super::render;
+use crate::build::check::content::{Content, Piece};
+use crate::build::check::options::{self, OptionsFile};
+use crate::build::harness::Harness;
+use crate::build::render;
+use crate::build::render::binary::Binary;
+use crate::build::render::contract::Part;
 
 /// Renders the Cursor plugin into its staging folder and returns it with the number of files.
 ///

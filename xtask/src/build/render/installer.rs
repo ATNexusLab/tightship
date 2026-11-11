@@ -4,8 +4,8 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use super::harness::Harness;
-use super::scripts::{self, Shell};
+use crate::build::harness::Harness;
+use crate::build::render::scripts::{self, Shell};
 use crate::diagnostics::with_path;
 
 type Registry = fn(&[Harness]) -> String;

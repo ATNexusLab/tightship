@@ -1,22 +1,9 @@
 //! `cargo xtask build`: checks `content/` and `harnesses/`, then renders one plugin per harness into `dist/`.
 
-mod antigravity_cli;
-pub mod binary;
-mod claude_code;
-mod content;
-mod contract;
-mod cursor;
+mod check;
 pub mod harness;
-mod identity;
-mod installer;
-mod neutrality;
-mod options;
-mod references;
+mod harnesses;
 pub mod render;
-pub mod scripts;
-mod staging;
-mod tokens;
-mod words;
 
 use std::fs;
 use std::io;
@@ -24,7 +11,10 @@ use std::path::{Path, PathBuf};
 
 use crate::diagnostics::{Diagnostic, with_path};
 use crate::diagnostics::{Failure, stop_on_errors};
-use content::{Content, Kind};
+use check::content::{Content, Kind};
+use check::{content, identity, neutrality, references};
+use harnesses::{antigravity_cli, claude_code, cursor};
+use render::{binary, contract, installer, staging};
 
 /// Builds every plugin and both installers, removing what a failed build left in `dist/`.
 ///

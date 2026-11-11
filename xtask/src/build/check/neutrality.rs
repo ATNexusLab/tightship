@@ -4,9 +4,9 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use super::content::Content;
-use super::harness::Harness;
-use super::words::is_part_of_a_word;
+use crate::build::check::content::Content;
+use crate::build::check::words::is_part_of_a_word;
+use crate::build::harness::Harness;
 use crate::diagnostics::{Diagnostic, with_path};
 use crate::files::{self, slash_path};
 

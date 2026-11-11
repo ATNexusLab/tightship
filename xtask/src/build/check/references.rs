@@ -1,8 +1,8 @@
 //! Checks every token and every literal reference to a piece in `content/`.
 
-use super::content::{Content, Kind, SupportingBody};
-use super::harness::Harness;
-use super::tokens::{self, Form, Token};
+use crate::build::check::content::{Content, Kind, SupportingBody};
+use crate::build::harness::Harness;
+use crate::build::render::tokens::{self, Form, Token};
 use crate::diagnostics::Diagnostic;
 
 struct Text<'content> {

@@ -1,21 +1,26 @@
 //! The layout every plugin shares: manifest, catalog, pieces, contract, launchers, and binaries.
 
+pub mod binary;
+pub mod contract;
+pub mod installer;
+pub mod scripts;
+pub mod staging;
+pub mod tokens;
+
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
 
-use super::binary::Binary;
-use super::content::{Content, Kind, Piece, SupportingBody};
-use super::contract::Part;
-use super::harness::Harness;
-use super::options::OptionsFile;
-use super::scripts::{self, Shell};
-use super::staging;
-use super::tokens;
+use crate::build::check::content::{Content, Kind, Piece, SupportingBody};
+use crate::build::check::options::OptionsFile;
+use crate::build::harness::Harness;
 use crate::diagnostics::with_path;
 use crate::{files, workspace};
+use binary::Binary;
+use contract::Part;
+use scripts::Shell;
 
 /// What a harness adds to the shared layout.
 pub struct Layout {

@@ -9,10 +9,10 @@ use sha2::{Digest, Sha256};
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, DateTime, System, ZipWriter};
 
-use crate::build::binary::PLATFORMS;
 use crate::build::harness;
+use crate::build::render::binary::PLATFORMS;
 use crate::build::render::pretty_json;
-use crate::build::scripts::kebab_to_pascal;
+use crate::build::render::scripts::kebab_to_pascal;
 use crate::diagnostics::{Diagnostic, with_path};
 use crate::diagnostics::{Failure, stop_on_errors};
 use crate::files::remove_if_present;
