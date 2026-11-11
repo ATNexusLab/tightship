@@ -77,7 +77,7 @@ fn parse_boolean_value(name: &str, value: &str) -> Result<bool, Failure> {
     match value {
         "true" => Ok(true),
         "false" => Ok(false),
-        _ => Err(Failure::OptionsInvalidValue(name.to_owned())),
+        _ => Err(Failure::OptionsNotBoolean(name.to_owned())),
     }
 }
 
@@ -96,9 +96,9 @@ fn read_file(path: &Path) -> Result<Option<serde_json::Map<String, Value>>, Fail
         .extension()
         .is_some_and(|extension| extension == "toml")
     {
-        let invalid = |_| Failure::OptionsInvalid(path.to_path_buf());
+        let invalid = |_| Failure::OptionsTomlInvalid(path.to_path_buf());
         let table = text.parse::<toml::Table>().map_err(invalid)?;
-        serde_json::to_value(table).map_err(|_| Failure::OptionsInvalid(path.to_path_buf()))?
+        serde_json::to_value(table).map_err(|_| Failure::OptionsTomlInvalid(path.to_path_buf()))?
     } else {
         serde_json::from_str(text).map_err(|_| Failure::OptionsJsonInvalid(path.to_path_buf()))?
     };
@@ -117,7 +117,6 @@ fn write_table(path: &Path, table: &serde_json::Map<String, Value>) -> Result<()
     Ok(())
 }
 
-#[derive(Debug, Clone)]
 pub struct Options {
     pub contract: bool,
     pub memory: bool,
@@ -137,7 +136,7 @@ impl Options {
         match self.table.get(name) {
             None => Ok(true),
             Some(Value::Bool(value)) => Ok(*value),
-            Some(_) => Err(Failure::OptionsValueInvalid(
+            Some(_) => Err(Failure::OptionsFileValueInvalid(
                 self.file.clone(),
                 name.to_owned(),
             )),
@@ -166,7 +165,7 @@ pub fn load() -> Result<Options, Failure> {
         Some(Value::String(value)) if value.trim().is_empty() => None,
         Some(Value::String(value)) => Some(expand_tilde(Path::new(value.trim()))),
         Some(_) => {
-            return Err(Failure::OptionsValueInvalid(
+            return Err(Failure::OptionsFileValueInvalid(
                 file,
                 "vault_folder".to_owned(),
             ));

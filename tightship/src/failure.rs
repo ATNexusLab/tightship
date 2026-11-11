@@ -24,13 +24,13 @@ Usage: tightship vault path
        tightship update";
 
 pub enum Failure {
+    Usage(String),
+    VariableNotSet(&'static str),
+    EnvUnwritable(PathBuf, io::Error),
     VaultNotSet,
     VaultNotAbsolute(PathBuf),
     VaultMissing(PathBuf),
     VaultUnreadable(PathBuf, io::Error),
-    NoteUnreadable(PathBuf, io::Error),
-    EnvUnwritable(PathBuf, io::Error),
-    HookInputNoProject(String),
     InitNoGit,
     InitNotEmpty(PathBuf),
     InitUnwritable(PathBuf, io::Error),
@@ -44,9 +44,10 @@ pub enum Failure {
     NoteCreatedInvalid,
     NoteBodyMissing,
     NoteExists(PathBuf),
+    NoteUnreadable(PathBuf, io::Error),
     NoteUnwritable(PathBuf, io::Error),
-    HandoffBodyIncomplete(Vec<&'static str>),
     NoteUnremovable(PathBuf, io::Error),
+    HandoffBodyIncomplete(Vec<&'static str>),
     LintFailed,
     SyncUnfinished(PathBuf),
     SyncNoUpstream {
@@ -57,8 +58,13 @@ pub enum Failure {
     SyncConflict(PathBuf, Vec<String>),
     SyncGitFailed(PathBuf, &'static str, String),
     RulesBlockBroken,
+    HookInputNoProject(String),
+    HookOutputUnreadable(PathBuf, io::Error),
+    HookOutputInvalid(PathBuf),
+    ContractPartNameInvalid(String),
+    ContractPartMissing(PathBuf),
+    ContractPartUnreadable(PathBuf, io::Error),
     StatusInputInvalid(String),
-    VariableNotSet(&'static str),
     SettingsUnreadable(PathBuf, io::Error),
     SettingsInvalid(PathBuf),
     SettingsUnwritable(PathBuf, io::Error),
@@ -66,19 +72,13 @@ pub enum Failure {
     StatusRecordUnwritable(PathBuf, io::Error),
     #[cfg(windows)]
     StatusLinePathUnreadable(PathBuf),
-    OptionsInvalid(PathBuf),
-    OptionsValueInvalid(PathBuf, String),
-    OptionsJsonInvalid(PathBuf),
     OptionsUnknown(String),
     OptionsUnreadable(PathBuf, io::Error),
-    HookOutputUnreadable(PathBuf, io::Error),
-    HookOutputInvalid(PathBuf),
-    Usage(String),
+    OptionsTomlInvalid(PathBuf),
+    OptionsJsonInvalid(PathBuf),
+    OptionsFileValueInvalid(PathBuf, String),
+    OptionsNotBoolean(String),
     OptionsIo(String),
-    OptionsInvalidValue(String),
-    ContractPartNameInvalid(String),
-    ContractPartMissing(PathBuf),
-    ContractPartUnreadable(PathBuf, io::Error),
     ManifestInvalid(PathBuf),
     UpdateToolMissing(&'static str),
     UpdateDownloadFailed(String, String),
@@ -104,6 +104,16 @@ pub enum Failure {
 impl fmt::Display for Failure {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", USAGE),
+            Self::VariableNotSet(variable) => write!(
+                formatter,
+                "{variable} is not set; run tightship through the plugin's bin/tightship"
+            ),
+            Self::EnvUnwritable(file, error) => write!(
+                formatter,
+                "cannot write the session's environment file {}: {error}",
+                file.display()
+            ),
             Self::VaultNotSet => write!(
                 formatter,
                 "no vault is set for this session; turn memory on, set the plugin's vault folder, and start a new session"
@@ -122,14 +132,6 @@ impl fmt::Display for Failure {
                 formatter,
                 "cannot read the vault folder {}: {error}",
                 folder.display()
-            ),
-            Self::NoteUnreadable(path, error) => {
-                write!(formatter, "cannot read {}: {error}", path.display())
-            }
-            Self::EnvUnwritable(file, error) => write!(
-                formatter,
-                "cannot write the session's environment file {}: {error}",
-                file.display()
             ),
             Self::InitNoGit => write!(
                 formatter,
@@ -170,20 +172,19 @@ impl fmt::Display for Failure {
             Self::NoteCreatedInvalid => write!(formatter, "--created must be a date as YYYY-MM-DD"),
             Self::NoteBodyMissing => write!(formatter, "the note's body must arrive on stdin"),
             Self::NoteExists(path) => write!(formatter, "{} already exists", path.display()),
+            Self::NoteUnreadable(path, error) => {
+                write!(formatter, "cannot read {}: {error}", path.display())
+            }
             Self::NoteUnwritable(path, error) => {
                 write!(formatter, "cannot write {}: {error}", path.display())
+            }
+            Self::NoteUnremovable(path, error) => {
+                write!(formatter, "cannot remove {}: {error}", path.display())
             }
             Self::HandoffBodyIncomplete(missing) => write!(
                 formatter,
                 "the handoff's body has no {}; each of **Goal:**, **Done:**, **Next step:**, **Open decisions:**, and **Repo state:** starts a line of it",
                 missing.join(", ")
-            ),
-            Self::NoteUnremovable(path, error) => {
-                write!(formatter, "cannot remove {}: {error}", path.display())
-            }
-            Self::HookInputNoProject(pointer) => write!(
-                formatter,
-                "the hook's input on stdin names no project folder at {pointer}"
             ),
             Self::LintFailed => write!(formatter, "the lint found problems in the vault"),
             Self::SyncUnfinished(vault) => write!(
@@ -217,13 +218,32 @@ impl fmt::Display for Failure {
                 crate::vault::rules::START,
                 crate::vault::rules::END
             ),
+            Self::HookInputNoProject(pointer) => write!(
+                formatter,
+                "the hook's input on stdin names no project folder at {pointer}"
+            ),
+            Self::HookOutputUnreadable(path, error) => {
+                write!(formatter, "cannot read {}: {error}", path.display())
+            }
+            Self::HookOutputInvalid(path) => write!(
+                formatter,
+                "{} is not JSON with a \"{{text}}\" slot for the hook's output",
+                path.display()
+            ),
+            Self::ContractPartNameInvalid(name) => {
+                write!(formatter, "contract part name {:?} is invalid", name)
+            }
+            Self::ContractPartMissing(path) => {
+                write!(formatter, "contract part {} is missing", path.display())
+            }
+            Self::ContractPartUnreadable(path, error) => write!(
+                formatter,
+                "cannot read contract part {}: {error}",
+                path.display()
+            ),
             Self::StatusInputInvalid(message) => write!(
                 formatter,
                 "the status line input is not a JSON object: {message}"
-            ),
-            Self::VariableNotSet(variable) => write!(
-                formatter,
-                "{variable} is not set; run tightship through the plugin's bin/tightship"
             ),
             Self::SettingsUnreadable(path, error) => write!(
                 formatter,
@@ -256,47 +276,27 @@ impl fmt::Display for Failure {
                 "the status line cannot run {}: cmd reads a space or one of & ^ ( ) % ! ; = , in its path, and no 8.3 short name avoids it; move the plugin to a folder without them",
                 path.display()
             ),
-            Self::OptionsValueInvalid(path, name) => write!(
-                formatter,
-                "{} has an invalid value for {name}",
-                path.display()
-            ),
-            Self::OptionsInvalid(path) => {
-                write!(formatter, "{} is not valid TOML", path.display())
-            }
-            Self::OptionsJsonInvalid(path) => {
-                write!(formatter, "{} is not valid JSON", path.display())
-            }
             Self::OptionsUnknown(name) => {
                 write!(formatter, "unknown option \"{name}\"")
             }
             Self::OptionsUnreadable(path, error) => {
                 write!(formatter, "cannot read {}: {error}", path.display())
             }
-            Self::HookOutputUnreadable(path, error) => {
-                write!(formatter, "cannot read {}: {error}", path.display())
+            Self::OptionsTomlInvalid(path) => {
+                write!(formatter, "{} is not valid TOML", path.display())
             }
-            Self::HookOutputInvalid(path) => write!(
+            Self::OptionsJsonInvalid(path) => {
+                write!(formatter, "{} is not valid JSON", path.display())
+            }
+            Self::OptionsFileValueInvalid(path, name) => write!(
                 formatter,
-                "{} is not JSON with a \"{{text}}\" slot for the hook's output",
+                "{} has an invalid value for {name}",
                 path.display()
             ),
-            Self::Usage(problem) => write!(formatter, "{problem}\n\n{}", USAGE),
-            Self::OptionsIo(message) => write!(formatter, "{message}"),
-            Self::OptionsInvalidValue(name) => {
+            Self::OptionsNotBoolean(name) => {
                 write!(formatter, "{name} must be true or false")
             }
-            Self::ContractPartNameInvalid(name) => {
-                write!(formatter, "contract part name {:?} is invalid", name)
-            }
-            Self::ContractPartMissing(path) => {
-                write!(formatter, "contract part {} is missing", path.display())
-            }
-            Self::ContractPartUnreadable(path, error) => write!(
-                formatter,
-                "cannot read contract part {}: {error}",
-                path.display()
-            ),
+            Self::OptionsIo(message) => write!(formatter, "{message}"),
             Self::ManifestInvalid(path) => write!(
                 formatter,
                 "{} is not a plugin manifest with a name, a version, and a repository",
