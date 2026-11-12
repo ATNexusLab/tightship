@@ -14,6 +14,8 @@ Since M3 (#118), `skills/delivery/` carries the rules from an approved plan to i
 names the project skills' folder through the capability `project-skills-folder`, since `.agents/` belongs to
 one harness's terms, and its pointer comes from the capability `project-skill-pointer` of each harness.
 Since #140, `skills/prose-editing/` edits prose written for people, the pass humanizer used to make.
+Since #158 (M3), `skills/production-artifact/` keeps every production artifact to what runs in production,
+and the bootstrap writes `.zed/` next to `.vscode/` for the editors the adopter confirms.
 
 **It never** names a harness, a harness path, or a harness tool
 ([NFR-FLEX-06](../../requirements/non-functional/flexibility.md#nfr-flex-06)), and never writes another piece's

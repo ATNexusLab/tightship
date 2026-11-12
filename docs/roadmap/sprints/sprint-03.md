@@ -3,7 +3,7 @@
 **Goal:** An adopter installs from any shell on Windows, Linux, or macOS, reads everything the installer
 prints, and ends with memory and the status line working with no manual step; the status line keeps
 updating while the session is idle.
-**Requirements baseline:** v3.0.0 · change requests decided:
+**Requirements baseline:** v3.0.0, v4.1.0 since #158 joined · change requests decided:
 [#141](https://github.com/ATNexusLab/tightship/issues/141), approved;
 [#140](https://github.com/ATNexusLab/tightship/issues/140) waits for its audit, an item of this sprint
 **Milestones:** none; the items fix and extend what M1 to M3 shipped
@@ -21,8 +21,10 @@ without a plan, so the iteration's number is ahead of the sprint's.
 | [#139](https://github.com/ATNexusLab/tightship/issues/139) Configure the editor extensions bootstrap recommends | `content/` only. |
 | [#136](https://github.com/ATNexusLab/tightship/issues/136) Keep only the physical data model diagram | `content/` only. |
 | [#140](https://github.com/ATNexusLab/tightship/issues/140) Audit the companion plugins | The audit decides the change request: approved, it moves BR-04 and BR-05 through `/requirements`; rejected, it is closed with the reason. It also answers OQ-05, which the Codex spec needs. Approved: the audit became the [spec](../../specs/own-the-companions/own-the-companions.md) of epic #140, and [#149](https://github.com/ATNexusLab/tightship/issues/149) brought it into the SRS as version 4.0.0, which answers OQ-05. |
+| [#158](https://github.com/ATNexusLab/tightship/issues/158) Zed support and lean production artifacts | Pulled in on 2026-11-11, after the sprint started. `content/` and `docs/`, no Rust: the editor setup, the diagram export, a new skill, and a live check of every harness in Zed. Its [spec](../../specs/zed-and-lean-artifacts/zed-and-lean-artifacts.md) brought FR-SKL-07, FR-SKL-08, and NFR-FLEX-08 into the SRS as version 4.1.0. |
 
 ## Specs before code
 
-Item #140 became an epic, with its [spec](../../specs/own-the-companions/own-the-companions.md). Every other
-item is one delivery on its own branch. The Codex epic of M4 waits for nothing.
+Item #140 became an epic, with its [spec](../../specs/own-the-companions/own-the-companions.md), and #158 is
+one, with its [spec](../../specs/zed-and-lean-artifacts/zed-and-lean-artifacts.md). Every other item is one
+delivery on its own branch. The Codex epic of M4 waits for nothing.

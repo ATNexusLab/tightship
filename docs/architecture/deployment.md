@@ -9,6 +9,7 @@ Dashed boxes are not built yet; each belongs to the epic in its label.
 | Maintainer's machine, macOS, Linux, or Windows | The build, `cargo xtask build` and `cargo xtask scan`, and the gates. The plugins are tried with `claude --plugin-dir dist/claude-code` and `agy plugin validate dist/antigravity-cli --strict` | M1, #1; M3, #59 |
 | GitHub | GitHub Actions runs the gates on the three systems at each pull request, and at a tag builds every target; a GitHub Release holds each harness's archive, the catalog, and `install.sh` / `install.ps1` | M1, #8; M3, #59 |
 | Adopter's machine | Claude Code and Antigravity CLI, the installed plugin, and the `tightship` binary its hooks run | M1, #2 and #5; M3, #59 |
+| Zed, on the adopter's machine | Each harness in Zed's terminal, as in any terminal, and in Zed's agent panel through the harness's adapter for the Agent Client Protocol, installed from Zed's registry; the harness's install guide names the pieces the panel does not load | M3, #158 |
 
 ## Packaging
 
