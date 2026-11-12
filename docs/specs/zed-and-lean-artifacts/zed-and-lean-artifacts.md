@@ -1,9 +1,9 @@
 # Support Zed and keep production artifacts lean
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `content/commands/`, `content/skills/`, `.zed/`, `docs/`
-> **Epic:** #158
+> **Epic:** [#158](https://github.com/ATNexusLab/tightship/issues/158)
 > **Requirements:** NFR-FLEX-01, NFR-FLEX-02, NFR-FLEX-03, FR-SKL-01; new: FR-SKL-07, FR-SKL-08, NFR-FLEX-08
 > **Sprint:** 3
 
@@ -412,8 +412,8 @@ repository, as `.vscode/` does.
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Ship only what production runs | `content/skills/production-artifact/` (new), `content/skills/delivery/SKILL.md`, `content/commands/audit.md`, `docs/architecture/building-blocks/canonical-content.md` | Scenarios 9 to 13 | — |
-| 2 | Export diagrams Zed renders | `content/skills/project-docs/SKILL.md`, the 10 `.drawio.svg` of `docs/` | Scenarios 4 and 5 | — |
-| 3 | Bootstrap and run every harness in Zed | `content/commands/bootstrap.md`, `.zed/settings.json`, `.zed/tasks.json`, `docs/README.md`, `docs/install/{claude-code,cursor,antigravity-cli}/install.md` and their `.pt-BR.md`, `docs/architecture/deployment.md`, `docs/architecture/diagrams/context.drawio.svg` | Scenarios 1 to 3, 6 to 8 | 2 |
+| # | Issue | Title | Scope | Acceptance criterion | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| 1 | [#157](https://github.com/ATNexusLab/tightship/issues/157) | Ship only what production runs | `content/skills/production-artifact/` (new), `content/skills/delivery/SKILL.md`, `content/commands/audit.md`, `docs/architecture/building-blocks/canonical-content.md` | Scenarios 9 to 13 | — |
+| 2 | [#159](https://github.com/ATNexusLab/tightship/issues/159) | Export diagrams Zed renders | `content/skills/project-docs/SKILL.md`, the 10 `.drawio.svg` of `docs/` | Scenarios 4 and 5 | — |
+| 3 | [#156](https://github.com/ATNexusLab/tightship/issues/156) | Bootstrap and run every harness in Zed | `content/commands/bootstrap.md`, `.zed/settings.json`, `.zed/tasks.json`, `docs/README.md`, `docs/install/{claude-code,cursor,antigravity-cli}/install.md` and their `.pt-BR.md`, `docs/architecture/deployment.md`, `docs/architecture/diagrams/context.drawio.svg` | Scenarios 1 to 3, 6 to 8 | 2 |
