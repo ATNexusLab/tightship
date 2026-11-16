@@ -302,8 +302,8 @@ one.
   version that reads on both themes. A project with no interface keeps the Zensical defaults and drops
   the logo and favicon lines.
 - **One command opens the site:** `uvx zensical==<version> serve --open`, on `http://localhost:8000`, with
-  the latest stable version from PyPI pinned. `docs/README.md` says it, and `.vscode/tasks.json` runs the
-  same command as its `docs: serve` task.
+  the latest stable version from PyPI pinned. `docs/README.md` says it, and the editor setup the bootstrap
+  writes, `.vscode/tasks.json` or `.zed/tasks.json`, runs the same command as its `docs: serve` task.
 - **Every image opens in a viewer.** Clicking an image or a diagram on any page opens it full screen;
   the scroll wheel zooms at the cursor, dragging pans, a double click fits it back and Esc closes. A
   diagram readable only at column width is not delivered. Copy `image-viewer.js` from this skill to

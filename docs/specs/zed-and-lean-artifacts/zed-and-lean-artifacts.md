@@ -43,6 +43,12 @@ Confirmed by the maintainer on 2026-11-11, in the grilling of
 6. **The bootstrap settles the editors in its step 2**, as one more setup assumption.
 7. **A piece that does not load in a harness's agent panel is recorded, not fixed**: the harness's install
    guide names it. A fix is a separate issue.
+8. **The agent panel check is its own task**, confirmed on 2026-11-16 in the grilling of
+   [#156](https://github.com/ATNexusLab/tightship/issues/156): task 4
+   ([#163](https://github.com/ATNexusLab/tightship/issues/163)), open until someone can run a live session
+   in Zed's agent panel. Task 3 writes each guide's terminal paragraph, which holds by construction: Zed's
+   terminal is an ordinary terminal. Until task 4 closes, the agent panel paragraph says the panel is not
+   checked yet.
 
 ## Acceptance Criteria
 
@@ -163,9 +169,10 @@ Its rules, naming no stack, packaging tool, or platform:
 #### The `In Zed` section of each install guide
 
 Two surfaces, one paragraph each. Zed's terminal: the harness's CLI runs as in any terminal, and every
-piece works. Zed's agent panel: the ACP registry entry the adopter installs, then the pieces that load
-and the ones that do not, from the live check, each missing piece with its reason. Claude Code's guide
-says the status line does not render in the agent panel: ACP has no status line surface.
+piece works. Zed's agent panel, once task 4 has checked it: the ACP registry entry the adopter installs,
+then the pieces that load and the ones that do not, from the live check, each missing piece with its
+reason. Claude Code's guide says the status line does not render in the agent panel: ACP has no status
+line surface.
 
 ### Roles and privileges
 
@@ -207,10 +214,12 @@ reads the gate's config file and never gets a copy of its rules, as in `.vscode/
 
 ### 5. The harnesses in Zed
 
-- Every harness is checked in a live session in Zed's terminal and in Zed's agent panel, piece by piece:
-  the contract, a skill, a command, a hook, the vault, and the status line.
-- What the check finds is what the install guide says; a missing piece is recorded with its reason.
-- The terminal needs no setup beyond the harness's own install.
+- Zed's terminal is an ordinary terminal: every harness runs there as in any other, and needs no setup
+  beyond its own install.
+- In Zed's agent panel, every harness is checked in a live session, piece by piece: the contract, a skill,
+  a command, a hook, the vault, and the status line. What the check finds is what the install guide says;
+  a missing piece is recorded with its reason. Until the check runs, the guide says the panel is not
+  checked yet.
 
 ### 6. Lean production artifacts
 
@@ -416,4 +425,5 @@ repository, as `.vscode/` does.
 | --- | --- | --- | --- | --- | --- |
 | 1 | [#157](https://github.com/ATNexusLab/tightship/issues/157) | Ship only what production runs | `content/skills/production-artifact/` (new), `content/skills/delivery/SKILL.md`, `content/commands/audit.md`, `docs/architecture/building-blocks/canonical-content.md` | Scenarios 9 to 13 | — |
 | 2 | [#159](https://github.com/ATNexusLab/tightship/issues/159) | Export diagrams Zed renders | `content/skills/project-docs/SKILL.md`, the 10 `.drawio.svg` of `docs/` | Scenarios 4 and 5 | — |
-| 3 | [#156](https://github.com/ATNexusLab/tightship/issues/156) | Bootstrap and run every harness in Zed | `content/commands/bootstrap.md`, `.zed/settings.json`, `.zed/tasks.json`, `docs/README.md`, `docs/install/{claude-code,cursor,antigravity-cli}/install.md` and their `.pt-BR.md`, `docs/architecture/deployment.md`, `docs/architecture/diagrams/context.drawio.svg` | Scenarios 1 to 3, 6 to 8 | 2 |
+| 3 | [#156](https://github.com/ATNexusLab/tightship/issues/156) | Bootstrap and run every harness in Zed | `content/commands/bootstrap.md`, `.zed/settings.json`, `.zed/tasks.json`, `docs/README.md`, `docs/install/{claude-code,cursor,antigravity-cli}/install.md` and their `.pt-BR.md`, `docs/architecture/deployment.md` | Scenarios 1 to 3 and 6 | 2 |
+| 4 | [#163](https://github.com/ATNexusLab/tightship/issues/163) | Check every harness in Zed's agent panel | The `In Zed` and `No Zed` sections of the six install guides, `docs/architecture/deployment.md` | Scenarios 7 and 8 | 3 |

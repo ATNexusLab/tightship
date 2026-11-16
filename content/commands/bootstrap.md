@@ -1,6 +1,6 @@
 +++
 name = "bootstrap"
-description = "Set up this repo for the workflow — its AGENTS.md, GitHub Project, .vscode/, and global docs"
+description = "Set up this repo for the workflow — its AGENTS.md, GitHub Project, editor setup (.vscode/, .zed/), and global docs"
 argument-hint = "[optional notes about the project]"
 +++
 
@@ -14,7 +14,7 @@ This command produces five things, each created on first run and realigned on ev
 2. The repo's project skills, in {{capability:project-skills-folder}}: its gates and every procedure of
    one area or step.
 3. The repo's GitHub Project, where the backlog lives.
-4. `.vscode/`, the editor setup the project needs.
+4. The editor setup the project needs: `.vscode/` for VS Code, `.zed/` for Zed, or both.
 5. The docs skeleton from `{{skill:project-docs}}`: `docs/README.md`, `docs/architecture/`, `docs/data-model/`,
    their diagrams, and the local docs site.
 
@@ -67,9 +67,16 @@ with its trade-off, and I choose. A decision I have not made stays open and goes
 output — it is never filled in to complete the file.
 
 **In every mode**, the same step also settles the setup in §4–§6: the branch model (an integration
-branch plus `main`, or `main` alone), the sprint length, the label set, the `.vscode/` contents, and
-the design tool the team documents screens with, when the project has an interface.
+branch plus `main`, or `main` alone), the sprint length, the label set, the editors and their setup
+contents, and the design tool the team documents screens with, when the project has an interface.
 These are decisions or assumptions like any other — nothing in §4–§6 runs before they close.
+
+The editors are one assumption, said word for word: "Editors: \<editors\> — writes \<folders\>."
+`\<editors\>` is `VS Code`, `Zed`, or `VS Code and Zed`, and `\<folders\>` the matching `.vscode/`,
+`.zed/`, or `.vscode/ and .zed/`. The set starts from the folders the repo has: `.vscode/` puts VS Code in
+it, `.zed/` puts Zed in it, and with neither it is both. My correction replaces the set, and its only
+domain is those two editors. In evolution, the folder of an editor I removed from the set goes on the
+change list for deletion, and stays until I approve the list.
 
 **Nothing is written until this step closes**, in every mode.
 
@@ -139,24 +146,38 @@ closing keyword reliably only in a PR into the default branch, so a PR into the 
 usually links no issue and the workflow does not fire. There, an issue's In Review and Staging are set with
 `gh project item-edit`.
 
-## 5. `.vscode/`
+## 5. Editor setup
 
-Only what serves this project, in its stack, for anyone who clones it — never a personal preference
-(theme, font, keymap).
+Written for the editors §2 settled, and only for them. Only what serves this project, in its stack, for
+anyone who clones it — never a personal preference (theme, font, keymap). The extension reads the gate's
+config file and never gets a copy of its rules; an extension that finds that file alone, or that no gate
+covers, gets no entry. Both editors carry the same tasks, and the repo's `.gitignore` ignores neither
+folder.
+
+### `.vscode/`
 
 - `extensions.json` — `recommendations` for the stack's language server, formatter, and linter, plus
   `hediet.vscode-drawio` for the diagrams. Each one works on open, with the setup below or with none.
 - `settings.json` — for each recommended extension, what it needs to run what the gates run: the formatter
   the gates check as the language's default formatter, on save; the linter with the command and arguments
   the gates pass, like `rust-analyzer.check.command` set to `clippy`; the path to a gate's config file when
-  the extension does not find it alone; the file associations the stack needs. The extension reads the
-  gate's config file and never gets a copy of its rules. An extension that finds that file alone, or that
-  no gate covers, gets no entry. An extension's own config file is written only when it needs one and no
-  gate has one.
+  the extension does not find it alone; the file associations the stack needs. An extension's own config
+  file is written only when it needs one and no gate has one.
 - `tasks.json` — only commands with no script behind them in the repo's task runner, like `docs: serve`
   for the local docs site, which runs the command `{{skill:project-docs}}` gives. A task that only wraps an
   existing script does not go in.
-- The repo's `.gitignore` must not ignore `.vscode/`.
+
+### `.zed/`
+
+- `settings.json` — under `lsp.<server>`, the command and arguments the gates pass, in
+  `initialization_options` or `settings` as the server reads them, like rust-analyzer's `check.command`
+  set to `clippy`; under `languages.<Language>`, the formatter the gates check as `formatter`, with
+  `format_on_save` set to `"on"`; under `file_types`, the associations the stack needs.
+- `tasks.json` — a JSON array with the tasks of `.vscode/tasks.json`, each as `{ "label", "command" }`.
+- The extensions go in a section `Editor` of `docs/README.md`, a table of the Zed extensions the project
+  needs by extension ID: Zed reads `auto_install_extensions` only from the global settings, so the project
+  cannot install them. Zed previews the diagrams and cannot edit them; they are edited in draw.io desktop or
+  in VS Code.
 
 ## 6. Docs
 
@@ -217,7 +238,7 @@ Bootstrap:
 - Skills:       [project skills written]
 - Gates:        [each, with exit code]
 - Project:      [url · Status ok · Sprint <length> · labels created/reused · workflows for you to set]
-- Editor:       [.vscode files written]
+- Editor:       [editors · .vscode/ and .zed/ files written or removed]
 - Docs:         [docs/README.md · requirements/diagrams/ · architecture/ · data-model/ · design/ · zensical.toml]
 - Open:         [what is declared pending / none]
 ```
