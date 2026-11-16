@@ -21,7 +21,7 @@ without it, all four run. Each agent loads its lens skill first.
 {{capability:security-review-command}} and {{capability:review-command}} cover sec and maint natively and
 run in this session instead.
 
-**Conditional lenses.** Three more skills load when the target calls for them:
+**Conditional lenses.** Four more skills load when the target calls for them:
 
 - **API contract** (HTTP/RPC endpoints, a GraphQL schema, webhook or event payloads) → **sec** and
   **arch** also load `{{skill:api-design}}` and judge the contract itself: authz per endpoint,
@@ -34,6 +34,9 @@ run in this session instead.
   `{{skill:frontend-architecture}}`: rules enforced only on the client, secrets past the server/client boundary,
   remote data copied into global state, shareable view state missing from the URL, async surfaces without
   all four states, and keyboard or focus gaps.
+- **Production artifact** (a container file, a build or release workflow, a deploy config, a packaging
+  manifest) → **sec** and **maint** also load `{{skill:production-artifact}}` and report a development
+  dependency in the artifact, a missing or open ignore file, and a single step that builds and runs.
 
 A skill is the lens, never the ceiling: a real problem outside its checklist counts, under the same
 admission gate as everything else.

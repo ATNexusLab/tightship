@@ -228,7 +228,7 @@ The skill's four rules, in [Response](#the-production-artifact-skill). `delivery
 > manifest) → **sec** and **maint** also load `{{skill:production-artifact}}` and report a development
 > dependency in the artifact, a missing or open ignore file, and a single step that builds and runs."
 
-Each finding's title, word for word:
+Each finding's title, given in the chat's language, as every line the audit reports:
 
 | Case | Title |
 | --- | --- |
@@ -352,7 +352,7 @@ And the image it describes holds the build output, the runtime dependencies, and
 ```gherkin
 Given a project whose production image installs the development dependencies
 When the adopter runs /audit on it
-Then a finding titled "Development dependency in the production artifact: <dependency> (<file>)" is reported
+Then a finding titled, in the chat's language, "Development dependency in the production artifact: <dependency> (<file>)" is reported
 ```
 
 ### Scenario 11 — The audit reports the ignore file
@@ -360,7 +360,7 @@ Then a finding titled "Development dependency in the production artifact: <depen
 ```gherkin
 Given a project with a container build and no ignore file
 When the adopter runs /audit on it
-Then a finding titled "No ignore file: the build receives the whole repository (<file>)" is reported
+Then a finding titled, in the chat's language, "No ignore file: the build receives the whole repository (<file>)" is reported
 And given an ignore file that only excludes paths, the finding is "Open ignore file: <file> excludes paths instead of admitting them"
 ```
 
@@ -369,7 +369,7 @@ And given an ignore file that only excludes paths, the finding is "Open ignore f
 ```gherkin
 Given a container file whose one stage builds and runs
 When the adopter runs /audit on it
-Then a finding titled "One step builds and runs the artifact (<file>)" is reported
+Then a finding titled, in the chat's language, "One step builds and runs the artifact (<file>)" is reported
 ```
 
 ### Scenario 13 — Nothing to audit (alternative)

@@ -33,6 +33,8 @@ replaces it.
   behind unchanged behavior and ahead of the change that needs it; the backend and frontend of one change
   are separate stages. Each stage closes green and is handed to you to read before the next starts, and a
   stage you have read is committed at your request. `{{command:closeout}}` runs once, after the last stage.
+- **What builds or ships a production artifact** loads `{{skill:production-artifact}}` before it is
+  written.
 - **A refactor that only moves files**, logic unchanged, is committed one module at a time, with the gates
   green and the test count equal to the baseline, without stopping for a reading.
 - **A script a person runs reports its progress**: each step announced before it starts, live progress on
