@@ -153,3 +153,5 @@ Every approved requirement of M1 to M4 maps to exactly one epic.
 - [Sprint 2](sprints/sprint-02.md) — Cursor and Antigravity CLI, the vault location with `~`, a status fix
 - [Sprint 3](sprints/sprint-03.md) — the installer in any shell with no step left, a live status line, the
   companions' audit
+- [Sprint 4](sprints/sprint-04.md) — v1.3.0, the Codex plugin, every surface of each harness, and the docs
+  standards, drift check, export, and estimates
