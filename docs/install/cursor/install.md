@@ -39,7 +39,7 @@ the vault at `~/ai-memory` included; a `-` on the vault question leaves it for l
 yes or no question, an arrow switches the answer. Nothing is written until you choose Install on the summary:
 
 ```text
-+  tightship v1.2.0
++  tightship v1.3.0
 |
 |  Options
 *  Load the working contract in every session?

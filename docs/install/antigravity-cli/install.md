@@ -35,7 +35,7 @@ and confirm with Enter. On a yes or no question, an arrow switches the answer. N
 choose Install on the summary:
 
 ```text
-+  tightship v1.2.0
++  tightship v1.3.0
 |
 |  Harnesses
 *  Where should tightship be installed?

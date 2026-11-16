@@ -34,7 +34,7 @@ CLIs encontrados, já marcados: mova com ↑ e ↓, marque ou desmarque com espa
 pergunta de sim ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Install no resumo:
 
 ```text
-+  tightship v1.2.0
++  tightship v1.3.0
 |
 |  Harnesses
 *  Where should tightship be installed?
