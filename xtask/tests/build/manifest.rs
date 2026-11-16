@@ -149,6 +149,7 @@ fn both_harnesses_build_from_canonical_content_and_pass_validation() {
         "testing-contract",
         "database-design",
         "prose-editing",
+        "production-artifact",
     ];
     let command_names = [
         "epic",

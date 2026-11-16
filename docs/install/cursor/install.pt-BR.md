@@ -128,3 +128,12 @@ Numa sessão interativa do `agent`, pergunte quais comandos slash estão dispon�
 
 Depois de um `cargo xtask build` local, você pode confirmar o mesmo com `agent --plugin-dir dist/cursor` em
 vez do zip do release.
+
+## No Zed
+
+O terminal do Zed é um terminal comum. Rode `agent` nele e cada peça funciona como em qualquer outro
+terminal, sem passo além deste guia.
+
+O agent panel do Zed, que roda o Cursor pela entrada `cursor` do registro de agentes do Zed, ainda não
+foi conferido ([#163](https://github.com/ATNexusLab/tightship/issues/163)). Até ser, rode o Cursor no
+terminal.

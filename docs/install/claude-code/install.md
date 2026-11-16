@@ -52,3 +52,12 @@ session's dialog: see [the options](options.md).
 ## Check it
 
 Run `claude plugin list`. `tightship@tightship` shows with no error.
+
+## In Zed
+
+Zed's terminal is an ordinary terminal. Run `claude` there and every piece works as it does in any other
+terminal, with no setup beyond this guide.
+
+Zed's agent panel, which runs Claude Code through the `claude-acp` entry of Zed's agent registry, has not
+been checked yet ([#163](https://github.com/ATNexusLab/tightship/issues/163)). Until it is, run Claude
+Code in the terminal.

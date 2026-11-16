@@ -6,6 +6,7 @@ VS Code, or on the local site.
 | Doc | What it holds |
 | --- | --- |
 | [Install guide, Claude Code](install/claude-code/README.md) | Installing, configuring, updating, and removing the plugin, and moving to it from the pre-plugin install |
+| [Install guide, Cursor](install/cursor/README.md) | Installing, configuring, updating, and removing the plugin |
 | [Install guide, Antigravity CLI](install/antigravity-cli/README.md) | Installing, configuring, updating, and removing the plugin, and moving to it from loose skills or rules |
 | [Requirements](requirements/README.md) | The versioned SRS: every requirement with its ID, attributes, and acceptance criteria, and a use case diagram per area |
 | [Architecture](architecture/README.md) | The map of the system in arc42 sections, with C4 diagrams |
@@ -22,8 +23,24 @@ VS Code, or on the local site.
 uvx zensical==0.0.70 serve --open
 ```
 
-It opens at `http://localhost:8000`, with a light and a dark theme. In VS Code, the `docs: serve` task
-runs the same command. Clicking any image or diagram opens it full screen to zoom and pan.
+It opens at `http://localhost:8000`, with a light and a dark theme. In VS Code and in Zed, the
+`docs: serve` task runs the same command. Clicking any image or diagram opens it full screen to zoom and
+pan.
 
 Diagrams are `.drawio.svg` files in the `diagrams/` folder of the doc they illustrate. They open for
-editing in VS Code with the draw.io extension the workspace recommends.
+editing in draw.io desktop, or in VS Code with the draw.io extension the workspace recommends. Zed
+previews them and cannot edit them.
+
+## Editor
+
+The repository carries its setup for VS Code in `.vscode/` and for Zed in `.zed/`: Rust formats on save,
+clippy's diagnostics show as you type, and the `docs: serve` task is there. VS Code offers its extensions
+when the folder opens. Zed installs extensions only from your own settings, so add these by ID:
+
+| Extension | What it serves |
+| --- | --- |
+| `markdownlint` | The Markdown lint, with the rules of `.markdownlint-cli2.jsonc` |
+| `toml` | `Cargo.toml`, `harness.toml`, and the other TOML files |
+| `powershell` | `install.ps1` and the PowerShell launchers |
+
+Rust support is built into Zed.

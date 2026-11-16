@@ -203,20 +203,39 @@ Done: #… · Carried over: #… → Sprint <N+1>, because <reason> · Back to b
   `containers`, `deployment`, `components-<block>`, `runtime-<scenario>`. `data-model/diagrams/`:
   `conceptual`, `physical`, and their `-<module>` versions, and `states-<entity>`.
   `requirements/diagrams/`: `use-cases-<area>`, `process-<name>`. Each is `<topic>.drawio.svg`, a valid
-  SVG with the diagram inside: GitHub and the site render it, and the `hediet.vscode-drawio` extension
-  edits it in VS Code.
+  SVG with the diagram inside: GitHub, the site, and Zed's preview render it, and draw.io desktop or the
+  `hediet.vscode-drawio` extension in VS Code edits it. Zed has no editor for it: its extension API has no
+  webview.
 - **Producing one:** write the diagram as draw.io XML (`<mxfile>`) in the scratchpad, then export with
   the draw.io desktop CLI: `<drawio> --export --embed-diagram --svg-theme light --output
   docs/<doc>/diagrams/<topic>.drawio.svg <file>.drawio`, where `<drawio>` is `drawio` on Linux,
   `/Applications/draw.io.app/Contents/MacOS/draw.io` on macOS, and `"C:\Program
   Files\draw.io\draw.io.exe"` on Windows. Without `--embed-diagram` the SVG can no longer be edited.
   Without `--svg-theme light` the SVG follows the reader's browser theme and turns black on a light page:
-  the root carries `color-scheme: light;`. draw.io 30 still writes `light-dark()` in every color, and that
-  root resolves each one to its light value, so the served site in dark is the check, never a grep. Labels
-  are plain text (`html=0`) and the model has `background="#ffffff"`. No draw.io desktop on the machine →
-  ask to install it: `winget install JGraph.Draw` on Windows, `brew install --cask drawio` on macOS, and on
-  Linux the distribution's `drawio` package or the AppImage from `jgraph/drawio-desktop` releases. Never
-  hand-write the SVG half.
+  the root carries `color-scheme: light;`. Labels are plain text (`html=0`) and the model has
+  `background="#ffffff"`. No draw.io desktop on the machine → ask to install it: `winget install
+  JGraph.Draw` on Windows, `brew install --cask drawio` on macOS, and on Linux the distribution's `drawio`
+  package or the AppImage from `jgraph/drawio-desktop` releases. Never hand-write the SVG half.
+- **Right after every export:** draw.io 30 still writes `light-dark()` in every color and a transparent
+  background, and Zed's preview, which renders SVG with resvg, resolves neither. This step replaces each
+  `light-dark(<light>, <dark>)` with `<light>` and gives the root a white background; the embedded diagram
+  is left as it is, so draw.io still opens the file. On macOS and Linux:
+
+  ```sh
+  perl -0pi -e 's/light-dark\(((?:[^(),]|\([^()]*\))+),\s*(?:[^()]|\([^()]*\))*\)/$1/g; s/background: transparent; background-color: transparent;/background: #ffffff; background-color: #ffffff;/' <file>
+  ```
+
+  On Windows, in PowerShell 7 (`pwsh`): Windows PowerShell 5.1 reads and writes the file in the system
+  code page and breaks every non-ASCII character in it.
+
+  ```powershell
+  $svg = Get-Content -Raw <file>
+  $svg = $svg -replace 'light-dark\(((?:[^(),]|\([^()]*\))+),\s*(?:[^()]|\([^()]*\))*\)', '$1'
+  $svg = $svg -replace 'background: transparent; background-color: transparent;', 'background: #ffffff; background-color: #ffffff;'
+  Set-Content -NoNewline -Path <file> -Value $svg
+  ```
+
+  The check: `grep -c 'light-dark(' <file>` prints `0`, and `grep -c mxfile <file>` does not.
 - **Architecture diagrams:** boxes labeled `<name>` + `[<technology>]` + a one-line responsibility; arrows
   labeled with what flows and the protocol. Built elements solid, later milestones dashed.
 - **Conceptual model in Chen notation** (the BR-Modelo look): entity = rectangle; weak entity = double
@@ -283,8 +302,8 @@ one.
   version that reads on both themes. A project with no interface keeps the Zensical defaults and drops
   the logo and favicon lines.
 - **One command opens the site:** `uvx zensical==<version> serve --open`, on `http://localhost:8000`, with
-  the latest stable version from PyPI pinned. `docs/README.md` says it, and `.vscode/tasks.json` runs the
-  same command as its `docs: serve` task.
+  the latest stable version from PyPI pinned. `docs/README.md` says it, and the editor setup the bootstrap
+  writes, `.vscode/tasks.json` or `.zed/tasks.json`, runs the same command as its `docs: serve` task.
 - **Every image opens in a viewer.** Clicking an image or a diagram on any page opens it full screen;
   the scroll wheel zooms at the cursor, dragging pans, a double click fits it back and Esc closes. A
   diagram readable only at column width is not delivered. Copy `image-viewer.js` from this skill to

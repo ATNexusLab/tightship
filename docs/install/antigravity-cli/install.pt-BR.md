@@ -124,3 +124,12 @@ vault_folder = "~/ai-memory"
 ## Conferência
 
 Execute `agy plugin list`. `tightship` aparece como instalado.
+
+## No Zed
+
+O terminal do Zed é um terminal comum. Rode `agy` nele e cada peça funciona como em qualquer outro
+terminal, sem passo além deste guia.
+
+O agent panel do Zed, que roda o Antigravity CLI pela entrada `antigravity-acp` do registro de agentes do
+Zed, ainda não foi conferido ([#163](https://github.com/ATNexusLab/tightship/issues/163)). Até ser, rode
+o Antigravity CLI no terminal.

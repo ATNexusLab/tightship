@@ -1,5 +1,17 @@
 # Changelog
 
+## 4.1.0 — 2026-11-11
+
+Adopters work in Zed as well as in VS Code, and in two projects the production image carried the development
+dependencies. The [spec of epic #158](../specs/zed-and-lean-artifacts/zed-and-lean-artifacts.md) adds the
+requirements for both.
+
+**Added**
+
+- FR-SKL-07: the bootstrap sets up VS Code, Zed, or both, and exports diagrams both editors render.
+- FR-SKL-08: a skill keeps production artifacts to what runs, and the audit command reports what breaks it.
+- NFR-FLEX-08: every harness runs in Zed's terminal and agent panel.
+
 ## 4.0.0 — 2026-11-10
 
 The workflow required ponytail, i-have-adhd, and humanizer, and installed them with itself. The audit of

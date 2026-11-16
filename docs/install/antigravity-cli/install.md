@@ -125,3 +125,12 @@ vault_folder = "~/ai-memory"
 ## Check it
 
 Run `agy plugin list`. `tightship` shows as installed.
+
+## In Zed
+
+Zed's terminal is an ordinary terminal. Run `agy` there and every piece works as it does in any other
+terminal, with no setup beyond this guide.
+
+Zed's agent panel, which runs Antigravity CLI through the `antigravity-acp` entry of Zed's agent
+registry, has not been checked yet ([#163](https://github.com/ATNexusLab/tightship/issues/163)). Until it
+is, run Antigravity CLI in the terminal.

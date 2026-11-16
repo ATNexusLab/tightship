@@ -129,3 +129,12 @@ the other workflow commands.
 
 After a local `cargo xtask build`, you can confirm the same with `agent --plugin-dir dist/cursor` instead of
 the release zip.
+
+## In Zed
+
+Zed's terminal is an ordinary terminal. Run `agent` there and every piece works as it does in any other
+terminal, with no setup beyond this guide.
+
+Zed's agent panel, which runs Cursor through the `cursor` entry of Zed's agent registry, has not been
+checked yet ([#163](https://github.com/ATNexusLab/tightship/issues/163)). Until it is, run Cursor in the
+terminal.
