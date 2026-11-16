@@ -37,11 +37,6 @@ alone gets the same rigor a team would demand.
 | Status line | Optional. Written to your settings only while you have it turned on |
 | Auto-update | On unless you turn it off. Each new release installs by itself, and the next session says so |
 
-Three companion plugins install with it. [ponytail](https://github.com/DietrichGebert/ponytail) keeps the
-code to the simplest thing that works. [i-have-adhd](https://github.com/ayghri/i-have-adhd) shapes answers
-so you can act on them. [humanizer](https://github.com/blader/humanizer) keeps prose from reading as
-generated.
-
 ## How a change moves
 
 ```text
@@ -62,16 +57,54 @@ Run the installer for Claude Code (2.1.295+), Cursor (3.25.6+, `agent` 2026.10.1
 curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | sh
 ```
 
-On Windows in PowerShell:
+On Windows in PowerShell (5.1 or 7):
 
 ```powershell
 irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
+```
+
+From `cmd`:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex"
 ```
 
 The installer detects your CLIs, asks where to install and which options to turn on, and writes nothing
 until you confirm the summary. The install guides ([Claude Code](docs/install/claude-code/README.md),
 [Cursor](docs/install/cursor/README.md), [Antigravity CLI](docs/install/antigravity-cli/README.md)) cover
 options, updates, uninstalling, and installing by hand.
+
+### Native install, without the installer
+
+Each harness can also install tightship on its own. The installer's questions are then skipped: the
+options and the status line are set as each guide's manual installation shows.
+
+Claude Code, from its plugin catalog ([guide](docs/install/claude-code/install.md#manual-installation)):
+
+```sh
+claude plugin marketplace add ATNexusLab/tightship
+claude plugin install tightship@tightship
+```
+
+Antigravity CLI, from the release zip ([guide](docs/install/antigravity-cli/install.md#manual-installation),
+with the Windows step):
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/tightship-antigravity-cli.zip -o /tmp/tightship.zip
+unzip -q -o /tmp/tightship.zip -d /tmp/tightship
+agy plugin install /tmp/tightship
+rm -f ~/.gemini/config/plugins/tightship/hooks.windows.json
+```
+
+Cursor, as a local plugin ([guide](docs/install/cursor/install.md#manual-installation)); reload the editor
+window afterwards, and it shows under Customize → Plugins:
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/tightship-cursor.zip -o /tmp/tightship.zip
+mkdir -p ~/.cursor/plugins/local/tightship
+unzip -q -o /tmp/tightship.zip -d ~/.cursor/plugins/local/tightship
+```
 
 ## Harnesses
 
@@ -107,7 +140,7 @@ lists every gate.
 | Where | What |
 | --- | --- |
 | [Install guide (Claude Code)](docs/install/claude-code/README.md) | Installing, options, updates, uninstalling, migration |
-| [Install guide (Cursor)](docs/install/cursor/README.md) | Installing, companions, options, updates, uninstalling |
+| [Install guide (Cursor)](docs/install/cursor/README.md) | Installing, options, updates, uninstalling |
 | [Install guide (Antigravity CLI)](docs/install/antigravity-cli/README.md) | Installing, options, updates, uninstalling, migration |
 | [Requirements](docs/requirements/README.md) | The versioned SRS: every requirement and its acceptance criteria |
 | [Architecture](docs/architecture/README.md) | The system map, in arc42 sections with C4 diagrams |

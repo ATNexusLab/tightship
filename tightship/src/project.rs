@@ -1,10 +1,17 @@
+//! Which vault scope a project belongs to, from the name of its repository's folder.
+
 use std::env;
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use crate::failure::Failure;
 
+/// The scope of the working folder.
+///
+/// # Errors
+///
+/// When the vault's `notes/` folder cannot be read.
 pub fn scope(vault: &Path) -> Result<String, Failure> {
     scope_of(
         vault,
@@ -12,11 +19,13 @@ pub fn scope(vault: &Path) -> Result<String, Failure> {
     )
 }
 
+/// The scope of the folder: a scope folder that matches its repository's name, or one that prefixes it.
+///
+/// # Errors
+///
+/// When the vault's `notes/` folder cannot be read.
 pub fn scope_of(vault: &Path, folder: &Path) -> Result<String, Failure> {
-    let top = folder
-        .ancestors()
-        .find(|ancestor| ancestor.join(".git").exists())
-        .unwrap_or(folder);
+    let top = repository_root(folder).unwrap_or(folder);
     let name = normalize(&top.file_name().unwrap_or_default().to_string_lossy());
     let scopes = scope_folders(vault)?;
     if scopes.contains(&name) {
@@ -33,17 +42,14 @@ pub fn scope_of(vault: &Path, folder: &Path) -> Result<String, Failure> {
     Ok(prefix.unwrap_or(name))
 }
 
-pub fn named_in_input(pointer: &str) -> Result<PathBuf, Failure> {
-    let unnamed = || Failure::HookInputNoProject(pointer.to_owned());
-    let input = io::read_to_string(io::stdin()).map_err(|_| unnamed())?;
-    let input: serde_json::Value = serde_json::from_str(&input).map_err(|_| unnamed())?;
-    let folder = input
-        .pointer(pointer)
-        .and_then(serde_json::Value::as_str)
-        .ok_or_else(unnamed)?;
-    Ok(PathBuf::from(folder))
+/// The nearest folder, from this one up, that holds a `.git`.
+pub fn repository_root(folder: &Path) -> Option<&Path> {
+    folder
+        .ancestors()
+        .find(|ancestor| ancestor.join(".git").exists())
 }
 
+/// The name as a scope: lowercase, without leading dots.
 pub fn normalize(name: &str) -> String {
     name.to_lowercase().trim_start_matches('.').to_owned()
 }

@@ -1,13 +1,16 @@
+//! Reads and checks `harnesses/<harness>/harness.toml`, the data that names a harness.
+
 use std::collections::BTreeMap;
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-use super::content::Kind;
-use crate::diagnostics::{Diagnostic, naming};
+use crate::build::check::content::Kind;
+use crate::diagnostics::{Diagnostic, with_path};
 
+/// One harness's data, named after its folder.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Harness {
@@ -20,13 +23,13 @@ pub struct Harness {
     pub paths: BTreeMap<String, String>,
     pub references: References,
     pub access: Access,
-    pub contract: Option<ContractTable>,
+    pub contract: Option<ContractLimits>,
     pub capabilities: BTreeMap<String, String>,
     pub neutrality: Neutrality,
-    #[serde(default)]
-    pub companions: Vec<Companion>,
+    pub clean: Option<Clean>,
 }
 
+/// The plugin's manifest fields.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Plugin {
@@ -37,6 +40,7 @@ pub struct Plugin {
     pub license: String,
 }
 
+/// The files a built plugin is found by, and the command that tries it.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Dist {
@@ -46,6 +50,7 @@ pub struct Dist {
     pub try_it: String,
 }
 
+/// How the installers recognize and install the harness.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Install {
@@ -55,25 +60,10 @@ pub struct Install {
     pub min_version: String,
     #[serde(default)]
     pub aliases: Vec<String>,
-    #[serde(rename = "companion-steps", default)]
-    pub companion_steps: CompanionSteps,
-}
-
-#[derive(Deserialize, Default)]
-#[serde(deny_unknown_fields)]
-pub struct CompanionSteps {
-    pub plugin: Option<Steps>,
-    pub skill: Option<Steps>,
-}
-
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Steps {
-    pub sh: String,
-    pub ps1: String,
 }
 
 impl Install {
+    /// The value of an `install` field a script token names.
     pub fn field(&self, name: &str) -> Option<&str> {
         match name {
             "label" => Some(&self.label),
@@ -84,43 +74,105 @@ impl Install {
     }
 }
 
+/// The most characters a session-start hook takes, and the notice the first part opens with.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct ContractTable {
+pub struct ContractLimits {
     pub limit: usize,
     #[serde(rename = "compaction-notice")]
     pub compaction_notice: Option<String>,
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Companion {
-    pub plugin: String,
-    pub marketplace: Option<String>,
-    pub repository: String,
+/// What `hook clean` removes: the companions' leftovers.
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "kebab-case")]
+pub struct Clean {
+    pub names: Vec<String>,
     #[serde(default)]
-    pub kind: CompanionKind,
+    pub previous_versions: bool,
+    #[serde(default)]
+    pub commands: Vec<CleanCommand>,
+    #[serde(default)]
+    pub paths: Vec<CleanPath>,
+    #[serde(default)]
+    pub json: Vec<CleanJson>,
+    #[serde(default)]
+    pub status_line: Vec<CleanStatusLine>,
 }
 
-#[derive(Deserialize, Default, Clone, Copy)]
-#[serde(rename_all = "lowercase")]
-pub enum CompanionKind {
-    #[default]
-    Plugin,
-    Skill,
+/// A command `hook clean` runs when a path exists.
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CleanCommand {
+    pub when: String,
+    pub run: String,
 }
 
-impl Companion {
-    pub fn marketplace(&self, harness: &str) -> io::Result<&str> {
-        self.marketplace.as_deref().ok_or_else(|| {
-            io::Error::other(format!(
-                "harnesses/{harness}/harness.toml: companion \"{}\" has no marketplace",
-                self.plugin
-            ))
-        })
+/// A file or folder `hook clean` removes.
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CleanPath {
+    pub path: String,
+}
+
+/// A JSON key `hook clean` removes from a file.
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CleanJson {
+    pub file: String,
+    pub remove: String,
+}
+
+/// A status line `hook clean` removes when its command holds this text.
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CleanStatusLine {
+    pub contains: String,
+}
+
+const COMPANIONS: [&str; 3] = ["ponytail", "i-have-adhd", "humanizer"];
+
+impl Clean {
+    fn problems(&self) -> Vec<String> {
+        let mut problems = Vec::new();
+        let well_named = |name: &String| {
+            (1..=64).contains(&name.len())
+                && name
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+        };
+        if !(1..=10).contains(&self.names.len()) || !self.names.iter().all(well_named) {
+            problems.push("[clean] names must be 1 to 10 names of [a-z0-9-]{1,64}".to_owned());
+        }
+        let paths = self
+            .commands
+            .iter()
+            .map(|command| &command.when)
+            .chain(self.paths.iter().map(|path| &path.path))
+            .chain(self.json.iter().map(|json| &json.file));
+        for path in paths {
+            let in_home = path.starts_with("~/") || path.starts_with("{config}/");
+            if !in_home || path.split('/').any(|part| part == "..") {
+                problems.push(format!("[clean] path {path} is outside the home folder"));
+            }
+        }
+        problems
     }
 }
 
+fn companions_outside_clean(text: &str) -> Vec<&'static str> {
+    let Ok(mut table) = text.parse::<toml::Table>() else {
+        return Vec::new();
+    };
+    table.remove("clean");
+    let rest = table.to_string();
+    COMPANIONS
+        .into_iter()
+        .filter(|name| rest.contains(name))
+        .collect()
+}
+
+/// How a rendered piece refers to another piece or to an option.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct References {
@@ -131,6 +183,7 @@ pub struct References {
 }
 
 impl References {
+    /// The reference template for a kind of piece.
     pub fn template(&self, kind: Kind) -> &str {
         match kind {
             Kind::Skill => &self.skill,
@@ -139,11 +192,13 @@ impl References {
         }
     }
 
+    /// How a rendered piece names an option.
     pub fn option(&self, name: &str) -> String {
         self.option.replace("{name}", name)
     }
 }
 
+/// The tools a read-only agent may use.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Access {
@@ -151,6 +206,7 @@ pub struct Access {
     pub read_only: String,
 }
 
+/// The names, paths, and tools only this harness's folder may mention.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Neutrality {
@@ -160,6 +216,7 @@ pub struct Neutrality {
 }
 
 impl Neutrality {
+    /// Every term the neutrality check looks for.
     pub fn terms(&self) -> impl Iterator<Item = &str> {
         self.names
             .iter()
@@ -169,18 +226,54 @@ impl Neutrality {
     }
 }
 
-pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Vec<Harness>> {
+/// The folders under `harnesses/`, sorted.
+///
+/// # Errors
+///
+/// When `harnesses/` cannot be listed.
+pub fn folders(root: &Path) -> io::Result<Vec<PathBuf>> {
     let directory = root.join("harnesses");
     if !directory.is_dir() {
         return Ok(Vec::new());
     }
     let mut folders = fs::read_dir(&directory)
-        .map_err(naming(&directory))?
+        .map_err(with_path(&directory))?
         .map(|entry| entry.map(|entry| entry.path()))
         .collect::<io::Result<Vec<_>>>()?;
+    folders.retain(|folder| folder.is_dir());
     folders.sort();
+    Ok(folders)
+}
+
+fn problems(harness: &Harness, text: &str) -> Vec<String> {
+    let mut problems = Vec::new();
+    let limit = harness.contract.as_ref().map(|table| table.limit);
+    if limit.is_some_and(|limit| !(1..=1_000_000).contains(&limit)) {
+        problems.push("[contract] limit must be 1 to 1000000".to_owned());
+    }
+    problems.extend(
+        harness
+            .clean
+            .as_ref()
+            .map(Clean::problems)
+            .unwrap_or_default(),
+    );
+    for companion in companions_outside_clean(text) {
+        problems.push(format!(
+            "{companion} is named outside [clean]; tightship depends on no other plugin"
+        ));
+    }
+    problems
+}
+
+/// Reads every harness, reporting each problem as a diagnostic.
+///
+/// # Errors
+///
+/// When a `harness.toml` cannot be read.
+pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Vec<Harness>> {
     let mut harnesses = Vec::new();
-    for folder in folders.iter().filter(|folder| folder.is_dir()) {
+    for folder in &folders(root)? {
         let name = folder
             .file_name()
             .map(|name| name.to_string_lossy().into_owned())
@@ -191,15 +284,11 @@ pub fn read_all(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> io::Result<Ve
             diagnostics.push(Diagnostic::general(format!("{path} is missing")));
             continue;
         }
-        let text = fs::read_to_string(&file).map_err(naming(&file))?;
+        let text = fs::read_to_string(&file).map_err(with_path(&file))?;
         match toml::from_str::<Harness>(&text) {
             Ok(harness) => {
-                let limit = harness.contract.as_ref().map(|table| table.limit);
-                if limit.is_some_and(|limit| !(1..=1_000_000).contains(&limit)) {
-                    diagnostics.push(Diagnostic::in_file(
-                        &path,
-                        "[contract] limit must be 1 to 1000000".to_owned(),
-                    ));
+                for problem in problems(&harness, &text) {
+                    diagnostics.push(Diagnostic::in_file(&path, problem));
                 }
                 harnesses.push(Harness { name, ..harness });
             }

@@ -34,5 +34,4 @@ Reportes sobre qualquer um destes estão no escopo:
 - a sua identidade, os seus segredos ou as notas do seu vault vazando para um build ou um release
 - os binários ou o catálogo do release não batendo com o código deste repositório
 
-Vulnerabilidades num plugin companheiro (ponytail, i-have-adhd, humanizer) ou num harness são dos
-mantenedores de cada um.
+Vulnerabilidades num harness são dos mantenedores dele.

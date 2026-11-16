@@ -38,7 +38,6 @@ Dashed boxes are not built yet. Every element belongs to the milestone in its la
 | Adopter | Person | Installs the plugin, picks its options, invokes its commands |
 | This repository | External system, GitHub | Holds the canonical source and the catalog each harness installs from |
 | Claude Code, Cursor, Antigravity CLI, Codex | External systems, one milestone each ([BR-01](../requirements/business-rules.md#br-01)) | Load the plugin in its harness's own format |
-| Companion plugins | External systems | Installed with the plugin where the harness allows it ([FR-INS-02](../requirements/functional/install.md#fr-ins-02)); in Claude Code, as the plugin's dependencies, each from its own catalog (M1, #2); in Antigravity CLI, by `install.sh` / `install.ps1` or the install guide's commands (M3, #59) |
 | Vault | External system, the adopter's git repository | Notes and handoffs the memory layer reads and writes |
 
 Out of scope: [the SRS's list](../requirements/README.md#scope).
@@ -51,7 +50,7 @@ From [ADR 0001](../decisions/0001-rust-build-and-tokenized-canonical-content.md)
   it into each harness's plugin under `dist/`, which is never committed.
 - **Harness-neutral content.** A piece refers to another piece, or to a harness capability, through a
   [token](concepts/tokens.md). Harness names, paths, and tools live only in `harnesses/<harness>/`.
-- **A rule lives where its step reaches it** (M4, #118). The contract keeps only the hard lines and what every
+- **A rule lives where its step reaches it** (M3, #118). The contract keeps only the hard lines and what every
   task needs; a rule of one step is in that step's skill or command, and a repository's procedures are project
   skills in `.agents/skills/`.
 - **Rust throughout.** The build is a Cargo `xtask`; the plugin ships one compiled binary, `tightship`, so an
@@ -74,15 +73,15 @@ contract` for each part, which wraps the text in `injectSteps` JSON; after `/com
 
 **Session start: memory** (M1, #5; M3, #59). With memory on, the same event runs `tightship hook start`. It
 reads the pinned notes of the project's scope and of `all`, and the project's handoff, from the vault folder
-the adopter set, and, since M4 (#118), the project's notes tagged `to-repo` as debts, and prints them within
+the adopter set, and, since M3 (#118), the project's notes tagged `to-repo` as debts, and prints them within
 9,000 characters (wrapped in `injectSteps` JSON in Antigravity CLI,
 M3, #59). In Claude Code it also appends `export TIGHTSHIP_VAULT=…` to the session's environment file; in
 Antigravity CLI, `tightship` reads `vault_folder` directly from `${PLUGIN_DATA}/options.toml`
 ([memory](concepts/memory.md)).
 
-**A compaction: the checkpoint** (M1, #5; M2, #58; M4, #118). A compaction prints the checkpoint, from
+**A compaction: the checkpoint** (M1, #5; M2, #58; M3, #118). A compaction prints the checkpoint, from
 `SessionStart` on the source `compact` in Claude Code and from `preCompact` in Cursor. No hook runs on a prompt
-since M4, and Antigravity CLI, with no compaction hook, gets no checkpoint.
+since M3, and Antigravity CLI, with no compaction hook, gets no checkpoint.
 
 **The agent reaches the vault** (M1, #5; M3, #59). The agent runs `tightship vault search`, `new`, or `lint`
 through its shell. The binary finds the vault in `TIGHTSHIP_VAULT` (exported in Claude Code) or in
@@ -107,7 +106,7 @@ folder and writes the workflow's into the user settings (`~/.claude/settings.jso
 
 **The adopter syncs the vault** (M1, #5). The command `sync` has the agent run `tightship vault sync`, which
 commits the vault's changes, rebases them on its git remote, renumbers colliding ids, removes the notes past
-their lifetime and rewrites the vault's rules block, each in its own commit (M4, #118), and pushes. A conflict
+their lifetime and rewrites the vault's rules block, each in its own commit (M3, #118), and pushes. A conflict
 or a git failure stops it with exit 1 and the next step, and the agent resolves it and syncs again
 ([memory](concepts/memory.md)).
 
@@ -130,7 +129,7 @@ See [the non-functional requirements](../requirements/non-functional/README.md).
 ## Risks and technical debt
 
 The known risks are the SRS's [assumptions and dependencies](../requirements/overview.md#assumptions-and-dependencies):
-each harness's plugin format and the companion plugins can change without notice.
+each harness's plugin format can change without notice.
 
 ## Glossary
 

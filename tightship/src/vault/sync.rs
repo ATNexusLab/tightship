@@ -1,5 +1,6 @@
+//! `tightship vault sync`: commits, rebases on the remote, renumbers colliding ids, expires notes, and pushes.
+
 use std::collections::HashSet;
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use jiff::Zoned;
@@ -7,8 +8,13 @@ use jiff::Zoned;
 use super::note::{self, Note};
 use super::{expire, rules};
 use crate::failure::Failure;
-use crate::git;
+use crate::system::git;
 
+/// Syncs the vault with its remote, or keeps it local when it has none.
+///
+/// # Errors
+///
+/// When a rebase is under way, there is no upstream, or a git step fails.
 pub fn run() -> Result<(), Failure> {
     let vault = super::folder()?;
     if is_under_way(&vault)? {
@@ -19,12 +25,7 @@ pub fn run() -> Result<(), Failure> {
         .trim()
         .is_empty()
     {
-        step(&vault, "commit", &["add", "-A"])?;
-        step(
-            &vault,
-            "commit",
-            &["commit", "--quiet", "-m", "vault: sync"],
-        )?;
+        commit(&vault, &["-A"], "vault: sync")?;
     }
     let remotes = step(&vault, "fetch", &["remote"])?;
     let Some(remote) = remotes.lines().next() else {
@@ -44,41 +45,7 @@ pub fn run() -> Result<(), Failure> {
     println!("> Fetching the remote");
     step(&vault, "fetch", &["fetch", "--quiet"])?;
     println!("> Rebasing local commits on the remote");
-    let pulled = step(
-        &vault,
-        "rebase",
-        &["rev-list", "--count", "HEAD..@{upstream}"],
-    )?;
-    let added = step(
-        &vault,
-        "rebase",
-        &[
-            "log",
-            "--diff-filter=A",
-            "--name-only",
-            "--format=",
-            "@{upstream}..HEAD",
-            "--",
-            "notes",
-        ],
-    )?;
-    let local: HashSet<PathBuf> = added
-        .lines()
-        .filter(|line| !line.is_empty())
-        .map(PathBuf::from)
-        .collect();
-    if let Err(message) = git::run(&vault, &["rebase", "--quiet", "@{upstream}"]) {
-        let unmerged = step(
-            &vault,
-            "rebase",
-            &["diff", "--name-only", "--diff-filter=U"],
-        )?;
-        let paths: Vec<String> = unmerged.lines().map(str::to_owned).collect();
-        if paths.is_empty() {
-            return Err(Failure::SyncGitFailed(vault, "rebase", message));
-        }
-        return Err(Failure::SyncConflict(vault, paths));
-    }
+    let (pulled, local) = rebase(&vault)?;
     let notes = note::read_all(&vault)?;
     let renames = colliding(&notes, &local, note::highest_id(&vault, &notes)?);
     if !renames.is_empty() {
@@ -102,28 +69,66 @@ pub fn run() -> Result<(), Failure> {
     Ok(())
 }
 
+fn rebase(vault: &Path) -> Result<(String, HashSet<PathBuf>), Failure> {
+    let pulled = step(
+        vault,
+        "rebase",
+        &["rev-list", "--count", "HEAD..@{upstream}"],
+    )?;
+    // The notes this clone added are the ones renumbered when their id collides.
+    let added = step(
+        vault,
+        "rebase",
+        &[
+            "log",
+            "--diff-filter=A",
+            "--name-only",
+            "--format=",
+            "@{upstream}..HEAD",
+            "--",
+            "notes",
+        ],
+    )?;
+    let local: HashSet<PathBuf> = added
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(PathBuf::from)
+        .collect();
+    if let Err(message) = git::run(vault, &["rebase", "--quiet", "@{upstream}"]) {
+        let unmerged = step(vault, "rebase", &["diff", "--name-only", "--diff-filter=U"])?;
+        let paths: Vec<String> = unmerged.lines().map(str::to_owned).collect();
+        if paths.is_empty() {
+            return Err(Failure::SyncGitFailed(
+                vault.to_path_buf(),
+                "rebase",
+                message,
+            ));
+        }
+        return Err(Failure::SyncConflict(vault.to_path_buf(), paths));
+    }
+    Ok((pulled, local))
+}
+
 fn expire(vault: &Path) -> Result<usize, Failure> {
     let expired = expire::run(vault, Zoned::now().date())?;
     if expired > 0 {
-        step(vault, "commit", &["add", "-A", "notes"])?;
-        step(
-            vault,
-            "commit",
-            &["commit", "--quiet", "-m", "vault: expire notes"],
-        )?;
+        commit(vault, &["-A", "notes"], "vault: expire notes")?;
     }
     Ok(expired)
 }
 
 fn update_rules(vault: &Path) -> Result<(), Failure> {
     if rules::run(vault)? {
-        step(vault, "commit", &["add", "AGENTS.md"])?;
-        step(
-            vault,
-            "commit",
-            &["commit", "--quiet", "-m", "vault: update the rules"],
-        )?;
+        commit(vault, &["AGENTS.md"], "vault: update the rules")?;
     }
+    Ok(())
+}
+
+fn commit(vault: &Path, paths: &[&str], message: &str) -> Result<(), Failure> {
+    let mut add = vec!["add"];
+    add.extend_from_slice(paths);
+    step(vault, "commit", &add)?;
+    step(vault, "commit", &["commit", "--quiet", "-m", message])?;
     Ok(())
 }
 
@@ -158,7 +163,7 @@ fn colliding<'notes>(
         .filter(|note| !taken.insert(note.field("id")))
         .map(|note| {
             highest += 1;
-            (note, format!("mem-{highest:04}"))
+            (note, note::id(highest))
         })
         .collect()
 }
@@ -183,13 +188,10 @@ fn renumber(vault: &Path, renames: &[(&Note, String)]) -> Result<(), Failure> {
         links.push((old_stem.clone(), new_stem));
         renamed.push((new_path, old_id, new_id.as_str()));
     }
-    for file in note::markdown_files(vault, &vault.join("notes"))? {
-        let path = vault.join(&file);
-        let text = fs::read_to_string(&path)
-            .map_err(|error| Failure::NoteUnreadable(file.clone(), error))?;
-        let mut rewritten = match renamed.iter().find(|(new_path, _, _)| *new_path == file) {
-            Some((_, old_id, new_id)) => with_id(&text, old_id, new_id),
-            None => text.clone(),
+    note::rewrite_all(vault, |file, text| {
+        let mut rewritten = match renamed.iter().find(|(new_path, _, _)| new_path == file) {
+            Some((_, old_id, new_id)) => with_id(text, old_id, new_id),
+            None => text.to_owned(),
         };
         for (old_stem, new_stem) in &links {
             for end in ["]]", "|", "#"] {
@@ -197,17 +199,9 @@ fn renumber(vault: &Path, renames: &[(&Note, String)]) -> Result<(), Failure> {
                     rewritten.replace(&format!("[[{old_stem}{end}"), &format!("[[{new_stem}{end}"));
             }
         }
-        if rewritten != text {
-            fs::write(&path, rewritten).map_err(|error| Failure::NoteUnwritable(file, error))?;
-        }
-    }
-    step(vault, "commit", &["add", "-A", "notes"])?;
-    step(
-        vault,
-        "commit",
-        &["commit", "--quiet", "-m", "vault: renumber colliding notes"],
-    )?;
-    Ok(())
+        rewritten
+    })?;
+    commit(vault, &["-A", "notes"], "vault: renumber colliding notes")
 }
 
 fn with_id(text: &str, old_id: &str, new_id: &str) -> String {

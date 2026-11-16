@@ -16,16 +16,6 @@ command = "claude"
 min-version = "2.1.295"
 aliases = ["claude"]
 
-[install.companion-steps.plugin]
-sh = """
-quietly claude plugin marketplace add {repository}
-quietly claude plugin marketplace update {marketplace}
-quietly claude plugin update {plugin}@{marketplace}"""
-ps1 = """
-try { & claude plugin marketplace add {repository} *> $null } catch {}
-try { & claude plugin marketplace update {marketplace} *> $null } catch {}
-try { & claude plugin update {plugin}@{marketplace} *> $null } catch {}"""
-
 [references]
 skill = "{plugin}:{name}"
 command = "/{plugin}:{name}"
@@ -84,17 +74,43 @@ tools = [
   "$ARGUMENTS",
 ]
 
-[[companions]]
-plugin = "ponytail"
-marketplace = "ponytail"
-repository = "DietrichGebert/ponytail"
-
-[[companions]]
-plugin = "i-have-adhd"
-marketplace = "i-have-adhd"
-repository = "ayghri/i-have-adhd"
-
-[[companions]]
-plugin = "humanizer"
-marketplace = "humanizer"
-repository = "blader/humanizer"
+[clean]
+names = ["ponytail", "i-have-adhd", "humanizer"]
+previous-versions = true
+paths = [
+  { path = "{config}/plugins/cache/ponytail/" },
+  { path = "{config}/plugins/marketplaces/ponytail/" },
+  { path = "{config}/plugins/data/ponytail-ponytail/" },
+  { path = "{config}/plugins/cache/i-have-adhd/" },
+  { path = "{config}/plugins/marketplaces/i-have-adhd/" },
+  { path = "{config}/plugins/data/i-have-adhd-i-have-adhd/" },
+  { path = "{config}/plugins/cache/humanizer/" },
+  { path = "{config}/plugins/marketplaces/humanizer/" },
+  { path = "{config}/plugins/data/humanizer-humanizer/" },
+  { path = "{config}/.ponytail-active" },
+  { path = "{config}/ponytail-modes/" },
+  { path = "{config}/ponytail-statusline.sh" },
+  { path = "{config}/ponytail-statusline.ps1" },
+  { path = "{config}/.ponytail-statusline-nudged" },
+  { path = "{config}/.ponytail-band" },
+  { path = "{config}/.i-have-adhd-always" },
+  { path = "~/.config/ponytail/" },
+  { path = "{config}/plugins/data/tightship-tightship/checkpoints/" },
+]
+json = [
+  { file = "{config}/settings.json", remove = "/enabledPlugins/ponytail@ponytail" },
+  { file = "{config}/settings.json", remove = "/extraKnownMarketplaces/ponytail" },
+  { file = "{config}/settings.json", remove = "/enabledPlugins/i-have-adhd@i-have-adhd" },
+  { file = "{config}/settings.json", remove = "/extraKnownMarketplaces/i-have-adhd" },
+  { file = "{config}/settings.json", remove = "/enabledPlugins/humanizer@humanizer" },
+  { file = "{config}/settings.json", remove = "/extraKnownMarketplaces/humanizer" },
+]
+status-line = [{ contains = "ponytail-statusline" }]
+commands = [
+  { when = "{config}/plugins/cache/ponytail/", run = "claude plugin uninstall ponytail@ponytail" },
+  { when = "{config}/plugins/marketplaces/ponytail/", run = "claude plugin marketplace remove ponytail" },
+  { when = "{config}/plugins/cache/i-have-adhd/", run = "claude plugin uninstall i-have-adhd@i-have-adhd" },
+  { when = "{config}/plugins/marketplaces/i-have-adhd/", run = "claude plugin marketplace remove i-have-adhd" },
+  { when = "{config}/plugins/cache/humanizer/", run = "claude plugin uninstall humanizer@humanizer" },
+  { when = "{config}/plugins/marketplaces/humanizer/", run = "claude plugin marketplace remove humanizer" },
+]

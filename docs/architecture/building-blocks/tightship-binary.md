@@ -7,14 +7,16 @@ The one program the plugin ships, with a subcommand per function. Epic #5 builds
 
 | Subcommand | Run by | Does |
 | --- | --- | --- |
-| `tightship hook start\|export\|checkpoint` | The plugin's hooks | Puts the [memory](../concepts/memory.md) context and the checkpoint in the session, and exports the vault's folder to it; `hook prompt` is gone since M4 (#118) |
-| `tightship vault path\|init\|search\|new\|lint\|sync` | The agent, through its shell | Reads, writes, lints, and syncs the adopter's vault, and creates one from the template; the sync also expires notes and keeps the rules block (M4, #118) |
+| `tightship hook start\|export\|checkpoint` | The plugin's hooks | Puts the [memory](../concepts/memory.md) context and the checkpoint in the session, and exports the vault's folder to it; `hook prompt` is gone since M3 (#118) |
+| `tightship vault path\|init\|search\|new\|lint\|sync` | The agent, through its shell | Reads, writes, lints, and syncs the adopter's vault, and creates one from the template; the sync also expires notes and keeps the rules block (M3, #118) |
 | `tightship vault handoff release\|claim` | The agent, through the command `handoff` (M1, #6) | Writes the project's handoff, or removes it and prints what it removed; never runs git |
 | `tightship hook status-line` | The plugin's hook, at `startup` | Writes the [status line](../concepts/status-line.md) into the user settings while its option is on, follows the plugin's folder, or puts the previous one back (M1, #7; #55) |
 | `tightship status-line render` | Claude Code, Cursor's CLI, and Antigravity CLI, as the status line | Prints the baseline's two rows for the session's JSON (M1, #7; M2, #58; M3, #59) |
 | `tightship hook contract-part <file>` | The plugin's hooks in Cursor (M2, #58) and Antigravity CLI (#89) | Prints one packed contract part from `${TIGHTSHIP_ROOT}/contract/` unless its option is `false` |
 | `tightship hook update` | The session-start hook in Cursor and Antigravity CLI | Prints the pending update notice once, and starts `tightship update` as a detached process when the last check is more than a day old |
 | `tightship update` | That hook, or the adopter | Downloads the latest release when it is newer, checks its sha256, and swaps the plugin's files in place, rolling back on failure |
+| `tightship hook map` | The session-start hook, unless the contract option is off | Prints the codebase map of the session's folder: one line per folder with its top-level names, at most 2,000 characters (#140) |
+| `tightship hook clean` | The session-start hook at `startup`, and the installer | Removes every leftover `clean.json` lists that still exists, and every older version folder of the plugin no session uses (#140) |
 | `tightship hook marketplace-auto-update` | Claude Code's hook, at `startup` | Writes `autoUpdate` on the plugin's entry in `extraKnownMarketplaces`, following the `auto_update` option |
 | `tightship options set\|list\|reset\|disabled` | The adopter | Edits `${TIGHTSHIP_DATA}/options.json`; `disabled` exits 0 when the option is `false`, and rejects `vault_folder`, which is no on/off option (#99) |
 
@@ -41,7 +43,8 @@ status line run the launcher through `sh`, and the launcher restores the executa
 own when an install dropped it.
 
 Inside, the code is split by domain, `vault/`, `hook/`, `status/` (M1, #7), and `update/`, with
-`options.rs` (M3, #59), a pure core, and the I/O at the edges, and it depends on `clap`, `jiff`,
+`options.rs` (M3, #59), a pure core, and the I/O at the edges, `system/` holding the environment, file,
+and git helpers every domain shares, and it depends on `clap`, `jiff`,
 `serde_json`, `deunicode`, `unicode-width` (M1, #7), and `toml` (M3, #59)
 ([ADR 0002](../../decisions/0002-tightship-binary-modules-and-dependencies.md)). `update/` downloads,
 hashes, and extracts through `curl`, `sha256sum` or `shasum`, and `unzip` on macOS and Linux, and through

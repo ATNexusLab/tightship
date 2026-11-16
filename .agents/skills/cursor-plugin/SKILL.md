@@ -37,20 +37,17 @@ and 75, not this task.
 ```
 
 A path field in the manifest replaces the default folder; it does not add to it (**docs**). The manifest has
-no field for dependencies, so companion plugins are installed by hand (probed 2026-10-15: no `dependencies`
-key in `.cursor-plugin/plugin.json`).
+no field for dependencies (probed 2026-10-15: no `dependencies` key in `.cursor-plugin/plugin.json`).
 
 The catalog is `.cursor-plugin/marketplace.json` at a git repository's root. Adopters add it with
 `agent plugin marketplace add <owner>/<repo>` (same shape as `claude plugin marketplace add`, **docs** until
-E2E probe) or from the editor under Customize → Plugins. Install companions before tightship; see
-`docs/install/cursor/companions.md`. Every documented source is git.
+E2E probe) or from the editor under Customize → Plugins. Every documented source is git.
 
 ## Loading a plugin to test it
 
 - **Editor and CLI:** copy the plugin to `~/.cursor/plugins/local/<name>/`. The editor shows it as **Local**
   under Customize → Plugins, after a reload. The CLI loads it too. The unified installer (`install.sh` /
-  `install.ps1 --harness cursor`) downloads the release zip and each companion repository into the same
-  `local/` tree (probed 2026-10-17 for tightship and a companion with only `.claude-plugin/`).
+  `install.ps1 --harness cursor`) unpacks the release zip into the same `local/` tree (probed 2026-10-17).
 - **CLI only:** `agent --plugin-dir <folder>`.
 - **Non-interactive:** `agent -p --trust "<prompt>"`. `-p` skips some hooks (below), so confirm a hook's
   behavior in an interactive session too.

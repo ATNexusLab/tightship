@@ -7,7 +7,7 @@ Install tightship using the interactive one-command installer, or run each step 
 ## One-command installer
 
 Run the installer directly from GitHub Releases. It detects your installed CLIs, prompts for your options,
-installs the companions and tightship, writes your `options.toml`, and configures your status line.
+installs tightship, writes your `options.toml`, and configures your status line.
 
 On Linux and macOS:
 
@@ -21,46 +21,57 @@ On Windows in PowerShell:
 irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
 ```
 
-Every question starts on its default, so pressing Enter through all of them installs with the defaults. The
+From `cmd`:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex"
+```
+
+Every question starts on its default, so pressing Enter through all of them installs with the defaults,
+the vault at `~/ai-memory` included; a `-` on the vault question leaves it for later. The
 first question lists the CLIs it found, already checked: move with ↑ and ↓, check or uncheck one with space,
 and confirm with Enter. On a yes or no question, an arrow switches the answer. Nothing is written until you
 choose Install on the summary:
 
 ```text
-┌  tightship v1.2.0
-│
-│  Harnesses
-◇  Where should tightship be installed?
-│  Antigravity CLI
-│
-│  Options
-◇  Load the working contract in every session?
-│  Yes
-│
-◇  Turn on the memory layer?
-│  Yes
-│
-◇  Show tightship's status line?
-│  Yes
-│
-◇  Keep tightship updated automatically?
-│  Yes
-│
-│  Vault
-◇  Where is your vault?
-│  not set
-│
-◇  Summary
-│  Harnesses       Antigravity CLI
-│  Contract        on
-│  Memory          on
-│  Vault           not set
-│  Status line     on
-│  Auto-update     on
-│
-◆  Install with these choices?
-│  ● Install / ○ Cancel
-└
++  tightship v1.3.0
+|
+|  Harnesses
+*  Where should tightship be installed?
+|  Antigravity CLI
+|
+|  Options
+*  Load the working contract in every session?
+|  Yes
+|
+*  Turn on the memory layer?
+|  Yes
+|
+*  Show tightship's status line?
+|  Yes
+|
+*  Keep tightship updated automatically?
+|  Yes
+|
+|  Vault
+*  Where is your vault?
+|  ~/ai-memory
+|
+*  ~/ai-memory does not exist. Create it now?
+|  Yes
+|
+*  Summary
+|  Harnesses       Antigravity CLI
+|  Contract        on
+|  Memory          on
+|  Vault           ~/ai-memory, created now
+|  Status line     on
+|  Auto-update     on
+|
+?  Install with these choices?
+|  (*) Install / ( ) Cancel
++
 ```
 
 To run unattended, pass options via flags:
@@ -74,17 +85,7 @@ curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/inst
 
 If you prefer to run each step by hand:
 
-### 1. Install the companions
-
-```sh
-agy plugin install https://github.com/DietrichGebert/ponytail
-agy plugin install https://github.com/ayghri/i-have-adhd
-mkdir -p ~/.gemini/config/skills/humanizer
-curl -fsSL https://raw.githubusercontent.com/blader/humanizer/main/SKILL.md \
-  -o ~/.gemini/config/skills/humanizer/SKILL.md
-```
-
-### 2. Download and install tightship
+### 1. Download and install tightship
 
 Download `tightship-antigravity-cli.zip` from the latest release, extract it, and install:
 
@@ -103,7 +104,7 @@ In Git Bash on Windows, replace the last line with the Windows hooks:
 mv -f ~/.gemini/config/plugins/tightship/hooks.windows.json ~/.gemini/config/plugins/tightship/hooks.json
 ```
 
-### 3. Write your options
+### 2. Write your options
 
 Create `~/.gemini/config/plugin_data/tightship/options.toml`:
 
@@ -115,7 +116,7 @@ auto_update = true
 vault_folder = "~/ai-memory"
 ```
 
-### 4. Enable the status line
+### 3. Enable the status line
 
 ```sh
 ~/.gemini/config/plugins/tightship/bin/tightship hook status-line
@@ -123,4 +124,13 @@ vault_folder = "~/ai-memory"
 
 ## Check it
 
-Run `agy plugin list`. `tightship`, `ponytail`, and `i-have-adhd` show as installed.
+Run `agy plugin list`. `tightship` shows as installed.
+
+## In Zed
+
+Zed's terminal is an ordinary terminal. Run `agy` there and every piece works as it does in any other
+terminal, with no setup beyond this guide.
+
+Zed's agent panel, which runs Antigravity CLI through the `antigravity-acp` entry of Zed's agent
+registry, has not been checked yet ([#163](https://github.com/ATNexusLab/tightship/issues/163)). Until it
+is, run Antigravity CLI in the terminal.

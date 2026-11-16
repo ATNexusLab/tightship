@@ -1,0 +1,1 @@
+[{ "label": "docs: serve", "command": "uvx zensical==0.0.70 serve --open" }]

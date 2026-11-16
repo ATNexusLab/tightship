@@ -88,7 +88,8 @@ The binary reads only these, and names no harness:
 | --- | --- | --- | --- | --- |
 | `TIGHTSHIP_STATUS_LINE` | string | No: absent when the adopter never set the option | The `status_line` option | `hook status-line` |
 | `TIGHTSHIP_SETTINGS` | absolute path | Yes | The user settings file | `hook status-line`, `status-line enable` |
-| `TIGHTSHIP_DATA` | absolute path | Yes | The plugin's data folder | `hook status-line`, `status-line enable`, `status-line decline` |
+| `TIGHTSHIP_DATA` | absolute path | Yes; optional for `render` | The plugin's data folder; for `render`, the Claude Code launcher derives it from the plugin's folder (#133) | `hook status-line`, `status-line enable`, `status-line decline`, `status-line render` |
+| `TIGHTSHIP_STATUS_LINE_REFRESH` | positive integer | No | The Claude Code launcher, `60` (#133) | `hook status-line`, `status-line enable` |
 | `TIGHTSHIP_ROOT` | absolute path | Yes | The plugin's folder for the installed version | `hook status-line`, `status-line enable` |
 | `COLUMNS` | positive integer | No | Claude Code, the terminal's width | `status-line render` |
 
@@ -169,9 +170,21 @@ The `statusLine` key, where it was or at the end when it is new, and every other
 {
   "statusLine": {
     "type": "command",
-    "command": "\"/home/adopter/.claude/plugins/cache/tightship/tightship/0.1.0/bin/tightship\" status-line render"
+    "command": "\"/home/adopter/.claude/plugins/cache/tightship/tightship/0.1.0/bin/tightship\" status-line render",
+    "refreshInterval": 60
   }
 }
+```
+
+`refreshInterval` is written only when `TIGHTSHIP_STATUS_LINE_REFRESH` is set, and only when the key is absent:
+a value the adopter set stays (#133).
+
+#### `<TIGHTSHIP_DATA>/rate-limits.json`
+
+The last reading of each rate limit window, written by `render` (rule 14):
+
+```json
+{ "five_hour": { "used_percentage": 4, "resets_at": 1792086600 }, "seven_day": { "used_percentage": 66, "resets_at": 1792249200 } }
 ```
 
 #### `<TIGHTSHIP_DATA>/status-line.json`
@@ -302,7 +315,8 @@ N/A. The binary runs as the adopter, on their machine, against their own files, 
 ### 10. A row fits the terminal
 
 - **When:** `render`, with `COLUMNS` a positive integer.
-- The width is `COLUMNS` minus 4. While a row is wider and holds more than one segment, the segment with the
+- The width is `COLUMNS` minus 4. While a row is wider, the 7-day gauge drops its reset, then the 5-hour gauge
+  drops its own (#133). While it is still wider and holds more than one segment, the segment with the
   highest priority number is dropped. Width is measured as the terminal shows it, color codes left out.
 - With `COLUMNS` absent or not a positive integer, each row prints whole.
 
@@ -324,10 +338,21 @@ N/A. The binary runs as the adopter, on their machine, against their own files, 
 ### 13. Persistence and audit
 
 - **Files changed:** the user settings' `statusLine` key, by `enable` and the hook. In the plugin's data
-  folder, `status-line.json`, by `enable`, `decline`, and the hook. The build writes one more hook into
-  `dist/claude-code/hooks/hooks.json`.
+  folder, `status-line.json`, by `enable`, `decline`, and the hook, and `rate-limits.json`, by `render`.
+  The build writes one more hook into `dist/claude-code/hooks/hooks.json`.
 - **Audit:** N/A. The settings and the data folder are the adopter's; nothing records who changed them.
 - **Events/integrations fired:** N/A. Nothing uses the network.
+
+### 14. A rate limit window keeps its last reading
+
+- **When:** `render`, with `TIGHTSHIP_DATA` set to a folder that exists. `render` never creates the folder.
+- Claude Code sends each window, `five_hour` and `seven_day`, on its own, and drops one once its `resets_at`
+  passes. A window in the input replaces its reading in `rate-limits.json`. A window missing from the input
+  shows the saved reading while its `resets_at` is still ahead; once it has passed, the reading is dropped
+  from the file (#133).
+- The file is rewritten only when it changes, through a temporary file and a rename, so another session never
+  reads half of it. A file that cannot be read counts as empty, and a failed write is ignored: the status
+  line prints either way.
 
 ---
 
@@ -398,6 +423,7 @@ Then both print the same segments in the same order, with the same colors, for a
 Given the stdin of the Request section and COLUMNS=60
 When `tightship status-line render` runs
 Then the identity row holds the folder, the branch, and the model, and no repository or effort
+And the usage row holds all three gauges, the 5-hour and 7-day ones without their reset
 And no row is wider than 56 columns
 ```
 
@@ -586,6 +612,46 @@ Then `tightship hook status-line` takes at most 50 ms at the 95th percentile
 And the session start, every hook together, stays within 500 ms at the 95th percentile
 ```
 
+### Scenario 24 — A window missing from the input (alternative, #133)
+
+```gherkin
+Given rate-limits.json holds a seven_day reading whose resets_at is an hour ahead
+And stdin holds five_hour and no seven_day
+When `tightship status-line render` runs
+Then the usage row shows the 7-day gauge from the saved reading
+And rate-limits.json holds both windows
+```
+
+### Scenario 25 — A saved reading past its reset (alternative, #133)
+
+```gherkin
+Given rate-limits.json holds a seven_day reading whose resets_at has passed
+And stdin holds five_hour and no seven_day
+When `tightship status-line render` runs
+Then the usage row has no 7-day gauge
+And rate-limits.json holds only five_hour
+```
+
+### Scenario 26 — A damaged cache, a missing data folder (exception, #133)
+
+```gherkin
+Given rate-limits.json that is not JSON, or no data folder
+When `tightship status-line render` runs
+Then it exits 0 and prints both rows from the input
+And no data folder is created
+```
+
+### Scenario 27 — The refresh interval (alternative, #133)
+
+```gherkin
+Given TIGHTSHIP_STATUS_LINE_REFRESH=60
+When the hook writes our statusLine, or finds ours with no refreshInterval
+Then the statusLine holds "refreshInterval": 60
+Given our statusLine with "refreshInterval": 5
+When the hook runs
+Then the settings are unchanged
+```
+
 ---
 
 ## Architecture impact
@@ -627,7 +693,6 @@ Applied to [docs/data-model/](../../data-model/README.md), marked M1, #7:
   there. The adopter keeps that choice.
 - **Segments beyond the baseline's:** cost, session name, vim mode, and the rest of Claude Code's input. FR-STL-01
   asks for the baseline's segments.
-- **A `refreshInterval`:** the baseline set none, so the status line runs on Claude Code's events.
 - **A `subagentStatusLine`:** the baseline had none.
 
 ## Task Breakdown

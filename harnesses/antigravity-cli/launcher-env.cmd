@@ -40,3 +40,7 @@ if not defined TIGHTSHIP_HOOK_OUTPUT (
 if not defined TIGHTSHIP_PROJECT_POINTER (
   set "TIGHTSHIP_PROJECT_POINTER=/workspacePaths/0"
 )
+
+if not defined TIGHTSHIP_CLEAN (
+  set "TIGHTSHIP_CLEAN=%PLUGIN_DIR%\clean.json"
+)

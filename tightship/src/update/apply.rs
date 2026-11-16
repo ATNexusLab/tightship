@@ -1,3 +1,5 @@
+//! Putting an extracted release in place of the plugin's files, and back on failure.
+
 use std::ffi::OsString;
 use std::fs;
 use std::io;
@@ -5,9 +7,15 @@ use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
 
+/// The folder under the plugin's root the release is extracted into.
 pub const STAGING: &str = ".update";
 const ASIDE: &str = ".tightship-old";
 
+/// Checks that the extracted release holds only plain files and folders.
+///
+/// # Errors
+///
+/// When it holds a symlink or another special file, or cannot be read.
 pub fn check_plain(staging: &Path, archive: &str) -> Result<(), Failure> {
     let mut folders = vec![staging.to_path_buf()];
     while let Some(folder) = folders.pop() {
@@ -30,6 +38,11 @@ pub fn check_plain(staging: &Path, archive: &str) -> Result<(), Failure> {
     Ok(())
 }
 
+/// Keeps `hooks.windows.json` as `hooks.json` on Windows, and drops it elsewhere.
+///
+/// # Errors
+///
+/// When the file cannot be renamed or removed.
 pub fn place_windows_hooks(staging: &Path) -> Result<(), Failure> {
     let windows_hooks = staging.join("hooks.windows.json");
     if !windows_hooks.is_file() {
@@ -43,6 +56,11 @@ pub fn place_windows_hooks(staging: &Path) -> Result<(), Failure> {
     placed.map_err(|error| Failure::UpdateApplyFailed(windows_hooks, error))
 }
 
+/// Moves the plugin's files aside and the release's into place, moving them back when one move fails.
+///
+/// # Errors
+///
+/// When a file cannot be moved; the files already moved are put back first.
 pub fn swap(root: &Path, staging: &Path) -> Result<(), Failure> {
     remove_aside_and_empty(root);
     let incoming = files(staging, staging)?;
@@ -67,6 +85,7 @@ pub fn swap(root: &Path, staging: &Path) -> Result<(), Failure> {
         .and_then(|()| fs::rename(&from, &to));
         if let Err(error) = moved {
             for (from, to) in renamed.iter().rev() {
+                // The failed move is the error reported; a rollback error would only hide it.
                 let _ = fs::rename(to, from);
             }
             return Err(Failure::UpdateApplyFailed(to, error));
@@ -78,6 +97,7 @@ pub fn swap(root: &Path, staging: &Path) -> Result<(), Failure> {
 }
 
 fn clean(root: &Path) {
+    // Leftovers of a finished swap are cleared at the next update.
     let _ = fs::remove_dir_all(root.join(STAGING));
     remove_aside_and_empty(root);
 }
@@ -93,8 +113,10 @@ fn remove_aside_and_empty(folder: &Path) {
         };
         if kind.is_dir() && entry.file_name() != ".git" {
             remove_aside_and_empty(&path);
+            // A folder that still holds files is kept; only empty ones go.
             let _ = fs::remove_dir(&path);
         } else if kind.is_file() && entry.file_name().to_string_lossy().ends_with(ASIDE) {
+            // An aside file left behind is cleared at the next update.
             let _ = fs::remove_file(&path);
         }
     }

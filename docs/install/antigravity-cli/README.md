@@ -16,7 +16,6 @@ from loose rules and skills.
 | Page | What it covers |
 | --- | --- |
 | [Installation](install.md) | Running the unified installer or manual install commands |
-| [The companions](companions.md) | The three companions installed with tightship |
 | [The options](options.md) | Storing contract, memory, status line, and vault folder in `options.toml` |
 | [Update](update.md) | Getting new versions from GitHub releases, automatically or through the installer |
 | [Uninstall](uninstall.md) | Removing the plugin and putting your previous status line back |

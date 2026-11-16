@@ -30,7 +30,7 @@ docs/
     risks.md                   risks and technical debt
     diagrams/<topic>.drawio.svg
   data-model/
-    README.md                  conceptual, logical and physical models, invariants, and the entity index
+    README.md                  conceptual and physical models, invariants, and the entity index
     access-patterns.md
     storage.md                 engine, indexes, policies, migrations — or files on disk
     diagrams/<topic>.drawio.svg
@@ -117,23 +117,18 @@ system from day one. A section that only describes something another doc owns is
 The method — access patterns first, identity, invariants — is `{{skill:database-design}}`. This folder is its
 record.
 
-- `README.md` — the conceptual model (Chen diagram), the logical and physical model diagrams, the
-  invariants, and a table: entity · one-line meaning · milestone.
-- **The logical and physical models are always documented, as diagrams, never text.** Both exist in every
-  project with a database, however wide it gets, and no per-entity file or attribute table in Markdown
-  restates them.
-  - `diagrams/logical.drawio.svg` — the ER model, free of any engine: every entity with its attributes,
-    primary and foreign keys, and the cardinality of every relation.
-  - `diagrams/physical.drawio.svg` — the model as the engine holds it: every table with its columns, types,
-    nullability, primary key, foreign keys and unique constraints, and the relations between tables.
-- **Each one is drawn whole and per module.** `logical-<module>.drawio.svg` and
-  `physical-<module>.drawio.svg` sit next to the complete diagrams, never instead of them. An entity or
-  table another module owns appears there as a header-only box. Whoever changes a table changes the
-  complete diagrams and its module's.
+- `README.md` — the conceptual model (Chen diagram), the physical model diagram, the invariants, and a
+  table: entity · one-line meaning · milestone.
+- **The physical model is always documented, as a diagram, never text.** It exists in every project with a
+  database, however wide it gets, and no per-entity file or attribute table in Markdown restates it.
+  `diagrams/physical.drawio.svg` is the model as the engine holds it: every table with its columns, types,
+  nullability, primary key, foreign keys and unique constraints, and the cardinality of every relation.
+- **It is drawn whole and per module.** `physical-<module>.drawio.svg` sits next to the complete diagram,
+  never instead of it. A table another module owns appears there as a header-only box. Whoever changes a
+  table changes the complete diagram and its module's.
 - **The physical diagram is read from the database, never from the docs or from memory.** Apply the
   migrations to a throwaway database, query its catalog for columns, types, nullability and constraints,
   and generate the draw.io XML from that. `README.md` states how many migrations were read and when.
-  The logical diagram is derived from the physical one, never drawn apart from it.
 - What a diagram cannot show — an invariant, a domain rule, what deleting a parent means — is one line
   under `Invariants` in `README.md`.
 - `access-patterns.md` — operation · reads/writes · filter and order · expected volume.
@@ -206,34 +201,50 @@ Done: #… · Carried over: #… → Sprint <N+1>, because <reason> · Back to b
 - One diagram per file, in the `diagrams/` folder of the doc that owns it, embedded with a relative
   path; a diagram never sits in a folder shared by every doc. `architecture/diagrams/`: `context`,
   `containers`, `deployment`, `components-<block>`, `runtime-<scenario>`. `data-model/diagrams/`:
-  `conceptual`, `logical`, `physical`, and their `-<module>` versions, and `states-<entity>`.
+  `conceptual`, `physical`, and their `-<module>` versions, and `states-<entity>`.
   `requirements/diagrams/`: `use-cases-<area>`, `process-<name>`. Each is `<topic>.drawio.svg`, a valid
-  SVG with the diagram inside: GitHub and the site render it, and the `hediet.vscode-drawio` extension
-  edits it in VS Code.
+  SVG with the diagram inside: GitHub, the site, and Zed's preview render it, and draw.io desktop or the
+  `hediet.vscode-drawio` extension in VS Code edits it. Zed has no editor for it: its extension API has no
+  webview.
 - **Producing one:** write the diagram as draw.io XML (`<mxfile>`) in the scratchpad, then export with
   the draw.io desktop CLI: `<drawio> --export --embed-diagram --svg-theme light --output
   docs/<doc>/diagrams/<topic>.drawio.svg <file>.drawio`, where `<drawio>` is `drawio` on Linux,
   `/Applications/draw.io.app/Contents/MacOS/draw.io` on macOS, and `"C:\Program
   Files\draw.io\draw.io.exe"` on Windows. Without `--embed-diagram` the SVG can no longer be edited.
   Without `--svg-theme light` the SVG follows the reader's browser theme and turns black on a light page:
-  the root carries `color-scheme: light;`. draw.io 30 still writes `light-dark()` in every color, and that
-  root resolves each one to its light value, so the served site in dark is the check, never a grep. Labels
-  are plain text (`html=0`) and the model has `background="#ffffff"`. No draw.io desktop on the machine →
-  ask to install it: `winget install JGraph.Draw` on Windows, `brew install --cask drawio` on macOS, and on
-  Linux the distribution's `drawio` package or the AppImage from `jgraph/drawio-desktop` releases. Never
-  hand-write the SVG half.
+  the root carries `color-scheme: light;`. Labels are plain text (`html=0`) and the model has
+  `background="#ffffff"`. No draw.io desktop on the machine → ask to install it: `winget install
+  JGraph.Draw` on Windows, `brew install --cask drawio` on macOS, and on Linux the distribution's `drawio`
+  package or the AppImage from `jgraph/drawio-desktop` releases. Never hand-write the SVG half.
+- **Right after every export:** draw.io 30 still writes `light-dark()` in every color and a transparent
+  background, and Zed's preview, which renders SVG with resvg, resolves neither. This step replaces each
+  `light-dark(<light>, <dark>)` with `<light>` and gives the root a white background; the embedded diagram
+  is left as it is, so draw.io still opens the file. On macOS and Linux:
+
+  ```sh
+  perl -0pi -e 's/light-dark\(((?:[^(),]|\([^()]*\))+),\s*(?:[^()]|\([^()]*\))*\)/$1/g; s/background: transparent; background-color: transparent;/background: #ffffff; background-color: #ffffff;/' <file>
+  ```
+
+  On Windows, in PowerShell 7 (`pwsh`): Windows PowerShell 5.1 reads and writes the file in the system
+  code page and breaks every non-ASCII character in it.
+
+  ```powershell
+  $svg = Get-Content -Raw <file>
+  $svg = $svg -replace 'light-dark\(((?:[^(),]|\([^()]*\))+),\s*(?:[^()]|\([^()]*\))*\)', '$1'
+  $svg = $svg -replace 'background: transparent; background-color: transparent;', 'background: #ffffff; background-color: #ffffff;'
+  Set-Content -NoNewline -Path <file> -Value $svg
+  ```
+
+  The check: `grep -c 'light-dark(' <file>` prints `0`, and `grep -c mxfile <file>` does not.
 - **Architecture diagrams:** boxes labeled `<name>` + `[<technology>]` + a one-line responsibility; arrows
   labeled with what flows and the protocol. Built elements solid, later milestones dashed.
 - **Conceptual model in Chen notation** (the BR-Modelo look): entity = rectangle; weak entity = double
   rectangle; relationship = diamond; attribute = ellipse, key attribute underlined, multivalued = double
   ellipse; cardinality `(min,max)` on each entity–relationship edge.
-- **Logical model in crow's foot notation:** one box per entity, its name in the header and one row per
-  attribute as `<key> <attribute>`, where the key is `PK`, `FK` or blank. Each relation is an edge with
-  crow's foot ends carrying the cardinality.
 - **Physical model in crow's foot notation:** one box per table, the table name in the header and one
   row per column as `<key> <column> : <type>`, where the key is `PK`, `FK`, `UK` or blank and a nullable
   column ends in `?`. A composite unique constraint is its own last row. Each foreign key is an edge
-  with crow's foot ends carrying the cardinality. Tables not built yet are dashed, in both models.
+  with crow's foot ends carrying the cardinality. Tables not built yet are dashed.
 - **Use cases in UML:** the system boundary as a rectangle, each actor outside it, one ellipse per use
   case labeled `<FR-…> <verb phrase>`, and `«include»`/`«extend»` as dashed arrows. One diagram per area
   of the SRS, linked from the area's requirements file; a spec links the diagram, never redraws it.
@@ -291,8 +302,8 @@ one.
   version that reads on both themes. A project with no interface keeps the Zensical defaults and drops
   the logo and favicon lines.
 - **One command opens the site:** `uvx zensical==<version> serve --open`, on `http://localhost:8000`, with
-  the latest stable version from PyPI pinned. `docs/README.md` says it, and `.vscode/tasks.json` runs the
-  same command as its `docs: serve` task.
+  the latest stable version from PyPI pinned. `docs/README.md` says it, and the editor setup the bootstrap
+  writes, `.vscode/tasks.json` or `.zed/tasks.json`, runs the same command as its `docs: serve` task.
 - **Every image opens in a viewer.** Clicking an image or a diagram on any page opens it full screen;
   the scroll wheel zooms at the cursor, dragging pans, a double click fits it back and Esc closes. A
   diagram readable only at column width is not delivered. Copy `image-viewer.js` from this skill to

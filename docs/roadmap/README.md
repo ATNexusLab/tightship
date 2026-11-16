@@ -48,14 +48,34 @@ Released in [v1.1.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.1.0
 | Epic | Issue | Covers |
 | --- | --- | --- |
 | Antigravity CLI plugin | [#59](https://github.com/ATNexusLab/tightship/issues/59) | NFR-FLEX-03, FR-INS-09 |
+| Curate the vault and the contract | [#120](https://github.com/ATNexusLab/tightship/issues/120) | FR-CTR-06, FR-CTR-07, FR-SKL-04, FR-SKL-05, FR-MEM-12, FR-MEM-13, NFR-PERF-03 |
+| Own the companions | [#140](https://github.com/ATNexusLab/tightship/issues/140) | FR-CTR-08, FR-CTR-09, FR-SKL-06, FR-INS-11, BR-05 |
+| Zed and lean production artifacts | [#158](https://github.com/ATNexusLab/tightship/issues/158) | FR-SKL-07, FR-SKL-08, NFR-FLEX-08 |
 
 By [BR-01](../requirements/business-rules.md#br-01), it is built alongside M2 and never released before
 it.
 
+Epic #120 and the auto-update of FR-INS-10 shipped after it, in
+[v1.2.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.2.0), for every harness of M1 to M3.
+FR-INS-10 has no epic: [#128](https://github.com/ATNexusLab/tightship/pull/128) delivered it. Epic #140
+ships in the release after v1.2.0, for the same harnesses.
+
+## M4 — Codex
+
+The workflow installs and runs as a native Codex plugin.
+GitHub Milestone: [M4 — Codex](https://github.com/ATNexusLab/tightship/milestone/4).
+
+| Epic | Issue | Covers |
+| --- | --- | --- |
+| Codex plugin | [#142](https://github.com/ATNexusLab/tightship/issues/142) | NFR-FLEX-04 |
+
+One epic carries the whole harness, as in M2 and M3. Its spec settles OQ-04, OQ-06, and OQ-08. The
+[spec of epic #140](../specs/own-the-companions/own-the-companions.md) answered OQ-05: no harness installs
+a companion plugin, Codex included.
+
 ## Requirement coverage
 
-Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned when its turn comes
-([BR-01](../requirements/business-rules.md#br-01)).
+Every approved requirement of M1 to M4 maps to exactly one epic.
 
 | Requirement | Epic | Milestone |
 | --- | --- | --- |
@@ -64,13 +84,18 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | FR-CTR-03 | #4 | M1 |
 | FR-CTR-04 | #4, retired in 2.0.0 | M1 |
 | FR-CTR-05 | #8 | M1 |
-| FR-CTR-06 | #120 | M4 |
-| FR-CTR-07 | #120 | M4 |
+| FR-CTR-06 | #120 | M3 |
+| FR-CTR-07 | #120 | M3 |
+| FR-CTR-08 | #140 | M3 |
+| FR-CTR-09 | #140 | M3 |
 | FR-SKL-01 | #2 | M1 |
 | FR-SKL-02 | #2 | M1 |
 | FR-SKL-03 | #1 | M1 |
-| FR-SKL-04 | #120 | M4 |
-| FR-SKL-05 | #120 | M4 |
+| FR-SKL-04 | #120 | M3 |
+| FR-SKL-05 | #120 | M3 |
+| FR-SKL-06 | #140 | M3 |
+| FR-SKL-07 | #158 | M3 |
+| FR-SKL-08 | #158 | M3 |
 | FR-VER-01 | #2 | M1 |
 | FR-VER-02 | #2 | M1 |
 | FR-MEM-01 | #5 | M1 |
@@ -84,13 +109,13 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | FR-MEM-09 | #5, and #60 for FR-MEM-09.2 | M1, M2 |
 | FR-MEM-10 | #5 | M1 |
 | FR-MEM-11 | #5 | M1 |
-| FR-MEM-12 | #120 | M4 |
-| FR-MEM-13 | #120 | M4 |
+| FR-MEM-12 | #120 | M3 |
+| FR-MEM-13 | #120 | M3 |
 | FR-STL-01 | #7 | M1 |
 | FR-STL-02 | #7 | M1 |
 | FR-STL-03 | #7 | M1 |
 | FR-INS-01 | #2 | M1 |
-| FR-INS-02 | #2 | M1 |
+| FR-INS-02 | #2, retired in 4.0.0 | M1 |
 | FR-INS-03 | #3 | M1 |
 | FR-INS-04 | #3 | M1 |
 | FR-INS-05 | #3 | M1 |
@@ -98,13 +123,16 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | FR-INS-07 | #8 | M1 |
 | FR-INS-08 | #8 | M1 |
 | FR-INS-09 | #59 | M3 |
-| FR-INS-10 | none: delivered on the `fix/open-issues` branch | M4 |
+| FR-INS-10 | none: delivered by #128 | M3 |
+| FR-INS-11 | #140 | M3 |
 | NFR-FLEX-01 | #8 | M1 |
 | NFR-FLEX-02 | #58 | M2 |
 | NFR-FLEX-03 | #59 | M3 |
+| NFR-FLEX-04 | #142 | M4 |
 | NFR-FLEX-05 | #8 | M1 |
 | NFR-FLEX-06 | #1 | M1 |
 | NFR-FLEX-07 | #58 | M2 |
+| NFR-FLEX-08 | #158 | M3 |
 | NFR-COMP-01 | #58 | M2 |
 | NFR-SEC-01 | #1 | M1 |
 | NFR-SEC-02 | #1 | M1 |
@@ -112,14 +140,18 @@ Every approved requirement of M1 to M3 maps to exactly one epic. M4 is planned w
 | NFR-REL-01 | #5 | M1 |
 | NFR-PERF-01 | #5 | M1 |
 | NFR-PERF-02 | #5 | M1 |
-| NFR-PERF-03 | #120 | M4 |
+| NFR-PERF-03 | #120 | M3 |
 | BR-01 | #8 | M1 |
 | BR-02 | #1 | M1 |
 | BR-03 | #1 | M1 |
-| BR-04 | #2 | M1 |
-| BR-05 | #4 | M1 |
+| BR-04 | #2, retired in 4.0.0 | M1 |
+| BR-05 | #4, and #140 since 4.0.0 | M1, M3 |
 
 ## Sprints
 
 - [Sprint 1](sprints/sprint-01.md) — M1, from the canonical source to the release on the three systems
 - [Sprint 2](sprints/sprint-02.md) — Cursor and Antigravity CLI, the vault location with `~`, a status fix
+- [Sprint 3](sprints/sprint-03.md) — the installer in any shell with no step left, a live status line, the
+  companions' audit
+- [Sprint 4](sprints/sprint-04.md) — v1.3.0, the Codex plugin, every surface of each harness, and the docs
+  standards, drift check, export, and estimates

@@ -14,12 +14,20 @@ M3, #59), never a project's or a folder's:
 
 ```json
 {
-  "statusLine": { "type": "command", "command": "\"<plugin folder>/bin/tightship\" status-line render" }
+  "statusLine": {
+    "type": "command",
+    "command": "\"<plugin folder>/bin/tightship\" status-line render",
+    "refreshInterval": 60
+  }
 }
 ```
 
-On Windows the command is `<plugin folder>\bin\tightship.cmd status-line render`, with no quotes, because
-Antigravity CLI runs it under `cmd /c` with every `"` escaped. A path with a space or one of
+In Claude Code the hook adds `refreshInterval`, 60 seconds, when the key is absent, so the status line keeps
+moving while the session is idle; a value the adopter set stays (#133).
+
+On Windows the command is `<plugin folder>/bin/tightship.cmd status-line render`, with no quotes, because
+Antigravity CLI runs it under `cmd /c` with every `"` escaped, and with `/` between folders, because Claude
+Code runs it under Git Bash, which drops every `\`. A path with a space or one of
 `& ^ ( ) % ! ; = ,` is written as its 8.3 short name; when none avoids them, the hook fails and names the
 path (#89).
 
@@ -37,6 +45,18 @@ M3, #59), which the harness keeps across an update:
 | --- | --- | --- | --- |
 | `state` | string | `on`; a `declined` from an earlier version reads as no record | The session start |
 | `previous` | any JSON value | The adopter's `statusLine` before ours; absent when they had none | The session start |
+
+## `rate-limits.json`
+
+In the plugin's data folder, written by `tightship status-line render` (#133). Claude Code sends each rate
+limit window on its own, so the file keeps the last reading of each one:
+
+| Attribute | Type | Domain | Written by |
+| --- | --- | --- | --- |
+| `five_hour`, `seven_day` | object | `used_percentage` (number) and `resets_at` (Unix seconds), as Claude Code sent them | `render`, when a window arrives or its reset passes |
+
+A reading whose `resets_at` has passed is dropped. One file serves every session, because the limits belong to
+the account.
 
 ## Invariants
 

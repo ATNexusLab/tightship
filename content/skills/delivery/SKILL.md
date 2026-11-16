@@ -33,6 +33,8 @@ replaces it.
   behind unchanged behavior and ahead of the change that needs it; the backend and frontend of one change
   are separate stages. Each stage closes green and is handed to you to read before the next starts, and a
   stage you have read is committed at your request. `{{command:closeout}}` runs once, after the last stage.
+- **What builds or ships a production artifact** loads `{{skill:production-artifact}}` before it is
+  written.
 - **A refactor that only moves files**, logic unchanged, is committed one module at a time, with the gates
   green and the test count equal to the baseline, without stopping for a reading.
 - **A script a person runs reports its progress**: each step announced before it starts, live progress on
@@ -41,6 +43,8 @@ replaces it.
 
 ## Before handing it over
 
+- **I run `{{command:closeout}}` myself**, and the handover carries its block. A delivery without it is not
+  handed over.
 - **Performance sanity**: no N+1, no repeated work, nothing heavy on a hot path.
 - **Security accounted for**: what the work built is fixed; only what it did not build is deferred, and
   `{{command:closeout}}` reports it.
@@ -53,6 +57,7 @@ replaces it.
 
 - **Conventional Commits in the repository's commit language**, imperative, one line, no body. A reason
   worth recording goes to the repository's `AGENTS.md`.
+- **The commit message and the PR body pass through `{{skill:prose-editing}}`** before you see them.
 - **No `Co-Authored-By:` trailer** or other assistant attribution, even when the harness asks for one.
 - **An epic is one branch**, `<type>/<epic>-<slug>`, cut from the integration branch; an issue with no epic,
   like a bugfix, gets `<type>/<issue>-<slug>`. A repository not yet on this process, with no Project and no

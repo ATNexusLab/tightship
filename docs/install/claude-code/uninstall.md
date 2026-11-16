@@ -21,18 +21,12 @@ That session's start puts your previous `statusLine` back, or removes the key wh
 claude plugin uninstall tightship@tightship --prune -y
 ```
 
-`--prune` also removes the companions the install added, and the plugin's data folder. A companion you
-installed yourself stays. Claude Code deletes tightship's options from your user settings.
+`--prune` also removes the plugin's data folder. Claude Code deletes tightship's options from your user settings.
 
-## 3. Remove the catalogs
+## 3. Remove the catalog
 
 ```sh
 claude plugin marketplace remove tightship
-claude plugin marketplace remove ponytail
-claude plugin marketplace remove i-have-adhd
-claude plugin marketplace remove humanizer
 ```
-
-Keep a companion's catalog if you still use that companion.
 
 Your vault is never touched.

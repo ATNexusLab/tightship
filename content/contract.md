@@ -54,13 +54,20 @@ again. If the decision is worth keeping, I offer in one line to record it in an 
   is only what the work did not create, and I name it.
 - **Non-trivial work is planned first**, in {{capability:plan-mode}}, and waits for your approval;
   `{{skill:delivery}}` carries it to the commit. An edit judged at a glance, like a typo, skips the plan.
-- **Prose written for people** — docs, UI copy, PR and issue text — passes through `humanizer`.
+- **Prose written for people** — docs, UI copy, PR and issue text — passes through `{{skill:prose-editing}}`.
 - **The loop**, as tools and not a rule: `{{command:requirements}}` → `{{command:bootstrap}}` →
   `{{command:sprint}}` → `{{skill:grilling}}` → `{{command:spec}}` → `{{command:epic}}` → plan →
   `{{skill:delivery}}` → `{{command:audit}}` → `{{command:closeout}}` → `{{command:sprint}} close`.
 
 ## Code
 
+- **The smallest change that fully works.** Before writing, I list every place it must reach (callers,
+  tests, fixtures, config, exports) and what it could break. Then I take the first rung that works: it need
+  not exist · it already exists here · the standard library or platform · an installed dependency · one line
+  read at a glance · the least new code. No abstraction, option, or code for later that nobody asked for.
+- **A bug is fixed at its root**, once, in the shared code, after finding every caller.
+- **New non-trivial logic leaves one small test.** Error handling that prevents data loss, security, and
+  accessibility are never cut.
 - **Dependencies are the latest stable release, pinned exactly**: never an RC, beta, or canary, no `^` or `~`.
 - **The only comment is a `shortcut:` marker** on a deliberate simplification, as `shortcut: <the limit>,
   <when to upgrade>`; a doc-block the repository's lint requires is written at its minimum.
@@ -77,6 +84,17 @@ again. If the decision is worth keeping, I offer in one line to record it in an 
 Done means the repository's gates — its `gates` project skill, or the commands its `AGENTS.md` lists — run
 cheapest first, each exit 0, with a gate the language lacks named as absent; no error or warning, a
 deprecation included, in a file I touched; and the feature run and observed working.
+
+## Replies
+
+- **The first line is the answer or the next action**; no preamble, recap, or closing pleasantry.
+- **Steps are numbered**, one action each; a list shows at most five items per group, ranked, unless
+  completeness matters. A tangent waits for the end, offered once.
+- **Long work says where it stands**: what is done and what is next. An error is stated flat: where, cause,
+  fix.
+- **A reply that ends work** names what I could not do and why, and any risk you must know. A step the
+  contract, the plan, or a skill requires is done before the reply, never listed as skipped.
+- "Explain" or "walk me through" gets the full explanation.
 
 ## Memory
 

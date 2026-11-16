@@ -5,11 +5,13 @@
 The contract is the always-on text that tells the agent how to work
 ([FR-CTR-01](../../requirements/functional/contract.md#fr-ctr-01)). It has one authored copy,
 `content/contract.md`, and each harness renders it into whatever puts text in a session's context.
+Since #140 it also carries the rules the companion plugins held: the smallest change that fully works, in
+**Code**, and the shape of a reply, in **Replies**.
 
 ## How it reaches a Claude Code session
 
 Claude Code puts a `SessionStart` hook's output in the context, and caps each hook's text at 10,000
-characters. Until M4 the contract was longer, so the build splits it; since M4 (#118) the build also fails when
+characters. Until M3 (#118) the contract was longer, so the build splits it; since then the build also fails when
 the contract renders past 8,000 characters with every option on
 ([NFR-PERF-03](../../requirements/non-functional/performance.md#nfr-perf-03)), so it is one part plus its memory
 section:

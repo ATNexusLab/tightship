@@ -8,7 +8,6 @@
 | Contributor | Anyone who opens an issue or a pull request on this repository | Proposes changes through `CONTRIBUTING.md` and runs the gates locally; the maintainer merges them |
 | Adopter | Anyone who installs the plugin from this public repository, the maintainer included | Installs with the harness's own mechanism, chooses the options, and gets nothing of the maintainer's identity or data |
 | Harness vendors | Anthropic, Cursor, Google, OpenAI | Define the plugin formats and limits the product must follow; not consulted |
-| Companion maintainers | The authors of ponytail, i-have-adhd, and humanizer | Own the rules their plugins carry; not consulted |
 
 ## Operating environment
 
@@ -46,4 +45,3 @@
   script, the status line, and the vault template. Every parity requirement refers to it.
 - Each harness keeps the plugin format its documentation describes on the day its milestone starts.
 - An adopter can reach this public repository.
-- The companion plugins are maintained by third parties and can change without notice.

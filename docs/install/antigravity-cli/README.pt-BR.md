@@ -16,7 +16,6 @@ regras e skills avulsas.
 | Página | O que cobre |
 | --- | --- |
 | [Instalação](install.pt-BR.md) | Executar o instalador unificado ou comandos manuais |
-| [Os companheiros](companions.pt-BR.md) | Os três companheiros instalados com o tightship |
 | [As opções](options.pt-BR.md) | Configurar contrato, memória, status line e pasta do vault no `options.toml` |
 | [Atualização](update.pt-BR.md) | Obter novas versões a partir dos releases do GitHub, automaticamente ou pelo instalador |
 | [Desinstalação](uninstall.pt-BR.md) | Remover o plugin e devolver a sua status line anterior |

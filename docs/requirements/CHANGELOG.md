@@ -1,5 +1,79 @@
 # Changelog
 
+## 4.1.0 — 2026-11-11
+
+Adopters work in Zed as well as in VS Code, and in two projects the production image carried the development
+dependencies. The [spec of epic #158](../specs/zed-and-lean-artifacts/zed-and-lean-artifacts.md) adds the
+requirements for both.
+
+**Added**
+
+- FR-SKL-07: the bootstrap sets up VS Code, Zed, or both, and exports diagrams both editors render.
+- FR-SKL-08: a skill keeps production artifacts to what runs, and the audit command reports what breaks it.
+- NFR-FLEX-08: every harness runs in Zed's terminal and agent panel.
+
+## 4.0.0 — 2026-11-10
+
+The workflow required ponytail, i-have-adhd, and humanizer, and installed them with itself. The audit of
+epic [#140](https://github.com/ATNexusLab/tightship/issues/140) found that it used a few of their rules
+and functions, small enough to carry, and that each plugin could change them at any release. Change
+request [#149](https://github.com/ATNexusLab/tightship/issues/149) brings the epic's
+[spec](../specs/own-the-companions/own-the-companions.md) into the SRS: tightship carries each of those
+functions itself and removes the three plugins.
+
+**Added**
+
+- FR-CTR-08: the contract carries the rules about code and the shape of a reply.
+- FR-CTR-09: a codebase map reaches the agent at session start.
+- FR-SKL-06: a skill edits prose for people.
+- FR-INS-11: the installer and each session remove what the companions left, and every older plugin
+  version no session uses.
+
+**Changed**
+
+- BR-05: the workflow depends on no third-party plugin. It said the companions own their rules.
+- FR-INS-08: the install guide has no section on the companions, so five subjects instead of six.
+
+**Retired**
+
+- BR-04, the companion plugins are required, and FR-INS-02, the companions are installed with the plugin:
+  the workflow no longer uses them.
+
+**Removed**
+
+- OQ-05, how a plugin installs the companions in Codex: the spec of epic #140 settles it, since no harness
+  installs them.
+
+## 3.0.1 — 2026-11-08
+
+On a clean Windows machine, pressing Enter through the v1.2.0 installer turned memory on with no vault, and
+Claude Code had no status line until the first new session. Both left the adopter a step, which FR-INS-09
+rules out. Fixed by issue [#132](https://github.com/ATNexusLab/tightship/issues/132).
+
+**Added**
+
+- FR-INS-09.2: Enter on the vault question takes `~/ai-memory`.
+- FR-INS-09.3: the status line is in every installed harness's settings when the installer finishes.
+
+## 3.0.0 — 2026-11-05
+
+Eight requirements carried M4, which BR-01 gives to Codex. They shipped in v1.2.0 without a Codex plugin,
+so the maintainer moved them to M3, the last milestone released, by change request
+[#141](https://github.com/ATNexusLab/tightship/issues/141). The Cursor spec had already settled Cursor's
+part of the open questions, but the SRS still asked about Cursor.
+
+**Changed**
+
+- FR-CTR-06, FR-CTR-07, FR-SKL-04, FR-SKL-05, FR-MEM-12, FR-MEM-13, NFR-PERF-03, and FR-INS-10 move from M4
+  to M3.
+- OQ-04, OQ-05, OQ-06, and OQ-08 ask about Codex only. For Cursor, the
+  [spec of epic #58](../specs/cursor-plugin/ship-for-cursor.md) settles them.
+
+**Removed**
+
+- OQ-07, whether Cursor's command-line agent loads a plugin's always-on text and hooks: the spec of epic #58
+  settles it.
+
 ## 2.2.0 — 2026-10-23
 
 A release reached an adopter only through the installer, and a rerun of it left Claude Code on the version it

@@ -1,8 +1,15 @@
+//! The contract-part hook: prints one file of the working contract when its option is on.
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::failure::Failure;
 
+/// Prints the contract file, unless the contract or the file's own option is off.
+///
+/// # Errors
+///
+/// When the name is not a plain file name, the file is missing or unreadable, or the options are invalid.
 pub fn run(file: &str) -> Result<(), Failure> {
     let options = crate::options::load()?;
     if !options.contract {
@@ -13,7 +20,7 @@ pub fn run(file: &str) -> Result<(), Failure> {
     {
         return Ok(());
     }
-    let root = crate::variable("TIGHTSHIP_ROOT")?;
+    let root = crate::system::env::variable("TIGHTSHIP_ROOT")?;
     let path = contract_file(&root, file)?;
     let text =
         fs::read_to_string(&path).map_err(|error| Failure::ContractPartUnreadable(path, error))?;

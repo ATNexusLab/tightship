@@ -3,8 +3,8 @@
 The product has no database. Its data is the adopter's vault, a git repository of notes, and the state of
 each option in the adopter's harness. The model below comes from the
 [memory](../requirements/functional/memory.md) and [installation](../requirements/functional/install.md)
-requirements. The logical and physical models and the storage are drawn by the epics that define the file
-formats: the options in #3 ([options](options.md)), the vault and its notes in #5 ([vault](vault.md)), the
+requirements. The physical model and the storage are drawn by the epics that define the file formats: the
+options in #3 ([options](options.md)), the vault and its notes in #5 ([vault](vault.md)), the
 handoff's body in #6 ([vault](vault.md#a-handoff)), the status line's record in #7
 ([status line](status-line.md)), and the auto-update's state ([update](update.md)).
 

@@ -55,7 +55,7 @@ The system shall ship a contract of at most 8,000 characters with every option o
 | Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
-| Milestone | M4 |
+| Milestone | M3 |
 | Since | v2.0.0 |
 
 **Acceptance criteria**

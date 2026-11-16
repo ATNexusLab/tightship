@@ -249,10 +249,7 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
             "{installer}"
         );
     }
-    assert_eq!(
-        catalog["allowCrossMarketplaceDependenciesOn"],
-        serde_json::json!(["ponytail", "i-have-adhd", "humanizer"])
-    );
+    assert!(catalog.get("allowCrossMarketplaceDependenciesOn").is_none());
 
     let cursor_bytes =
         fs::read(repository.path("dist/tightship-cursor.zip")).expect("the cursor zip");
@@ -297,9 +294,10 @@ fn a_package_holds_the_plugin_with_fixed_modes_and_its_catalog() {
             "sha256": cursor_sha256,
         })
     );
-    assert_eq!(
-        cursor_catalog["allowCrossMarketplaceDependenciesOn"],
-        serde_json::json!(["ponytail", "i-have-adhd", "humanizer"])
+    assert!(
+        cursor_catalog
+            .get("allowCrossMarketplaceDependenciesOn")
+            .is_none()
     );
 
     let latest_text = fs::read_to_string(repository.path("dist/latest.json")).expect("latest.json");

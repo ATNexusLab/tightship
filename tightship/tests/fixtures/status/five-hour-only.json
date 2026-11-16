@@ -1,0 +1,6 @@
+{
+  "workspace": { "current_dir": "/home/adopter/tightship" },
+  "rate_limits": {
+    "five_hour": { "used_percentage": 4, "resets_at": 1792086600 }
+  }
+}

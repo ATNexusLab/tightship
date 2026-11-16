@@ -30,8 +30,7 @@ Para desligar:
 
 ## Pelo instalador
 
-Rodar o instalador de novo troca o tightship e os companheiros pelas versões mais recentes, e mantém as suas
-opções:
+Rodar o instalador de novo troca o tightship pela versão mais recente, e mantém as suas opções:
 
 ```sh
 curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | \
@@ -44,8 +43,6 @@ No Windows, no PowerShell:
 & ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) `
   -Harness cursor -Yes
 ```
-
-Os companheiros só se atualizam por esse caminho.
 
 ## À mão
 

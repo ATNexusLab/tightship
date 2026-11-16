@@ -1,6 +1,6 @@
 # Curation
 
-Change request [#118](https://github.com/ATNexusLab/tightship/issues/118), milestone M4, outside any sprint. Epic
+Change request [#118](https://github.com/ATNexusLab/tightship/issues/118), milestone M3, outside any sprint. Epic
 [#120](https://github.com/ATNexusLab/tightship/issues/120).
 
 | Spec | Profile | Status |

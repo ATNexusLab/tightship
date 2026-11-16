@@ -4,10 +4,13 @@
 **Milestone:** M1, epic #8
 
 Runs the gates of the `gates` project skill, `.agents/skills/gates/SKILL.md`, at each pull request into
-`develop` or `main`, each workflow only when the pull request touches its paths. `rust.yml` runs clippy,
-`cargo check`, rustfmt, `cargo xtask build`, and `cargo test --workspace` on Linux, macOS, and Windows, when
-the Rust workspace or the content it builds changes; on Windows the steps run in Git Bash, as the plugin's
-hooks do. `docs.yml` runs markdownlint and the docs build on Linux when Markdown or the docs site changes.
+`develop` or `main`, each workflow only when the pull request touches its paths, and within it only the
+steps those paths affect: a first step reads the pull request's files from the GitHub API. `rust.yml` runs
+clippy, `cargo check`, rustfmt, `cargo xtask build`, and `cargo test --workspace` on Linux, macOS, and
+Windows when the Rust workspace, `installer/`, or `harnesses/` changes; on Windows the steps run in Git
+Bash, as the plugin's hooks do. When only `content/` changes, it runs the build and the tests on Linux
+alone, since content is text and builds the same on every system. `docs.yml` runs markdownlint on Linux when
+Markdown or the docs site changes, and the docs build only when `docs/` or `zensical.toml` changes.
 `scan.yml` runs `cargo xtask scan` on Linux at every pull request, since a secret can enter through any file.
 It is the automated half of [NFR-FLEX-05](../../requirements/non-functional/flexibility.md#nfr-flex-05); the
 release checklist is the other.

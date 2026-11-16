@@ -34,5 +34,4 @@ settings. Reports about any of these are in scope:
 - your identity, your secrets, or your vault's notes leaking into a build or a release
 - the release's binaries or catalog not matching this repository's source
 
-Vulnerabilities in a companion plugin (ponytail, i-have-adhd, humanizer) or in a harness belong to its own
-maintainers.
+Vulnerabilities in a harness belong to its own maintainers.

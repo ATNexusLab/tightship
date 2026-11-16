@@ -93,7 +93,7 @@ shape, which the adopter may change.
 | Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
-| Milestone | M4 |
+| Milestone | M3 |
 | Since | v2.0.0 |
 
 **Acceptance criteria**
@@ -120,7 +120,7 @@ as a skill in the repository's `.agents/skills/` folder, and make it reachable f
 | Source | Maintainer, change request [#118](https://github.com/ATNexusLab/tightship/issues/118) |
 | Priority | Must |
 | Status | approved |
-| Milestone | M4 |
+| Milestone | M3 |
 | Since | v2.0.0 |
 
 **Acceptance criteria**
@@ -129,3 +129,84 @@ as a skill in the repository's `.agents/skills/` folder, and make it reachable f
   bootstrap command, then `.agents/skills/<name>/SKILL.md` holds that procedure.
 - **FR-SKL-05.2** — Given a supported harness that does not read `.agents/skills/`, when a session starts
   in a repository with project skills, then the harness lists them.
+
+<a id="fr-skl-06"></a>
+
+## FR-SKL-06 — A skill edits prose for people
+
+> As an adopter, I want a skill that removes the tells of machine writing from prose meant for people, so
+> that docs, pull requests, and issues read as written by their author.
+
+The system shall ship a skill that edits prose written for people so that it reads as written by its
+author, without changing what it says.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The contract sent every text for people through a companion that did this. With the companions gone ([BR-05](../business-rules.md#br-05)), the workflow carries the skill itself. |
+| Source | Maintainer, change request [#149](https://github.com/ATNexusLab/tightship/issues/149); the [spec of epic #140](../../specs/own-the-companions/own-the-companions.md) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M3 |
+| Since | v4.0.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-06.1** — Given the built plugin in a supported harness, when the skill list is read, then the
+  prose skill is listed with its description, and the contract's rule on prose names it.
+- **FR-SKL-06.2** — Given a text the skill edited, when the result is compared with the original, then
+  every claim, fact, name, number, date, and quote of the original is in it.
+
+<a id="fr-skl-07"></a>
+
+## FR-SKL-07 — The bootstrap sets up the editors the project uses
+
+> As an adopter, I want the bootstrap to set up VS Code, Zed, or both, so that the project opens in my
+> editor with its formatter, linter, tasks, and diagrams working and no manual step.
+
+The system shall write, through the bootstrap command, the setup of each editor the adopter confirms,
+VS Code in `.vscode/` and Zed in `.zed/`, and export every diagram so that both editors render it.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The bootstrap wrote `.vscode/` only, and the diagrams it exports turned black in Zed's preview, which resolves no `light-dark()` color and shows a transparent background on a dark editor. |
+| Source | Maintainer, [#156](https://github.com/ATNexusLab/tightship/issues/156); the [spec of epic #158](../../specs/zed-and-lean-artifacts/zed-and-lean-artifacts.md) |
+| Priority | Should |
+| Status | approved |
+| Milestone | M3 |
+| Since | v4.1.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-07.1** — Given a repository the adopter bootstraps for Zed, when it opens in Zed, then files
+  format on save, the linter the gates run shows its diagnostics, and the `docs: serve` task runs, with no
+  manual setup.
+- **FR-SKL-07.2** — Given a diagram the workflow exported, when the file is read, then it holds 0
+  `light-dark(` colors, its background is white, and draw.io still opens the embedded diagram.
+
+<a id="fr-skl-08"></a>
+
+## FR-SKL-08 — A skill keeps production artifacts lean
+
+> As an adopter, I want the agent to build production artifacts that carry only what runs, so that no
+> image or bundle ships development dependencies or files the program never reads.
+
+The system shall ship a skill, loaded when the agent writes or changes what builds or ships a production
+artifact and by the audit command when its target does, that keeps the artifact to the build output, the
+runtime dependencies, and the files read at run time.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | In two projects the production image installed the development dependencies, and no ignore file kept the rest of the repository out. |
+| Source | Maintainer, [#157](https://github.com/ATNexusLab/tightship/issues/157); the [spec of epic #158](../../specs/zed-and-lean-artifacts/zed-and-lean-artifacts.md) |
+| Priority | Should |
+| Status | approved |
+| Milestone | M3 |
+| Since | v4.1.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-08.1** — Given the built plugin in a supported harness, when the skill list is read, then the
+  production artifact skill is listed with its description, and the delivery skill names it.
+- **FR-SKL-08.2** — Given a project whose artifact carries a development dependency, has no ignore file or
+  an open one, or builds and runs in one step, when the adopter runs the audit command on it, then each
+  case is reported as a finding.

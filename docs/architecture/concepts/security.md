@@ -29,15 +29,19 @@ From [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.
 - **Disk:** the adopter's vault, and the `statusLine` key of the harness's user settings, while the adopter
   has the status line option on ([FR-STL-02](../../requirements/functional/status-line.md#fr-stl-02),
   [status line](status-line.md), M1, #7). In the harness's own places, the plugin also writes, in the plugin's
-  data folder, `status-line.json` (M1, #7) and
+  data folder, `status-line.json` (M1, #7), `rate-limits.json` (#133), and
   `options.toml` where the harness has no `userConfig` (M3, #59), `update.json` and `update.lock`
-  (M4, FR-INS-10), plus one `export` line per session in the
+  (M3, FR-INS-10), plus one `export` line per session in the
   session's environment file (M1, #5). The options' state is kept in the harness's user settings or in
   `options.toml` inside the plugin's data folder ([options](options.md), M1, #3; M3, #59). The user settings
   can hold secrets in their `env`, so a rewrite keeps the file's permissions, and the temporary file beside it
-  is readable only by the adopter (M1, #7). A plugin older than M4 also left a `checkpoints/` folder there,
-  which nothing reads since M4 (#118) and which uninstalling removes. The self-update writes the plugin's own
-  folder in Cursor and Antigravity CLI, and in Claude Code the `autoUpdate` of the plugin's entry in
-  `extraKnownMarketplaces` of the user settings (M4, FR-INS-10).
+  is readable only by the adopter (M1, #7). A plugin from before #118 also left a `checkpoints/` folder there,
+  which nothing reads since M3 (#118) and which `tightship hook clean` removes (#140). The self-update writes
+  the plugin's own folder in Cursor and Antigravity CLI, and in Claude Code the `autoUpdate` of the plugin's
+  entry in `extraKnownMarketplaces` of the user settings (M3, FR-INS-10).
+- **Removal:** `tightship hook clean` removes only what the harness's `[clean]` data lists, every path under
+  the home folder: the companion plugins tightship replaced, their catalogs, caches, data folders, the files
+  they wrote, and their entries in the harness's JSON files, plus the older version folders of tightship that
+  the harness marked as orphaned and no session uses (#140). An uninstall runs the harness's own CLI.
 
 The build writes only to `dist/`.

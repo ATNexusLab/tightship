@@ -7,7 +7,7 @@
 | Canonical content | The single authored copy of every workflow piece in this repository, from which each harness's plugin is built. |
 | Checkpoint | A reminder, placed in the agent's context, to record in the vault what the session learned. |
 | Command | A workflow step the adopter invokes by name, such as the one that writes a spec. |
-| Companion plugins | ponytail, i-have-adhd, and humanizer: third-party plugins the workflow requires and whose rules it never restates. |
+| Companion plugins | The three third-party plugins the workflow required and installed until version 4.0.0 of this SRS, which names them in its [changelog](CHANGELOG.md). |
 | Contract | The always-on text that tells the agent how to work in every session. |
 | Handoff | The one vault note per project that carries a session's state to the next session, on any machine or harness. |
 | Harness | An agent tool that runs a coding agent: Claude Code, Cursor, Antigravity CLI, or Codex. |

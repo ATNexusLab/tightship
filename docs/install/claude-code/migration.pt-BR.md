@@ -77,7 +77,6 @@ Depois, à mão:
   as linhas que a instalação anterior adicionou.
 - O setup anterior guardou um arquivo que você já tinha, como o seu próprio `README.md`, como
   `<name>.bak`. Devolva o nome original.
-- Mantenha o `.i-have-adhd-always`, o interruptor do companheiro i-have-adhd.
 
 Qualquer outra skill, comando ou hook em `~/.claude` é seu, e fica.
 

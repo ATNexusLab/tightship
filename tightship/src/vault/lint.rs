@@ -1,9 +1,16 @@
+//! `tightship vault lint`: reports the notes that break the vault's rules.
+
 use std::collections::{BTreeSet, HashMap, HashSet};
 
 use super::context;
 use super::note::{self, Note};
 use crate::failure::Failure;
 
+/// Prints each note's problems and each scope whose pinned notes do not fit the session start.
+///
+/// # Errors
+///
+/// When the vault cannot be read, or `LintFailed` when anything was reported.
 pub fn run() -> Result<(), Failure> {
     let vault = super::folder()?;
     let notes = note::read_all(&vault)?;
@@ -58,6 +65,33 @@ pub fn run() -> Result<(), Failure> {
 }
 
 fn problems(note: &Note, earlier: Option<&Note>, stems: &HashSet<String>) -> Vec<String> {
+    let mut found = field_problems(note);
+    found.extend(id_problems(note, earlier));
+    let project = note.field("project");
+    let folder = folder_of(note);
+    if !project.is_empty() && project != folder {
+        found.push(format!(
+            "project `{project}` disagrees with folder `{folder}`"
+        ));
+    }
+    let why = note.field("why");
+    if !why.is_empty() && why.split_whitespace().count() < note::WHY_MIN_WORDS {
+        found.push("why names a topic instead of stating what ignoring it costs".to_owned());
+    }
+    for target in links(&outside_code(&note.body)) {
+        if !stems.contains(target) {
+            found.push(format!("[[{target}]] points at no note"));
+        }
+    }
+    if let Some((_, pinned)) = note.fields.iter().find(|(key, _)| key == "pinned")
+        && pinned != "true"
+    {
+        found.push(format!("pinned `{pinned}` is neither `true` nor absent"));
+    }
+    found
+}
+
+fn field_problems(note: &Note) -> Vec<String> {
     let mut found = Vec::new();
     for field in [
         "id", "type", "project", "why", "source", "created", "updated",
@@ -71,23 +105,24 @@ fn problems(note: &Note, earlier: Option<&Note>, stems: &HashSet<String>) -> Vec
         found.push(format!("updated `{updated}` is not a date as YYYY-MM-DD"));
     }
     let kind = note.field("type");
-    let kinds = ["project", "gotcha", "decision", "preference", "handoff"];
-    if !kind.is_empty() && !kinds.contains(&kind) {
+    if !kind.is_empty() && !note::TYPES.contains(&kind) && kind != note::HANDOFF_TYPE {
         found.push(format!(
             "type `{kind}` is not one of project, gotcha, decision, preference, handoff"
         ));
     }
     let source = note.field("source");
-    if !source.is_empty() && !["user", "session", "repo"].contains(&source) {
+    if !source.is_empty() && !note::SOURCES.contains(&source) {
         found.push(format!(
             "source `{source}` is not one of user, session, repo"
         ));
     }
+    found
+}
+
+fn id_problems(note: &Note, earlier: Option<&Note>) -> Vec<String> {
+    let mut found = Vec::new();
     let id = note.field("id");
-    let is_valid_id = id.strip_prefix("mem-").is_some_and(|digits| {
-        digits.len() >= 4 && digits.bytes().all(|byte| byte.is_ascii_digit())
-    });
-    if !id.is_empty() && !is_valid_id {
+    if !id.is_empty() && !note::is_valid_id(id) {
         found.push(format!("id `{id}` is not mem- and four or more digits"));
     }
     if let Some(earlier) = earlier {
@@ -97,27 +132,6 @@ fn problems(note: &Note, earlier: Option<&Note>, stems: &HashSet<String>) -> Vec
             .unwrap_or_default()
             .to_string_lossy();
         found.push(format!("id `{id}` already used by {file_name}"));
-    }
-    let project = note.field("project");
-    let folder = folder_of(note);
-    if !project.is_empty() && project != folder {
-        found.push(format!(
-            "project `{project}` disagrees with folder `{folder}`"
-        ));
-    }
-    let why = note.field("why");
-    if !why.is_empty() && why.split_whitespace().count() < 5 {
-        found.push("why names a topic instead of stating what ignoring it costs".to_owned());
-    }
-    for target in links(&outside_code(&note.body)) {
-        if !stems.contains(target) {
-            found.push(format!("[[{target}]] points at no note"));
-        }
-    }
-    if let Some((_, pinned)) = note.fields.iter().find(|(key, _)| key == "pinned")
-        && pinned != "true"
-    {
-        found.push(format!("pinned `{pinned}` is neither `true` nor absent"));
     }
     found
 }

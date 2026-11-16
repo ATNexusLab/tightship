@@ -39,3 +39,7 @@ if not defined TIGHTSHIP_STATUS_LINE_COMMAND (
 if not defined TIGHTSHIP_PROJECT_POINTER (
   set "TIGHTSHIP_PROJECT_POINTER=/workspace_roots/0"
 )
+
+if not defined TIGHTSHIP_CLEAN (
+  set "TIGHTSHIP_CLEAN=%PLUGIN_DIR%\clean.json"
+)

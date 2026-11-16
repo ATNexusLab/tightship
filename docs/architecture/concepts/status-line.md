@@ -36,5 +36,12 @@ before uninstalling.
 Each plugin version installs in its own folder. While the option is on, every session start points our
 `statusLine` command at the current folder and keeps the adopter's other keys of `statusLine`.
 
+## Usage readings
+
+Claude Code sends each rate limit window on its own. `render` keeps the last reading of each in
+`rate-limits.json`, in the plugin's data folder, and shows it while the window's reset is ahead. In Claude
+Code our `statusLine` also carries a `refreshInterval` of 60 seconds, so the gauges move while the session is
+idle (#133).
+
 Every rule and message: the [epic #7 spec](../../specs/status-line/show-the-status-line.md) and the
 [epic #59 spec](../../specs/antigravity-cli-plugin/antigravity-cli-plugin.md).

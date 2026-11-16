@@ -9,14 +9,9 @@ use jiff::ToSpan;
 use jiff::civil::Date;
 
 use common::{
-    IDENTITY, Sandbox, assert_fails_with, assert_succeeds, commit, git, run, stderr_of, stdout_of,
+    BLOCK, IDENTITY, Sandbox, assert_fails_with, assert_succeeds, commit, git, run, stderr_of,
+    stdout_of,
 };
-
-const BLOCK: &str = concat!(
-    "<!-- tightship:rules:start -->\n",
-    include_str!("../../content/vault-template/AGENTS.md"),
-    "<!-- tightship:rules:end -->\n"
-);
 
 fn sync(sandbox: &Sandbox, vault: &Path) -> Output {
     run(sandbox

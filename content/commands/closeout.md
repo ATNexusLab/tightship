@@ -106,6 +106,12 @@ went unwritten:
   place: move it into the vault and delete it there.
 - Derivable from the repo, its history, or its docs → it does not go in.
 
+## 6. Prose — always
+
+Every text this delivery wrote for people — a doc, a README, a skill's or a command's text, UI copy, and the
+commit message and PR body about to be proposed — has been through `{{skill:prose-editing}}`. One not yet
+through it goes through now, before this block; `n/a` only when the delivery wrote no such text.
+
 ## Output
 
 ```text
@@ -116,6 +122,7 @@ Closeout:
 - Traceability:  [issue #n · branch · PR → integration branch · Status/Sprint ok]
 - Security-debt: [none / issues #… / filed #…]
 - Memory:        [promoted <note> / nothing durable / n/a — no vault]
+- Prose:         [done at <paths> / n/a]
 ```
 
 Do not hand the delivery over for the commit until this block is produced with no failing item.

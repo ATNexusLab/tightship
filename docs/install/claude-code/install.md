@@ -2,12 +2,12 @@
 
 English · [Português](install.pt-BR.md)
 
-Install tightship with the one-command installer, or add the catalogs and install by hand.
+Install tightship with the one-command installer, or add the catalog and install by hand.
 
 ## One-command installer
 
-The installer detects your CLIs, asks for your options, adds the companions' catalogs and tightship's,
-installs the plugin, and applies your options. Nothing is written until you choose Install on the summary.
+The installer detects your CLIs, asks for your options, adds tightship's catalog, installs the
+plugin, and applies your options. Nothing is written until you choose Install on the summary.
 
 On Linux and macOS:
 
@@ -23,35 +23,41 @@ On Windows in PowerShell:
   -Harness claude-code
 ```
 
+From `cmd`:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "& ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) -Harness claude-code"
+```
+
 Without `--harness`, the first question lists every CLI it found, so one run can install Cursor and
 Antigravity CLI as well.
 
 ## Manual installation
 
-tightship depends on three companion plugins, each listed in its own catalog. Add those three catalogs first,
-then tightship's, which is this repository, then install once:
+Add tightship's catalog, which is this repository, then install:
 
 ```sh
-claude plugin marketplace add DietrichGebert/ponytail
-claude plugin marketplace add ayghri/i-have-adhd
-claude plugin marketplace add blader/humanizer
 claude plugin marketplace add ATNexusLab/tightship
 claude plugin install tightship@tightship
 ```
 
-The install adds the companions along with the plugin:
-
 ```text
-✔ Successfully installed plugin: tightship@tightship (scope: user) (+ 3 dependencies: ponytail, i-have-adhd, humanizer)
+✔ Successfully installed plugin: tightship@tightship (scope: user)
 ```
-
-If a companion's catalog is missing, Claude Code warns that the dependency was not installed, and tightship
-does not load. Add the missing catalog and run the install again.
 
 The install asks for no option from the shell. Set them as you install with `--config`, or in the next
 session's dialog: see [the options](options.md).
 
 ## Check it
 
-Run `claude plugin list`. `tightship@tightship` shows with no error, and so do `ponytail`, `i-have-adhd`, and
-`humanizer`.
+Run `claude plugin list`. `tightship@tightship` shows with no error.
+
+## In Zed
+
+Zed's terminal is an ordinary terminal. Run `claude` there and every piece works as it does in any other
+terminal, with no setup beyond this guide.
+
+Zed's agent panel, which runs Claude Code through the `claude-acp` entry of Zed's agent registry, has not
+been checked yet ([#163](https://github.com/ATNexusLab/tightship/issues/163)). Until it is, run Claude
+Code in the terminal.

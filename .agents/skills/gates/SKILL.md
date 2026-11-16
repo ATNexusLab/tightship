@@ -9,7 +9,10 @@ description: Use before a commit or a pull request, or when CI fails — every g
 
 - The toolchain is pinned in `rust-toolchain.toml`; `rustup` installs it on the first `cargo` call.
 - gitleaks 8.30.1 on the `PATH`, for `cargo xtask scan` and `cargo test --workspace`.
-- PowerShell 7 (`pwsh`) on the `PATH`, for the installers' tests; the GitHub runners ship it.
+- PowerShell 7 (`pwsh`) on the `PATH`, for the installers' tests; the GitHub runners ship it. The tests drop
+  every `PATH` folder that holds `agy`, `claude`, `codex`, or `cursor-agent`, so a `pwsh` next to one of
+  them, as Homebrew puts `codex` and `pwsh` in `/opt/homebrew/bin`, needs a link in a folder of its own.
+- No `.DS_Store` under `content/`: `cargo xtask build` reads the folder, not git, and rejects it.
 - `.identity-terms` at the root of the clone, ignored by git: one line per name, email address, user name,
   and handle of the maintainer.
 
@@ -37,8 +40,10 @@ description: Use before a commit or a pull request, or when CI fails — every g
 
 At each pull request into `develop` or `main`, `.github/workflows/` runs only the gates its files call for:
 `rust.yml` the Rust gates on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git Bash) when the
-workspace, `content/`, `harnesses/`, or `installer/` changes; `docs.yml` markdownlint and the docs build on
-Linux when Markdown or the docs site changes; `scan.yml` the scan on Linux every time.
+workspace, `harnesses/`, or `installer/` changes, and only the build and the tests on Linux when `content/`
+alone changes; `docs.yml` markdownlint on Linux when Markdown changes, plus the docs build when `docs/` or
+`zensical.toml` changes; `scan.yml` the scan on Linux every time. Each reads the pull request's files from
+the GitHub API to pick its jobs and steps.
 
 `rust.yml` writes `.identity-terms` from the repository secret `IDENTITY_TERMS`, so a change to the file is
 copied there with `gh secret set IDENTITY_TERMS < .identity-terms`. It clears `USER`: the build counts the

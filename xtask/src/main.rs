@@ -1,32 +1,23 @@
+//! The `cargo xtask` entry point: parses the command, finds the workspace, and reports the outcome.
+
 mod build;
 mod diagnostics;
+mod files;
 mod git;
 mod package;
 mod scan;
+mod workspace;
 
 use std::env;
-use std::fs;
-use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::ExitCode;
 
-use diagnostics::Diagnostic;
+use diagnostics::Failure;
 
 enum Command<'arguments> {
     Build(Option<&'arguments Path>),
     Package(&'arguments str),
     Scan,
-}
-
-enum Failure {
-    Checks(Vec<Diagnostic>),
-    Io(io::Error),
-}
-
-impl From<io::Error> for Failure {
-    fn from(error: io::Error) -> Self {
-        Self::Io(error)
-    }
 }
 
 fn main() -> ExitCode {
@@ -44,7 +35,7 @@ fn main() -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
-    let root = match workspace_root() {
+    let root = match workspace::root() {
         Ok(root) => root,
         Err(error) => {
             eprintln!("error: {error}");
@@ -72,32 +63,4 @@ fn main() -> ExitCode {
             ExitCode::FAILURE
         }
     }
-}
-
-fn workspace_root() -> io::Result<PathBuf> {
-    let current = env::current_dir()?;
-    for folder in current.ancestors() {
-        let manifest = folder.join("Cargo.toml");
-        if !manifest.is_file() {
-            continue;
-        }
-        let declares_workspace = fs::read_to_string(&manifest)?
-            .parse::<toml::Table>()
-            .is_ok_and(|table| table.contains_key("workspace"));
-        if declares_workspace {
-            return Ok(folder.to_path_buf());
-        }
-    }
-    Err(io::Error::other(format!(
-        "{} is not inside a Cargo workspace",
-        current.display()
-    )))
-}
-
-fn stop_on_errors(diagnostics: &mut Vec<Diagnostic>) -> Result<(), Failure> {
-    if diagnostics.is_empty() {
-        return Ok(());
-    }
-    diagnostics.sort();
-    Err(Failure::Checks(std::mem::take(diagnostics)))
 }

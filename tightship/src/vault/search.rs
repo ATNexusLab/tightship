@@ -1,9 +1,16 @@
+//! `tightship vault search`: the notes that match the terms, best first.
+
 use std::cmp::Reverse;
 
 use super::note::{self, Note};
 use crate::failure::Failure;
 use crate::project;
 
+/// Prints up to ten matching notes of the scope, or of every scope.
+///
+/// # Errors
+///
+/// When no term is given or the vault cannot be read.
 pub fn run(terms: &[String], everywhere: bool) -> Result<(), Failure> {
     let terms: Vec<&str> = terms
         .iter()
@@ -56,7 +63,7 @@ fn rank<'notes>(
     let terms: Vec<String> = terms.iter().map(|term| fold(term)).collect();
     let mut matches: Vec<(usize, usize, usize, &Note)> = notes
         .iter()
-        .filter(|note| everywhere || [scope, "all"].contains(&note.field("project")))
+        .filter(|note| everywhere || note.is_in_reach(scope))
         .filter_map(|note| {
             let texts = [note.field("why"), note.field("tags"), &note.body].map(fold);
             let occurrences: Vec<usize> = terms
