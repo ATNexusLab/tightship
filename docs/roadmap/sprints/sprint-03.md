@@ -28,3 +28,19 @@ without a plan, so the iteration's number is ahead of the sprint's.
 Item #140 became an epic, with its [spec](../../specs/own-the-companions/own-the-companions.md), and #158 is
 one, with its [spec](../../specs/zed-and-lean-artifacts/zed-and-lean-artifacts.md). Every other item is one
 delivery on its own branch. The Codex epic of M4 waits for nothing.
+
+## Sprint result — 2026-11-16
+
+Goal reached: every item is in Staging, merged into `develop`, and ships in the next release, which closes
+them. Epic #140 went through its spec and its tasks, #149 to #153, and epic #158 through its tasks,
+issues #156, #157, and #159.
+
+Not done: the agent panel half of rule 5 of the
+[Zed spec](../../specs/zed-and-lean-artifacts/zed-and-lean-artifacts.md). No one could run a session in
+Zed's agent panel yet, so #156 shipped the terminal half and the rest became
+[#163](https://github.com/ATNexusLab/tightship/issues/163), which returns to Backlog. Sprint 4 takes it from
+there.
+
+No GitHub Milestone closes: the items carry none, and M3 was already closed. The sprint revealed no
+requirement or architecture change beyond those #140 and #158 already made, versions 4.0.0 and 4.1.0 of the
+SRS.
