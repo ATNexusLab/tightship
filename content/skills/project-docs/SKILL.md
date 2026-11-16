@@ -14,6 +14,29 @@ Every project is documented as if a team depended on it, even with one person on
 a reason to skip what needs documenting. The repo keeps the global docs below, and every feature keeps its
 spec; a feature's PR updates the global docs it changes, so any part reads alone or against the whole.
 
+## Standards
+
+Each doc type follows one standard, chosen in this order: a global standard the industry already uses,
+then ISO, then the convention of the doc's ecosystem, and our own convention only where none of those
+exists. A doc type missing from the table is chosen by the same order.
+
+| Doc type | Standard | Rung |
+| --- | --- | --- |
+| SRS | ISO/IEC/IEEE 29148 and the ISO/IEC 25010 quality model, with [SemVer](https://semver.org/) on the document | ISO |
+| SRS changelog | [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) | ecosystem |
+| Architecture | [arc42](https://arc42.org/overview) sections, drawn in the [C4 model](https://c4model.com/) | global |
+| Data model | Chen notation for the conceptual model, crow's foot for the physical | global |
+| Use cases, sequences, states | [UML](https://www.omg.org/spec/UML/) | global |
+| Business processes | [BPMN](https://www.omg.org/spec/BPMN/) | global |
+| Design tokens | the names and types of the [Design Tokens Format 2025.10](https://www.designtokens.org/TR/2025.10/) (W3C DTCG), in a Markdown table | global |
+| Brand, screens | ours; a screen cites [ISO 9241-161](https://www.iso.org/standard/85790.html) for its components | own |
+| Sprints | the [Scrum Guide 2020](https://scrumguides.org/scrum-guide.html): Sprint Goal, Product Goal, Definition of Done | global |
+| Roadmap | ours: milestones, then epics | own |
+| Feature spec | ours, `{{skill:spec-writing}}`; its scenarios in [Gherkin](https://cucumber.io/docs/gherkin/reference/) | own |
+| ADR | [Nygard's format](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions), plus `Alternatives considered` | global |
+| User-facing pages | [Diátaxis](https://diataxis.fr/): each page is a tutorial, a how-to guide, a reference, or an explanation | global |
+| README, runbook | ours, `{{skill:technical-writing}}` | own |
+
 ## Structure
 
 ```text
@@ -146,11 +169,14 @@ with no interface says so in one line in `docs/README.md`, and has no `design/`.
 - **`brand/`** — the brand description, the brand book, and the logo, banner and every other brand asset.
   A copy the app ships lives in the app's own folder; this one is documentation.
 - **`tokens.md`** — every token by layer (color, type, spacing, radius, shadow) with its value in light
-  and dark, and the path of the app's own source of them. The docs site's `docs-theme.css` carries the
-  same values, and whoever changes a token changes both.
+  and dark, where it is applied, and the path of the app's own source of them. Each token is named by its
+  DTCG path (`color.accent`, `font.display`) and its columns are DTCG types (`color`, `fontFamily`,
+  `fontWeight`, `dimension`, `shadow`); colors are written as hex. The docs site's `docs-theme.css`
+  carries the same values, and whoever changes a token changes both.
 - **`pages/<feature>/<page>.md`** — one screen: the image exported from the design tool, embedded in the
   page, at phone width before desktop, then its specification — areas and what each is responsible for,
-  states, and the tokens it uses. A page that exists only as an HTML file to open is not documented: the
+  states, and the tokens it uses. Its components follow ISO 9241-161, and the page names any it departs
+  from and why. A page that exists only as an HTML file to open is not documented: the
   HTML, when the tool produces one, sits next to the page as its source, and the image is what the site
   shows. A feature's spec links its pages.
 
@@ -165,6 +191,8 @@ as a **GitHub Milestone** holding its epics and tasks. This folder holds the pla
 # Roadmap
 
 Live status: the GitHub Project (<url>) and the milestones (<repo url>/milestones).
+
+**Product Goal:** <the future state of the product the milestones move toward>
 
 ## M<N> — <name>
 <Goal in one sentence.> GitHub Milestone: [M<N>](<milestone url>).
@@ -188,7 +216,8 @@ Every approved requirement of a planned milestone maps to exactly one epic.
 ```markdown
 # Sprint <N> — <start> → <end>
 
-**Goal:** <one sentence a user could observe at the end>
+**Sprint Goal:** <one sentence a user could observe at the end>
+**Definition of Done:** <the repo's gates, as its `AGENTS.md` or `gates` skill lists them>
 **Requirements baseline:** v<version>
 **Items:** #<n>, #<n>
 

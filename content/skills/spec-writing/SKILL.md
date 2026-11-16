@@ -35,7 +35,8 @@ the spec entirely. It never stays as a soft spot inside it.
 
 ## Feature spec
 
-Two profiles — **UI** and **API** — in `templates.md`. Read that file before writing one.
+Two profiles — **UI** and **API** — in `templates.md`. Read that file before writing one. The template is
+ours; its scenarios follow the [Gherkin reference](https://cucumber.io/docs/gherkin/reference/).
 
 Location: `docs/specs/<epic>/<feature>.md`.
 
@@ -43,6 +44,9 @@ Every feature spec ends with its Task Breakdown — the table `{{command:epic}}`
 slicing it are in `templates.md`.
 
 ## ADR template → `docs/decisions/NNNN-<slug>.md`
+
+Nygard's format, with `Alternatives considered` added. Every doc type's standard is in
+`{{skill:project-docs}}`.
 
 ```markdown
 # NNNN. <Title>

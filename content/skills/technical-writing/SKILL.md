@@ -35,7 +35,7 @@ One destination per fact. Most duplication starts as honest uncertainty about wh
 | The fact | Where it lives |
 | --- | --- |
 | How to run, use, or operate this | `README` / `docs/` — here |
-| What the product must be able to do | `docs/requirements/`, the versioned SRS — its `CHANGELOG.md` is the one change log a file keeps |
+| What the product must be able to do | `docs/requirements/`, the versioned SRS — its `CHANGELOG.md`, in Keep a Changelog, is the one change log a file keeps |
 | What the system is made of, and its data | `docs/architecture/`, `docs/data-model/` |
 | What is planned, per milestone and sprint | `docs/roadmap/` — status lives on GitHub |
 | How one feature behaves, in detail | that feature's spec |
@@ -77,11 +77,16 @@ survives:
 
 ## The three artifacts
 
-Each answers one question nothing else answers. There is no fourth by default.
+Each answers one question nothing else answers. There is no fourth by default. The README and the
+runbook follow this skill's own shape, since no wider standard exists for either; every other doc type's
+standard is in `{{skill:project-docs}}`.
 
 - **README** — *"how do I run and use this?"* What it is · quick start, copy-pasteable, from clone to
   running · the commands that matter · where to go next. The one doc that must always be current.
-- **`docs/`** — the depth that would bury the README. One page per subject, linked from it.
+- **`docs/`** — the depth that would bury the README. One page per subject, linked from it. A page
+  written for the product's users is one [Diátaxis](https://diataxis.fr/) type: a tutorial, a how-to
+  guide, a reference, or an explanation. A page that mixes two is split, and the folder's index names each
+  page's type.
 - **Runbook** — *"it is broken at 3am, what do I do?"* Deploy, roll back, diagnose, escalate. Only
   where something is actually operated.
 

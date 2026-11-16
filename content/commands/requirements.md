@@ -29,7 +29,7 @@ change control — is the `{{skill:requirements-engineering}}` skill. Follow it;
    `docs/roadmap/` — the epics, specs, and shipped code that depend on them. Show me before editing.
 3. **Apply.** With my approval: edit the requirements (a changed one keeps its ID; a new one takes the
    next free ID in its group; a removed one is `retired`, never deleted), bump the version, write the
-   `CHANGELOG.md` entry, and update the roadmap's coverage table.
+   `CHANGELOG.md` entry in Keep a Changelog, and update the roadmap's coverage table.
 4. **Validation.** The quality checklist on every requirement touched, and the set checks.
 
 ## Relationship to the other docs

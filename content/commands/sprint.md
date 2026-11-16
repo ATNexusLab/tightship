@@ -52,11 +52,11 @@ version of `docs/requirements/` — its **baseline**.
 
 ### 3. The sprint
 
-- Pick the sprint's goal: one sentence a user could observe when it ends. Then the items that reach it,
-  in dependency order: an epic whole, or the part of one that the goal needs.
+- Pick the Sprint Goal: one sentence a user could observe when it ends. Then the items that reach it,
+  in dependency order: an epic whole, or the part of one that the Sprint Goal needs.
 - An item whose epic has no closed spec gets one before any code — list those specs as the sprint's
   first work, each a `{{command:spec}}` then an `{{command:epic}}` that hangs the tasks on the existing epic issue.
-- Agree the goal and the items with me. Then set each item's `Sprint` to the iteration and its Status to
+- Agree the Sprint Goal and the items with me. Then set each item's `Sprint` to the iteration and its Status to
   Todo, write `docs/roadmap/sprints/sprint-NN.md` with its requirements baseline, and link it from the
   roadmap's `README.md`.
 
@@ -77,12 +77,12 @@ Only this sprint is planned in detail. The next one is planned when this one clo
 
 ```text
 Sprint <N>:
-- Goal:     [one sentence]
-- Baseline: [docs/requirements/ v<version> · change requests decided: #… / none]
-- Items:    [#n title — Status], in dependency order
-- Specs:    [needed before code / all closed]
-- Roadmap:  [docs/roadmap/ updated — what changed]
-- Carried:  [from the previous sprint / none]
+- Sprint Goal: [one sentence]
+- Baseline:    [docs/requirements/ v<version> · change requests decided: #… / none]
+- Items:       [#n title — Status], in dependency order
+- Specs:       [needed before code / all closed]
+- Roadmap:     [docs/roadmap/ updated — what changed]
+- Carried:     [from the previous sprint / none]
 ```
 
 Every doc change goes through the normal commit approval.

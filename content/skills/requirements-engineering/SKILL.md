@@ -123,8 +123,11 @@ SemVer on the document, bumped in the same commit as the change:
 | MINOR | A requirement or acceptance criterion is added |
 | PATCH | Wording or attributes change without changing meaning |
 
-Every version gets one entry in `CHANGELOG.md`, and the version in `README.md` moves with it: the date,
-the version, the IDs added, changed, or retired, and why.
+Every version gets one entry in `CHANGELOG.md`, and the version in `README.md` moves with it. The file
+follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/): the heading
+`## [<version>] - <YYYY-MM-DD>`, a paragraph saying why, then `### Added`, `### Changed`, and
+`### Removed` listing the IDs, a retired requirement under `Removed`. It has no `Unreleased` section,
+since every change bumps the version, and no version links, since a version of the SRS is not a git tag.
 
 **Baseline:** `{{command:sprint}} plan` records the version a sprint was planned against. A change during a sprint
 bumps the version; it enters the running sprint only by the user's decision.
