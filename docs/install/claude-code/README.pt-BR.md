@@ -14,11 +14,11 @@ partir da instalação anterior ao plugin.
 
 ## Páginas
 
-| Página | O que cobre |
-| --- | --- |
-| [Instalação](install.pt-BR.md) | Rodar o instalador, ou adicionar os catálogos e instalar manualmente |
-| [As opções](options.pt-BR.md) | Ligar ou desligar o contrato, a memória e a status line, e a pasta do vault |
-| [Atualização](update.pt-BR.md) | Receber novas versões, automaticamente, pelo instalador ou à mão |
-| [Desinstalação](uninstall.pt-BR.md) | Remover o plugin e devolver a sua status line |
-| [Migração](migration.pt-BR.md) | Sair da instalação anterior ao plugin sem perder as suas configurações nem o seu vault |
-| [Sem o contrato](without-the-contract.pt-BR.md) | O que cada skill e comando faz de diferente com o contrato desligado |
+| Página | O que cobre | Tipo |
+| --- | --- | --- |
+| [Instalação](install.pt-BR.md) | Rodar o instalador, ou adicionar os catálogos e instalar manualmente | How-to |
+| [As opções](options.pt-BR.md) | Ligar ou desligar o contrato, a memória e a status line, e a pasta do vault | Referência |
+| [Atualização](update.pt-BR.md) | Receber novas versões, automaticamente, pelo instalador ou à mão | How-to |
+| [Desinstalação](uninstall.pt-BR.md) | Remover o plugin e devolver a sua status line | How-to |
+| [Migração](migration.pt-BR.md) | Sair da instalação anterior ao plugin sem perder as suas configurações nem o seu vault | How-to |
+| [Sem o contrato](without-the-contract.pt-BR.md) | O que cada skill e comando faz de diferente com o contrato desligado | Referência |

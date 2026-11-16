@@ -13,11 +13,11 @@ from loose rules and skills.
 
 ## Pages
 
-| Page | What it covers |
-| --- | --- |
-| [Installation](install.md) | Running the unified installer or manual install commands |
-| [The options](options.md) | Storing contract, memory, status line, and vault folder in `options.toml` |
-| [Update](update.md) | Getting new versions from GitHub releases, automatically or through the installer |
-| [Uninstall](uninstall.md) | Removing the plugin and putting your previous status line back |
-| [Migration](migration.md) | Cleaning up loose files and reconnecting to an existing vault |
-| [Without the contract](without-the-contract.md) | What each skill and command does differently with the contract off |
+| Page | What it covers | Type |
+| --- | --- | --- |
+| [Installation](install.md) | Running the unified installer or manual install commands | How-to |
+| [The options](options.md) | Storing contract, memory, status line, and vault folder in `options.toml` | Reference |
+| [Update](update.md) | Getting new versions from GitHub releases, automatically or through the installer | How-to |
+| [Uninstall](uninstall.md) | Removing the plugin and putting your previous status line back | How-to |
+| [Migration](migration.md) | Cleaning up loose files and reconnecting to an existing vault | How-to |
+| [Without the contract](without-the-contract.md) | What each skill and command does differently with the contract off | Reference |

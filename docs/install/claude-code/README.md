@@ -14,11 +14,11 @@ the pre-plugin install.
 
 ## Pages
 
-| Page | What it covers |
-| --- | --- |
-| [Installation](install.md) | Running the installer, or adding the catalogs and installing by hand |
-| [The options](options.md) | Turning the contract, memory, and the status line on or off, and the vault folder |
-| [Update](update.md) | Getting new versions, automatically, through the installer, or by hand |
-| [Uninstall](uninstall.md) | Removing the plugin and putting your status line back |
-| [Migration](migration.md) | Moving from the pre-plugin install without losing your settings or your vault |
-| [Without the contract](without-the-contract.md) | What each skill and command does differently with the contract off |
+| Page | What it covers | Type |
+| --- | --- | --- |
+| [Installation](install.md) | Running the installer, or adding the catalogs and installing by hand | How-to |
+| [The options](options.md) | Turning the contract, memory, and the status line on or off, and the vault folder | Reference |
+| [Update](update.md) | Getting new versions, automatically, through the installer, or by hand | How-to |
+| [Uninstall](uninstall.md) | Removing the plugin and putting your status line back | How-to |
+| [Migration](migration.md) | Moving from the pre-plugin install without losing your settings or your vault | How-to |
+| [Without the contract](without-the-contract.md) | What each skill and command does differently with the contract off | Reference |

@@ -1,9 +1,11 @@
 # Sprint 4 — 2026-11-16 → 2026-11-22
 
-**Goal:** v1.3.0 ships what sprint 3 built, and an adopter installs the workflow as a native Codex plugin,
-reads which pieces run on each surface of every harness, Zed's agent panel included, and gets docs that
-follow one order of standards, stay in step with the code, serve a client as well as the team, and export
-to PDF, with sprints estimated from their own history.
+**Sprint Goal:** v1.3.0 ships what sprint 3 built, and an adopter installs the workflow as a native Codex
+plugin, reads which pieces run on each surface of every harness, Zed's agent panel included, and gets
+docs that follow one order of standards, stay in step with the code, serve a client as well as the team,
+and export to PDF, with sprints estimated from their own history.
+**Definition of Done:** every gate in `.agents/skills/gates/SKILL.md` exits 0, and `/tightship:closeout`
+runs before each commit
 **Requirements baseline:** v4.1.0 · change requests decided: none open; #140, #141, and #149 were decided
 in sprint 3 and close with the release
 **Milestones:** [M4 — Codex](https://github.com/ATNexusLab/tightship/milestone/4); the other items carry
@@ -35,4 +37,5 @@ with items pulled in along the way.
 - #138, #160, #161, and #162: each adds behavior the SRS does not hold, so each goes through `/requirements`
   first, which also maps it to a milestone and an epic in the roadmap.
 
-Issues #163 and #137 are one delivery each on their own branch, with no spec.
+Issues #163 and #137 need no spec. The whole sprint is built on one branch, `sprint/04`, with each issue
+in its own commits, and one pull request into `develop` closes every issue when the sprint ends.

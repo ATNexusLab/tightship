@@ -14,12 +14,12 @@ agent.
 
 ## Pages
 
-| Page | What it covers |
-| --- | --- |
-| [Installation](install.md) | The unified installer and a manual local-folder path |
-| [The options](options.md) | `options.json`, the Configure dialog, and the `tightship options` commands |
-| [Update](update.md) | New versions, by themselves or through the installer |
-| [Uninstall](uninstall.md) | Removing tightship, and your options folder |
+| Page | What it covers | Type |
+| --- | --- | --- |
+| [Installation](install.md) | The unified installer and a manual local-folder path | How-to |
+| [The options](options.md) | `options.json`, the Configure dialog, and the `tightship options` commands | Reference |
+| [Update](update.md) | New versions, by themselves or through the installer | How-to |
+| [Uninstall](uninstall.md) | Removing tightship, and your options folder | How-to |
 
 ## Try it from a clone
 

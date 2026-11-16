@@ -13,12 +13,12 @@ Como instalar, configurar e remover o plugin tightship no editor Cursor e no age
 
 ## Páginas
 
-| Página | O que cobre |
-| --- | --- |
-| [Instalação](install.pt-BR.md) | O instalador unificado e o caminho manual em pasta local |
-| [As opções](options.pt-BR.md) | `options.json`, o diálogo Configure e os comandos `tightship options` |
-| [Atualização](update.pt-BR.md) | Versões novas, sozinhas ou pelo instalador |
-| [Desinstalação](uninstall.pt-BR.md) | Remover o tightship e a pasta de opções |
+| Página | O que cobre | Tipo |
+| --- | --- | --- |
+| [Instalação](install.pt-BR.md) | O instalador unificado e o caminho manual em pasta local | How-to |
+| [As opções](options.pt-BR.md) | `options.json`, o diálogo Configure e os comandos `tightship options` | Referência |
+| [Atualização](update.pt-BR.md) | Versões novas, sozinhas ou pelo instalador | How-to |
+| [Desinstalação](uninstall.pt-BR.md) | Remover o tightship e a pasta de opções | How-to |
 
 ## Experimente a partir de um clone
 

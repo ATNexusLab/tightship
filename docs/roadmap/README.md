@@ -3,6 +3,9 @@
 Live status: the [GitHub Project](https://github.com/orgs/ATNexusLab/projects/16) and the
 [milestones](https://github.com/ATNexusLab/tightship/milestones).
 
+**Product Goal:** the workflow runs as a native plugin in every harness the SRS names, built from one
+canonical source.
+
 ## M1 — Claude Code
 
 The workflow installs and runs as a native Claude Code plugin, built from the canonical source.
