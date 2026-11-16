@@ -76,6 +76,37 @@ confirmar o resumo. Os guias de instalação ([Claude Code](docs/install/claude-
 [Cursor](docs/install/cursor/README.pt-BR.md), [Antigravity CLI](docs/install/antigravity-cli/README.pt-BR.md))
 cobrem opções, atualizações, desinstalação e a instalação manual.
 
+### Instalação nativa, sem o instalador
+
+Cada harness também instala o tightship sozinho. Aí as perguntas do instalador ficam de fora: as opções e
+a status line se configuram como mostra a instalação manual de cada guia.
+
+Claude Code, pelo catálogo de plugins ([guia](docs/install/claude-code/install.pt-BR.md#instalação-manual)):
+
+```sh
+claude plugin marketplace add ATNexusLab/tightship
+claude plugin install tightship@tightship
+```
+
+Antigravity CLI, pelo zip da release ([guia](docs/install/antigravity-cli/install.pt-BR.md#instalação-manual),
+com o passo do Windows):
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/tightship-antigravity-cli.zip -o /tmp/tightship.zip
+unzip -q -o /tmp/tightship.zip -d /tmp/tightship
+agy plugin install /tmp/tightship
+rm -f ~/.gemini/config/plugins/tightship/hooks.windows.json
+```
+
+Cursor, como plugin local ([guia](docs/install/cursor/install.pt-BR.md#instalação-manual)); recarregue a
+janela do editor depois, e ele aparece em Customize → Plugins:
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/tightship-cursor.zip -o /tmp/tightship.zip
+mkdir -p ~/.cursor/plugins/local/tightship
+unzip -q -o /tmp/tightship.zip -d ~/.cursor/plugins/local/tightship
+```
+
 ## Harnesses
 
 | Harness | Status | Marco |
