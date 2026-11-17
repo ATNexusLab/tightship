@@ -130,7 +130,15 @@ the other workflow commands.
 After a local `cargo xtask build`, you can confirm the same with `agent --plugin-dir dist/cursor` instead of
 the release zip.
 
-## In Zed
+## Surfaces
+
+Which pieces load on each surface is in the [support matrix](../README.md).
+
+**Editor.** The installer or a copy into `~/.cursor/plugins/local/`, as above, then a reload of the
+window. No test runs the editor yet; [#170](https://github.com/ATNexusLab/tightship/issues/170) confirms
+each piece in use.
+
+**`agent` CLI.** It reads the editor's install, so the steps above reach it with no extra step.
 
 Zed's terminal is an ordinary terminal. Run `agent` there and every piece works as it does in any other
 terminal, with no setup beyond this guide.

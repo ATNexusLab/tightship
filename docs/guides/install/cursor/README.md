@@ -11,6 +11,7 @@ agent.
 - The `agent` CLI **`2026.10.14`** or later. Check with `agent --version`.
 - On Windows, PowerShell 7 for hook commands.
 - Git, when memory is on, since the vault is a git repository.
+- Which pieces load on each surface of this harness: the [support matrix](../README.md).
 
 ## Pages
 

@@ -11,6 +11,7 @@ the pre-plugin install.
   nothing in the plugin checks the version for you.
 - On Windows, Git for Windows: the plugin's hooks run through its `sh`.
 - Git, when memory is on, since the vault is a git repository.
+- Which pieces load on each surface of this harness: the [support matrix](../README.md).
 
 ## Pages
 

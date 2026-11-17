@@ -10,6 +10,7 @@ regras e skills avulsas.
 - Antigravity CLI 1.4.0 ou posterior. Confira com `agy --version`.
 - No Windows, PowerShell ou Git Bash para executar os hooks e o instalador.
 - Git, quando a memória estiver ligada, já que o vault é um repositório git.
+- Quais peças carregam em cada superfície deste harness: a [matriz de suporte](../README.pt-BR.md).
 
 ## Páginas
 

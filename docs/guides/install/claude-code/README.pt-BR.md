@@ -11,6 +11,7 @@ partir da instalação anterior ao plugin.
   nada no plugin confere a versão por você.
 - No Windows, o Git for Windows: os hooks do plugin rodam no `sh` dele.
 - Git, quando a memória está ligada, já que o vault é um repositório git.
+- Quais peças carregam em cada superfície deste harness: a [matriz de suporte](../README.pt-BR.md).
 
 ## Páginas
 

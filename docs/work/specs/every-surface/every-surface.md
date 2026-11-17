@@ -39,7 +39,10 @@ Confirmed by the maintainer on 2026-11-17, in the grilling of
 3. **Only local surfaces are supported.** tightship is a software engineering workflow that works on a
    checkout on the adopter's machine; a web surface has no such checkout and no `tightship` binary. The
    matrix names the web surfaces once, as not supported, and has no row for them.
-4. **Every surface is checked in a live session, piece by piece.** The Zed agent panel rows come from
+4. **The matrix records what the unit and integration tests prove; the rest is confirmed in use.** Revised
+   in the grilling of [#168](https://github.com/ATNexusLab/tightship/issues/168): no live session runs in
+   this epic. A desktop app or IDE, which no test runs, waits for
+   [#170](https://github.com/ATNexusLab/tightship/issues/170). The Zed agent panel rows come from
    [#163](https://github.com/ATNexusLab/tightship/issues/163), which this epic does not redo.
 5. **A piece that does not load on a surface is recorded, not fixed.** A fix is its own issue.
 6. **The release checklist runs a desktop app or IDE on macOS only**; a CLI keeps running on macOS, Linux,
@@ -66,8 +69,8 @@ What each row of the matrix comes from:
 | --- | --- | --- | --- | --- |
 | The surface | name | Yes | The list in [Response](#the-surfaces) | One row each, in that order |
 | How the plugin gets there | text | Yes | The install guide of the harness | The installer, the harness's own command, or the same install as another surface |
-| Each piece's result | one of three values | Yes | A live session on that surface, after a fresh install | Rule 3 |
-| The reason a piece does not load | text, at most 120 characters | When the result is `No` | The live session, or the vendor's docs, linked | Rule 4 |
+| Each piece's result | one of three values | Yes | A test of the suite, or a session in use on that surface | Rule 3 |
+| The reason a piece does not load | text, at most 120 characters | When the result is `No` | The test or the session, or the vendor's docs, linked | Rule 4 |
 
 ### Response
 
@@ -84,8 +87,8 @@ What each row of the matrix comes from:
 | Cursor | Zed's terminal | The same install as the editor |
 | Cursor | Zed's agent panel | The `cursor` registry entry ([#163](https://github.com/ATNexusLab/tightship/issues/163)) |
 | Antigravity | CLI | The installer, or `agy plugin install` |
-| Antigravity | IDE | The same install as the CLI, if the IDE reads `~/.gemini/config/plugins/` (Rule 3) |
-| Antigravity | Desktop app | The same install as the CLI, if the app reads `~/.gemini/config/plugins/` (Rule 3) |
+| Antigravity | IDE | The same install as the CLI, if the IDE reads `~/.gemini/config/plugins/` ([#170](https://github.com/ATNexusLab/tightship/issues/170)) |
+| Antigravity | Desktop app | The same install as the CLI, if the app reads `~/.gemini/config/plugins/` ([#170](https://github.com/ATNexusLab/tightship/issues/170)) |
 | Antigravity | Zed's terminal | The same install as the CLI |
 | Antigravity | Zed's agent panel | The `antigravity-acp` registry entry ([#163](https://github.com/ATNexusLab/tightship/issues/163)) |
 
@@ -102,12 +105,12 @@ word:
 
 | Value | pt-BR | When |
 | --- | --- | --- |
-| `Yes` | `Sim` | The live session showed the piece working |
-| `No¹` | `Não¹` | It did not; the footnote with that number, under the table, gives the reason |
-| `Not checked yet` | `Ainda não checado` | No live session on that surface yet; the cell links its issue |
+| `Yes` | `Sim` | A test of the suite covers the piece on the binary this surface runs, or a session in use showed it working |
+| `No¹` | `Não¹` | A test or a session showed it not loading; the footnote with that number, under the table, gives the reason |
+| `Not checked yet` | `Ainda não checado` | No test covers it and no session confirmed it yet; the cell links its issue |
 
-A surface the plugin cannot reach has `No way in¹` (`Sem como instalar¹`) in `How it gets there` and `No¹`
-in every piece, all pointing to the same footnote. Under the footnotes, word for word:
+A footnote under a row of `Yes` cells names the tests behind them and what those tests leave uncovered.
+Under the footnotes, word for word:
 
 > "Web surfaces are not supported: claude.ai, claude.ai/code, Cursor's Cloud Agents, and Antigravity's Remote
 > Agents. tightship works on a checkout on your machine."
@@ -124,8 +127,8 @@ The section's first line, word for word:
 
 #### The release checklist
 
-A section `Surfaces`, after `Cursor command-line agent`, one row per surface whose matrix row is not `No
-way in`. The criterion column reads `NFR-FLEX-09.2`; the check, for each row:
+A section `Surfaces`, after `Cursor command-line agent`, one row per surface of the matrix. The criterion
+column reads `NFR-FLEX-09.2`; the check, for each row:
 
 > "Manual: install as the matrix says, open a session on \<surface\>, and check each piece the matrix marks
 > `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session
@@ -138,7 +141,7 @@ A desktop app or IDE row writes `n/a` in the Linux and Windows columns.
 | Role | Permission | Note |
 | --- | --- | --- |
 | Adopter | N/A | Each surface runs with the harness's own account and permissions; nothing here adds one |
-| Maintainer | N/A | Runs the live checks with their own accounts on each surface |
+| Maintainer | N/A | Confirms the desktop apps and IDEs in use with their own accounts ([#170](https://github.com/ATNexusLab/tightship/issues/170)) |
 
 ---
 
@@ -156,11 +159,13 @@ another surface of the same harness, as its install guide says. No surface adds 
 
 ### 3. The checks
 
-- **When:** once per surface by this epic, and at each release by the checklist (Rule 5).
-- **What:** after a fresh install, a live session on the surface checks the six pieces one by one, with the
-  check in [The release checklist](#the-release-checklist). The result goes in the cell, `Yes` or `No¹`.
-- **A surface that does not read the install** of another surface (the Antigravity IDE or desktop app not
-  reading `~/.gemini/config/plugins/`) gets `No way in¹`, with the reason.
+- **When:** once by this epic, from the suite; in use, for a surface no test runs; and at each release by
+  the checklist (Rule 5).
+- **What:** a piece reads `Yes` when a unit or integration test covers it on the binary the surface runs: a
+  CLI, and Zed's terminal running that CLI. The footnote names the tests and what they leave uncovered.
+- **A desktop app or IDE**, which no test runs, reads `Not checked yet` in every piece and links
+  [#170](https://github.com/ATNexusLab/tightship/issues/170). A session in use on it checks the six pieces
+  with the check in [The release checklist](#the-release-checklist), and its result replaces the cell.
 - **Zed's agent panel:** the cells read `Not checked yet` and link
   [#163](https://github.com/ATNexusLab/tightship/issues/163) until it closes; #163 writes them.
 
@@ -201,21 +206,20 @@ differs from the matrix fails its row until the matrix and the guide say the new
 
 ## Acceptance Scenarios (Gherkin)
 
-### Scenario 1 — A desktop app loads every piece (happy path)
+### Scenario 1 — A CLI covered by the suite (happy path)
 
 ```gherkin
-Given tightship installed with the installer on macOS
-When a local session starts in Claude Code's desktop app
-Then the contract, a skill, a command, a hook, the status line, and the vault are checked one by one
-And the matrix row "Claude Code — Desktop app" holds the result of each piece
-And the Surfaces section of Claude Code's install guide says the app needs no install beyond the CLI's
+Given the unit and integration tests of Claude Code's plugin
+When the matrix is written
+Then every piece of the row "Claude Code — CLI" reads "Yes"
+And its footnote names the tests behind those cells and what they leave uncovered
 ```
 
 ### Scenario 2 — A piece missing on a surface (alternative)
 
 ```gherkin
 Given a surface where the status line does not render
-When its live check runs
+When a test or a session in use shows it
 Then its Status line cell reads "No¹"
 And the footnote gives the reason in at most 120 characters
 And no code changes in this epic
@@ -225,19 +229,18 @@ And no code changes in this epic
 
 ```gherkin
 Given tightship installed in Antigravity CLI with the installer
-When a session starts in the Antigravity IDE and in the Antigravity desktop app
-Then each piece is checked on each, and the rows "Antigravity — IDE" and "Antigravity — Desktop app" hold the results
+When the matrix is written
+Then every piece of the rows "Antigravity — IDE" and "Antigravity — Desktop app" reads "Not checked yet" and links #170
 And their paragraphs in the Antigravity guide need no step beyond the CLI's install
 ```
 
-### Scenario 4 — A surface that does not read the install (exception)
+### Scenario 4 — A desktop app confirmed in use (alternative)
 
 ```gherkin
-Given tightship installed in Antigravity CLI with the installer
-And an Antigravity surface that does not load plugins from ~/.gemini/config/plugins/
-When its check runs
-Then its row reads "No way in¹" and "No¹" in every piece, with the reason in the footnote
-And the release checklist has no row for it
+Given the row "Claude Code — Desktop app" reading "Not checked yet"
+When a session in use on the app checks the six pieces
+Then each cell reads "Yes" or "No¹", with the reason in the footnote
+And the app's paragraph in Claude Code's install guide changes in the same commit
 ```
 
 ### Scenario 5 — Zed's agent panel not checked yet (alternative)
@@ -271,7 +274,7 @@ Then each surface has one matrix row and one paragraph in its harness's Surfaces
 ```gherkin
 Given the matrix with every row filled
 When the maintainer runs the release checklist
-Then the Surfaces section has one row per surface that is not "No way in"
+Then the Surfaces section has one row per surface of the matrix
 And each desktop app or IDE row reads "n/a" for Linux and Windows
 ```
 
@@ -294,11 +297,14 @@ N/A — no entity, file, or attribute of the data model changes: the matrix is a
   [#142](https://github.com/ATNexusLab/tightship/issues/142), in the backlog, covers them.
 - **Fixing a piece that does not load on a surface**: each gets its own issue (Rule 4).
 - **Zed's agent panel check**: [#163](https://github.com/ATNexusLab/tightship/issues/163) owns it.
+- **A live session on a desktop app or IDE**: [#170](https://github.com/ATNexusLab/tightship/issues/170)
+  confirms them in use (Decision 4).
 - **Running a desktop app or IDE on Linux and Windows at release**: Decision 6.
 
 ## Task Breakdown
 
 | # | Issue | Title | Scope | Acceptance criterion | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| 1 | [#168](https://github.com/ATNexusLab/tightship/issues/168) | Write the support matrix from a live check of every surface | Live checks of Claude Code's CLI and desktop app, Cursor's editor and `agent`, Antigravity's CLI, IDE, and desktop app; `docs/guides/install/README.md` and `.pt-BR.md` (new); the `Surfaces` section of the six `install.md`; the line in the six `README.md`; `docs/system/architecture/deployment.md` | Scenarios 1 to 7 | — |
+| 1 | [#168](https://github.com/ATNexusLab/tightship/issues/168) | Write the support matrix of every surface | The suite's tests behind each CLI row; `docs/guides/install/README.md` and `.pt-BR.md` (new); the `Surfaces` section of the six `install.md`; the line in the six `README.md`; `docs/system/architecture/deployment.md` | Scenarios 1 to 3, 5 to 7 | — |
 | 2 | [#169](https://github.com/ATNexusLab/tightship/issues/169) | Run the release checklist on every surface | `docs/guides/release/checklist.md` | Scenario 8 | 1 |
+| 3 | [#170](https://github.com/ATNexusLab/tightship/issues/170) | Confirm the GUI surfaces in use | The desktop app and IDE rows of the matrix and their paragraphs in the install guides | Scenario 4 | 1 |

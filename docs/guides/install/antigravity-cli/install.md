@@ -126,7 +126,18 @@ vault_folder = "~/ai-memory"
 
 Run `agy plugin list`. `tightship` shows as installed.
 
-## In Zed
+## Surfaces
+
+Which pieces load on each surface is in the [support matrix](../README.md).
+
+**CLI.** The installer or `agy plugin install`, as above.
+
+**IDE.** It gets the CLI's install if it reads `~/.gemini/config/plugins/`, with no step beyond the ones
+above. No test runs the IDE yet; [#170](https://github.com/ATNexusLab/tightship/issues/170) confirms in
+use whether it reads that folder and which pieces load.
+
+**Desktop app.** The same as the IDE: the CLI's install, if the app reads `~/.gemini/config/plugins/`. No
+test runs the app yet; [#170](https://github.com/ATNexusLab/tightship/issues/170) confirms it in use.
 
 Zed's terminal is an ordinary terminal. Run `agy` there and every piece works as it does in any other
 terminal, with no setup beyond this guide.

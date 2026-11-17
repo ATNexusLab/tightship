@@ -53,7 +53,15 @@ session's dialog: see [the options](options.md).
 
 Run `claude plugin list`. `tightship@tightship` shows with no error.
 
-## In Zed
+## Surfaces
+
+Which pieces load on each surface is in the [support matrix](../README.md).
+
+**CLI.** The installer or `claude plugin install`, as above.
+
+**Desktop app.** Its local sessions read `~/.claude`, so the install above reaches it with no extra step.
+No test runs the app yet; [#170](https://github.com/ATNexusLab/tightship/issues/170) confirms each piece
+in use.
 
 Zed's terminal is an ordinary terminal. Run `claude` there and every piece works as it does in any other
 terminal, with no setup beyond this guide.

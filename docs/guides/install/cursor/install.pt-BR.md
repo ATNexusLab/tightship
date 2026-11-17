@@ -129,7 +129,15 @@ Numa sessão interativa do `agent`, pergunte quais comandos slash estão dispon�
 Depois de um `cargo xtask build` local, você pode confirmar o mesmo com `agent --plugin-dir dist/cursor` em
 vez do zip do release.
 
-## No Zed
+## Superfícies
+
+Quais peças carregam em cada superfície está na [matriz de suporte](../README.pt-BR.md).
+
+**Editor.** O instalador ou uma cópia em `~/.cursor/plugins/local/`, como acima, e depois um reload da
+janela. Nenhum teste roda o editor ainda; a [#170](https://github.com/ATNexusLab/tightship/issues/170)
+confirma cada peça em uso.
+
+**CLI `agent`.** Lê a instalação do editor, então os passos acima chegam a ela sem passo extra.
 
 O terminal do Zed é um terminal comum. Rode `agent` nele e cada peça funciona como em qualquer outro
 terminal, sem passo além deste guia.

@@ -10,6 +10,7 @@ Como instalar, configurar e remover o plugin tightship no editor Cursor e no age
 - CLI `agent` **`2026.10.14`** ou posterior. Confira com `agent --version`.
 - No Windows, PowerShell 7 para os comandos de hook.
 - Git, quando a memória está ligada, já que o vault é um repositório git.
+- Quais peças carregam em cada superfície deste harness: a [matriz de suporte](../README.pt-BR.md).
 
 ## Páginas
 
