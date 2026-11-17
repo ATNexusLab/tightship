@@ -1,16 +1,16 @@
 # Sprint 4 — 2026-11-16 → 2026-11-22
 
-**Sprint Goal:** v1.3.0 ships what sprint 3 built, and an adopter installs the workflow as a native Codex
-plugin, reads which pieces run on each surface of every harness, Zed's agent panel included, and gets
-docs that follow one order of standards, stay in step with the code, serve a client as well as the team,
-and export to PDF, with sprints estimated from their own history.
+**Sprint Goal:** v1.3.0 ships what sprint 3 built, and an adopter reads which pieces run on each surface
+of every harness, Zed's agent panel included, and gets docs that follow one order of standards, stay in
+step with the code, serve a client as well as the team, and export to PDF, with sprints estimated from
+their own history.
 **Definition of Done:** every gate in `.agents/skills/gates/SKILL.md` exits 0, and `/tightship:closeout`
 runs before each commit
 **Requirements baseline:** v4.1.0 · change requests decided: none open; #140, #141, and #149 were decided
 in sprint 3 and close with the release
-**Milestones:** [M4 — Codex](https://github.com/ATNexusLab/tightship/milestone/4), which #142 carries,
-with #138 since requirements v4.2.0 and #162 since v4.3.0; the other items carry none until their
-requirement changes place them
+**Milestones:** [M4 — Codex](https://github.com/ATNexusLab/tightship/milestone/4), which #138 carries
+since requirements v4.2.0 and #162 since v4.3.0; the other items carry none until their requirement
+changes place them. #142, the Codex plugin, went back to the backlog on 2026-11-17
 
 The Project's `Sprint 6` iteration runs from 2026-11-16 to 2026-11-22. The sprint takes the whole backlog:
 sprint 3's plan held three days of work, finished on its first day, and the rest of the week was filled
@@ -27,14 +27,12 @@ with items pulled in along the way.
 | [#162](https://github.com/ATNexusLab/tightship/issues/162) Export the docs, whole or by page | After #137. Builds on the HTML Zensical already generates. |
 | [#160](https://github.com/ATNexusLab/tightship/issues/160) Keep the docs in step with the code | A `tightship docs check` in the binary, run by `closeout`, `sprint close`, and CI. Last of the docs items, so it checks what they wrote. |
 | [#161](https://github.com/ATNexusLab/tightship/issues/161) Estimate sprints from their own history | Changes `sprint` itself and adds an `Estimate` field to the Project. Independent of the rest. |
-| [#142](https://github.com/ATNexusLab/tightship/issues/142) Codex plugin | M4. The spec settles OQ-04, OQ-06, and OQ-08 for Codex. |
-| [#134](https://github.com/ATNexusLab/tightship/issues/134) Support every surface of each harness | After #142, since its matrix has rows for Codex's surfaces, and after #163, which fills the Zed rows. |
+| [#134](https://github.com/ATNexusLab/tightship/issues/134) Support every surface of each harness | After #163, which fills the Zed rows. Codex's rows wait with #142 in the backlog. |
 
 ## Specs before code
 
-- [#142](https://github.com/ATNexusLab/tightship/issues/142): `/spec`, then `/epic` on the existing issue.
-- [#134](https://github.com/ATNexusLab/tightship/issues/134): `/requirements` to bring the support matrix
-  into the SRS, then `/spec` and `/epic` on the existing issue.
+- [#134](https://github.com/ATNexusLab/tightship/issues/134): `/spec`, which brings the support matrix into
+  the SRS as NFR-FLEX-09, then `/epic` on the existing issue.
 - #138, #160, #161, and #162: each adds behavior the SRS does not hold, so each goes through `/requirements`
   first, which also maps it to a milestone and an epic in the roadmap.
 
