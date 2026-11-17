@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.6.0] - 2026-11-17
+
+Each harness runs on more than one surface, and the plugin was checked on some of them only. Change request
+[#134](https://github.com/ATNexusLab/tightship/issues/134) accounts for every surface on the adopter's machine
+in one support matrix, and puts the web surfaces out of scope.
+
+### Added
+
+- NFR-FLEX-09: one support matrix says how the plugin gets to each local surface of every harness and which
+  pieces load there, and the release checklist checks every surface the plugin reaches.
+- Out of scope: the web surfaces of a harness.
+
 ## [4.5.0] - 2026-11-17
 
 The sprint plan had no estimate, capacity, or velocity, and the close recorded only what was done, so each

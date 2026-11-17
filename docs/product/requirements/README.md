@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 4.5.0 · **Date:** 2026-11-17 · [Changelog](CHANGELOG.md)
+**Version:** 4.6.0 · **Date:** 2026-11-17 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -36,6 +36,7 @@ Out of scope:
 | Listing in a vendor's official or curated marketplace | It depends on each vendor's review. The plugin installs from this repository's own catalog without it. |
 | Personal harness settings: theme, effort, language, permissions, notifications, enabled plugins | They are one machine's preferences, not workflow, and a plugin cannot carry them. |
 | Skills that serve only the maintainer's machine, such as the desktop and crash-diagnosis skills | They are personal configuration, not workflow. |
+| The web surfaces of a harness: claude.ai, claude.ai/code, Cursor's Cloud Agents, Antigravity's Remote Agents | The workflow works on a checkout on the adopter's machine, which a web surface does not have. |
 | MCP servers | The workflow provisions none. |
 | The content of any person's vault | It is private data and never ships ([NFR-SEC-02](non-functional/security.md#nfr-sec-02)). |
 | Harnesses other than the four named | None was requested. |
@@ -112,6 +113,7 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [NFR-FLEX-06](non-functional/flexibility.md#nfr-flex-06) | Harness-neutral canonical content | Must | approved | M1 |
 | [NFR-FLEX-07](non-functional/flexibility.md#nfr-flex-07) | A new harness leaves the canonical content untouched | Should | approved | M2 |
 | [NFR-FLEX-08](non-functional/flexibility.md#nfr-flex-08) | Every harness runs in Zed | Should | approved | M3 |
+| [NFR-FLEX-09](non-functional/flexibility.md#nfr-flex-09) | Every surface of each harness is accounted for | Should | approved | M3 |
 | [NFR-COMP-01](non-functional/compatibility.md#nfr-comp-01) | One vault across harnesses | Must | approved | M2 |
 | [NFR-SEC-01](non-functional/security.md#nfr-sec-01) | No personal identity in shipped content | Must | approved | M1 |
 | [NFR-SEC-02](non-functional/security.md#nfr-sec-02) | No secret and no vault content in the repository | Must | approved | M1 |

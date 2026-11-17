@@ -173,3 +173,28 @@ harness's install guide which pieces load in the agent panel.
 - **NFR-FLEX-08.2** — In Zed's agent panel, the contract, a skill, a command, a hook, and the vault are each
   checked in a live session for each supported harness, and its install guide names every piece that does not
   load, with the reason.
+
+<a id="nfr-flex-09"></a>
+
+## NFR-FLEX-09 — Every surface of each harness is accounted for
+
+The system shall say, for each surface of each supported harness on the adopter's machine, how the plugin
+gets there and which of its pieces load, in one support matrix, and the release checklist shall check every
+surface the plugin reaches.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Each harness runs in a CLI, a desktop app, an IDE, and Zed. An adopter on a surface nobody checked cannot tell whether the plugin installs there or which of its pieces run. |
+| Source | Maintainer, [#134](https://github.com/ATNexusLab/tightship/issues/134); the [spec of epic #134](../../../work/specs/every-surface/every-surface.md) |
+| Priority | Should |
+| Status | approved |
+| Milestone | M3 |
+| Since | v4.6.0 |
+
+**Acceptance criteria**
+
+- **NFR-FLEX-09.1** — 100% of the local surfaces of each supported harness have one row in the support matrix
+  and one paragraph in the harness's install guide, and every piece that does not load on a surface names the
+  reason.
+- **NFR-FLEX-09.2** — The release checklist has one row per surface the plugin reaches, and each row passes
+  before a release.

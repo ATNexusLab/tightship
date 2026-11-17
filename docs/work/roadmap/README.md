@@ -54,6 +54,7 @@ Released in [v1.1.0](https://github.com/ATNexusLab/tightship/releases/tag/v1.1.0
 | Curate the vault and the contract | [#120](https://github.com/ATNexusLab/tightship/issues/120) | FR-CTR-06, FR-CTR-07, FR-SKL-04, FR-SKL-05, FR-MEM-12, FR-MEM-13, NFR-PERF-03 |
 | Own the companions | [#140](https://github.com/ATNexusLab/tightship/issues/140) | FR-CTR-08, FR-CTR-09, FR-SKL-06, FR-INS-11, BR-05 |
 | Zed and lean production artifacts | [#158](https://github.com/ATNexusLab/tightship/issues/158) | FR-SKL-07, FR-SKL-08, NFR-FLEX-08 |
+| Support every surface of each harness | [#134](https://github.com/ATNexusLab/tightship/issues/134) | NFR-FLEX-09 |
 
 By [BR-01](../../product/requirements/business-rules.md#br-01), it is built alongside M2 and never released before
 it.
@@ -149,6 +150,7 @@ Every approved requirement of M1 to M4 maps to exactly one epic, or to one issue
 | NFR-FLEX-06 | #1 | M1 |
 | NFR-FLEX-07 | #58 | M2 |
 | NFR-FLEX-08 | #158 | M3 |
+| NFR-FLEX-09 | #134 | M3 |
 | NFR-COMP-01 | #58 | M2 |
 | NFR-SEC-01 | #1 | M1 |
 | NFR-SEC-02 | #1 | M1 |
