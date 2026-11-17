@@ -71,6 +71,8 @@ exist at all.
 - A screen, the brand, or a token changed? → `docs/product/design/` matches what was built, and the
   values in `docs/assets/stylesheets/docs-theme.css` match the app's tokens.
 - A use case changed? → its diagram in `docs/product/requirements/diagrams/`.
+- Something a page of `client-docs/` describes changed? → name the page, and update it in the client's
+  language (`{{skill:project-docs}}`, its client docs).
 
 ## 3. Traceability — always, never `n/a`
 

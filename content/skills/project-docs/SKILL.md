@@ -1,6 +1,6 @@
 +++
 name = "project-docs"
-description = "Use when creating or updating a project's docs under docs/ — the folder structure by audience and lifecycle, the global docs (requirements, design, architecture, data model, roadmap), their diagrams (.drawio.svg), and the local docs site (Zensical, themed light and dark with the product's identity). Templates and what each doc owns."
+description = "Use when creating or updating a project's docs under docs/ — the folder structure by audience and lifecycle, the global docs (requirements, design, architecture, data model, roadmap), their diagrams (.drawio.svg), and the local docs site (Zensical, themed light and dark with the product's identity), and the client docs that present a delivered project. Templates and what each doc owns."
 +++
 
 # Project Docs
@@ -35,6 +35,7 @@ exists. A doc type missing from the table is chosen by the same order.
 | Feature spec | ours, `{{skill:spec-writing}}`; its scenarios in [Gherkin](https://cucumber.io/docs/gherkin/reference/) | own |
 | ADR | [Nygard's format](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions), plus `Alternatives considered` | global |
 | User-facing pages, in `guides/` | [Diátaxis](https://diataxis.fr/): each page is a tutorial, a how-to guide, a reference, or an explanation | global |
+| Client docs | [Diátaxis](https://diataxis.fr/), in [`client-docs.md`](client-docs.md) | global |
 | README, runbook | ours, `{{skill:technical-writing}}` | own |
 
 ## Structure
@@ -82,6 +83,7 @@ docs/
   assets/                        the local site's own files
     stylesheets/                 docs-theme.css, image-viewer.css
     javascripts/                 image-viewer.js
+client-docs/                     the docs for the client, with their own site — see `client-docs.md`
 ```
 
 - **One file, one subject**, readable in one sitting. A file that grows a second subject splits.
