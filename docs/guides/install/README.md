@@ -8,7 +8,7 @@ and which of its pieces load. A piece that does not load says why.
 | Harness | Surface | How it gets there | Contract | Skills | Commands | Hooks | Status line | Vault |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Claude Code | CLI¹ | The installer, or `claude plugin install` | Yes | Yes | Yes | Yes | Yes | Yes |
-| Claude Code | Desktop app | The same install as the CLI: the app's local sessions read `~/.claude` | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) |
+| Claude Code | Desktop app | The same install as the CLI: the app's local sessions read `~/.claude` | Yes | Yes | Yes | Yes | Yes | Yes |
 | Claude Code | Zed's terminal¹ | The same install as the CLI | Yes | Yes | Yes | Yes | Yes | Yes |
 | Claude Code | Zed's agent panel | The `claude-acp` registry entry | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) |
 | Cursor | Editor | The installer, or a copy into `~/.cursor/plugins/local/` | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/170) |
@@ -21,9 +21,9 @@ and which of its pieces load. A piece that does not load says why.
 | Antigravity | Zed's terminal³ | The same install as the CLI | Yes | Yes | Yes | Yes | Yes | Yes |
 | Antigravity | Zed's agent panel | The `antigravity-acp` registry entry | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) |
 
-A `Yes` comes from the unit and integration tests, which run the CLI. Zed's terminal runs the same CLI, so
-its row repeats the CLI's. No test runs a desktop app, an IDE, or Zed's agent panel: those cells wait for a
-session in use, tracked in the issue they link.
+On a CLI row, a `Yes` comes from the unit and integration tests, which run the CLI. Zed's terminal runs the
+same CLI, so its row repeats the CLI's. No test runs a desktop app, an IDE, or Zed's agent panel: a `Yes`
+there comes from a session in use, and a cell not checked yet links the issue that tracks it.
 
 1. Claude Code: `xtask/tests/contract.rs` builds the contract and its hooks and runs them;
    `xtask/tests/build/references.rs` builds the skills and commands; `xtask/tests/install/claude_code.rs`

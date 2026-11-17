@@ -8,7 +8,7 @@ quais das suas peças carregam. Uma peça que não carrega diz por quê.
 | Harness | Superfície | Como chega lá | Contrato | Skills | Comandos | Hooks | Status line | Vault |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Claude Code | CLI¹ | O instalador, ou `claude plugin install` | Sim | Sim | Sim | Sim | Sim | Sim |
-| Claude Code | App desktop | A mesma instalação da CLI: as sessões locais do app leem `~/.claude` | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) |
+| Claude Code | App desktop | A mesma instalação da CLI: as sessões locais do app leem `~/.claude` | Sim | Sim | Sim | Sim | Sim | Sim |
 | Claude Code | Terminal do Zed¹ | A mesma instalação da CLI | Sim | Sim | Sim | Sim | Sim | Sim |
 | Claude Code | Agent panel do Zed | A entrada `claude-acp` do registro | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) |
 | Cursor | Editor | O instalador, ou uma cópia em `~/.cursor/plugins/local/` | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) |
@@ -21,9 +21,10 @@ quais das suas peças carregam. Uma peça que não carrega diz por quê.
 | Antigravity | Terminal do Zed³ | A mesma instalação da CLI | Sim | Sim | Sim | Sim | Sim | Sim |
 | Antigravity | Agent panel do Zed | A entrada `antigravity-acp` do registro | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) |
 
-Um `Sim` vem dos testes unitários e de integração, que rodam a CLI. O terminal do Zed roda a mesma CLI, então
-a linha dele repete a da CLI. Nenhum teste roda um app desktop, uma IDE ou o agent panel do Zed: essas
-células esperam uma sessão em uso, acompanhada na issue para a qual apontam.
+Numa linha de CLI, um `Sim` vem dos testes unitários e de integração, que rodam a CLI. O terminal do Zed roda
+a mesma CLI, então a linha dele repete a da CLI. Nenhum teste roda um app desktop, uma IDE ou o agent panel
+do Zed: ali, um `Sim` vem de uma sessão em uso, e uma célula ainda não checada aponta para a issue que a
+acompanha.
 
 1. Claude Code: `xtask/tests/contract.rs` gera o contrato e seus hooks e os roda;
    `xtask/tests/build/references.rs` gera as skills e os comandos; `xtask/tests/install/claude_code.rs`
