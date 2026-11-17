@@ -75,7 +75,8 @@ docs/
     README.md
     roadmap/
       README.md                  milestones → epics, and requirement coverage
-      sprints/sprint-NN.md       one sprint: plan, baseline, result
+      estimation.md              velocity per sprint and the estimates that missed
+      sprints/sprint-NN.md       one sprint: plan, baseline, estimate, result
     specs/<epic>/<feature>.md    one feature in depth
   guides/                        pages a user follows, each one Diátaxis type
     README.md
@@ -121,7 +122,7 @@ this table and rewrites every link that pointed into a moved folder; `docs/decis
 | `system/architecture/` | The map: what exists, how it talks, which milestone builds it | The checkable import rules — `AGENTS.md` → Architecture |
 | `system/data-model/` | Entities, relations, invariants, storage | Feature behavior |
 | `decisions/` | Why an architectural choice was made | The current map |
-| `work/roadmap/` | Milestones → epics, requirement coverage, each sprint's plan and dated result | Item status — issues, the GitHub Project, and GitHub Milestones own it |
+| `work/roadmap/` | Milestones → epics, requirement coverage, each sprint's plan and dated result, the velocity history | Item status — issues, the GitHub Project, and GitHub Milestones own it |
 | `work/specs/` | One feature in depth | Anything global |
 | `guides/` | What a user follows to install, use, or operate the product | How the system is built |
 
@@ -220,46 +221,7 @@ with no interface says so in one line in `docs/README.md`, and has no `product/d
 
 Status lives on GitHub, never here: each issue's Status and `Sprint` in the Project, and each milestone
 as a **GitHub Milestone** holding its epics and tasks. This folder holds the plan and its history.
-
-`README.md`:
-
-```markdown
-# Roadmap
-
-Live status: the GitHub Project (<url>) and the milestones (<repo url>/milestones).
-
-**Product Goal:** <the future state of the product the milestones move toward>
-
-## M<N> — <name>
-<Goal in one sentence.> GitHub Milestone: [M<N>](<milestone url>).
-
-| Epic | Issue | Covers |
-| --- | --- | --- |
-| <epic name> | #<n> | FR-<AREA>-01, NFR-<CHAR>-02 |
-
-## Requirement coverage
-Every approved requirement of a planned milestone maps to exactly one epic.
-
-| Requirement | Epic | Milestone |
-| --- | --- | --- |
-
-## Sprints
-- [Sprint <N>](sprints/sprint-NN.md) — <goal>
-```
-
-`sprints/sprint-NN.md`:
-
-```markdown
-# Sprint <N> — <start> → <end>
-
-**Sprint Goal:** <one sentence a user could observe at the end>
-**Definition of Done:** <the repo's gates, as its `AGENTS.md` or `gates` skill lists them>
-**Requirements baseline:** v<version>
-**Items:** #<n>, #<n>
-
-## Result — <close date>
-Done: #… · Carried over: #… → Sprint <N+1>, because <reason> · Back to backlog: #…
-```
+Its templates, the velocity history included: [`roadmap.md`](roadmap.md).
 
 ## Diagrams
 

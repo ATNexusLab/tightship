@@ -144,6 +144,9 @@ that already serves this repo; never create a second one.
   Status.
 - **Sprint** — an Iteration field, created with the `createProjectV2Field` GraphQL mutation,
   `dataType: ITERATION`, and the sprint length agreed in step 2.
+- **Estimate** — a Number field, created with `gh project field-create --data-type NUMBER`; it holds an
+  item's size in points, 1, 2, 3, 5, or 8, which the sprint plan proposes. One that already exists is
+  reused.
 - **Labels** — `epic`, one per change type the repo's commits use (`feat`, `fix`, `chore`, `docs`, …),
   `security-debt`, `tech-debt`, `requirement-change`, and one `area:<module>` per module of the
   Architecture section. Reuse what exists; create only what step 2 agreed.
@@ -248,11 +251,11 @@ each `AGENTS.md` is 4,000 characters or fewer and states no gate command, nothin
 contract, no placeholder or TODO survives, every project skill opens with its front matter and is listed
 under Project skills, and the frontmatter and structure are clean.
 
-Then check the setup: `gh project field-list` shows Status with its six options and the `Sprint`
-iteration, `gh label list` holds the agreed labels, the integration branch exists on the remote, and
-each `.drawio.svg` carries its diagram (`grep -c mxfile <file>` is not 0), `zensical build` exits 0, and
-the served site passes the check in both themes that `{{skill:project-docs}}` sets. With client docs,
-their site passes the checks of the skill's `client-docs.md`.
+Then check the setup: `gh project field-list` shows Status with its six options, the `Sprint`
+iteration, and the `Estimate` number, `gh label list` holds the agreed labels, the integration branch
+exists on the remote, and each `.drawio.svg` carries its diagram (`grep -c mxfile <file>` is not 0),
+`zensical build` exits 0, and the served site passes the check in both themes that
+`{{skill:project-docs}}` sets. With client docs, their site passes the checks of the skill's `client-docs.md`.
 
 ## Output
 
@@ -264,7 +267,7 @@ Bootstrap:
 - Architecture: [one line]
 - Skills:       [project skills written]
 - Gates:        [each, with exit code]
-- Project:      [url · Status ok · Sprint <length> · labels created/reused · workflows for you to set]
+- Project:      [url · Status ok · Sprint <length> · Estimate · labels created/reused · workflows for you to set]
 - Editor:       [editors · .vscode/ and .zed/ files written or removed]
 - Docs:         [project / client / project and client · docs/ paths written · client-docs/ and zensical.client.toml · client language]
 - Open:         [what is declared pending / none]
