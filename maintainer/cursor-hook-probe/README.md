@@ -58,10 +58,10 @@ installed.
 ## Windows notes
 
 Expect `parent_comm` to involve PowerShell 7 (probed 2026-10-15). Git marketplace install E2E is tracked in
-`docs/install/cursor/`, not issue #65.
+`docs/guides/install/cursor/`, not issue #65.
 
 ## After production
 
 - If the 10 000-character `additional_context` is rejected or truncated below 10 000, open a change request
-  against `docs/specs/cursor-plugin/ship-for-cursor.md` before lowering `[contract] limit`.
+  against `docs/work/specs/cursor-plugin/ship-for-cursor.md` before lowering `[contract] limit`.
 - Close GitHub issue #65 when the skill checklist is **Done** for Windows and your Unix dev platform.

@@ -29,7 +29,7 @@ unless you ask not to be named.
 The plugin runs hooks and a binary on your machine, reads your vault, and writes to your harness's
 settings. Reports about any of these are in scope:
 
-- code execution or file access beyond what the [install guide](docs/install/claude-code/README.md)
+- code execution or file access beyond what the [install guide](docs/guides/install/claude-code/README.md)
   describes
 - your identity, your secrets, or your vault's notes leaking into a build or a release
 - the release's binaries or catalog not matching this repository's source

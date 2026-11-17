@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use crate::diagnostics::{Diagnostic, with_path};
 use crate::diagnostics::{Failure, stop_on_errors};
 use check::content::{Content, Kind};
-use check::{content, identity, neutrality, references};
+use check::{content, identity, neutrality, references, skill_body};
 use harnesses::{antigravity_cli, claude_code, cursor};
 use render::{binary, contract, installer, staging};
 
@@ -63,6 +63,7 @@ fn build_plugin(root: &Path, prebuilt: Option<&Path>) -> Result<String, Failure>
     for (harness, parts) in harnesses.iter().zip(&contract_parts) {
         println!("> Rendering {} into dist/{}/", harness.name, harness.name);
         let (staging, files) = render_harness(root, harness, &content, parts, &binaries)?;
+        skill_body::check_folder(&staging, harness, &content, &mut diagnostics)?;
         if let Some(terms) = &terms {
             println!("> Scanning dist/{}/ for identity terms", harness.name);
             identity::check_folder(

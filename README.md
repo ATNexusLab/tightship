@@ -1,13 +1,13 @@
-# [![tightship: ship it tied down](docs/design/brand/banner.svg)](https://github.com/ATNexusLab/tightship)
+# [![tightship: ship it tied down](docs/product/design/brand/banner.svg)](https://github.com/ATNexusLab/tightship)
 
 English · [Português](README.pt-BR.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-5C6670?style=flat-square)](LICENSE)
 [![Rust](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/rust.yml?style=flat-square&label=rust)](https://github.com/ATNexusLab/tightship/actions/workflows/rust.yml)
 [![Scan](https://img.shields.io/github/actions/workflow/status/ATNexusLab/tightship/scan.yml?style=flat-square&label=scan)](https://github.com/ATNexusLab/tightship/actions/workflows/scan.yml)
-[![Claude Code 2.1.295+](https://img.shields.io/badge/Claude%20Code-2.1.295%2B-FF5A1F?style=flat-square)](docs/install/claude-code/README.md)
-[![Cursor 3.25.6+](https://img.shields.io/badge/Cursor-3.25.6%2B-121212?style=flat-square)](docs/install/cursor/README.md)
-[![Antigravity CLI 1.4.0+](https://img.shields.io/badge/Antigravity%20CLI-1.4.0%2B-4285F4?style=flat-square)](docs/install/antigravity-cli/README.md)
+[![Claude Code 2.1.295+](https://img.shields.io/badge/Claude%20Code-2.1.295%2B-FF5A1F?style=flat-square)](docs/guides/install/claude-code/README.md)
+[![Cursor 3.25.6+](https://img.shields.io/badge/Cursor-3.25.6%2B-121212?style=flat-square)](docs/guides/install/cursor/README.md)
+[![Antigravity CLI 1.4.0+](https://img.shields.io/badge/Antigravity%20CLI-1.4.0%2B-4285F4?style=flat-square)](docs/guides/install/antigravity-cli/README.md)
 [![Release](https://img.shields.io/github/v/release/ATNexusLab/tightship?include_prereleases&style=flat-square&label=release&color=121212)](https://github.com/ATNexusLab/tightship/releases)
 
 **A workflow for AI coding agents, from requirement to release.**
@@ -71,23 +71,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 ```
 
 The installer detects your CLIs, asks where to install and which options to turn on, and writes nothing
-until you confirm the summary. The install guides ([Claude Code](docs/install/claude-code/README.md),
-[Cursor](docs/install/cursor/README.md), [Antigravity CLI](docs/install/antigravity-cli/README.md)) cover
-options, updates, uninstalling, and installing by hand.
+until you confirm the summary. The install guides
+([Claude Code](docs/guides/install/claude-code/README.md), [Cursor](docs/guides/install/cursor/README.md),
+[Antigravity CLI](docs/guides/install/antigravity-cli/README.md)) cover options, updates, uninstalling,
+and installing by hand.
 
 ### Native install, without the installer
 
 Each harness can also install tightship on its own. The installer's questions are then skipped: the
 options and the status line are set as each guide's manual installation shows.
 
-Claude Code, from its plugin catalog ([guide](docs/install/claude-code/install.md#manual-installation)):
+Claude Code, from its plugin catalog ([guide](docs/guides/install/claude-code/install.md#manual-installation)):
 
 ```sh
 claude plugin marketplace add ATNexusLab/tightship
 claude plugin install tightship@tightship
 ```
 
-Antigravity CLI, from the release zip ([guide](docs/install/antigravity-cli/install.md#manual-installation),
+Antigravity CLI, from the release zip ([guide](docs/guides/install/antigravity-cli/install.md#manual-installation),
 with the Windows step):
 
 ```sh
@@ -97,7 +98,7 @@ agy plugin install /tmp/tightship
 rm -f ~/.gemini/config/plugins/tightship/hooks.windows.json
 ```
 
-Cursor, as a local plugin ([guide](docs/install/cursor/install.md#manual-installation)); reload the editor
+Cursor, as a local plugin ([guide](docs/guides/install/cursor/install.md#manual-installation)); reload the editor
 window afterwards, and it shows under Customize → Plugins:
 
 ```sh
@@ -139,14 +140,14 @@ lists every gate.
 
 | Where | What |
 | --- | --- |
-| [Install guide (Claude Code)](docs/install/claude-code/README.md) | Installing, options, updates, uninstalling, migration |
-| [Install guide (Cursor)](docs/install/cursor/README.md) | Installing, options, updates, uninstalling |
-| [Install guide (Antigravity CLI)](docs/install/antigravity-cli/README.md) | Installing, options, updates, uninstalling, migration |
-| [Requirements](docs/requirements/README.md) | The versioned SRS: every requirement and its acceptance criteria |
-| [Architecture](docs/architecture/README.md) | The system map, in arc42 sections with C4 diagrams |
+| [Install guide (Claude Code)](docs/guides/install/claude-code/README.md) | Installing, options, updates, uninstalling, migration |
+| [Install guide (Cursor)](docs/guides/install/cursor/README.md) | Installing, options, updates, uninstalling |
+| [Install guide (Antigravity CLI)](docs/guides/install/antigravity-cli/README.md) | Installing, options, updates, uninstalling, migration |
+| [Requirements](docs/product/requirements/README.md) | The versioned SRS: every requirement and its acceptance criteria |
+| [Architecture](docs/system/architecture/README.md) | The system map, in arc42 sections with C4 diagrams |
 | [Decisions](docs/decisions/README.md) | The architecture decision records |
-| [Roadmap](docs/roadmap/README.md) | Milestones, epics, and requirement coverage |
-| [Design](docs/design/README.md) | The brand, its voice, and its tokens |
+| [Roadmap](docs/work/roadmap/README.md) | Milestones, epics, and requirement coverage |
+| [Design](docs/product/design/README.md) | The brand, its voice, and its tokens |
 
 ## Contributing
 

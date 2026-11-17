@@ -20,5 +20,5 @@ latest release. It is the only workflow with
 | `cargo xtask package <tag>` | Packs the plugins into `dist/tightship-claude-code.zip`, `dist/tightship-antigravity-cli.zip`, and `dist/tightship-cursor.zip`, writes `dist/marketplace.json` and `dist/cursor-marketplace.json`, and `dist/install.sh` and `dist/install.ps1` with the tag and the Antigravity CLI and Cursor zips' `sha256` |
 
 `develop` is merged into `main` only when every row of
-[the release checklist](../../../docs/release/checklist.md) passes on a build of `develop` on macOS, Linux,
+[the release checklist](../../../docs/guides/release/checklist.md) passes on a build of `develop` on macOS, Linux,
 and Windows: the merge is the promotion.

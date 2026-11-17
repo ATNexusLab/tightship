@@ -1,0 +1,129 @@
+# Workflow — Software Requirements Specification
+
+**Version:** 4.6.0 · **Date:** 2026-11-17 · [Changelog](CHANGELOG.md)
+
+## Purpose
+
+The workflow is a way of working with coding agents. It has an always-on working contract, skills the
+agent loads on demand, a command for each step of the development loop, a read-only verifier subagent,
+a curated memory layer, and a status line.
+
+Today it lives in one person's private Claude Code user directory and is installed by a guided script
+that merges files into that directory. In that form it reaches one harness, cannot be installed piece by
+piece, and is edited in a place nobody else can install from.
+
+This product packages the workflow as a native plugin for four agent harnesses, built from one canonical
+source in this repository. Anyone installs it with the harness's own plugin mechanism and chooses which
+optional parts to turn on.
+
+## Scope
+
+In scope:
+
+- The canonical source of every workflow piece.
+- One plugin per harness: Claude Code, Cursor, Antigravity CLI, and Codex, released in that order
+  ([BR-01](business-rules.md#br-01)).
+- The contract, the skills, the commands, and the verifier.
+- The memory layer and the vault template, as an option.
+- The status line, as an option.
+- Installation, the choice of options, update, uninstall, and the guided
+  migration from the pre-plugin install.
+
+Out of scope:
+
+| Item | Reason |
+| --- | --- |
+| Listing in a vendor's official or curated marketplace | It depends on each vendor's review. The plugin installs from this repository's own catalog without it. |
+| Personal harness settings: theme, effort, language, permissions, notifications, enabled plugins | They are one machine's preferences, not workflow, and a plugin cannot carry them. |
+| Skills that serve only the maintainer's machine, such as the desktop and crash-diagnosis skills | They are personal configuration, not workflow. |
+| The web surfaces of a harness: claude.ai, claude.ai/code, Cursor's Cloud Agents, Antigravity's Remote Agents | The workflow works on a checkout on the adopter's machine, which a web surface does not have. |
+| MCP servers | The workflow provisions none. |
+| The content of any person's vault | It is private data and never ships ([NFR-SEC-02](non-functional/security.md#nfr-sec-02)). |
+| Harnesses other than the four named | None was requested. |
+
+## Contents
+
+[Overview](overview.md) · [Glossary](glossary.md) · [Business rules](business-rules.md) ·
+[Open questions](open-questions.md) · [Functional](functional/README.md) ·
+[Non-functional](non-functional/README.md)
+
+Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
+
+## Requirements
+
+| ID | Name | Priority | Status | Milestone |
+| --- | --- | --- | --- | --- |
+| [FR-CTR-01](functional/contract.md#fr-ctr-01) | Contract in every session | Must | approved | M1 |
+| [FR-CTR-02](functional/contract.md#fr-ctr-02) | Contract can be turned off | Must | approved | M1 |
+| [FR-CTR-03](functional/contract.md#fr-ctr-03) | Contract matches the enabled options | Must | approved | M1 |
+| [FR-CTR-04](functional/contract.md#fr-ctr-04) | Every baseline rule is carried over | Must | retired | M1 |
+| [FR-CTR-05](functional/contract.md#fr-ctr-05) | Behavior without the contract is documented | Must | approved | M1 |
+| [FR-CTR-06](functional/contract.md#fr-ctr-06) | Hard lines and conventions | Must | approved | M3 |
+| [FR-CTR-07](functional/contract.md#fr-ctr-07) | The contract holds only what every task needs | Must | approved | M3 |
+| [FR-CTR-08](functional/contract.md#fr-ctr-08) | The contract carries the code and reply rules | Must | approved | M3 |
+| [FR-CTR-09](functional/contract.md#fr-ctr-09) | A codebase map at session start | Must | approved | M3 |
+| [FR-SKL-01](functional/skills.md#fr-skl-01) | Skills available | Must | approved | M1 |
+| [FR-SKL-02](functional/skills.md#fr-skl-02) | Commands invocable | Must | approved | M1 |
+| [FR-SKL-03](functional/skills.md#fr-skl-03) | References resolve | Must | approved | M1 |
+| [FR-SKL-04](functional/skills.md#fr-skl-04) | The bootstrap writes a lean repository contract | Must | approved | M3 |
+| [FR-SKL-05](functional/skills.md#fr-skl-05) | The bootstrap writes project skills | Must | approved | M3 |
+| [FR-SKL-06](functional/skills.md#fr-skl-06) | A skill edits prose for people | Must | approved | M3 |
+| [FR-SKL-07](functional/skills.md#fr-skl-07) | The bootstrap sets up the editors the project uses | Should | approved | M3 |
+| [FR-SKL-08](functional/skills.md#fr-skl-08) | A skill keeps production artifacts lean | Should | approved | M3 |
+| [FR-SKL-09](functional/skills.md#fr-skl-09) | The docs follow one structure by audience and lifecycle | Should | approved | M4 |
+| [FR-SKL-10](functional/skills.md#fr-skl-10) | The bootstrap writes project docs, client docs, or both | Should | approved | M4 |
+| [FR-SKL-11](functional/skills.md#fr-skl-11) | The docs export to one PDF, whole or by page | Should | approved | M4 |
+| [FR-SKL-12](functional/skills.md#fr-skl-12) | The closeout names the docs a diff affects | Should | approved | M4 |
+| [FR-SKL-13](functional/skills.md#fr-skl-13) | A check reports the docs that drifted from the code | Should | approved | M4 |
+| [FR-SKL-14](functional/skills.md#fr-skl-14) | The sprint is estimated and capped from its own history | Should | approved | M4 |
+| [FR-VER-01](functional/verifier.md#fr-ver-01) | Verifier can be dispatched | Must | approved | M1 |
+| [FR-VER-02](functional/verifier.md#fr-ver-02) | Verifier changes only a private copy | Must | approved | M1 |
+| [FR-MEM-01](functional/memory.md#fr-mem-01) | Memory context at session start | Must | approved | M1 |
+| [FR-MEM-02](functional/memory.md#fr-mem-02) | Checkpoint reminder | Must | approved | M1 |
+| [FR-MEM-03](functional/memory.md#fr-mem-03) | Search the notes | Must | approved | M1 |
+| [FR-MEM-04](functional/memory.md#fr-mem-04) | Write a note in one step | Must | approved | M1 |
+| [FR-MEM-05](functional/memory.md#fr-mem-05) | Lint the vault | Must | approved | M1 |
+| [FR-MEM-06](functional/memory.md#fr-mem-06) | Release a handoff | Must | approved | M1 |
+| [FR-MEM-07](functional/memory.md#fr-mem-07) | Claim a handoff | Must | approved | M1 |
+| [FR-MEM-08](functional/memory.md#fr-mem-08) | Create a vault from the template | Must | approved | M1 |
+| [FR-MEM-09](functional/memory.md#fr-mem-09) | Vault location is the adopter's choice | Must | approved | M1 |
+| [FR-MEM-10](functional/memory.md#fr-mem-10) | Memory can be turned off | Must | approved | M1 |
+| [FR-MEM-11](functional/memory.md#fr-mem-11) | Sync the vault | Must | approved | M1 |
+| [FR-MEM-12](functional/memory.md#fr-mem-12) | Notes expire | Must | approved | M3 |
+| [FR-MEM-13](functional/memory.md#fr-mem-13) | The vault's rules follow the plugin | Must | approved | M3 |
+| [FR-STL-01](functional/status-line.md#fr-stl-01) | Status line on opt-in | Must | approved | M1 |
+| [FR-STL-02](functional/status-line.md#fr-stl-02) | The status line option is the consent | Must | approved | M1 |
+| [FR-STL-03](functional/status-line.md#fr-stl-03) | Turning it off restores the previous setting | Should | approved | M1 |
+| [FR-INS-01](functional/install.md#fr-ins-01) | Install through the harness's plugin mechanism | Must | approved | M1 |
+| [FR-INS-02](functional/install.md#fr-ins-02) | Companions are installed with the plugin | Must | retired | M1 |
+| [FR-INS-03](functional/install.md#fr-ins-03) | Choose the options | Must | approved | M1 |
+| [FR-INS-04](functional/install.md#fr-ins-04) | Change a choice after installation | Should | approved | M1 |
+| [FR-INS-05](functional/install.md#fr-ins-05) | Update keeps the choices | Must | approved | M1 |
+| [FR-INS-06](functional/install.md#fr-ins-06) | Uninstall leaves nothing behind | Should | approved | M1 |
+| [FR-INS-07](functional/install.md#fr-ins-07) | Guided migration from the pre-plugin install | Must | approved | M1 |
+| [FR-INS-08](functional/install.md#fr-ins-08) | Install guide per harness | Must | approved | M1 |
+| [FR-INS-09](functional/install.md#fr-ins-09) | One installer for every harness | Must | approved | M3 |
+| [FR-INS-10](functional/install.md#fr-ins-10) | The plugin keeps itself updated | Must | approved | M3 |
+| [FR-INS-11](functional/install.md#fr-ins-11) | What the replaced plugins left is removed | Must | approved | M3 |
+| [NFR-FLEX-01](non-functional/flexibility.md#nfr-flex-01) | Claude Code is supported | Must | approved | M1 |
+| [NFR-FLEX-02](non-functional/flexibility.md#nfr-flex-02) | Cursor is supported, editor and command line | Must | approved | M2 |
+| [NFR-FLEX-03](non-functional/flexibility.md#nfr-flex-03) | Antigravity CLI is supported | Must | approved | M3 |
+| [NFR-FLEX-04](non-functional/flexibility.md#nfr-flex-04) | Codex is supported | Must | approved | M4 |
+| [NFR-FLEX-05](non-functional/flexibility.md#nfr-flex-05) | Three operating systems | Must | approved | M1 |
+| [NFR-FLEX-06](non-functional/flexibility.md#nfr-flex-06) | Harness-neutral canonical content | Must | approved | M1 |
+| [NFR-FLEX-07](non-functional/flexibility.md#nfr-flex-07) | A new harness leaves the canonical content untouched | Should | approved | M2 |
+| [NFR-FLEX-08](non-functional/flexibility.md#nfr-flex-08) | Every harness runs in Zed | Should | approved | M3 |
+| [NFR-FLEX-09](non-functional/flexibility.md#nfr-flex-09) | Every surface of each harness is accounted for | Should | approved | M3 |
+| [NFR-COMP-01](non-functional/compatibility.md#nfr-comp-01) | One vault across harnesses | Must | approved | M2 |
+| [NFR-SEC-01](non-functional/security.md#nfr-sec-01) | No personal identity in shipped content | Must | approved | M1 |
+| [NFR-SEC-02](non-functional/security.md#nfr-sec-02) | No secret and no vault content in the repository | Must | approved | M1 |
+| [NFR-MNT-01](non-functional/maintainability.md#nfr-mnt-01) | One authored copy per piece | Must | approved | M1 |
+| [NFR-REL-01](non-functional/reliability.md#nfr-rel-01) | A plugin failure never blocks the session | Must | approved | M1 |
+| [NFR-PERF-01](non-functional/performance.md#nfr-perf-01) | Session-start overhead | Should | approved | M1 |
+| [NFR-PERF-02](non-functional/performance.md#nfr-perf-02) | Per-prompt overhead | Should | approved | M1 |
+| [NFR-PERF-03](non-functional/performance.md#nfr-perf-03) | Contract size | Must | approved | M3 |
+| [BR-01](business-rules.md#br-01) | Harness order and milestones | Must | approved | M1 |
+| [BR-02](business-rules.md#br-02) | One place to edit | Must | approved | M1 |
+| [BR-03](business-rules.md#br-03) | English content, with Portuguese translations | Must | approved | M1 |
+| [BR-04](business-rules.md#br-04) | The companion plugins are required | Must | retired | M1 |
+| [BR-05](business-rules.md#br-05) | The workflow depends on no third-party plugin | Must | approved | M1 |

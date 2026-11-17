@@ -1,0 +1,147 @@
+# Instalação
+
+[English](install.md) · Português
+
+Instale o tightship com o instalador interativo de um comando, ou siga cada passo manualmente.
+
+Não instale o tightship como plugin do Claude Code na mesma máquina. O Cursor pode carregar plugins do Claude
+Code como **Imported**, e as mesmas peças seriam carregadas duas vezes.
+
+## Instalador de um comando
+
+Rode o instalador direto dos GitHub Releases. Ele detecta os CLIs instalados, pergunta suas opções, instala
+o tightship em `~/.cursor/plugins/local/`, grava seu `options.json` e configura a status line do CLI.
+
+No Linux e no macOS:
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | \
+  sh -s -- --harness cursor
+```
+
+No Windows no PowerShell:
+
+```powershell
+& ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) `
+  -Harness cursor -Yes
+```
+
+No `cmd`:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "& ([scriptblock]::Create((irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1))) -Harness cursor -Yes"
+```
+
+Cada pergunta já começa no padrão, então apertar Enter em todas instala com os padrões, inclusive o
+vault em `~/ai-memory`; um `-` na pergunta do vault o deixa para depois. Numa pergunta de sim
+ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Install no resumo:
+
+```text
++  tightship v1.4.0
+|
+|  Options
+*  Load the working contract in every session?
+|  Yes
+|
+*  Turn on the memory layer?
+|  Yes
+|
+*  Show tightship's status line?
+|  Yes
+|
+*  Keep tightship updated automatically?
+|  Yes
+|
+|  Vault
+*  Where is your vault?
+|  ~/ai-memory
+|
+*  ~/ai-memory does not exist. Create it now?
+|  Yes
+|
+*  Summary
+|  Harnesses       Cursor
+|  Contract        on
+|  Memory          on
+|  Vault           ~/ai-memory, created now
+|  Status line     on
+|  Auto-update     on
+|
+?  Install with these choices?
+|  (*) Install / ( ) Cancel
++
+```
+
+Para rodar sem prompts, passe as opções por flags:
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | \
+  sh -s -- --harness cursor --vault-folder ~/ai-memory --yes
+```
+
+Algumas contas Cursor bloqueiam pastas locais de plugin (`userLocal=false`). O instalador não altera essa
+política; peça ao administrador para permitir importação local de plugins, ou use uma conta Cursor pessoal.
+
+## Instalação manual
+
+Se preferir cada passo:
+
+### 1. Baixe e instale o tightship
+
+Baixe `tightship-cursor.zip` do release mais recente, extraia e copie o conteúdo para
+`~/.cursor/plugins/local/tightship/`.
+
+### 2. Escreva suas opções
+
+Crie `~/.cursor/tightship/options.json`:
+
+```json
+{
+  "contract": true,
+  "memory": true,
+  "status_line": true,
+  "auto_update": true,
+  "vault_folder": "~/ai-memory"
+}
+```
+
+Ou use [tightship options](options.pt-BR.md).
+
+### 3. Ative a status line do CLI
+
+```sh
+export TIGHTSHIP_DATA="$HOME/.cursor/tightship"
+export TIGHTSHIP_SETTINGS="$HOME/.cursor/cli-config.json"
+export TIGHTSHIP_ROOT="$HOME/.cursor/plugins/local/tightship"
+"$TIGHTSHIP_ROOT/bin/tightship" hook status-line
+```
+
+Recarregue a janela do editor depois de copiar a pasta do plugin.
+
+## Confira
+
+Em Customize → Plugins, o tightship aparece como **Local** com skills e comandos listados.
+
+Numa sessão interativa do `agent`, pergunte quais comandos slash estão disponíveis. A resposta deve listar
+`/spec` e os outros comandos do workflow.
+
+Depois de um `cargo xtask build` local, você pode confirmar o mesmo com `agent --plugin-dir dist/cursor` em
+vez do zip do release.
+
+## Superfícies
+
+Quais peças carregam em cada superfície está na [matriz de suporte](../README.pt-BR.md).
+
+**Editor.** O instalador ou uma cópia em `~/.cursor/plugins/local/`, como acima, e depois um reload da
+janela. Todas as peças menos a status line carregam, checadas em uso: o editor não tem uma, e só a CLI
+`agent` lê `statusLine`.
+
+**CLI `agent`.** Lê a instalação do editor, então os passos acima chegam a ela sem passo extra.
+
+O terminal do Zed é um terminal comum. Rode `agent` nele e cada peça funciona como em qualquer outro
+terminal, sem passo além deste guia.
+
+O agent panel do Zed, que roda o Cursor pela entrada `cursor` do registro de agentes do Zed, ainda não
+foi conferido ([#163](https://github.com/ATNexusLab/tightship/issues/163)). Até ser, rode o Cursor no
+terminal.

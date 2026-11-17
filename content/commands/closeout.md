@@ -58,19 +58,26 @@ Run only the surfaces named in §0.
 - New variables documented in the committed example/template.
 - No secret hardcoded, logged, or committed.
 
-## 2. Docs upkeep (only when warranted)
+## 2. Docs upkeep — always
 
 Use `{{skill:technical-writing}}` as the lens — including its first question, whether the doc should
 exist at all.
 
+Run `tightship docs affected`. It names every doc whose `covers` front matter matches a file this diff
+changes, staged, unstaged, or untracked; for a branch already committed, pass `--base <integration
+branch>`. Each doc it names gets a decision: `updated at <path>` or `still holds`. `covers` reaches only
+docs that list code, so the checks below still run for what it cannot see:
+
 - Public contract changed (API/CLI/env/schema)? → update `README.md` / `docs/`.
 - Architectural decision made? → `{{command:spec}}` an ADR in `docs/decisions/`.
 - Setup/run commands changed? → update README Quick Start.
-- Architecture or data changed? → `docs/architecture/`, `docs/data-model/`, and their diagrams match
-  what was built (`{{skill:project-docs}}`).
-- A screen, the brand, or a token changed? → `docs/design/` matches what was built, and the values in
-  `docs/stylesheets/docs-theme.css` match the app's tokens.
-- A use case changed? → its diagram in `docs/requirements/diagrams/`.
+- Architecture or data changed? → `docs/system/architecture/`, `docs/system/data-model/`, and their
+  diagrams match what was built (`{{skill:project-docs}}`).
+- A screen, the brand, or a token changed? → `docs/product/design/` matches what was built, and the
+  values in `docs/assets/stylesheets/docs-theme.css` match the app's tokens.
+- A use case changed? → its diagram in `docs/product/requirements/diagrams/`.
+- Something a page of `client-docs/` describes changed? → name the page, and update it in the client's
+  language (`{{skill:project-docs}}`, its client docs).
 
 ## 3. Traceability — always, never `n/a`
 
@@ -118,7 +125,7 @@ through it goes through now, before this block; `n/a` only when the delivery wro
 Closeout:
 - Surfaces:      [which the diff touched]
 - Surface gates: [per surface: pass / findings / n/a by scope]
-- Docs:          [updated at <path> / n/a]
+- Docs:          [per doc `docs affected` named: updated at <path> / still holds; others: updated at <path> / n/a]
 - Traceability:  [issue #n · branch · PR → integration branch · Status/Sprint ok]
 - Security-debt: [none / issues #… / filed #…]
 - Memory:        [promoted <note> / nothing durable / n/a — no vault]

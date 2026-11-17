@@ -37,7 +37,7 @@ The status moves `draft` → `closed` (`{{command:spec}}`, after the gate) → `
 
 ### Visual reference
 
-<Link to the screen's page in `docs/design/pages/<feature>/`, or `N/A — no design yet; layout set by the rules below`>
+<Link to the screen's page in `docs/product/design/pages/<feature>/`, or `N/A — no design yet; layout set by the rules below`>
 
 ### Screen specification
 
@@ -122,13 +122,13 @@ And <side effect: persistence, message, redirect>
 
 ## Architecture impact
 
-<The building blocks, runtime scenarios, deployment and concepts of `docs/architecture/` this feature
-creates or changes — each by the name the map uses.>
+<The building blocks, runtime scenarios, deployment and concepts of `docs/system/architecture/` this
+feature creates or changes — each by the name the map uses.>
 
 ## Data model impact
 
-<The entities, attributes, relations and files/tables of `docs/data-model/` this feature creates or
-changes, or `N/A — <why>`.>
+<The entities, attributes, relations and files/tables of `docs/system/data-model/` this feature creates
+or changes, or `N/A — <why>`.>
 
 ## Out of Scope
 
@@ -250,13 +250,13 @@ And writes the operation to the audit log
 
 ## Architecture impact
 
-<The building blocks, runtime scenarios, deployment and concepts of `docs/architecture/` this feature
-creates or changes — each by the name the map uses.>
+<The building blocks, runtime scenarios, deployment and concepts of `docs/system/architecture/` this
+feature creates or changes — each by the name the map uses.>
 
 ## Data model impact
 
-<The entities, attributes, relations and files/tables of `docs/data-model/` this feature creates or
-changes, or `N/A — <why>`.>
+<The entities, attributes, relations and files/tables of `docs/system/data-model/` this feature creates
+or changes, or `N/A — <why>`.>
 
 ## Out of Scope
 

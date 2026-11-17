@@ -33,6 +33,9 @@ read-only = "view_file, list_dir, find_by_name, grep_search, run_command"
 limit = 100000
 compaction-notice = "After any context compaction (/compact), load the contract skill to restore this contract in full."
 
+[skills]
+body-limit = 24000
+
 [capabilities]
 arguments = "$ARGUMENTS"
 plan-mode = "plan mode"

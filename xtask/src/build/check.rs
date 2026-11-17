@@ -5,4 +5,5 @@ pub mod identity;
 pub mod neutrality;
 pub mod options;
 pub mod references;
+pub mod skill_body;
 pub mod words;

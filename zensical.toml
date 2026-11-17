@@ -2,12 +2,15 @@
 site_name = "tightship"
 docs_dir = "docs"
 not_in_nav = "*.pt-BR.md"
-extra_css = ["stylesheets/docs-theme.css", "stylesheets/image-viewer.css"]
-extra_javascript = [{ path = "javascripts/image-viewer.js", type = "module" }]
+extra_css = ["assets/stylesheets/docs-theme.css", "assets/stylesheets/image-viewer.css", "assets/stylesheets/pdf-export.css"]
+extra_javascript = [
+  { path = "assets/javascripts/image-viewer.js", type = "module" },
+  { path = "assets/javascripts/pdf-export.js", type = "module" },
+]
 
 [project.theme]
-logo = "design/brand/logo.svg"
-favicon = "design/brand/logo.svg"
+logo = "product/design/brand/logo.svg"
+favicon = "product/design/brand/logo.svg"
 font.text = "Barlow"
 
 [[project.theme.palette]]

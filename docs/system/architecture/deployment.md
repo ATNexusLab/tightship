@@ -1,0 +1,86 @@
+---
+covers:
+  - installer/**
+  - harnesses/*/install.*
+  - .github/workflows/**
+---
+
+# Deployment
+
+![C4 deployment](diagrams/deployment.drawio.svg)
+
+Dashed boxes are not built yet; each belongs to the epic in its label.
+
+| Environment | Runs | Milestone |
+| --- | --- | --- |
+| Maintainer's machine, macOS, Linux, or Windows | The build, `cargo xtask build` and `cargo xtask scan`, and the gates. The plugins are tried with `claude --plugin-dir dist/claude-code` and `agy plugin validate dist/antigravity-cli --strict` | M1, #1; M3, #59 |
+| GitHub | GitHub Actions runs the gates on the three systems at each pull request, and at a tag builds every target; a GitHub Release holds each harness's archive, the catalog, and `install.sh` / `install.ps1` | M1, #8; M3, #59 |
+| Adopter's machine | Claude Code, Cursor, and Antigravity, each in its CLI, desktop app, or IDE (M3, #134), the installed plugin, and the `tightship` binary its hooks run. The [support matrix](../../guides/install/README.md) says which pieces load on each surface | M1, #2 and #5; M3, #59 |
+| Zed, on the adopter's machine | Each harness in Zed's terminal, as in any terminal. Zed's agent panel runs the harness through its adapter for the Agent Client Protocol, installed from Zed's registry; the pieces it loads are not checked yet, and the harness's install guide says so | M3, #158 and #163 |
+
+## Packaging
+
+The archive of a harness holds its generated plugin and the `tightship` binary for every target:
+
+| Target | Binary |
+| --- | --- |
+| macOS, arm64 and x86_64 | One universal binary |
+| Linux x64 | Statically linked with musl |
+| Linux arm64 | Statically linked with musl |
+| Windows x64 | `.exe`; Windows arm64 runs it emulated |
+
+`bin/tightship` is a `sh` launcher that picks the binary for the machine, and `bin/tightship.cmd` is a Windows
+batch launcher that every plugin ships, for PowerShell, cmd, and hooks run under `cmd /c` (M3, #59, #116).
+Until epic #8, `cargo xtask build` compiles only the target of the machine that builds (M1, #5). On macOS, the
+binary carries the linker's ad-hoc signature only; epic #8 tests that it runs from an archive Claude Code
+downloaded.
+
+`cargo xtask package` writes the Claude Code archive (`tightship-claude-code.zip`) and the Antigravity CLI
+archive (`tightship-antigravity-cli.zip`, M3, #59), with mode `0755` on the launchers and the binaries, and the
+catalog `marketplace.json`, with an `archive` source naming the Claude Code zip's URL for the tag and its
+`sha256` (M1, #8).
+
+## Installing
+
+An adopter can install for Claude Code, Antigravity CLI, or both in one command with `install.sh` (`curl -fsSL
+.../install.sh | sh`) on macOS, Linux, and Git Bash or `install.ps1` (`irm .../install.ps1 | iex`) on Windows
+PowerShell, which prompts interactively for the harnesses and the [options](concepts/options.md) (or takes CLI
+flags), removes what the companion plugins left (#140), installs `tightship`, and writes the options (M3, #59).
+
+**Claude Code** (M1, #2, #3, #8): the adopter (or `install.sh` / `install.ps1`) adds the plugin's
+catalog and runs `claude plugin install tightship@tightship`. The catalog committed at the repository root,
+`.claude-plugin/marketplace.json`, has an `archive` source at the latest release's zip, with no `sha256`, so an
+update arrives through the `version` of the latest release's `plugin.json` and no release changes the file
+(M1, #8, #48). The adopter chooses the [options](concepts/options.md) in the dialog of `/plugin install`, or
+with `--config <name>=false` on the shell's install, and changes them later with `/plugin configure` or `claude
+plugin configure`. With `auto_update` on, the plugin's `startup` hook turns on Claude Code's auto-update for
+the catalog, and a rerun of the installer updates the plugin. Before uninstalling, the
+adopter turns `status_line` off and opens one session, which puts
+their own status line back; `claude plugin uninstall tightship@tightship --prune -y` then deletes the options,
+and the plugin's data folder.
+
+**Antigravity CLI** (M3, #59): `install.sh` / `install.ps1` (or the manual commands in
+`docs/guides/install/antigravity-cli/`) extracts `tightship-antigravity-cli.zip` and runs `agy plugin
+install`, writes `~/.gemini/config/plugin_data/tightship/options.toml`, and runs `tightship hook
+status-line`. The adopter changes options later by editing `options.toml` or rerunning the installer.
+With `auto_update` on, the plugin updates itself from the latest release; a rerun of the installer or
+`agy plugin install` also updates it. Before uninstalling, the adopter sets `status_line = false` in
+`options.toml` and runs `tightship hook status-line` (or opens one session) to restore their previous
+`statusLine`, then removes `~/.gemini/config/plugins/tightship` and
+`~/.gemini/config/plugin_data/tightship`.
+
+## Adopter prerequisites
+
+Claude Code 2.1.295 or later (M1, #8) or Antigravity CLI 1.4.0 or later (M3, #59). Nothing else on macOS and
+Linux. Git for Windows on Windows for Claude Code, because Claude Code runs hooks under Git Bash and falls back
+to PowerShell without it (Antigravity CLI on Windows runs `bin/tightship.cmd` under `cmd /c`, M3, #59). Git on
+every system when the memory option is on.
+
+## Delivery
+
+The gates of `.agents/skills/gates/SKILL.md` run on the maintainer's machine, and on the three systems at
+each pull request in the [gate pipeline](building-blocks/gate-pipeline.md) (M1, #8). A release is cut when
+the maintainer merges a new version of `Cargo.toml` into `main`; the
+[release pipeline](building-blocks/release-pipeline.md) publishes it as the latest release. The merge waits
+for the [release checklist](../../guides/release/checklist.md) to pass on `develop` on macOS, Linux, and
+Windows (M1, #8; M3, #59).
