@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.4.0] - 2026-11-17
+
+No doc said which code it described, and no step of the loop read the docs as a whole, so the docs fell
+behind the code. Change request [#160](https://github.com/ATNexusLab/tightship/issues/160) ties each doc to
+its code and checks the docs for drift.
+
+### Added
+
+- FR-SKL-12: each doc lists the code it covers, and the closeout names every doc a diff affects.
+- FR-SKL-13: a check reports broken links, references the code dropped, stale `covers`, system docs that
+  cover no code, and leftover markers; the sprint close runs it.
+
 ## [4.3.0] - 2026-11-16
 
 The docs reached someone outside the repository only when copied by hand. Change request

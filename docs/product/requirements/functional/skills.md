@@ -299,3 +299,66 @@ pages the reader checks, or the whole docs to a single PDF, built from the HTML 
   it has the same export.
 - **FR-SKL-11.4** — Given the site in its dark scheme, when the reader exports, then the PDF is in the light
   scheme.
+
+<a id="fr-skl-12"></a>
+
+## FR-SKL-12 — The closeout names the docs a diff affects
+
+> As an adopter, I want each doc to list the code it describes and the closeout to name every doc a diff
+> touches, so that I stop guessing which doc to update after a change.
+
+The system shall read the code paths each doc lists in its front matter, under `covers`, match them
+against the files a diff changes, and name every doc they match during the closeout command.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The closeout left the agent to work out which doc a diff touched, and no doc said which code it described, so the docs fell behind the code. |
+| Source | Maintainer, [#160](https://github.com/ATNexusLab/tightship/issues/160) |
+| Priority | Should |
+| Status | approved |
+| Milestone | M4 |
+| Since | v4.4.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-12.1** — Given a doc whose `covers` matches a file the diff changes, when the adopter runs the
+  closeout command, then it names that doc and records whether it was updated or still holds.
+- **FR-SKL-12.2** — Given a diff that changes no file a doc covers, when the adopter runs the closeout
+  command, then it names no doc from `covers`.
+- **FR-SKL-12.3** — Given an untracked file that a doc covers, when the closeout runs, then that doc is
+  named.
+
+<a id="fr-skl-13"></a>
+
+## FR-SKL-13 — A check reports the docs that drifted from the code
+
+> As an adopter, I want one command that reports where the docs no longer match the repository, run at
+> every sprint close, so that broken links and stale names stop piling up between releases.
+
+The system shall report, with the file and line of each finding, the links to a file or anchor that does
+not exist, the references to files, symbols, and commands that no longer exist in the code a doc covers,
+the `covers` patterns that match no file, the system docs that cover no code, and the `TODO`, `FIXME`, and
+`TBD` markers, and shall exit with a non-zero code when it finds any.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | No step of the loop read the docs as a whole, so broken links, names the code dropped, and forgotten markers piled up between releases. |
+| Source | Maintainer, [#160](https://github.com/ATNexusLab/tightship/issues/160) |
+| Priority | Should |
+| Status | approved |
+| Milestone | M4 |
+| Since | v4.4.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-13.1** — Given a doc that links to a file or an anchor that does not exist, when the check runs,
+  then it reports the doc and the line and exits with code 1.
+- **FR-SKL-13.2** — Given a doc whose `covers` lists code, when that code drops a file, symbol, or
+  subcommand the doc names, then the check reports the reference.
+- **FR-SKL-13.3** — Given a doc under `docs/system/` with no `covers`, other than a folder's `README.md`,
+  when the check runs, then it reports the doc.
+- **FR-SKL-13.4** — Given a doc under `docs/work/`, when the check runs, then it checks only its links.
+- **FR-SKL-13.5** — Given a repository with client docs, when the check runs, then it checks them too.
+- **FR-SKL-13.6** — Given the adopter closes a sprint, when the sprint command runs, then it runs the check
+  and proposes each finding as an item of the next sprint.
+- **FR-SKL-13.7** — Given docs with no finding, when the check runs, then it exits with code 0.
