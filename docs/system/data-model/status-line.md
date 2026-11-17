@@ -1,0 +1,82 @@
+# Status line
+
+**Milestone:** M1, epic #7; M3, epic #59 · **Specs:**
+[show the status line](../../work/specs/status-line/show-the-status-line.md),
+[Antigravity CLI plugin](../../work/specs/antigravity-cli-plugin/antigravity-cli-plugin.md)
+
+What the `status_line` [option](options.md) changes, and the record that lets it be undone.
+
+## The user settings' `statusLine`
+
+Written by `tightship hook status-line`, while the option is on, into the harness's user settings
+(`~/.claude/settings.json` in Claude Code; `~/.gemini/antigravity-cli/settings.json` in Antigravity CLI,
+M3, #59), never a project's or a folder's:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "\"<plugin folder>/bin/tightship\" status-line render",
+    "refreshInterval": 60
+  }
+}
+```
+
+In Claude Code the hook adds `refreshInterval`, 60 seconds, when the key is absent, so the status line keeps
+moving while the session is idle; a value the adopter set stays (#133).
+
+On Windows the command is `<plugin folder>/bin/tightship.cmd status-line render`, with no quotes, because
+Antigravity CLI runs it under `cmd /c` with every `"` escaped, and with `/` between folders, because Claude
+Code runs it under Git Bash, which drops every `\`. A path with a space or one of
+`& ^ ( ) % ! ; = ,` is written as its 8.3 short name; when none avoids them, the hook fails and names the
+path (#89).
+
+It is ours while its `command` runs the plugin's `bin/tightship`, `bin/tightship.cmd`, or
+`bin/<platform>/tightship[.exe]` with `status-line render`, with `/` or `\` between folders, quoted or not,
+after `sh` or not (M3, #59; #55; #89).
+Every other key of the file keeps its value and its order.
+
+## `status-line.json`
+
+In the plugin's data folder (in Antigravity CLI, `~/.gemini/config/plugin_data/tightship/status-line.json`,
+M3, #59), which the harness keeps across an update:
+
+| Attribute | Type | Domain | Written by |
+| --- | --- | --- | --- |
+| `state` | string | `on`; a `declined` from an earlier version reads as no record | The session start |
+| `previous` | any JSON value | The adopter's `statusLine` before ours; absent when they had none | The session start |
+
+## `rate-limits.json`
+
+In the plugin's data folder, written by `tightship status-line render` (#133). Claude Code sends each rate
+limit window on its own, so the file keeps the last reading of each one:
+
+| Attribute | Type | Domain | Written by |
+| --- | --- | --- | --- |
+| `five_hour`, `seven_day` | object | `used_percentage` (number) and `resets_at` (Unix seconds), as Claude Code sent them | `render`, when a window arrives or its reset passes |
+
+A reading whose `resets_at` has passed is dropped. One file serves every session, because the limits belong to
+the account.
+
+## Invariants
+
+- While the user settings hold our status line, the record holds `on`, and `previous` when the adopter had a
+  `statusLine`.
+- Turning the option off deletes the record.
+
+## Cursor CLI
+
+**Milestone:** M2, epic #58 · **Spec:** [ship for Cursor](../../work/specs/cursor-plugin/ship-for-cursor.md)
+
+The Cursor editor has no status line. The CLI alone reads `statusLine` from `~/.cursor/cli-config.json`:
+
+```json
+{
+  "statusLine": { "type": "command", "command": "\"${CURSOR_PLUGIN_ROOT}/bin/tightship\" status-line render" }
+}
+```
+
+`tightship hook status-line` writes that entry while the option is on and saves the adopter's previous value
+in `$HOME/.cursor/tightship/status-line.json`, with the same `state` and `previous` shape as
+`status-line.json` above. FR-STL-01 to FR-STL-03 apply in the CLI only; the editor is out of scope for those
+criteria ([epic #58 spec](../../work/specs/cursor-plugin/ship-for-cursor.md)).

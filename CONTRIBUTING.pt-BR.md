@@ -17,8 +17,9 @@ funcionalidade pelos [formulários de issue](https://github.com/ATNexusLab/tight
 espere o mantenedor confirmar o escopo antes de escrever código. Um pull request sem issue é fechado com um
 pedido para abrir uma.
 
-Uma mudança no que o produto precisa fazer é uma mudança nos [requisitos](docs/requirements/README.md). Ela
-passa por uma issue `requirement-change`, e o mantenedor decide antes de qualquer código mudar.
+Uma mudança no que o produto precisa fazer é uma mudança nos
+[requisitos](docs/product/requirements/README.md). Ela passa por uma issue `requirement-change`, e o
+mantenedor decide antes de qualquer código mudar.
 
 ## Prepare o ambiente
 
@@ -46,8 +47,8 @@ identidade nunca vaza para o plugin. O build também exige que o arquivo exista.
    - `dist/` é gerado pelo `cargo xtask build`. Nunca o edite nem o commite.
 3. Escreva o código em Rust e as docs em inglês. A prosa em `docs/` quebra em cerca de 105 colunas. Quando
    mudar o `README.md`, o `CONTRIBUTING.md`, o `SECURITY.md`, o `CODE_OF_CONDUCT.md` ou uma página de
-   `docs/install/`, atualize a tradução `.pt-BR.md` no mesmo commit. Se você não lê português, diga isso no
-   pull request, e o mantenedor atualiza a tradução.
+   `docs/guides/install/`, atualize a tradução `.pt-BR.md` no mesmo commit. Se você não lê português,
+   diga isso no pull request, e o mantenedor atualiza a tradução.
 4. Adicione um teste quando a mudança altera um comportamento que alguém observa, como lógica, uma regra ou
    uma correção de bug, e escreva o teste antes do código. Mudanças de estilo, texto, configuração ou docs
    não precisam de teste.

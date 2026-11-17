@@ -1,0 +1,175 @@
+# Flexibility — `FLEX`
+
+The harnesses and operating systems the product runs on, and how the canonical content stays apart from
+any one harness.
+
+<a id="nfr-flex-01"></a>
+
+## NFR-FLEX-01 — Claude Code is supported
+
+The system shall pass every M1 acceptance criterion in Claude Code, from version 2.1.295.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Claude Code is the first harness ([BR-01](../business-rules.md#br-01)). 2.1.295 is the first version whose `SessionStart` hooks' exported variables reach the Bash tool after an in-app `/resume` or `/branch` ([epic #8 spec](../../../work/specs/release-m1/release-the-plugin.md)). |
+| Source | Maintainer, elicitation 2026-10-14 |
+| Priority | Must |
+| Status | approved |
+| Milestone | M1 |
+| Since | v1.0.0 |
+
+**Acceptance criteria**
+
+- **NFR-FLEX-01.1** — 100% of the functional acceptance criteria pass in Claude Code 2.1.295.
+
+<a id="nfr-flex-02"></a>
+
+## NFR-FLEX-02 — Cursor is supported, editor and command line
+
+The system shall pass every functional acceptance criterion in Cursor's editor from version 3.25.6 and in its
+command-line agent from version 2026.10.14, except the status-line criteria in the editor, which the harness
+cannot meet ([epic #58 spec](../../../work/specs/cursor-plugin/ship-for-cursor.md)).
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The maintainer uses both. 3.25.6 and 2026.10.14 are the versions probed when epic #58 closed. |
+| Source | Maintainer, elicitation 2026-10-14; minimum versions by [epic #58](../../../work/specs/cursor-plugin/ship-for-cursor.md) |
+| Priority | Must |
+| Status | approved |
+| Milestone | M2 |
+| Since | v1.0.0 |
+
+**Acceptance criteria**
+
+- **NFR-FLEX-02.1** — 100% of the functional acceptance criteria pass in Cursor's editor at 3.25.6 or later,
+  except FR-STL-01.1, FR-STL-02.3, and FR-STL-03.1, which pass in the command-line agent at 2026.10.14 or
+  later only.
+- **NFR-FLEX-02.2** — Hooks are not required under `agent -p`; criteria that need hooks are verified in the
+  editor or in an interactive CLI session ([epic #58](../../../work/specs/cursor-plugin/ship-for-cursor.md)).
+
+<a id="nfr-flex-03"></a>
+
+## NFR-FLEX-03 — Antigravity CLI is supported
+
+The system shall pass every functional acceptance criterion in Antigravity CLI, from version 1.4.0.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Third harness in [BR-01](../business-rules.md#br-01). 1.4.0 is the version verified for `plugin.json` / `hooks.json` validation, `injectSteps` hook output, and `statusLine` support ([epic #59 spec](../../../work/specs/antigravity-cli-plugin/antigravity-cli-plugin.md)). |
+| Source | Maintainer, elicitation 2026-10-14 |
+| Priority | Must |
+| Status | approved |
+| Milestone | M3 |
+| Since | v1.0.0 |
+
+**Acceptance criteria**
+
+- **NFR-FLEX-03.1** — 100% of the functional acceptance criteria pass in Antigravity CLI 1.4.0, except
+  [FR-MEM-02.2](../functional/memory.md#fr-mem-02), which [epic #59 spec](../../../work/specs/antigravity-cli-plugin/antigravity-cli-plugin.md)
+  records as impossible in Antigravity CLI 1.4.0 because `SessionStart` fires only once at conversation
+  start and no post-compaction hook event exists.
+
+<a id="nfr-flex-04"></a>
+
+## NFR-FLEX-04 — Codex is supported
+
+The system shall pass every functional acceptance criterion in Codex.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Fourth harness in [BR-01](../business-rules.md#br-01). |
+| Source | Maintainer, elicitation 2026-10-14 |
+| Priority | Must |
+| Status | approved |
+| Milestone | M4 |
+| Since | v1.0.0 |
+
+**Acceptance criteria**
+
+- **NFR-FLEX-04.1** — 100% of the functional acceptance criteria pass in Codex at its minimum supported
+  version, except those its spec records as impossible in that harness, each with its reason.
+
+<a id="nfr-flex-05"></a>
+
+## NFR-FLEX-05 — Three operating systems
+
+The system shall run with the same behavior on macOS, Linux, and Windows without WSL.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The maintainer works on the three, and an adopter may use any of them. |
+| Source | Maintainer, elicitation 2026-10-14 |
+| Priority | Must |
+| Status | approved |
+| Milestone | M1 |
+| Since | v1.0.0 |
+
+**Acceptance criteria**
+
+- **NFR-FLEX-05.1** — 100% of the functional acceptance criteria of a milestone pass on each of the three
+  operating systems before its release.
+
+<a id="nfr-flex-06"></a>
+
+## NFR-FLEX-06 — Harness-neutral canonical content
+
+The system shall keep every name of a harness, its paths, and its tools out of the canonical content,
+except in the per-harness places [ADR 0001](../../../decisions/0001-rust-build-and-tokenized-canonical-content.md)
+sets apart.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Canonical content tied to one harness has to be rewritten for each of the others. |
+| Source | Maintainer, elicitation 2026-10-14 |
+| Priority | Must |
+| Status | approved |
+| Milestone | M1 |
+| Since | v1.0.0 |
+
+**Acceptance criteria**
+
+- **NFR-FLEX-06.1** — A scan of the canonical content outside the per-harness places finds 0 harness
+  names, harness paths, and harness tool names.
+
+<a id="nfr-flex-07"></a>
+
+## NFR-FLEX-07 — A new harness leaves the canonical content untouched
+
+The system shall add a harness without changing a canonical piece.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | If adding a harness edits shared content, it can break the harnesses already released. |
+| Source | Analysis 2026-10-14, approved by the maintainer |
+| Priority | Should |
+| Status | approved |
+| Milestone | M2 |
+| Since | v1.0.0 |
+
+**Acceptance criteria**
+
+- **NFR-FLEX-07.1** — The diff that adds a harness changes 0 lines of canonical content.
+
+<a id="nfr-flex-08"></a>
+
+## NFR-FLEX-08 — Every harness runs in Zed
+
+The system shall run each supported harness in Zed's terminal and in Zed's agent panel, and say in each
+harness's install guide which pieces load in the agent panel.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | Adopters work in Zed as well as in VS Code. Zed's agent panel runs a harness through its adapter for the Agent Client Protocol, and the adopter needs to know what loads there. |
+| Source | Maintainer, [#156](https://github.com/ATNexusLab/tightship/issues/156); the [spec of epic #158](../../../work/specs/zed-and-lean-artifacts/zed-and-lean-artifacts.md) |
+| Priority | Should |
+| Status | approved |
+| Milestone | M3 |
+| Since | v4.1.0 |
+
+**Acceptance criteria**
+
+- **NFR-FLEX-08.1** — In Zed's terminal, 100% of the functional acceptance criteria pass for each supported
+  harness, as in any other terminal.
+- **NFR-FLEX-08.2** — In Zed's agent panel, the contract, a skill, a command, a hook, and the vault are each
+  checked in a live session for each supported harness, and its install guide names every piece that does not
+  load, with the reason.

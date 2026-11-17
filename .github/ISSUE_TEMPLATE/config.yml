@@ -4,5 +4,5 @@ contact_links:
     url: https://github.com/ATNexusLab/tightship/security/advisories/new
     about: Report it privately, never in a public issue
   - name: Install guide
-    url: https://github.com/ATNexusLab/tightship/blob/develop/docs/install/claude-code/README.md
+    url: https://github.com/ATNexusLab/tightship/blob/develop/docs/guides/install/claude-code/README.md
     about: Installing, options, updates, uninstalling, and migration

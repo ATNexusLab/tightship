@@ -15,8 +15,9 @@ mixed together.
 The forces:
 
 - A hook adds at most 100 ms to a prompt at the 95th percentile
-  ([NFR-PERF-02](../requirements/non-functional/performance.md#nfr-perf-02)), and a hook that exits with 2
-  blocks the prompt. The [epic #5 spec](../specs/memory/keep-the-vault.md) forbids exit code 2 everywhere.
+  ([NFR-PERF-02](../product/requirements/non-functional/performance.md#nfr-perf-02)), and a hook that
+  exits with 2 blocks the prompt. The [epic #5 spec](../work/specs/memory/keep-the-vault.md) forbids exit
+  code 2 everywhere.
 - The spec fixes every message, every exit code, and the usage text.
 - Every input and output of the binary has exactly one implementation: the file system, git run as a
   process, the environment, and stdin.
@@ -47,8 +48,8 @@ A subcommand reads what it needs at the start (files, git, the environment, stdi
 functions, and writes once at the end. No trait stands for the file system, git, or the clock, because
 each has one implementation. Tests run the built binary over real folders.
 
-**Dependencies.** Amended by the [epic #7 spec](../specs/status-line/show-the-status-line.md) with
-`unicode-width`, and by the [epic #59 spec](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md) with
+**Dependencies.** Amended by the [epic #7 spec](../work/specs/status-line/show-the-status-line.md) with
+`unicode-width`, and by the [epic #59 spec](../work/specs/antigravity-cli-plugin/antigravity-cli-plugin.md) with
 `toml`. Each one is pinned to an exact version:
 
 | Crate | For | Why not the alternative |
