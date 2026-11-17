@@ -131,12 +131,12 @@ Quais peças carregam em cada superfície está na [matriz de suporte](../README
 
 **CLI.** O instalador ou `agy plugin install`, como acima.
 
-**IDE.** Recebe a instalação da CLI se ler `~/.gemini/config/plugins/`, sem passo além dos de cima.
-Nenhum teste roda a IDE ainda; a [#170](https://github.com/ATNexusLab/tightship/issues/170) confirma em
-uso se ela lê essa pasta e quais peças carregam.
+**IDE.** Ela lê `~/.gemini/config/plugins/`, então a instalação da CLI chega a ela sem passo além dos de
+cima. Todas as peças menos a status line carregam, checadas em uso: o Antigravity desenha `statusLine` só
+na CLI.
 
-**App desktop.** Igual à IDE: a instalação da CLI, se o app ler `~/.gemini/config/plugins/`. Nenhum teste
-roda o app ainda; a [#170](https://github.com/ATNexusLab/tightship/issues/170) confirma em uso.
+**App desktop.** Igual à IDE: ele lê `~/.gemini/config/plugins/`, e todas as peças menos a status line
+carregam, checadas em uso.
 
 O terminal do Zed é um terminal comum. Rode `agy` nele e cada peça funciona como em qualquer outro
 terminal, sem passo além deste guia.

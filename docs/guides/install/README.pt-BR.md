@@ -16,8 +16,8 @@ quais das suas peças carregam. Uma peça que não carrega diz por quê.
 | Cursor | Terminal do Zed² | A mesma instalação do editor | Sim | Sim | Sim | Sim | Sim | Sim |
 | Cursor | Agent panel do Zed | A entrada `cursor` do registro | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) |
 | Antigravity | CLI³ | O instalador, ou `agy plugin install` | Sim | Sim | Sim | Sim | Sim | Sim |
-| Antigravity | IDE | A mesma instalação da CLI, se a IDE ler `~/.gemini/config/plugins/` | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) |
-| Antigravity | App desktop | A mesma instalação da CLI, se o app ler `~/.gemini/config/plugins/` | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) |
+| Antigravity | IDE | A mesma instalação da CLI: a IDE lê `~/.gemini/config/plugins/` | Sim | Sim | Sim | Sim | Não⁵ | Sim |
+| Antigravity | App desktop | A mesma instalação da CLI: o app lê `~/.gemini/config/plugins/` | Sim | Sim | Sim | Sim | Não⁵ | Sim |
 | Antigravity | Terminal do Zed³ | A mesma instalação da CLI | Sim | Sim | Sim | Sim | Sim | Sim |
 | Antigravity | Agent panel do Zed | A entrada `antigravity-acp` do registro | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) |
 
@@ -38,6 +38,8 @@ acompanha.
    instala e grava a status line; `tightship/tests/hook/contract_part.rs` injeta as notas do vault. Nenhum
    teste desenha a status line a partir da pasta de configurações do Antigravity.
 4. O editor do Cursor não tem status line: só a CLI `agent` lê `statusLine` em `~/.cursor/cli-config.json`.
+5. O Antigravity documenta `statusLine` [só para a CLI](https://antigravity.google/docs/settings); a IDE e o
+   app não desenham uma.
 
 Superfícies web não têm suporte: claude.ai, claude.ai/code, os Cloud Agents do Cursor e os Remote Agents do
 Antigravity. O tightship trabalha num checkout na sua máquina.
