@@ -362,3 +362,40 @@ the `covers` patterns that match no file, the system docs that cover no code, an
 - **FR-SKL-13.6** — Given the adopter closes a sprint, when the sprint command runs, then it runs the check
   and proposes each finding as an item of the next sprint.
 - **FR-SKL-13.7** — Given docs with no finding, when the check runs, then it exits with code 0.
+
+<a id="fr-skl-14"></a>
+
+## FR-SKL-14 — The sprint is estimated and capped from its own history
+
+> As an adopter, I want each sprint plan to estimate its items and stop at the pace the last sprints
+> held, and each close to record how the estimates fared, so that every plan corrects the next one.
+
+The system shall, during the sprint command's plan, propose an estimate in points for each item from
+similar items that already closed, ask each assigned person's days available, and cap the sprint at the
+average points per person-day of the last three sprints, going past the cap only on an explicit decision;
+and shall, during its close, record the points planned, delivered, and carried, update that average, and
+give a cause for each item whose actual size ran more than half over or under its estimate, all in
+`docs/work/roadmap/estimation.md`.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The sprint plan had no estimate, capacity, or velocity, and the close recorded only what was done, so each plan was a guess and nothing from the last sprint corrected the next. |
+| Source | Maintainer, [#161](https://github.com/ATNexusLab/tightship/issues/161) |
+| Priority | Should |
+| Status | approved |
+| Milestone | M4 |
+| Since | v4.5.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-14.1** — Given a history with closed sprints, when the adopter plans a sprint, then each item
+  gets a proposed estimate of 1, 2, 3, 5, or 8 points that cites a similar closed item, and the plan states
+  the cap from the days each person gives.
+- **FR-SKL-14.2** — Given items whose estimates add up past the cap, when the adopter plans, then the plan
+  stops and goes on only on an explicit decision, which the sprint's plan records.
+- **FR-SKL-14.3** — Given fewer than three closed sprints in the history, when the adopter plans, then the
+  cap uses the ones there are; given none, the plan says it has no cap.
+- **FR-SKL-14.4** — Given an item whose actual size was more than half over or under its estimate, when the
+  adopter closes the sprint, then `docs/work/roadmap/estimation.md` gets one line with its cause.
+- **FR-SKL-14.5** — Given a Project with no `Estimate` field, when the adopter runs the bootstrap, then the
+  field is created as a number.

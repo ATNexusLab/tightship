@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 4.4.0 · **Date:** 2026-11-17 · [Changelog](CHANGELOG.md)
+**Version:** 4.5.0 · **Date:** 2026-11-17 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -74,6 +74,7 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-SKL-11](functional/skills.md#fr-skl-11) | The docs export to one PDF, whole or by page | Should | approved | M4 |
 | [FR-SKL-12](functional/skills.md#fr-skl-12) | The closeout names the docs a diff affects | Should | approved | M4 |
 | [FR-SKL-13](functional/skills.md#fr-skl-13) | A check reports the docs that drifted from the code | Should | approved | M4 |
+| [FR-SKL-14](functional/skills.md#fr-skl-14) | The sprint is estimated and capped from its own history | Should | approved | M4 |
 | [FR-VER-01](functional/verifier.md#fr-ver-01) | Verifier can be dispatched | Must | approved | M1 |
 | [FR-VER-02](functional/verifier.md#fr-ver-02) | Verifier changes only a private copy | Must | approved | M1 |
 | [FR-MEM-01](functional/memory.md#fr-mem-01) | Memory context at session start | Must | approved | M1 |

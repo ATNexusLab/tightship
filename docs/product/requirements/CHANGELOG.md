@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.5.0] - 2026-11-17
+
+The sprint plan had no estimate, capacity, or velocity, and the close recorded only what was done, so each
+plan was a guess. Change request [#161](https://github.com/ATNexusLab/tightship/issues/161) estimates each
+sprint from the history of the ones before it.
+
+### Added
+
+- FR-SKL-14: the sprint plan proposes estimates and caps the sprint at the recent points per person-day, and
+  the close records how the estimates fared in `docs/work/roadmap/estimation.md`.
+
 ## [4.4.0] - 2026-11-17
 
 No doc said which code it described, and no step of the loop read the docs as a whole, so the docs fell
