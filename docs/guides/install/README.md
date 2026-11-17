@@ -8,16 +8,16 @@ and which of its pieces load. A piece that does not load says why.
 | Harness | Surface | How it gets there | Contract | Skills | Commands | Hooks | Status line | Vault |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Claude Code | CLI¹ | The installer, or `claude plugin install` | Yes | Yes | Yes | Yes | Yes | Yes |
-| Claude Code | Desktop app | The same install as the CLI: the app's local sessions read `~/.claude` | Yes | Yes | Yes | Yes | Yes | Yes |
+| Claude Code | Desktop app | The same install as the CLI: the app's local sessions read `~/.claude` | Yes | Yes | Yes | Yes | No⁴ | Yes |
 | Claude Code | Zed's terminal¹ | The same install as the CLI | Yes | Yes | Yes | Yes | Yes | Yes |
 | Claude Code | Zed's agent panel | The `claude-acp` registry entry | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) |
-| Cursor | Editor | The installer, or a copy into `~/.cursor/plugins/local/` | Yes | Yes | Yes | Yes | No⁴ | Yes |
+| Cursor | Editor | The installer, or a copy into `~/.cursor/plugins/local/` | Yes | Yes | Yes | Yes | No⁵ | Yes |
 | Cursor | `agent` CLI² | The same install as the editor | Yes | Yes | Yes | Yes | Yes | Yes |
 | Cursor | Zed's terminal² | The same install as the editor | Yes | Yes | Yes | Yes | Yes | Yes |
 | Cursor | Zed's agent panel | The `cursor` registry entry | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) |
 | Antigravity | CLI³ | The installer, or `agy plugin install` | Yes | Yes | Yes | Yes | Yes | Yes |
-| Antigravity | IDE | The same install as the CLI: the IDE reads `~/.gemini/config/plugins/` | Yes | Yes | Yes | Yes | No⁵ | Yes |
-| Antigravity | Desktop app | The same install as the CLI: the app reads `~/.gemini/config/plugins/` | Yes | Yes | Yes | Yes | No⁵ | Yes |
+| Antigravity | IDE | The same install as the CLI: the IDE reads `~/.gemini/config/plugins/` | Yes | Yes | Yes | Yes | No⁶ | Yes |
+| Antigravity | Desktop app | The same install as the CLI: the app reads `~/.gemini/config/plugins/` | Yes | Yes | Yes | Yes | No⁶ | Yes |
 | Antigravity | Zed's terminal³ | The same install as the CLI | Yes | Yes | Yes | Yes | Yes | Yes |
 | Antigravity | Zed's agent panel | The `antigravity-acp` registry entry | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) | [Not checked yet](https://github.com/ATNexusLab/tightship/issues/163) |
 
@@ -36,8 +36,9 @@ there comes from a session in use, and a cell not checked yet links the issue th
    `xtask/tests/build/manifest.rs` builds the skills and commands; `xtask/tests/install/antigravity_cli.rs`
    installs and writes the status line; `tightship/tests/hook/contract_part.rs` injects the vault's notes. No
    test renders the status line from Antigravity's settings folder.
-4. Cursor's editor has no status line: only the `agent` CLI reads `statusLine` in `~/.cursor/cli-config.json`.
-5. Antigravity documents `statusLine` [for the CLI only](https://antigravity.google/docs/settings); the IDE
+4. Claude Code's desktop app draws no status line: its Code tab replaces the terminal.
+5. Cursor's editor has no status line: only the `agent` CLI reads `statusLine` in `~/.cursor/cli-config.json`.
+6. Antigravity documents `statusLine` [for the CLI only](https://antigravity.google/docs/settings); the IDE
    and the app draw none.
 
 Web surfaces are not supported: claude.ai, claude.ai/code, Cursor's Cloud Agents, and Antigravity's Remote

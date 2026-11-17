@@ -60,7 +60,8 @@ Quais peças carregam em cada superfície está na [matriz de suporte](../README
 **CLI.** O instalador ou `claude plugin install`, como acima.
 
 **App desktop.** As sessões locais dele leem `~/.claude`, então a instalação acima chega a ele sem passo
-extra. Abra uma sessão local no seu checkout: todas as peças carregam, checadas em uso.
+extra. Abra uma sessão local no seu checkout: todas as peças menos a status line carregam, checadas em
+uso. A aba Code do app substitui o terminal, então ela não desenha `statusLine`.
 
 O terminal do Zed é um terminal comum. Rode `claude` nele e cada peça funciona como em qualquer outro
 terminal, sem passo além deste guia.

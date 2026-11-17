@@ -60,7 +60,8 @@ Which pieces load on each surface is in the [support matrix](../README.md).
 **CLI.** The installer or `claude plugin install`, as above.
 
 **Desktop app.** Its local sessions read `~/.claude`, so the install above reaches it with no extra step.
-Start a local session on your checkout: every piece loads, checked in use.
+Start a local session on your checkout: every piece but the status line loads, checked in use. The
+app's Code tab replaces the terminal, so it draws no `statusLine`.
 
 Zed's terminal is an ordinary terminal. Run `claude` there and every piece works as it does in any other
 terminal, with no setup beyond this guide.
