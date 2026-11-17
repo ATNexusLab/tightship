@@ -15,8 +15,9 @@ This command produces five things, each created on first run and realigned on ev
    one area or step.
 3. The repo's GitHub Project, where the backlog lives.
 4. The editor setup the project needs: `.vscode/` for VS Code, `.zed/` for Zed, or both.
-5. The docs skeleton from `{{skill:project-docs}}`: `docs/README.md`, `docs/architecture/`, `docs/data-model/`,
-   their diagrams, and the local docs site.
+5. The docs skeleton from `{{skill:project-docs}}`: `docs/README.md`, the folders of each group,
+   `docs/system/architecture/` and `docs/system/data-model/` among them, their diagrams, and the local
+   docs site.
 
 It does not move code or open an ADR — an architectural decision that comes out of this belongs to
 `{{command:spec}}`. The roadmap and sprints belong to `{{command:sprint}}`.
@@ -185,19 +186,25 @@ The structure and templates are `{{skill:project-docs}}`. Written from the requi
 detection — the code:
 
 - `docs/README.md` — the map of the documentation and how to open the local site.
-- `docs/architecture/` — arc42 with C4 diagrams, covering the whole system from infrastructure to
-  interface; its content inferred from the Architecture section and the ADRs, each element marked with
-  the milestone that builds it.
-- `docs/requirements/diagrams/` — the use cases, one diagram per area of the SRS.
-- `docs/data-model/` — conceptual and physical. Its method is `{{skill:database-design}}`.
-- `docs/design/` — the brand, the tokens, and every screen by feature, in the tool §2 settled. A project
-  with no interface says so in `docs/README.md` instead.
+- `docs/product/`, `docs/system/`, `docs/work/`, and `docs/guides/`, each with the `README.md` that
+  indexes it.
+- `docs/system/architecture/` — arc42 with C4 diagrams, covering the whole system from infrastructure
+  to interface; its content inferred from the Architecture section and the ADRs, each element marked
+  with the milestone that builds it.
+- `docs/product/requirements/diagrams/` — the use cases, one diagram per area of the SRS.
+- `docs/system/data-model/` — conceptual and physical. Its method is `{{skill:database-design}}`.
+- `docs/product/design/` — the brand, the tokens, and every screen by feature, in the tool §2 settled.
+  A project with no interface says so in `docs/README.md` instead.
 - Diagrams as `.drawio.svg` in the `diagrams/` folder of the doc each one illustrates.
-- The local docs site: `zensical.toml` with both themes in the product's identity, `docs-theme.css`, the
-  image viewer, `site/` in `.gitignore`, and no deploy workflow.
+- The local docs site: `zensical.toml` with both themes in the product's identity, `docs-theme.css`
+  and the image viewer in `docs/assets/`, `site/` in `.gitignore`, and no deploy workflow.
 
 An existing single-file doc (`docs/requirements.md`, `docs/architecture.md`, …) is split into its folder,
 its content kept, and every link to it updated.
+
+Docs on the previous layout of `{{skill:project-docs}}` are moved to the current one by its table
+`Previous layout`. Each folder moved and each link rewritten goes on the change list of §0, and nothing
+moves until I approve the list.
 
 In evolution, realign them with what changed; a doc that contradicts the code or an ADR is fixed here.
 
@@ -239,6 +246,6 @@ Bootstrap:
 - Gates:        [each, with exit code]
 - Project:      [url · Status ok · Sprint <length> · labels created/reused · workflows for you to set]
 - Editor:       [editors · .vscode/ and .zed/ files written or removed]
-- Docs:         [docs/README.md · requirements/diagrams/ · architecture/ · data-model/ · design/ · zensical.toml]
+- Docs:         [docs/README.md · product/requirements/diagrams/ · product/design/ · system/architecture/ · system/data-model/ · zensical.toml]
 - Open:         [what is declared pending / none]
 ```

@@ -44,9 +44,9 @@ admission gate as everything else.
 ## Read the intent first
 
 Before judging anything, each agent reads what governs the target: the root and area `AGENTS.md`,
-`docs/requirements/`, `docs/decisions/`, the spec of the feature the target belongs to, and the issue
-it is linked to. Behavior one of them states as intended is **not a finding**. If the decision itself
-looks risky, it is reported as a **decision to review**, citing its source, never as a bug.
+`docs/product/requirements/`, `docs/decisions/`, the spec of the feature the target belongs to, and the
+issue it is linked to. Behavior one of them states as intended is **not a finding**. If the decision
+itself looks risky, it is reported as a **decision to review**, citing its source, never as a bug.
 
 ## Admission gate
 

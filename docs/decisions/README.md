@@ -9,3 +9,4 @@ link to the one that replaced it.
 | [0002](0002-tightship-binary-modules-and-dependencies.md) | The tightship binary: modules by domain, a pure core, six dependencies | accepted |
 | [0003](0003-the-plugin-updates-itself-from-github-releases.md) | The plugin updates itself from GitHub Releases | accepted |
 | [0004](0004-documentation-follows-an-order-of-standards.md) | Documentation follows an order of standards | accepted |
+| [0005](0005-docs-are-laid-out-by-audience-and-lifecycle.md) | Docs are laid out by audience and lifecycle | accepted |

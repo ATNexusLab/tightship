@@ -1,6 +1,6 @@
 +++
 name = "requirements-engineering"
-description = "Use when eliciting, analysing, writing, validating, or changing a project's requirements — the docs/requirements/ SRS folder, its requirement IDs and attributes, its versioning, and change control. Based on ISO/IEC/IEEE 29148 and the ISO/IEC 25010 quality model, run inside Scrum sprints."
+description = "Use when eliciting, analysing, writing, validating, or changing a project's requirements — the docs/product/requirements/ SRS folder, its requirement IDs and attributes, its versioning, and change control. Based on ISO/IEC/IEEE 29148 and the ISO/IEC 25010 quality model, run inside Scrum sprints."
 +++
 
 # Requirements Engineering
@@ -15,18 +15,18 @@ version of them.
 | --- | --- | --- |
 | **Elicitation** | Interview the stakeholders; read the repo, the ADRs, the existing product. Ask only what cannot be inferred. | Raw needs, each with its source |
 | **Analysis** | Classify each need (functional, non-functional, business rule, constraint), find conflicts, duplicates, and dependencies, check feasibility, prioritise with MoSCoW. | Needs settled with the stakeholder |
-| **Specification** | Write each need as a requirement with its ID and attributes, into the SRS. | `docs/requirements/` |
+| **Specification** | Write each need as a requirement with its ID and attributes, into the SRS. | `docs/product/requirements/` |
 | **Validation** | Run the quality checklist on every requirement touched and on the whole set. A stakeholder confirms it. | Status `approved` |
 | **Management** | Change control, versioning, and trace to epics. | Version history, baselines |
 
-## The SRS — `docs/requirements/`
+## The SRS — `docs/product/requirements/`
 
 A folder, not one file: people read one area at a time. Doc language follows the repo; IDs keep their
 `FR`/`NFR`/`BR` form, and file names and section anchors follow the repo's code language. The folder
 follows the rules of `{{skill:project-docs}}`.
 
 ```text
-docs/requirements/
+docs/product/requirements/
   README.md                  the SRS front page and the index of every requirement
   overview.md                stakeholders, operating environment, constraints, assumptions and dependencies
   glossary.md                every domain term the requirements use, one line each
@@ -135,8 +135,8 @@ bumps the version; it enters the running sprint only by the user's decision.
 ## Change control
 
 1. **Request** — a GitHub issue labelled `requirement-change`: what should change, and why.
-2. **Impact analysis** — the requirements affected, and through `docs/roadmap/` the epics, specs, and
-   shipped code that depend on them.
+2. **Impact analysis** — the requirements affected, and through `docs/work/roadmap/` the epics, specs,
+   and shipped code that depend on them.
 3. **Decision** — the stakeholder approves or rejects it; the decision is written on the issue.
 4. **Apply** — `{{command:requirements}}` edits the SRS, bumps the version, writes `CHANGELOG.md`, and
    updates the roadmap's coverage. The PR closes the request issue.

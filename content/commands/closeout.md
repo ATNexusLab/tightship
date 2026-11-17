@@ -66,11 +66,11 @@ exist at all.
 - Public contract changed (API/CLI/env/schema)? → update `README.md` / `docs/`.
 - Architectural decision made? → `{{command:spec}}` an ADR in `docs/decisions/`.
 - Setup/run commands changed? → update README Quick Start.
-- Architecture or data changed? → `docs/architecture/`, `docs/data-model/`, and their diagrams match
-  what was built (`{{skill:project-docs}}`).
-- A screen, the brand, or a token changed? → `docs/design/` matches what was built, and the values in
-  `docs/stylesheets/docs-theme.css` match the app's tokens.
-- A use case changed? → its diagram in `docs/requirements/diagrams/`.
+- Architecture or data changed? → `docs/system/architecture/`, `docs/system/data-model/`, and their
+  diagrams match what was built (`{{skill:project-docs}}`).
+- A screen, the brand, or a token changed? → `docs/product/design/` matches what was built, and the
+  values in `docs/assets/stylesheets/docs-theme.css` match the app's tokens.
+- A use case changed? → its diagram in `docs/product/requirements/diagrams/`.
 
 ## 3. Traceability — always, never `n/a`
 

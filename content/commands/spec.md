@@ -21,14 +21,14 @@ Find the facts yourself; spend my attention only on decisions.
 
 - For an epic, its branch: cut it from the updated integration branch before writing any file. The
   spec, its global-docs changes and `{{command:epic}}`'s update are commits there.
-- Whether the feature is an item of the current sprint, with an epic issue on `docs/roadmap/`. If it is
-  not, say so and ask whether to go on, before spending work on it.
-- `docs/requirements/` — name the requirement IDs this feature covers (the epic lists them), and flag any
-  `Open question` there that this spec will settle. If the feature contradicts what the requirements
-  say, stop and raise it: one of the two documents is wrong.
-- `docs/architecture/` and `docs/data-model/` — the containers, components, and entities this
-  feature touches.
-- The specs already in `docs/specs/<epic>/` and how they are named.
+- Whether the feature is an item of the current sprint, with an epic issue on `docs/work/roadmap/`. If
+  it is not, say so and ask whether to go on, before spending work on it.
+- `docs/product/requirements/` — name the requirement IDs this feature covers (the epic lists them), and
+  flag any `Open question` there that this spec will settle. If the feature contradicts what the
+  requirements say, stop and raise it: one of the two documents is wrong.
+- `docs/system/architecture/` and `docs/system/data-model/` — the containers, components, and entities
+  this feature touches.
+- The specs already in `docs/work/specs/<epic>/` and how they are named.
 - The repo's `Architecture` section, its doc language, and the module this feature lands in.
 - Existing permissions, roles, error codes, message strings, and field conventions to reuse — never invent
   a new one when the codebase already has the concept.
@@ -61,7 +61,7 @@ A fact I could not possibly know (a table name, an existing enum) is yours to lo
 ## 3. Write it
 
 Fill the profile's template from `templates.md`, in the repo's doc language, at
-`docs/specs/<epic>/<feature>.md`.
+`docs/work/specs/<epic>/<feature>.md`.
 Nothing invented: every value in the document traces to something I confirmed or something you found in
 the code.
 
@@ -76,15 +76,16 @@ Run the closed-spec gate from the skill line by line and report the result. If i
 to `closed` and tell me the spec is ready for `{{command:epic}}`. If it does not, name exactly what is
 still open — never close a spec that has a soft spot.
 
-Then close the loop with the requirements: for every question in `docs/requirements/open-questions.md` this spec
-answered, write the answer where it belongs, delete the question, fix every link to it, and record the
-removal in the SRS changelog. Tell me what changed there, separately.
+Then close the loop with the requirements: for every question in
+`docs/product/requirements/open-questions.md` this spec answered, write the answer where it belongs,
+delete the question, fix every link to it, and record the removal in the SRS changelog. Tell me what
+changed there, separately.
 
 And with the global docs: what the spec's Architecture impact and Data model impact sections declare is
-applied to `docs/architecture/`, `docs/data-model/`, and their diagrams, marked with the feature's
-milestone. The feature's use cases go into its area's diagram in `docs/requirements/diagrams/`, and its
-screens into `docs/design/pages/<feature>/`. Tell me what changed there separately too. The feature's PR
-later makes the map match what was built.
+applied to `docs/system/architecture/`, `docs/system/data-model/`, and their diagrams, marked with the
+feature's milestone. The feature's use cases go into its area's diagram in
+`docs/product/requirements/diagrams/`, and its screens into `docs/product/design/pages/<feature>/`. Tell
+me what changed there separately too. The feature's PR later makes the map match what was built.
 
 ## Also handles
 

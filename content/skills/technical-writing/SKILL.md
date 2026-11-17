@@ -34,10 +34,10 @@ One destination per fact. Most duplication starts as honest uncertainty about wh
 
 | The fact | Where it lives |
 | --- | --- |
-| How to run, use, or operate this | `README` / `docs/` — here |
-| What the product must be able to do | `docs/requirements/`, the versioned SRS — its `CHANGELOG.md`, in Keep a Changelog, is the one change log a file keeps |
-| What the system is made of, and its data | `docs/architecture/`, `docs/data-model/` |
-| What is planned, per milestone and sprint | `docs/roadmap/` — status lives on GitHub |
+| How to run, use, or operate this | `README` / `docs/guides/` — here |
+| What the product must be able to do | `docs/product/requirements/`, the versioned SRS — its `CHANGELOG.md`, in Keep a Changelog, is the one change log a file keeps |
+| What the system is made of, and its data | `docs/system/architecture/`, `docs/system/data-model/` |
+| What is planned, per milestone and sprint | `docs/work/roadmap/` — status lives on GitHub |
 | How one feature behaves, in detail | that feature's spec |
 | Why it was decided this way | the ADR |
 | How the agent works in this repo | the repo's own `AGENTS.md` |
