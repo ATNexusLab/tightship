@@ -60,6 +60,9 @@ survives:
   limitation — say when it was true, so a reader can judge it instead of trusting it.
 - **A runnable example is the only one that survives.** If it can be executed, run it; if it cannot,
   it will be wrong and nobody will notice.
+- **A doc names the code it describes.** Its `covers` front matter, as `{{skill:project-docs}}` sets it,
+  lets `tightship docs affected` name it when that code changes and `tightship docs check` catch the
+  names it lost.
 - **A doc that contradicts the code is a finding.** One of the two is wrong — decide which before
   touching the prose, because rewording a doc to match a bug documents the bug.
 

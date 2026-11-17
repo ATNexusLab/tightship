@@ -70,8 +70,11 @@ Only this sprint is planned in detail. The next one is planned when this one clo
    I decide.
 3. Write the dated result into `docs/work/roadmap/sprints/sprint-NN.md`.
    Every issue of a milestone closed → close its GitHub Milestone.
-4. A requirement or architecture change the sprint revealed → `{{command:requirements}}` or an ADR, named here.
-5. Then run `plan` for the next sprint.
+4. Run `tightship docs check`, and read each doc under `docs/system/` against the code its `covers` lists:
+   does it still hold? Each finding, and each doc that no longer holds, is proposed as an item of the next
+   sprint; it becomes one at my word.
+5. A requirement or architecture change the sprint revealed → `{{command:requirements}}` or an ADR, named here.
+6. Then run `plan` for the next sprint.
 
 ## Output
 
@@ -83,6 +86,7 @@ Sprint <N>:
 - Specs:       [needed before code / all closed]
 - Roadmap:     [docs/work/roadmap/ updated — what changed]
 - Carried:     [from the previous sprint / none]
+- Docs drift:  [findings proposed as items: #… / none]
 ```
 
 Every doc change goes through the normal commit approval.

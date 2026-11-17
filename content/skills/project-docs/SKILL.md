@@ -126,7 +126,7 @@ this table and rewrites every link that pointed into a moved folder; `docs/decis
 | `guides/` | What a user follows to install, use, or operate the product | How the system is built |
 
 A doc that restates another is replaced by a link. `{{skill:technical-writing}}` still decides whether a doc should
-exist at all.
+exist at all. A doc that describes code names it under `covers`: [`covers.md`](covers.md).
 
 ## `system/architecture/`
 

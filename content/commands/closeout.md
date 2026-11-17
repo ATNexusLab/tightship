@@ -58,10 +58,15 @@ Run only the surfaces named in §0.
 - New variables documented in the committed example/template.
 - No secret hardcoded, logged, or committed.
 
-## 2. Docs upkeep (only when warranted)
+## 2. Docs upkeep — always
 
 Use `{{skill:technical-writing}}` as the lens — including its first question, whether the doc should
 exist at all.
+
+Run `tightship docs affected`. It names every doc whose `covers` front matter matches a file this diff
+changes, staged, unstaged, or untracked; for a branch already committed, pass `--base <integration
+branch>`. Each doc it names gets a decision: `updated at <path>` or `still holds`. `covers` reaches only
+docs that list code, so the checks below still run for what it cannot see:
 
 - Public contract changed (API/CLI/env/schema)? → update `README.md` / `docs/`.
 - Architectural decision made? → `{{command:spec}}` an ADR in `docs/decisions/`.
@@ -120,7 +125,7 @@ through it goes through now, before this block; `n/a` only when the delivery wro
 Closeout:
 - Surfaces:      [which the diff touched]
 - Surface gates: [per surface: pass / findings / n/a by scope]
-- Docs:          [updated at <path> / n/a]
+- Docs:          [per doc `docs affected` named: updated at <path> / still holds; others: updated at <path> / n/a]
 - Traceability:  [issue #n · branch · PR → integration branch · Status/Sprint ok]
 - Security-debt: [none / issues #… / filed #…]
 - Memory:        [promoted <note> / nothing durable / n/a — no vault]
