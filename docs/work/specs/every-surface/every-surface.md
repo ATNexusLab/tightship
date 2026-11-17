@@ -1,6 +1,6 @@
 # Support every surface of each harness
 
-> **Status:** closed
+> **Status:** published
 > **Profile:** API
 > **Module:** `docs/guides/install/`, `docs/guides/release/checklist.md`, `docs/system/architecture/deployment.md`
 > **Epic:** [#134](https://github.com/ATNexusLab/tightship/issues/134)
@@ -298,7 +298,7 @@ N/A — no entity, file, or attribute of the data model changes: the matrix is a
 
 ## Task Breakdown
 
-| # | Title | Scope | Acceptance criterion | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Write the support matrix from a live check of every surface | Live checks of Claude Code's CLI and desktop app, Cursor's editor and `agent`, Antigravity's CLI, IDE, and desktop app; `docs/guides/install/README.md` and `.pt-BR.md` (new); the `Surfaces` section of the six `install.md`; the line in the six `README.md`; `docs/system/architecture/deployment.md` | Scenarios 1 to 7 | — |
-| 2 | Run the release checklist on every surface | `docs/guides/release/checklist.md` | Scenario 8 | 1 |
+| # | Issue | Title | Scope | Acceptance criterion | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| 1 | [#168](https://github.com/ATNexusLab/tightship/issues/168) | Write the support matrix from a live check of every surface | Live checks of Claude Code's CLI and desktop app, Cursor's editor and `agent`, Antigravity's CLI, IDE, and desktop app; `docs/guides/install/README.md` and `.pt-BR.md` (new); the `Surfaces` section of the six `install.md`; the line in the six `README.md`; `docs/system/architecture/deployment.md` | Scenarios 1 to 7 | — |
+| 2 | [#169](https://github.com/ATNexusLab/tightship/issues/169) | Run the release checklist on every surface | `docs/guides/release/checklist.md` | Scenario 8 | 1 |
