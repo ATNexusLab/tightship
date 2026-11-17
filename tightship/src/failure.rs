@@ -21,6 +21,8 @@ Usage: tightship vault path
        tightship options list
        tightship options reset
        tightship options disabled <name>
+       tightship docs check
+       tightship docs affected [--base <revision>]
        tightship hook contract-part <file>
        tightship hook map
        tightship hook clean
@@ -103,6 +105,10 @@ pub enum Failure {
     UpdateApplyFailed(PathBuf, io::Error),
     UpdateStateUnwritable(PathBuf, io::Error),
     UpdateStartFailed(io::Error),
+    DocsNoRepository,
+    DocsGitFailed(String),
+    DocsUnreadable(PathBuf, io::Error),
+    DocsCheckFailed,
 }
 
 impl fmt::Display for Failure {
@@ -352,6 +358,15 @@ impl fmt::Display for Failure {
             Self::UpdateStartFailed(error) => {
                 write!(formatter, "cannot start the update: {error}")
             }
+            Self::DocsNoRepository => write!(
+                formatter,
+                "the working folder is in no git repository; run the command inside the project"
+            ),
+            Self::DocsGitFailed(message) => write!(formatter, "git failed: {message}"),
+            Self::DocsUnreadable(path, error) => {
+                write!(formatter, "cannot read {}: {error}", path.display())
+            }
+            Self::DocsCheckFailed => write!(formatter, "the check found drift in the docs"),
         }
     }
 }

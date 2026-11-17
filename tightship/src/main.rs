@@ -1,5 +1,6 @@
 //! The `tightship` entry point: parses the command line, runs the command, and reports a failure.
 
+mod docs;
 mod failure;
 mod hook;
 mod options;
@@ -35,7 +36,18 @@ enum Area {
     StatusLine(StatusLineCommand),
     #[command(subcommand)]
     Options(OptionsCommand),
+    #[command(subcommand)]
+    Docs(DocsCommand),
     Update,
+}
+
+#[derive(Subcommand)]
+enum DocsCommand {
+    Check,
+    Affected {
+        #[arg(long, value_name = "revision")]
+        base: Option<String>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -117,6 +129,8 @@ fn main() -> ExitCode {
         Area::Hook(HookCommand::Clean) => hook::clean::run(),
         Area::Hook(HookCommand::Update) => hook::update::run(),
         Area::Hook(HookCommand::MarketplaceAutoUpdate) => hook::marketplace_auto_update::run(),
+        Area::Docs(DocsCommand::Check) => docs::check::run(),
+        Area::Docs(DocsCommand::Affected { base }) => docs::affected::run(base.as_deref()),
         Area::Update => update::run(),
         Area::StatusLine(StatusLineCommand::Render) => status::render::run(),
         Area::Options(OptionsCommand::Set { name, value }) => options::set(&name, &value),
@@ -171,7 +185,7 @@ fn usage_problem(error: &clap::Error) -> String {
 }
 
 fn report(failure: &Failure) -> ExitCode {
-    if !matches!(failure, Failure::LintFailed) {
+    if !matches!(failure, Failure::LintFailed | Failure::DocsCheckFailed) {
         eprintln!("error: {failure}");
     }
     ExitCode::FAILURE

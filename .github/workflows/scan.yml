@@ -28,3 +28,6 @@ jobs:
 
       - name: cargo xtask scan
         run: cargo xtask scan
+
+      - name: tightship docs check
+        run: cargo run --quiet --package tightship -- docs check
