@@ -11,7 +11,7 @@ quais das suas peças carregam. Uma peça que não carrega diz por quê.
 | Claude Code | App desktop | A mesma instalação da CLI: as sessões locais do app leem `~/.claude` | Sim | Sim | Sim | Sim | Sim | Sim |
 | Claude Code | Terminal do Zed¹ | A mesma instalação da CLI | Sim | Sim | Sim | Sim | Sim | Sim |
 | Claude Code | Agent panel do Zed | A entrada `claude-acp` do registro | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) |
-| Cursor | Editor | O instalador, ou uma cópia em `~/.cursor/plugins/local/` | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/170) |
+| Cursor | Editor | O instalador, ou uma cópia em `~/.cursor/plugins/local/` | Sim | Sim | Sim | Sim | Não⁴ | Sim |
 | Cursor | CLI `agent`² | A mesma instalação do editor | Sim | Sim | Sim | Sim | Sim | Sim |
 | Cursor | Terminal do Zed² | A mesma instalação do editor | Sim | Sim | Sim | Sim | Sim | Sim |
 | Cursor | Agent panel do Zed | A entrada `cursor` do registro | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) | [Ainda não checado](https://github.com/ATNexusLab/tightship/issues/163) |
@@ -37,6 +37,7 @@ acompanha.
    `xtask/tests/build/manifest.rs` gera as skills e os comandos; `xtask/tests/install/antigravity_cli.rs`
    instala e grava a status line; `tightship/tests/hook/contract_part.rs` injeta as notas do vault. Nenhum
    teste desenha a status line a partir da pasta de configurações do Antigravity.
+4. O editor do Cursor não tem status line: só a CLI `agent` lê `statusLine` em `~/.cursor/cli-config.json`.
 
 Superfícies web não têm suporte: claude.ai, claude.ai/code, os Cloud Agents do Cursor e os Remote Agents do
 Antigravity. O tightship trabalha num checkout na sua máquina.

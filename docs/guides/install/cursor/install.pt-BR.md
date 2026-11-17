@@ -134,8 +134,8 @@ vez do zip do release.
 Quais peças carregam em cada superfície está na [matriz de suporte](../README.pt-BR.md).
 
 **Editor.** O instalador ou uma cópia em `~/.cursor/plugins/local/`, como acima, e depois um reload da
-janela. Nenhum teste roda o editor ainda; a [#170](https://github.com/ATNexusLab/tightship/issues/170)
-confirma cada peça em uso.
+janela. Todas as peças menos a status line carregam, checadas em uso: o editor não tem uma, e só a CLI
+`agent` lê `statusLine`.
 
 **CLI `agent`.** Lê a instalação do editor, então os passos acima chegam a ela sem passo extra.
 

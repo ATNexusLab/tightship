@@ -135,8 +135,8 @@ the release zip.
 Which pieces load on each surface is in the [support matrix](../README.md).
 
 **Editor.** The installer or a copy into `~/.cursor/plugins/local/`, as above, then a reload of the
-window. No test runs the editor yet; [#170](https://github.com/ATNexusLab/tightship/issues/170) confirms
-each piece in use.
+window. Every piece but the status line loads, checked in use: the editor has none, and only the `agent`
+CLI reads `statusLine`.
 
 **`agent` CLI.** It reads the editor's install, so the steps above reach it with no extra step.
 
