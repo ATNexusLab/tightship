@@ -1,3 +1,8 @@
+---
+covers:
+  - tightship/**
+---
+
 # tightship binary
 
 **Lives in:** `tightship/` · **Technology:** Rust · **Milestone:** M1, from epic #5; epic #6 adds the handoff;
@@ -19,6 +24,7 @@ The one program the plugin ships, with a subcommand per function. Epic #5 builds
 | `tightship hook clean` | The session-start hook at `startup`, and the installer | Removes every leftover `clean.json` lists that still exists, and every older version folder of the plugin no session uses (#140) |
 | `tightship hook marketplace-auto-update` | Claude Code's hook, at `startup` | Writes `autoUpdate` on the plugin's entry in `extraKnownMarketplaces`, following the `auto_update` option |
 | `tightship options set\|list\|reset\|disabled` | The adopter | Edits `${TIGHTSHIP_DATA}/options.json`; `disabled` exits 0 when the option is `false`, and rejects `vault_folder`, which is no on/off option (#99) |
+| `tightship docs check\|affected` | The agent, through the commands `closeout` and `sprint close`; CI | `check` reports where `docs/` and `client-docs/` drifted from the code and exits 1 on a finding; `affected` names the docs whose `covers` match the files a diff changes (M4, #160) |
 
 The binary reads `TIGHTSHIP_*` variables, which the hook lines or the launcher of each harness set from
 that harness's own, and falls back to `${TIGHTSHIP_DATA}/options.toml` when an option variable is unset

@@ -1,3 +1,10 @@
+---
+covers:
+  - content/options.toml
+  - tightship/src/options.rs
+  - xtask/src/build/harnesses/**
+---
+
 # Options
 
 **Milestone:** M1, epic #3; M3, epic #59

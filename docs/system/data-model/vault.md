@@ -1,3 +1,9 @@
+---
+covers:
+  - tightship/src/vault.rs
+  - tightship/src/vault/**
+---
+
 # Vault
 
 **Milestone:** M1, epics #5 and #6 · **Spec:** [keep the vault](../../work/specs/memory/keep-the-vault.md),

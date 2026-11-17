@@ -1,3 +1,14 @@
+---
+covers:
+  - xtask/src/scan.rs
+  - xtask/src/scan/**
+  - tightship/src/update/**
+  - content/options.toml
+  - tightship/src/hook/**
+  - xtask/src/build/harnesses/**
+  - harnesses/*/harness.toml
+---
+
 # Security
 
 The repository is public, and the plugin runs on machines that are not the maintainer's.

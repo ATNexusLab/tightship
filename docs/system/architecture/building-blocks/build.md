@@ -1,3 +1,8 @@
+---
+covers:
+  - xtask/**
+---
+
 # Build
 
 **Lives in:** `xtask/` · **Technology:** Rust, run as `cargo xtask` ·

@@ -1,3 +1,12 @@
+---
+covers:
+  - tightship/src/vault.rs
+  - tightship/src/vault/**
+  - tightship/src/hook/**
+  - content/vault-template/**
+  - xtask/src/build/harnesses/**
+---
+
 # Memory
 
 **Milestone:** M1, epics #5 and #6; M3, epic #59

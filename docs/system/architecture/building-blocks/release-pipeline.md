@@ -1,3 +1,9 @@
+---
+covers:
+  - .github/workflows/release.yml
+  - xtask/src/package.rs
+---
+
 # Release pipeline
 
 **Lives in:** `.github/workflows/release.yml` · **Technology:** GitHub Actions ·

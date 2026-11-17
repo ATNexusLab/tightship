@@ -1,3 +1,10 @@
+---
+covers:
+  - harnesses/*/harness.toml
+  - xtask/src/build/harness.rs
+  - xtask/src/build/harnesses.rs
+---
+
 # Harness definitions
 
 **Lives in:** `harnesses/<harness>/harness.toml` · **Milestone:** M1, epic #1 (Claude Code); M3, epic #59

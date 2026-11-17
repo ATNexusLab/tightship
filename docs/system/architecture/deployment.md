@@ -1,3 +1,10 @@
+---
+covers:
+  - installer/**
+  - harnesses/*/install.*
+  - .github/workflows/**
+---
+
 # Deployment
 
 ![C4 deployment](diagrams/deployment.drawio.svg)

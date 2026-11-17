@@ -1,3 +1,10 @@
+---
+covers:
+  - xtask/src/build/render.rs
+  - xtask/src/build/render/**
+  - harnesses/*/harness.toml
+---
+
 # Tokens
 
 A harness renames plugin pieces and has capabilities of its own, so the canonical content never writes a

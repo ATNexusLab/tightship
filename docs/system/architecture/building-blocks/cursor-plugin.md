@@ -1,3 +1,10 @@
+---
+covers:
+  - harnesses/cursor/**
+  - xtask/src/build/harnesses/cursor.rs
+  - tightship/src/hook/**
+---
+
 # Cursor plugin
 
 **Lives in:** `dist/cursor/`, generated and ignored by git · **Milestone:** M2, epic #58

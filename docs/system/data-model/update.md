@@ -1,3 +1,11 @@
+---
+covers:
+  - tightship/src/update.rs
+  - tightship/src/update/**
+  - tightship/src/hook/update.rs
+  - tightship/src/hook/marketplace_auto_update.rs
+---
+
 # Update
 
 **Specs:** [keep the plugin updated](../../work/specs/auto-update/update-the-plugin.md)

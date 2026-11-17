@@ -1,3 +1,11 @@
+---
+covers:
+  - harnesses/claude-code/**
+  - xtask/src/build/harnesses/claude_code.rs
+  - tightship/src/hook/**
+  - installer/**
+---
+
 # Claude Code plugin
 
 **Lives in:** `dist/claude-code/`, generated and ignored by git · **Milestone:** M1, epics #1 to #6

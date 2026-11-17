@@ -1,3 +1,10 @@
+---
+covers:
+  - harnesses/antigravity-cli/**
+  - xtask/src/build/harnesses/antigravity_cli.rs
+  - xtask/src/build/harnesses/**
+---
+
 # Antigravity CLI plugin
 
 **Lives in:** `dist/antigravity-cli/`, generated and ignored by git · **Milestone:** M3, epic #59

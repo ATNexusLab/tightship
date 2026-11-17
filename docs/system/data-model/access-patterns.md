@@ -1,3 +1,8 @@
+---
+covers:
+  - tightship/src/**
+---
+
 # Access patterns
 
 Every read and write the requirements call for. Volume: a vault of 1,000 notes
@@ -19,3 +24,5 @@ Every read and write the requirements call for. Volume: a vault of 1,000 notes
 | Announce an update ([FR-INS-10](../../product/requirements/functional/install.md#fr-ins-10)) | Reads and clears `update.json`'s `notice` | The one file | Every session start |
 | Render the status line ([FR-STL-01](../../product/requirements/functional/status-line.md#fr-stl-01)) | Reads the session's JSON on stdin and the repository's `HEAD` | — | On the harness's status line events |
 | Change an option ([FR-INS-04](../../product/requirements/functional/install.md#fr-ins-04)) | Claude Code writes one option's state in the user settings; in Antigravity CLI, the installer or the adopter updates `${PLUGIN_DATA}/options.toml` (M3, #59) | By name | On demand |
+| Name the docs a diff affects ([FR-SKL-12](../../product/requirements/functional/skills.md#fr-skl-12)) | Reads the diff and the untracked files from git, and each doc's front matter | Docs whose `covers` match a changed file | At each closeout |
+| Check the docs ([FR-SKL-13](../../product/requirements/functional/skills.md#fr-skl-13)) | Reads every doc, and the files git does not ignore that a doc names or covers | Every doc under `docs/` and `client-docs/` | At each sprint close and pull request |

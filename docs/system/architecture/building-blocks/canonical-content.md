@@ -1,3 +1,8 @@
+---
+covers:
+  - content/**
+---
+
 # Canonical content
 
 **Lives in:** `content/` · **Milestone:** M1, epics #1, #3, #4, #5, and #6

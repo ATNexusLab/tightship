@@ -1,3 +1,11 @@
+---
+covers:
+  - .github/workflows/rust.yml
+  - .github/workflows/docs.yml
+  - .github/workflows/scan.yml
+  - .agents/skills/gates/SKILL.md
+---
+
 # Gate pipeline
 
 **Lives in:** `.github/workflows/rust.yml`, `docs.yml`, and `scan.yml` · **Technology:** GitHub Actions ·
@@ -14,7 +22,8 @@ Markdown or the docs site changes, and the docs build only when `docs/` or `zens
 `scan.yml` runs `cargo xtask scan` on Linux at every pull request, since a secret can enter through any file.
 It is the automated half of
 [NFR-FLEX-05](../../../product/requirements/non-functional/flexibility.md#nfr-flex-05); the release
-checklist is the other.
+checklist is the other. It then runs `tightship docs check`, since the docs drift from the code when either
+one changes ([FR-SKL-13](../../../product/requirements/functional/skills.md#fr-skl-13)).
 
 `rust.yml` installs gitleaks 8.30.1 for the scan's tests, checked against the sha256 pinned in the
 workflow, and writes `.identity-terms` from the repository

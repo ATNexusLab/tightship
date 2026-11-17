@@ -1,3 +1,10 @@
+---
+covers:
+  - content/contract.md
+  - tightship/src/hook/contract_part.rs
+  - xtask/src/build/harnesses/**
+---
+
 # Contract
 
 **Milestone:** M1, epic #4; M3, epic #59

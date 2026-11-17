@@ -1,3 +1,10 @@
+---
+covers:
+  - tightship/src/status.rs
+  - tightship/src/status/**
+  - tightship/src/hook/status_line.rs
+---
+
 # Status line
 
 **Milestone:** M1, epic #7; M3, epic #59
