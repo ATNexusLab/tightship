@@ -74,13 +74,14 @@ GitHub Milestone: [M4 — Codex](https://github.com/ATNexusLab/tightship/milesto
 | Docs structure and client docs | [#138](https://github.com/ATNexusLab/tightship/issues/138) | FR-SKL-09, FR-SKL-10 |
 | Export the docs, whole or by page | [#162](https://github.com/ATNexusLab/tightship/issues/162) | FR-SKL-11 |
 | Keep the docs in step with the code | [#160](https://github.com/ATNexusLab/tightship/issues/160) | FR-SKL-12, FR-SKL-13 |
+| Estimate sprints from their own history | [#161](https://github.com/ATNexusLab/tightship/issues/161) | FR-SKL-14 |
 
 One epic carries the whole harness, as in M2 and M3. Its spec settles OQ-04, OQ-06, and OQ-08. The
 [spec of epic #140](../specs/own-the-companions/own-the-companions.md) answered OQ-05: no harness installs
 a companion plugin, Codex included.
 
-Epic #138 and issues #160 and #162 are not part of the harness: they ride on M4 because M4 is the open milestone,
-and they ship in the same release.
+Epic #138 and issues #160, #161, and #162 are not part of the harness: they ride on M4 because M4 is
+the open milestone, and they ship in the same release.
 
 ## Requirement coverage
 
@@ -110,6 +111,7 @@ Every approved requirement of M1 to M4 maps to exactly one epic, or to one issue
 | FR-SKL-11 | #162 | M4 |
 | FR-SKL-12 | #160 | M4 |
 | FR-SKL-13 | #160 | M4 |
+| FR-SKL-14 | #161 | M4 |
 | FR-VER-01 | #2 | M1 |
 | FR-VER-02 | #2 | M1 |
 | FR-MEM-01 | #5 | M1 |
@@ -162,6 +164,8 @@ Every approved requirement of M1 to M4 maps to exactly one epic, or to one issue
 | BR-05 | #4, and #140 since 4.0.0 | M1, M3 |
 
 ## Sprints
+
+Velocity and estimate misses: [estimation.md](estimation.md).
 
 - [Sprint 1](sprints/sprint-01.md) — M1, from the canonical source to the release on the three systems
 - [Sprint 2](sprints/sprint-02.md) — Cursor and Antigravity CLI, the vault location with `~`, a status fix

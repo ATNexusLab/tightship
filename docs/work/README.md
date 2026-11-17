@@ -5,5 +5,5 @@ on, and the current state lives in [product](../product/README.md) and [system](
 
 | Doc | What it holds |
 | --- | --- |
-| [Roadmap](roadmap/README.md) | The milestones, their epics, requirement coverage, and each sprint's plan and result |
+| [Roadmap](roadmap/README.md) | The milestones, their epics, requirement coverage, each sprint's plan and result, and the velocity history |
 | [Specs](specs/README.md) | One closed spec per feature, grouped by epic |
