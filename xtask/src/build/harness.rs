@@ -24,6 +24,7 @@ pub struct Harness {
     pub references: References,
     pub access: Access,
     pub contract: Option<ContractLimits>,
+    pub skills: Option<SkillLimits>,
     pub capabilities: BTreeMap<String, String>,
     pub neutrality: Neutrality,
     pub clean: Option<Clean>,
@@ -81,6 +82,14 @@ pub struct ContractLimits {
     pub limit: usize,
     #[serde(rename = "compaction-notice")]
     pub compaction_notice: Option<String>,
+}
+
+/// The most bytes of a skill's body the harness loads.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SkillLimits {
+    #[serde(rename = "body-limit")]
+    pub body_limit: usize,
 }
 
 /// What `hook clean` removes: the companions' leftovers.
@@ -250,6 +259,10 @@ fn problems(harness: &Harness, text: &str) -> Vec<String> {
     let limit = harness.contract.as_ref().map(|table| table.limit);
     if limit.is_some_and(|limit| !(1..=1_000_000).contains(&limit)) {
         problems.push("[contract] limit must be 1 to 1000000".to_owned());
+    }
+    let body_limit = harness.skills.as_ref().map(|table| table.body_limit);
+    if body_limit.is_some_and(|limit| !(1..=1_000_000).contains(&limit)) {
+        problems.push("[skills] body-limit must be 1 to 1000000".to_owned());
     }
     problems.extend(
         harness

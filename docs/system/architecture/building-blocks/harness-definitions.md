@@ -23,6 +23,9 @@ may name a harness. Each one holds:
 - `[contract] limit`: the most characters one hook may put in the context (M1, #4).
 - `[contract] compaction-notice`, optional: a line the build puts under the title of the contract's first
   part, counted against the limit, for a harness whose hooks do not fire after a compaction (#109).
+- `[skills] body-limit`, optional: the most bytes of a skill's body, after its front matter, the harness
+  loads. The build fails on a skill whose rendered body passes it; Antigravity CLI loads only the first
+  24000 (#162).
 
 **It never** holds a piece's text. A sentence that only one harness needs is a capability, and its text
 lives here.
