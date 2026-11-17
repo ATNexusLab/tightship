@@ -30,7 +30,7 @@ O plugin roda hooks e um binário na sua máquina, lê o seu vault e grava nas c
 Reportes sobre qualquer um destes estão no escopo:
 
 - execução de código ou acesso a arquivos além do que o
-  [guia de instalação](docs/install/claude-code/README.pt-BR.md) descreve
+  [guia de instalação](docs/guides/install/claude-code/README.pt-BR.md) descreve
 - a sua identidade, os seus segredos ou as notas do seu vault vazando para um build ou um release
 - os binários ou o catálogo do release não batendo com o código deste repositório
 

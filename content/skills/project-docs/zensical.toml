@@ -1,0 +1,30 @@
+[project]
+site_name = "<Project> — internal docs"
+docs_dir = "docs"
+extra_css = [
+  "assets/stylesheets/docs-theme.css",
+  "assets/stylesheets/image-viewer.css",
+  "assets/stylesheets/pdf-export.css",
+]
+extra_javascript = [
+  { path = "assets/javascripts/image-viewer.js", type = "module" },
+  { path = "assets/javascripts/pdf-export.js", type = "module" },
+]
+
+[project.theme]
+logo = "product/design/brand/<logo file>"
+favicon = "product/design/brand/<favicon file>"
+
+[[project.theme.palette]]
+scheme = "default"
+primary = "custom"
+accent = "custom"
+toggle.icon = "lucide/sun"
+toggle.name = "<Switch to dark mode>"
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "custom"
+accent = "custom"
+toggle.icon = "lucide/moon"
+toggle.name = "<Switch to light mode>"

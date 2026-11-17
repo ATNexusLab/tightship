@@ -1,15 +1,15 @@
 +++
 name = "requirements"
-description = "Elicit, change, or validate the project's requirements (docs/requirements/, a versioned SRS)"
+description = "Elicit, change, or validate the project's requirements (docs/product/requirements/, a versioned SRS)"
 argument-hint = "[a change to make, a change-request issue number, or nothing for kickoff]"
 +++
 
-Run requirements engineering on `docs/requirements/` for: {{capability:arguments}}
+Run requirements engineering on `docs/product/requirements/` for: {{capability:arguments}}
 
 The method — phases, SRS template, requirement IDs and attributes, the quality checklist, versioning, and
 change control — is the `{{skill:requirements-engineering}}` skill. Follow it; this command only picks the path.
 
-## Kickoff — `docs/requirements/` does not exist
+## Kickoff — `docs/product/requirements/` does not exist
 
 1. **Elicitation.** Read the repo and any existing docs first, then interview me for what they cannot
    answer — problem, stakeholders, scope, needs, constraints. Never invent an answer; an undecided item
@@ -26,10 +26,10 @@ change control — is the `{{skill:requirements-engineering}}` skill. Follow it;
 1. **Request.** The change comes from `{{capability:arguments}}` or a `requirement-change` issue. Without an issue,
    open one first — every change is traceable.
 2. **Impact analysis.** Name the requirements it adds, changes, or retires, and — through
-   `docs/roadmap/` — the epics, specs, and shipped code that depend on them. Show me before editing.
+   `docs/work/roadmap/` — the epics, specs, and shipped code that depend on them. Show me before editing.
 3. **Apply.** With my approval: edit the requirements (a changed one keeps its ID; a new one takes the
    next free ID in its group; a removed one is `retired`, never deleted), bump the version, write the
-   `CHANGELOG.md` entry, and update the roadmap's coverage table.
+   `CHANGELOG.md` entry in Keep a Changelog, and update the roadmap's coverage table.
 4. **Validation.** The quality checklist on every requirement touched, and the set checks.
 
 ## Relationship to the other docs

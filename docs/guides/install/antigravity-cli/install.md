@@ -1,0 +1,147 @@
+# Installation
+
+English · [Português](install.pt-BR.md)
+
+Install tightship using the interactive one-command installer, or run each step by hand.
+
+## One-command installer
+
+Run the installer directly from GitHub Releases. It detects your installed CLIs, prompts for your options,
+installs tightship, writes your `options.toml`, and configures your status line.
+
+On Linux and macOS:
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | sh
+```
+
+On Windows in PowerShell:
+
+```powershell
+irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex
+```
+
+From `cmd`:
+
+```bat
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "irm https://github.com/ATNexusLab/tightship/releases/latest/download/install.ps1 | iex"
+```
+
+Every question starts on its default, so pressing Enter through all of them installs with the defaults,
+the vault at `~/ai-memory` included; a `-` on the vault question leaves it for later. The
+first question lists the CLIs it found, already checked: move with ↑ and ↓, check or uncheck one with space,
+and confirm with Enter. On a yes or no question, an arrow switches the answer. Nothing is written until you
+choose Install on the summary:
+
+```text
++  tightship v1.3.0
+|
+|  Harnesses
+*  Where should tightship be installed?
+|  Antigravity CLI
+|
+|  Options
+*  Load the working contract in every session?
+|  Yes
+|
+*  Turn on the memory layer?
+|  Yes
+|
+*  Show tightship's status line?
+|  Yes
+|
+*  Keep tightship updated automatically?
+|  Yes
+|
+|  Vault
+*  Where is your vault?
+|  ~/ai-memory
+|
+*  ~/ai-memory does not exist. Create it now?
+|  Yes
+|
+*  Summary
+|  Harnesses       Antigravity CLI
+|  Contract        on
+|  Memory          on
+|  Vault           ~/ai-memory, created now
+|  Status line     on
+|  Auto-update     on
+|
+?  Install with these choices?
+|  (*) Install / ( ) Cancel
++
+```
+
+To run unattended, pass options via flags:
+
+```sh
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/install.sh | \
+  sh -s -- --harness antigravity-cli --vault-folder ~/ai-memory --yes
+```
+
+## Manual installation
+
+If you prefer to run each step by hand:
+
+### 1. Download and install tightship
+
+Download `tightship-antigravity-cli.zip` from the latest release, extract it, and install:
+
+```sh
+mkdir -p /tmp/tightship && cd /tmp/tightship
+curl -fsSL https://github.com/ATNexusLab/tightship/releases/latest/download/tightship-antigravity-cli.zip \
+  -o tightship.zip
+unzip -q tightship.zip -d extracted
+agy plugin install extracted
+rm -f ~/.gemini/config/plugins/tightship/hooks.windows.json
+```
+
+In Git Bash on Windows, replace the last line with the Windows hooks:
+
+```sh
+mv -f ~/.gemini/config/plugins/tightship/hooks.windows.json ~/.gemini/config/plugins/tightship/hooks.json
+```
+
+### 2. Write your options
+
+Create `~/.gemini/config/plugin_data/tightship/options.toml`:
+
+```toml
+contract = true
+memory = true
+status_line = true
+auto_update = true
+vault_folder = "~/ai-memory"
+```
+
+### 3. Enable the status line
+
+```sh
+~/.gemini/config/plugins/tightship/bin/tightship hook status-line
+```
+
+## Check it
+
+Run `agy plugin list`. `tightship` shows as installed.
+
+## Surfaces
+
+Which pieces load on each surface is in the [support matrix](../README.md).
+
+**CLI.** The installer or `agy plugin install`, as above.
+
+**IDE.** It reads `~/.gemini/config/plugins/`, so the CLI's install reaches it with no step beyond the
+ones above. Every piece but the status line loads, checked in use: Antigravity draws `statusLine` in the
+CLI only.
+
+**Desktop app.** The same as the IDE: it reads `~/.gemini/config/plugins/`, and every piece but the
+status line loads, checked in use.
+
+Zed's terminal is an ordinary terminal. Run `agy` there and every piece works as it does in any other
+terminal, with no setup beyond this guide.
+
+Zed's agent panel, which runs Antigravity CLI through the `antigravity-acp` entry of Zed's agent
+registry, has not been checked yet ([#163](https://github.com/ATNexusLab/tightship/issues/163)). Until it
+is, run Antigravity CLI in the terminal.

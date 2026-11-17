@@ -5,8 +5,8 @@
 
 ## Context
 
-[FR-INS-10](../requirements/functional/install.md#fr-ins-10) requires each release to reach every harness with
-no step from the adopter. Each harness offers something different:
+[FR-INS-10](../product/requirements/functional/install.md#fr-ins-10) requires each release to reach every
+harness with no step from the adopter. Each harness offers something different:
 
 - **Claude Code** updates a plugin by itself when its marketplace has auto-update on. That is off by default
   for a marketplace outside Anthropic's, and `extraKnownMarketplaces.<name>.autoUpdate` in the user settings

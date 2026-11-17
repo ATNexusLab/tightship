@@ -1,0 +1,20 @@
+# Specs
+
+One folder per epic, one closed spec per feature, written by `/spec` before any code.
+
+| Epic | Spec | Status |
+| --- | --- | --- |
+| [#1 Canonical source and build](canonical-source-and-build/README.md) | [Build the Claude Code plugin from the canonical content](canonical-source-and-build/build-the-plugin.md) | published |
+| [#2 Install with skills, commands and verifier](install-with-skills-commands-and-verifier/README.md) | [Install the plugin with its companions](install-with-skills-commands-and-verifier/install-the-plugin.md) | published |
+| [#3 Options](options/README.md) | [Choose, change, and keep the options](options/choose-the-options.md) | published |
+| [#4 Contract](contract/README.md) | [Load the contract into every session](contract/load-the-contract.md) | published |
+| [#5 Memory](memory/README.md) | [Keep curated notes in the adopter's vault](memory/keep-the-vault.md) | published |
+| [#6 Handoff](handoff/README.md) | [Hand a session off through the vault](handoff/hand-off-the-session.md) | published |
+| [#7 Status line](status-line/README.md) | [Show the workflow's status line, with the adopter's consent](status-line/show-the-status-line.md) | published |
+| [#8 Release M1](release-m1/README.md) | [Release the Claude Code plugin](release-m1/release-the-plugin.md) | published |
+| [#59 Antigravity CLI plugin](antigravity-cli-plugin/README.md) | [Build, install, and run the Antigravity CLI plugin](antigravity-cli-plugin/antigravity-cli-plugin.md) | published |
+| [#120 Curation](curation/README.md) | [Curate the vault](curation/curate-the-vault.md), [Split the contract into hard lines, conventions, and skills](curation/lean-contract.md) | published |
+| [#140 Own the companions](own-the-companions/README.md) | [Replace the companion plugins with tightship's own pieces](own-the-companions/own-the-companions.md) | published |
+| [#158 Zed and lean production artifacts](zed-and-lean-artifacts/README.md) | [Support Zed and keep production artifacts lean](zed-and-lean-artifacts/zed-and-lean-artifacts.md) | published |
+| [#134 Every surface](every-surface/README.md) | [Support every surface of each harness](every-surface/every-surface.md) | published |
+| [Auto-update](auto-update/README.md), no epic | [Keep the plugin updated in every harness](auto-update/update-the-plugin.md) | closed |

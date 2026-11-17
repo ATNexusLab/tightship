@@ -3,6 +3,7 @@
     "MD013": { "line_length": 110, "tables": false, "code_blocks": false },
     "MD041": { "front_matter_title": "^\\s*name\\s*=" },
     "MD033": { "allowed_elements": ["a"] },
+    "MD024": { "siblings_only": true },
     "MD036": false
   },
   "globs": ["**/*.md"],

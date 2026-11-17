@@ -1,6 +1,6 @@
 +++
 name = "bootstrap"
-description = "Set up this repo for the workflow — its AGENTS.md, GitHub Project, editor setup (.vscode/, .zed/), and global docs"
+description = "Set up this repo for the workflow — its AGENTS.md, GitHub Project, editor setup (.vscode/, .zed/), and its docs — project docs, client docs, or both"
 argument-hint = "[optional notes about the project]"
 +++
 
@@ -15,8 +15,9 @@ This command produces five things, each created on first run and realigned on ev
    one area or step.
 3. The repo's GitHub Project, where the backlog lives.
 4. The editor setup the project needs: `.vscode/` for VS Code, `.zed/` for Zed, or both.
-5. The docs skeleton from `{{skill:project-docs}}`: `docs/README.md`, `docs/architecture/`, `docs/data-model/`,
-   their diagrams, and the local docs site.
+5. The docs from `{{skill:project-docs}}` that §2 settles: the project docs — `docs/README.md`, the
+   folders of each group, `docs/system/architecture/` and `docs/system/data-model/` among them, their
+   diagrams, and the local docs site — the client docs in `client-docs/` with their own site, or both.
 
 It does not move code or open an ADR — an architectural decision that comes out of this belongs to
 `{{command:spec}}`. The roadmap and sprints belong to `{{command:sprint}}`.
@@ -68,7 +69,8 @@ output — it is never filled in to complete the file.
 
 **In every mode**, the same step also settles the setup in §4–§6: the branch model (an integration
 branch plus `main`, or `main` alone), the sprint length, the label set, the editors and their setup
-contents, and the design tool the team documents screens with, when the project has an interface.
+contents, the docs the project gets, and the design tool the team documents screens with, when the
+project has an interface.
 These are decisions or assumptions like any other — nothing in §4–§6 runs before they close.
 
 The editors are one assumption, said word for word: "Editors: \<editors\> — writes \<folders\>."
@@ -77,6 +79,14 @@ The editors are one assumption, said word for word: "Editors: \<editors\> — wr
 it, `.zed/` puts Zed in it, and with neither it is both. My correction replaces the set, and its only
 domain is those two editors. In evolution, the folder of an editor I removed from the set goes on the
 change list for deletion, and stays until I approve the list.
+
+The docs are one assumption, said word for word: "Docs: \<sets\> — writes \<folders\>." `\<sets\>` is
+`project`, `client`, or `project and client`, and `\<folders\>` the matching `docs/`, `client-docs/`, or
+`docs/ and client-docs/`. The set starts from what the repo has: `docs/system/` or `docs/product/design/`
+puts project in it, `client-docs/` puts client in it, and with neither it is project. With client in the
+set, a second assumption follows it, word for word: "Client docs in \<language\>.", starting from the
+language of the repo's docs. In evolution, the folders of a set I removed go on the change list for
+deletion, and stay until I approve the list.
 
 **Nothing is written until this step closes**, in every mode.
 
@@ -134,6 +144,9 @@ that already serves this repo; never create a second one.
   Status.
 - **Sprint** — an Iteration field, created with the `createProjectV2Field` GraphQL mutation,
   `dataType: ITERATION`, and the sprint length agreed in step 2.
+- **Estimate** — a Number field, created with `gh project field-create --data-type NUMBER`; it holds an
+  item's size in points, 1, 2, 3, 5, or 8, which the sprint plan proposes. One that already exists is
+  reused.
 - **Labels** — `epic`, one per change type the repo's commits use (`feat`, `fix`, `chore`, `docs`, …),
   `security-debt`, `tech-debt`, `requirement-change`, and one `area:<module>` per module of the
   Architecture section. Reuse what exists; create only what step 2 agreed.
@@ -164,8 +177,9 @@ folder.
   the extension does not find it alone; the file associations the stack needs. An extension's own config
   file is written only when it needs one and no gate has one.
 - `tasks.json` — only commands with no script behind them in the repo's task runner, like `docs: serve`
-  for the local docs site, which runs the command `{{skill:project-docs}}` gives. A task that only wraps an
-  existing script does not go in.
+  for the local docs site and `docs: serve client` for the client site, each running the command
+  `{{skill:project-docs}}` gives, and each only for a set §2 settled. A task that only wraps an existing
+  script does not go in.
 
 ### `.zed/`
 
@@ -181,23 +195,38 @@ folder.
 
 ## 6. Docs
 
-The structure and templates are `{{skill:project-docs}}`. Written from the requirements, the ADRs, and — in
-detection — the code:
+The structure and templates are `{{skill:project-docs}}`, for the sets §2 settled. The project docs are
+written from the requirements, the ADRs, and — in detection — the code:
 
 - `docs/README.md` — the map of the documentation and how to open the local site.
-- `docs/architecture/` — arc42 with C4 diagrams, covering the whole system from infrastructure to
-  interface; its content inferred from the Architecture section and the ADRs, each element marked with
-  the milestone that builds it.
-- `docs/requirements/diagrams/` — the use cases, one diagram per area of the SRS.
-- `docs/data-model/` — conceptual and physical. Its method is `{{skill:database-design}}`.
-- `docs/design/` — the brand, the tokens, and every screen by feature, in the tool §2 settled. A project
-  with no interface says so in `docs/README.md` instead.
+- `docs/product/`, `docs/system/`, `docs/work/`, and `docs/guides/`, each with the `README.md` that
+  indexes it.
+- `docs/system/architecture/` — arc42 with C4 diagrams, covering the whole system from infrastructure
+  to interface; its content inferred from the Architecture section and the ADRs, each element marked
+  with the milestone that builds it.
+- `docs/product/requirements/diagrams/` — the use cases, one diagram per area of the SRS.
+- `docs/system/data-model/` — conceptual and physical. Its method is `{{skill:database-design}}`.
+- `docs/product/design/` — the brand, the tokens, and every screen by feature, in the tool §2 settled.
+  A project with no interface says so in `docs/README.md` instead.
 - Diagrams as `.drawio.svg` in the `diagrams/` folder of the doc each one illustrates.
-- The local docs site: `zensical.toml` with both themes in the product's identity, `docs-theme.css`, the
-  image viewer, `site/` in `.gitignore`, and no deploy workflow.
+- The local docs site: `zensical.toml` with both themes in the product's identity, `docs-theme.css`,
+  the image viewer, and the PDF export in `docs/assets/`, `site/` in `.gitignore`, and no deploy workflow.
 
 An existing single-file doc (`docs/requirements.md`, `docs/architecture.md`, …) is split into its folder,
 its content kept, and every link to it updated.
+
+Docs on the previous layout of `{{skill:project-docs}}` are moved to the current one by its table
+`Previous layout`. Each folder moved and each link rewritten goes on the change list of §0, and nothing
+moves until I approve the list.
+
+The client docs are `client-docs/` and `zensical.client.toml`, by the skill's `client-docs.md`, in the
+language §2 settled: written from the requirements, the design pages, and — in detection — the running
+app, with `client-site/` in `.gitignore`.
+
+With client docs only, `docs/` keeps what the other commands write — the requirements, the roadmap, the
+specs, and the decisions — and `docs/README.md` maps it. The `system/` group, `docs/product/design/`,
+`docs/product/requirements/diagrams/`, and the local docs site are not written, and `docs/README.md`
+says so.
 
 In evolution, realign them with what changed; a doc that contradicts the code or an ADR is fixed here.
 
@@ -222,10 +251,11 @@ each `AGENTS.md` is 4,000 characters or fewer and states no gate command, nothin
 contract, no placeholder or TODO survives, every project skill opens with its front matter and is listed
 under Project skills, and the frontmatter and structure are clean.
 
-Then check the setup: `gh project field-list` shows Status with its six options and the `Sprint`
-iteration, `gh label list` holds the agreed labels, the integration branch exists on the remote, and
-each `.drawio.svg` carries its diagram (`grep -c mxfile <file>` is not 0), `zensical build` exits 0, and
-the served site passes the check in both themes that `{{skill:project-docs}}` sets.
+Then check the setup: `gh project field-list` shows Status with its six options, the `Sprint`
+iteration, and the `Estimate` number, `gh label list` holds the agreed labels, the integration branch
+exists on the remote, and each `.drawio.svg` carries its diagram (`grep -c mxfile <file>` is not 0),
+`zensical build` exits 0, and the served site passes the check in both themes that
+`{{skill:project-docs}}` sets. With client docs, their site passes the checks of the skill's `client-docs.md`.
 
 ## Output
 
@@ -237,8 +267,8 @@ Bootstrap:
 - Architecture: [one line]
 - Skills:       [project skills written]
 - Gates:        [each, with exit code]
-- Project:      [url · Status ok · Sprint <length> · labels created/reused · workflows for you to set]
+- Project:      [url · Status ok · Sprint <length> · Estimate · labels created/reused · workflows for you to set]
 - Editor:       [editors · .vscode/ and .zed/ files written or removed]
-- Docs:         [docs/README.md · requirements/diagrams/ · architecture/ · data-model/ · design/ · zensical.toml]
+- Docs:         [project / client / project and client · docs/ paths written · client-docs/ and zensical.client.toml · client language]
 - Open:         [what is declared pending / none]
 ```

@@ -1,0 +1,473 @@
+# Changelog
+
+## [4.6.0] - 2026-11-17
+
+Each harness runs on more than one surface, and the plugin was checked on some of them only. Change request
+[#134](https://github.com/ATNexusLab/tightship/issues/134) accounts for every surface on the adopter's machine
+in one support matrix, and puts the web surfaces out of scope.
+
+### Added
+
+- NFR-FLEX-09: one support matrix says how the plugin gets to each local surface of every harness and which
+  pieces load there, and the release checklist checks every surface the plugin reaches.
+- Out of scope: the web surfaces of a harness.
+
+## [4.5.0] - 2026-11-17
+
+The sprint plan had no estimate, capacity, or velocity, and the close recorded only what was done, so each
+plan was a guess. Change request [#161](https://github.com/ATNexusLab/tightship/issues/161) estimates each
+sprint from the history of the ones before it.
+
+### Added
+
+- FR-SKL-14: the sprint plan proposes estimates and caps the sprint at the recent points per person-day, and
+  the close records how the estimates fared in `docs/work/roadmap/estimation.md`.
+
+## [4.4.0] - 2026-11-17
+
+No doc said which code it described, and no step of the loop read the docs as a whole, so the docs fell
+behind the code. Change request [#160](https://github.com/ATNexusLab/tightship/issues/160) ties each doc to
+its code and checks the docs for drift.
+
+### Added
+
+- FR-SKL-12: each doc lists the code it covers, and the closeout names every doc a diff affects.
+- FR-SKL-13: a check reports broken links, references the code dropped, stale `covers`, system docs that
+  cover no code, and leftover markers; the sprint close runs it.
+
+## [4.3.0] - 2026-11-16
+
+The docs reached someone outside the repository only when copied by hand. Change request
+[#162](https://github.com/ATNexusLab/tightship/issues/162) adds an export of the docs to PDF.
+
+### Added
+
+- FR-SKL-11: a button on the docs site exports the current page, its section, chosen folders and
+  pages, or the whole docs to a single PDF.
+
+## [4.2.0] - 2026-11-16
+
+The bootstrap documented a repository only for whoever builds it, and the folders of `docs/` had grown
+one doc type at a time, mixing the description of the system with the history of the work. Change request
+[#138](https://github.com/ATNexusLab/tightship/issues/138) adds one structure for the docs and the client
+docs a delivered project needs.
+
+### Added
+
+- FR-SKL-09: the docs follow one structure, grouped by audience and lifecycle, and the bootstrap moves a
+  repository on the previous structure once the adopter approves.
+- FR-SKL-10: the bootstrap writes the project docs, the client docs, or both.
+
+### Fixed
+
+- The index of the README lists FR-SKL-07, FR-SKL-08, and NFR-FLEX-08, which version 4.1.0 added without
+  a row.
+
+## [4.1.0] - 2026-11-11
+
+Adopters work in Zed as well as in VS Code, and in two projects the production image carried the development
+dependencies. The [spec of epic #158](../../work/specs/zed-and-lean-artifacts/zed-and-lean-artifacts.md)
+adds the requirements for both.
+
+### Added
+
+- FR-SKL-07: the bootstrap sets up VS Code, Zed, or both, and exports diagrams both editors render.
+- FR-SKL-08: a skill keeps production artifacts to what runs, and the audit command reports what breaks it.
+- NFR-FLEX-08: every harness runs in Zed's terminal and agent panel.
+
+## [4.0.0] - 2026-11-10
+
+The workflow required ponytail, i-have-adhd, and humanizer, and installed them with itself. The audit of
+epic [#140](https://github.com/ATNexusLab/tightship/issues/140) found that it used a few of their rules
+and functions, small enough to carry, and that each plugin could change them at any release. Change
+request [#149](https://github.com/ATNexusLab/tightship/issues/149) brings the epic's
+[spec](../../work/specs/own-the-companions/own-the-companions.md) into the SRS: tightship carries each of those
+functions itself and removes the three plugins.
+
+### Added
+
+- FR-CTR-08: the contract carries the rules about code and the shape of a reply.
+- FR-CTR-09: a codebase map reaches the agent at session start.
+- FR-SKL-06: a skill edits prose for people.
+- FR-INS-11: the installer and each session remove what the companions left, and every older plugin
+  version no session uses.
+
+### Changed
+
+- BR-05: the workflow depends on no third-party plugin. It said the companions own their rules.
+- FR-INS-08: the install guide has no section on the companions, so five subjects instead of six.
+
+### Removed
+
+- BR-04, the companion plugins are required, and FR-INS-02, the companions are installed with the plugin:
+  the workflow no longer uses them.
+- OQ-05, how a plugin installs the companions in Codex: the spec of epic #140 settles it, since no harness
+  installs them.
+
+## [3.0.1] - 2026-11-08
+
+On a clean Windows machine, pressing Enter through the v1.2.0 installer turned memory on with no vault, and
+Claude Code had no status line until the first new session. Both left the adopter a step, which FR-INS-09
+rules out. Fixed by issue [#132](https://github.com/ATNexusLab/tightship/issues/132).
+
+### Added
+
+- FR-INS-09.2: Enter on the vault question takes `~/ai-memory`.
+- FR-INS-09.3: the status line is in every installed harness's settings when the installer finishes.
+
+## [3.0.0] - 2026-11-05
+
+Eight requirements carried M4, which BR-01 gives to Codex. They shipped in v1.2.0 without a Codex plugin,
+so the maintainer moved them to M3, the last milestone released, by change request
+[#141](https://github.com/ATNexusLab/tightship/issues/141). The Cursor spec had already settled Cursor's
+part of the open questions, but the SRS still asked about Cursor.
+
+### Changed
+
+- FR-CTR-06, FR-CTR-07, FR-SKL-04, FR-SKL-05, FR-MEM-12, FR-MEM-13, NFR-PERF-03, and FR-INS-10 move from M4
+  to M3.
+- OQ-04, OQ-05, OQ-06, and OQ-08 ask about Codex only. For Cursor, the
+  [spec of epic #58](../../work/specs/cursor-plugin/ship-for-cursor.md) settles them.
+
+### Removed
+
+- OQ-07, whether Cursor's command-line agent loads a plugin's always-on text and hooks: the spec of epic #58
+  settles it.
+
+## [2.2.0] - 2026-10-23
+
+A release reached an adopter only through the installer, and a rerun of it left Claude Code on the version it
+had. Cursor keeps a plugin added from a repository at the commit it was added at, and Antigravity CLI updates
+only the plugins of its official catalog. The maintainer requires every release to reach every harness by
+itself, and decided it without a change request issue.
+
+### Added
+
+- FR-INS-10, The plugin keeps itself updated: while the new `auto_update` option is on, each release is
+  installed without a step from the adopter, and the next session says so.
+
+## [2.1.0] - 2026-10-22
+
+The unified installer was shipped by [#64](https://github.com/ATNexusLab/tightship/issues/64) with no
+requirement behind it, and FR-INS-01 still promised an install with no script. The maintainer requires every
+harness to install through it, none by hand.
+
+### Added
+
+- FR-INS-09, One installer for every harness: `install.sh` and `install.ps1` install the plugin in every
+  supported harness, from the first release that ships it.
+
+### Changed
+
+- FR-INS-01's story no longer promises an install with no script.
+
+## [2.0.0] - 2026-10-22
+
+The contract and the repository's `AGENTS.md` made every convention a law, by change request
+[#118](https://github.com/ATNexusLab/tightship/issues/118): the agent argued against the maintainer's own
+decisions, defended a folder of 20 files as required, and carried 25,418 characters of contract into every
+session, most of it for one step of the workflow. The vault's notes now expire by one lifetime, since 306 of
+the 323 notes that can expire in the maintainer's vault were under 30 days old.
+
+### Added
+
+- FR-CTR-06, Hard lines and conventions: the contract separates the two, and the adopter's decision in the
+  session overrides a convention.
+- FR-CTR-07, The contract holds only what every task needs: a rule of one step lives in that step's skill or
+  command.
+- FR-SKL-04, The bootstrap writes a lean repository contract: the `AGENTS.md` holds only what every task
+  needs and the repository does not show, with the architecture as the current shape.
+- FR-SKL-05, The bootstrap writes project skills: each procedure of one area or step goes to
+  `.agents/skills/`, reachable from every supported harness.
+- NFR-PERF-03, Contract size: at most 8,000 characters with every option on.
+
+### Changed
+
+- FR-MEM-12 removes the notes past one lifetime, the same for every note that can expire, instead of a
+  lifetime per type.
+- FR-CTR-03.2 checks the contract's memory rules, since the baseline no longer bounds the contract.
+
+### Removed
+
+- FR-CTR-04: carrying every baseline rule over made each convention a law. FR-CTR-06 and FR-CTR-07 decide
+  what the contract holds.
+
+## [1.11.0] - 2026-10-20
+
+The vault grew faster than anything removed notes from it, by change request
+[#118](https://github.com/ATNexusLab/tightship/issues/118): the maintainer's vault went from 213 notes to
+418 in the 19 days after a manual prune, 307 of its 417 notes were written at the agent's initiative, and 41
+notes waiting to move into a repository were never moved.
+
+### Added
+
+- FR-MEM-01.4: the session start lists the project's notes waiting to move into a repository, as debts.
+- FR-MEM-12, Notes expire: each sync removes the notes past their type's lifetime, except pinned notes, notes
+  the user stated, decisions, preferences, and handoffs.
+- FR-MEM-13, The vault's rules follow the plugin: a delimited block of the vault's `AGENTS.md` follows the
+  installed template, and the text outside it is left alone.
+
+### Changed
+
+- FR-MEM-01 also places the notes waiting to move into a repository in the session's context.
+- FR-MEM-02 places the checkpoint only right after a compaction.
+- FR-MEM-10.1 checks a compaction instead of prompts, since a prompt no longer brings a checkpoint.
+
+### Removed
+
+- FR-MEM-02.1: a checkpoint at a prompt interval made the agent write notes that fail the vault's rules.
+
+## [1.10.0] - 2026-10-17
+
+Cursor and Antigravity CLI shipped together in v1.1.0. The maintainer approved the release in
+[#84](https://github.com/ATNexusLab/tightship/pull/84), and BR-01 now allows it.
+
+### Changed
+
+- BR-01: a harness's plugin is never released before the plugin of the harness ahead of it, and both may
+  ship in the same release. Before, the later plugin was released only after the earlier one.
+
+## [1.9.0] - 2026-10-16
+
+Turning the `status_line` option on is the adopter's consent, by change request
+[#55](https://github.com/ATNexusLab/tightship/issues/55). The question in chat had been gone since tightship 1.0.2,
+but a no recorded before it, or a status line command tightship did not recognize as its own, kept the
+status line off with the option on.
+
+### Added
+
+- FR-STL-02.2: with the option off, a session start leaves the workflow's status line out of the harness's
+  settings.
+- FR-STL-02.3: with the option on, a session start writes the workflow's status line, whatever the settings
+  held before.
+
+### Changed
+
+- FR-STL-02 is renamed "The status line option is the consent" and writes the status line only while the
+  option is on, instead of asking the adopter first.
+- NFR-FLEX-02.1 names FR-STL-02.3 in place of FR-STL-02.1 among the criteria the Cursor editor cannot pass.
+
+### Removed
+
+- FR-STL-02.1: the adopter no longer answers a question in chat, so no refusal is recorded.
+
+## [1.8.1] - 2026-10-16
+
+Editorial. The [spec of epic #59](../../work/specs/antigravity-cli-plugin/antigravity-cli-plugin.md) settles OQ-04,
+OQ-05, OQ-06, and OQ-08 for Antigravity CLI.
+
+### Changed
+
+- NFR-FLEX-03 and NFR-FLEX-03.1 name Antigravity CLI 1.4.0 as the minimum supported version and record
+  FR-MEM-02.2 as the only criterion Antigravity CLI 1.4.0 cannot fire automatically because `SessionStart`
+  runs only once at conversation start.
+- OQ-04, OQ-05, OQ-06, and OQ-08 now ask about Cursor and Codex only. For Antigravity CLI, the
+  [spec of epic #59](../../work/specs/antigravity-cli-plugin/antigravity-cli-plugin.md) settles them: minimum
+  version 1.4.0; companions and options installed by the one-command interactive installer (`install.sh` /
+  `install.ps1`) or the install guide's commands; contract injected by `SessionStart` hooks in
+  `injectSteps` JSON format with a `contract` skill for reload after `/compact`; status line written to
+  `~/.gemini/antigravity-cli/settings.json` with consent and restored when turned off.
+- Overview: the harness versions table states Antigravity CLI 1.4.0 and the Windows `cmd /c` hook
+  launcher.
+
+## [1.8.0] - 2026-10-15
+
+Two changes the maintainer approved in the planning of sprint 2. Cursor and Antigravity CLI are built in the
+same sprint, by change request [#56](https://github.com/ATNexusLab/tightship/issues/56). A vault location can
+name the home folder with `~`, by change request [#57](https://github.com/ATNexusLab/tightship/issues/57).
+
+### Added
+
+- FR-MEM-09.2: a vault location that is `~` alone or starts with `~` and a path separator resolves under the
+  user's home folder, on macOS, Linux, and Windows.
+
+### Changed
+
+- BR-01: work on a harness may run alongside work on the one before it. The releases keep their order.
+
+## [1.7.0] - 2026-10-15
+
+The documents an adopter or a contributor reads first get a Brazilian Portuguese translation, decided by the
+maintainer on 2026-10-15. English stays the version that prevails.
+
+### Changed
+
+- BR-03: the root `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and the install
+  guides also have a `<file>.pt-BR.md` translation, updated in the same change as the English.
+
+## [1.6.1] - 2026-10-15
+
+Editorial. No requirement changes meaning. The repository takes pull requests from outside contributors.
+Change request [#44](https://github.com/ATNexusLab/tightship/issues/44).
+
+### Changed
+
+- Overview: the maintainer reviews and merges every change, and a Contributor row joins the stakeholders.
+
+## [1.6.0] - 2026-10-15
+
+FR-INS-06.1 could not hold once the status line is on: Claude Code lets no plugin set `statusLine`, runs no
+plugin code on uninstall, and deletes the plugin's data folder, which holds the adopter's previous status
+line. Change request [#31](https://github.com/ATNexusLab/tightship/issues/31).
+
+### Changed
+
+- FR-INS-06 and FR-INS-06.1 hold for an uninstall that follows the install guide's steps, which turn
+  `status_line` off and open one session first.
+
+## [1.5.1] - 2026-10-15
+
+Editorial. The [spec of epic #8](../../work/specs/release-m1/release-the-plugin.md) settles OQ-04 for Claude Code.
+
+### Changed
+
+- NFR-FLEX-01 and NFR-FLEX-01.1 name Claude Code 2.1.295 as the minimum supported version, with the reason
+  in the Rationale.
+- OQ-04 asks only for the minimum versions of Cursor, Antigravity CLI, and Codex, and affects NFR-FLEX-02 to
+  NFR-FLEX-04.
+- Overview: the harness versions table states Claude Code's minimum version.
+
+## [1.5.0] - 2026-10-15
+
+BR-05 could not be checked: it named no version of the companions, whose rules change between versions, and
+it had no acceptance criterion. Change request [#30](https://github.com/ATNexusLab/tightship/issues/30).
+
+### Added
+
+- BR-05.1 compares each rule of the shipped contract and pieces with the companions at the versions the
+  plugin's manifest declares.
+
+### Changed
+
+- BR-05 holds against the version of each companion the plugin installs.
+
+## [1.4.1] - 2026-10-15
+
+Editorial. No requirement changes meaning: the SRS now states what sprint 3 approved and shipped. Change
+request [#29](https://github.com/ATNexusLab/tightship/issues/29).
+
+### Changed
+
+- FR-CTR-04 and FR-MEM-02 record the versions that changed them, and FR-CTR-04.1 and FR-MEM-02.1 cite the
+  epic #4 and epic #5 specs instead of "the spec of M1".
+- FR-MEM-11's statement gives a new id to a local note whose id the remote already took, as FR-MEM-11.3
+  checks. Its Source cites #23.
+- Glossary: Note and Vault folder.
+
+## [1.4.0] - 2026-10-15
+
+Syncing the vault across machines took a request in free text, and two machines that wrote before syncing gave
+two notes the same id. Change request [#23](https://github.com/ATNexusLab/tightship/issues/23), approved
+during the implementation of epic #5, which takes it into sprint 3.
+
+### Added
+
+- FR-MEM-11 syncs the vault with its git remote at the adopter's request. FR-MEM-11.1 checks that notes from
+  both sides end on both, FR-MEM-11.2 that a conflict leaves the remote unchanged and is handed to the agent,
+  and FR-MEM-11.3 that a local note whose id the remote already took gets a new one.
+
+## [1.3.0] - 2026-10-15
+
+FR-MEM-02 asks for a checkpoint before a compaction. Claude Code can't add text to the context before a
+compaction, and the baseline never did: its checkpoint came right after. Change request
+[#22](https://github.com/ATNexusLab/tightship/issues/22), approved during the
+[spec of epic #5](../../work/specs/memory/keep-the-vault.md).
+
+### Changed
+
+- FR-MEM-02 places the compaction's checkpoint right after the compaction. FR-MEM-02.2 checks that the context
+  following the compaction holds a checkpoint.
+- Overview: the plugin also writes to the session's environment file, from the amendment of ADR 0001 in the
+  same spec.
+
+## [1.2.0] - 2026-10-15
+
+The baseline contract quotes ponytail 4.9.0, and the plugin installs ponytail 5.2.0, whose comment marker,
+self-check rule, and comment default differ. One clause of the baseline also repeats ponytail. Change request
+[#20](https://github.com/ATNexusLab/tightship/issues/20), approved after the comparison of scenario 18 of the
+[spec of epic #4](../../work/specs/contract/load-the-contract.md).
+
+### Changed
+
+- FR-CTR-04 also lets a baseline rule change where BR-05 requires it: a companion already states the rule, or
+  no longer has the default the rule cites. FR-CTR-04.1 accepts a rule listed in the spec of M1 as changed for
+  BR-05, with the companion's text.
+
+## [1.1.1] - 2026-10-15
+
+Editorial. No requirement changes meaning. The spec of epic #4 settles OQ-06 for Claude Code.
+
+### Changed
+
+- OQ-06 now asks about Cursor, Antigravity CLI, and Codex only. For Claude Code, the
+  [spec of epic #4](../../work/specs/contract/load-the-contract.md) settles it: the contract reaches the session
+  through `SessionStart` hooks, one per part of at most 10,000 characters, fired again after each compaction.
+
+## [1.1.0] - 2026-10-14
+
+The verifier's method mutates a private copy of the repository and runs its tests there, which FR-VER-02
+forbade. Change request [#13](https://github.com/ATNexusLab/tightship/issues/13), approved during the spec of
+epic #2.
+
+### Added
+
+- FR-VER-02.2: the repository's working tree is unchanged when the verifier returns.
+
+### Changed
+
+- FR-VER-02 is renamed "Verifier changes only a private copy": the verifier gets no file-editing tool of the
+  harness and changes files only through its shell, in a private copy. FR-VER-02.1 says the harness refuses
+  its file-editing tool.
+- OQ-05 now asks about Cursor, Antigravity CLI, and Codex only. For Claude Code, the
+  [spec of epic #2](../../work/specs/install-with-skills-commands-and-verifier/install-the-plugin.md)
+  settles it: the companions are dependencies of the plugin, each installed from its own catalog.
+
+## [1.0.2] - 2026-10-14
+
+Editorial. No requirement changes meaning. The spec of epic #1 and [ADR 0001](../../decisions/0001-rust-build-and-tokenized-canonical-content.md)
+settle four open questions.
+
+### Changed
+
+- Overview: the adopter prerequisites and the plugin's network and disk reach are stated, from ADR 0001.
+- NFR-FLEX-06 names the per-harness places ADR 0001 sets apart.
+- Glossary: adds `tightship` and per-harness place.
+
+### Removed
+
+- OQ-01, the plugin's name: `tightship`.
+- OQ-02, the stack: Rust, with tokenized Markdown as the canonical content.
+- OQ-03, the plugin's network and disk reach.
+- OQ-09, how canonical content names a harness capability: a capability token and the per-harness places.
+
+## [1.0.1] - 2026-10-14
+
+Editorial. No requirement changes meaning.
+
+### Changed
+
+- Every functional area file embeds its use case diagram from `diagrams/`.
+- A blank line now precedes each heading and list, so lists render as lists on the local docs site.
+
+## [1.0.0] - 2026-10-14
+
+Kickoff. First version of the SRS, from the elicitation and analysis held with the maintainer on
+2026-10-14 against the baseline `1f41699`. The maintainer approved every requirement in the validation of
+the same day, so each one enters with Status `approved`.
+
+### Added
+
+- Contract: FR-CTR-01 to FR-CTR-05.
+- Skills and commands: FR-SKL-01 to FR-SKL-03.
+- Verifier: FR-VER-01, FR-VER-02.
+- Memory: FR-MEM-01 to FR-MEM-10.
+- Status line: FR-STL-01 to FR-STL-03.
+- Installation: FR-INS-01 to FR-INS-08.
+- Flexibility: NFR-FLEX-01 to NFR-FLEX-07.
+- Compatibility: NFR-COMP-01.
+- Security: NFR-SEC-01, NFR-SEC-02.
+- Maintainability: NFR-MNT-01.
+- Reliability: NFR-REL-01.
+- Performance efficiency: NFR-PERF-01, NFR-PERF-02.
+- Business rules: BR-01 to BR-05.
+- Open questions: OQ-01 to OQ-09.

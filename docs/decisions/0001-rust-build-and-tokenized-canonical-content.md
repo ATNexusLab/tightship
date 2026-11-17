@@ -2,34 +2,35 @@
 
 - Status: accepted
 - Date: 2026-10-14
-- Amended: 2026-10-14, by the [epic #3 spec](../specs/options/choose-the-options.md): the options' state
+- Amended: 2026-10-14, by the [epic #3 spec](../work/specs/options/choose-the-options.md): the options' state
   is the harness's, not the plugin's
-- Amended: 2026-10-15, by the [epic #4 spec](../specs/contract/load-the-contract.md): a hook command line that
-  only prints a file the plugin ships is not a program
-- Amended: 2026-10-15, by the [epic #5 spec](../specs/memory/keep-the-vault.md): the plugin also writes in two
-  places the harness owns, its data folder and the session's environment file
-- Amended: 2026-10-15, by the [epic #5 spec](../specs/memory/keep-the-vault.md): the plugin also reaches the
-  vault's git remote when it syncs the vault ([FR-MEM-11](../requirements/functional/memory.md#fr-mem-11))
-- Amended: 2026-10-15, by the [epic #6 spec](../specs/handoff/hand-off-the-session.md): a piece reads an
+- Amended: 2026-10-15, by the [epic #4 spec](../work/specs/contract/load-the-contract.md): a hook
+  command line that only prints a file the plugin ships is not a program
+- Amended: 2026-10-15, by the [epic #5 spec](../work/specs/memory/keep-the-vault.md): the plugin also
+  writes in two places the harness owns, its data folder and the session's environment file
+- Amended: 2026-10-15, by the [epic #5 spec](../work/specs/memory/keep-the-vault.md): the plugin also
+  reaches the vault's git remote when it syncs the vault
+  ([FR-MEM-11](../product/requirements/functional/memory.md#fr-mem-11))
+- Amended: 2026-10-15, by the [epic #6 spec](../work/specs/handoff/hand-off-the-session.md): a piece reads an
   option through the token kind `option`, which each harness renders as its own value of the option
-- Amended: 2026-10-16, by the [epic #59 spec](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
+- Amended: 2026-10-16, by the [epic #59 spec](../work/specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
   `install.sh` and `install.ps1` at the repository root bootstrap installation across harnesses,
   `bin/tightship.cmd` launches the binary when a harness on Windows runs hooks through `cmd /c`, and a
   harness with no manifest `userConfig` stores options in `${PLUGIN_DATA}/options.toml`
-- Amended: 2026-10-16, by the [epic #59 spec](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
+- Amended: 2026-10-16, by the [epic #59 spec](../work/specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
   the build assembles the two installers from a neutral core in `installer/` and one fragment per harness,
   and each launcher from a neutral part in `tightship/` and the harness's variables, with the harness's
   folders written once in its `harness.toml`
-- Amended: 2026-10-16, by the [epic #59 spec](../specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
+- Amended: 2026-10-16, by the [epic #59 spec](../work/specs/antigravity-cli-plugin/antigravity-cli-plugin.md):
   a harness's plugin files, its launcher variables, and its hook output shape live in its folder, and the
   build and the package read them from there
 
 ## Context
 
 The workflow is shipped as a native plugin for four harnesses, one milestone each
-([BR-01](../requirements/business-rules.md#br-01)), from one authored copy of every piece
-([NFR-MNT-01](../requirements/non-functional/maintainability.md#nfr-mnt-01)). Three open questions of the SRS
-block the first line of code:
+([BR-01](../product/requirements/business-rules.md#br-01)), from one authored copy of every piece
+([NFR-MNT-01](../product/requirements/non-functional/maintainability.md#nfr-mnt-01)). Three open
+questions of the SRS block the first line of code:
 
 - **The stack** (OQ-02): the format of the canonical content, the language of the build, and the language of
   every script the plugin ships.
@@ -49,12 +50,12 @@ The forces, checked against Claude Code 2.1.299 and its documentation on 2026-10
 - A plugin's `bin/` folder is on the `PATH` of the agent's shell tool while the plugin is enabled.
 - Claude Code namespaces every plugin piece under the plugin's name: a command `spec` of plugin `tightship`
   is invoked as `/tightship:spec`, so a reference written for the pre-plugin install no longer resolves
-  ([FR-SKL-03](../requirements/functional/skills.md#fr-skl-03)).
+  ([FR-SKL-03](../product/requirements/functional/skills.md#fr-skl-03)).
 - A hook adds at most 100 ms to a prompt at the 95th percentile
-  ([NFR-PERF-02](../requirements/non-functional/performance.md#nfr-perf-02)), on macOS, Linux, and Windows
-  without WSL ([NFR-FLEX-05](../requirements/non-functional/flexibility.md#nfr-flex-05)).
+  ([NFR-PERF-02](../product/requirements/non-functional/performance.md#nfr-perf-02)), on macOS, Linux, and Windows
+  without WSL ([NFR-FLEX-05](../product/requirements/non-functional/flexibility.md#nfr-flex-05)).
 - The canonical content names no harness, outside the places this decision sets apart
-  ([NFR-FLEX-06](../requirements/non-functional/flexibility.md#nfr-flex-06)).
+  ([NFR-FLEX-06](../product/requirements/non-functional/flexibility.md#nfr-flex-06)).
 
 ## Decision
 
@@ -124,7 +125,7 @@ only:
 
 - The adopter's vault.
 - The harness's settings file, for the status line only, after the adopter consents
-  ([FR-STL-02](../requirements/functional/status-line.md#fr-stl-02)).
+  ([FR-STL-02](../product/requirements/functional/status-line.md#fr-stl-02)).
 
 The options' state is kept by the harness in its own user configuration and reaches the plugin's hooks as
 environment variables, or, in a harness whose manifest has no `userConfig` (Antigravity CLI, M3, #59), in
@@ -144,7 +145,7 @@ The build writes only to `dist/`.
 - An adopter installs no runtime, and a hook starts in about 1 ms.
 - A piece is edited in one file, and a harness renders it. Adding a harness adds a folder under `harnesses/`
   and a renderer, and leaves `content/` untouched
-  ([NFR-FLEX-07](../requirements/non-functional/flexibility.md#nfr-flex-07)).
+  ([NFR-FLEX-07](../product/requirements/non-functional/flexibility.md#nfr-flex-07)).
 - The maintainer writes references as tokens, never as a harness's literal names. The build rejects a literal
   reference to a known piece.
 - A release needs GitHub Actions and a build matrix. Each archive carries every target, from 15 to 20 MB.
@@ -163,8 +164,8 @@ The build writes only to `dist/`.
 - **Go.** The same distribution as Rust. Rejected: the maintainer has never used it.
 - **Downloading the binary on first use.** Rejected: it needs the network and races the first hook.
 - **A separate installer for the binary.** Rejected: it breaks installation through the harness alone
-  ([FR-INS-01](../requirements/functional/install.md#fr-ins-01)) and leaves the binary behind on uninstall
-  ([FR-INS-06](../requirements/functional/install.md#fr-ins-06)).
+  ([FR-INS-01](../product/requirements/functional/install.md#fr-ins-01)) and leaves the binary behind on uninstall
+  ([FR-INS-06](../product/requirements/functional/install.md#fr-ins-06)).
 - **Committing the generated plugin.** Rejected: every change would appear twice in a pull request, and the
   copy could be edited by hand.
 - **YAML front matter.** Rejected: the serde YAML crate is archived, while the `toml` crate is maintained.

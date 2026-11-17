@@ -3,19 +3,18 @@
 The docs of the tightship plugin. Every folder opens on its own `README.md`, on GitHub, in
 VS Code, or on the local site.
 
-| Doc | What it holds |
+The folders group the docs by who reads them and how long each one lives
+([ADR 0005](decisions/0005-docs-are-laid-out-by-audience-and-lifecycle.md)).
+
+| Group | What it holds |
 | --- | --- |
-| [Install guide, Claude Code](install/claude-code/README.md) | Installing, configuring, updating, and removing the plugin, and moving to it from the pre-plugin install |
-| [Install guide, Cursor](install/cursor/README.md) | Installing, configuring, updating, and removing the plugin |
-| [Install guide, Antigravity CLI](install/antigravity-cli/README.md) | Installing, configuring, updating, and removing the plugin, and moving to it from loose skills or rules |
-| [Requirements](requirements/README.md) | The versioned SRS: every requirement with its ID, attributes, and acceptance criteria, and a use case diagram per area |
-| [Architecture](architecture/README.md) | The map of the system in arc42 sections, with C4 diagrams |
-| [Data model](data-model/README.md) | The vault and the options: entities, invariants, access patterns |
-| [Roadmap](roadmap/README.md) | The milestones, their epics, requirement coverage, and each sprint's plan |
-| [Release](release/README.md) | How a version reaches adopters, and the checklist it passes on macOS, Linux, and Windows |
-| [Specs](specs/README.md) | One closed spec per feature, grouped by epic |
+| [Product](product/README.md) | What the plugin must be: the [requirements](product/requirements/README.md) and the [design](product/design/README.md) |
+| [System](system/README.md) | How it is built: the [architecture](system/architecture/README.md) and the [data model](system/data-model/README.md) |
 | [Decisions](decisions/README.md) | The architecture decision records |
-| [Design](design/README.md) | The brand, its voice and assets, and the tokens |
+| [Work](work/README.md) | What the work planned and did: the [roadmap](work/roadmap/README.md) and its sprints, and the [specs](work/specs/README.md) |
+| [Guides](guides/README.md) | Installing the plugin in each harness, and releasing it |
+
+`assets/` holds the local site's stylesheets and scripts.
 
 ## Local site
 

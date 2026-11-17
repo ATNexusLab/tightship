@@ -67,3 +67,30 @@ fn every_error_is_reported_in_one_run_sorted_by_path_and_line() {
         ]
     );
 }
+
+#[test]
+fn a_skill_body_past_the_harness_limit_fails() {
+    let harness = harness_files("claude-code")
+        .into_iter()
+        .find(|(path, _)| path == "harnesses/claude-code/harness.toml")
+        .expect("the fixture harness")
+        .1;
+    let repository = Repository::with(&[
+        (
+            "harnesses/claude-code/harness.toml",
+            format!("{harness}\n[skills]\nbody-limit = 20\n"),
+        ),
+        piece(
+            "content/skills/grilling/SKILL.md",
+            "Twenty bytes, plus one.\n",
+        ),
+        piece("content/skills/audit/SKILL.md", "Audit.\n"),
+    ]);
+
+    let output = repository.run("build");
+    assert_fails_with(
+        &output,
+        "error: content/skills/grilling/SKILL.md: its body renders to 24 bytes for claude-code, which loads only the first 20",
+    );
+    assert!(!stderr_of(&output).contains("content/skills/audit/SKILL.md"));
+}

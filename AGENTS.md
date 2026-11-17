@@ -1,13 +1,14 @@
 # AGENTS.md
 
 The workflow, packaged as a native plugin for Claude Code, Cursor, and Antigravity CLI, with Codex next,
-built from one canonical source in this repository. What it must do: [the SRS](docs/requirements/README.md).
+built from one canonical source in this repository. What it must do: [the SRS](docs/product/requirements/README.md).
 
 ## Stack
 
 Rust in one Cargo workspace, with the canonical content in Markdown and TOML
 ([ADR 0001](docs/decisions/0001-rust-build-and-tokenized-canonical-content.md)). Diagrams in draw.io, as
-`.drawio.svg`; brand assets as SVG written by hand in `docs/design/brand/`; the docs site on Zensical.
+`.drawio.svg`; brand assets as SVG written by hand in `docs/product/design/brand/`; the docs site on
+Zensical.
 
 ## Programming languages & scripts
 
@@ -20,7 +21,7 @@ before any binary is on the machine.
 Decided in [ADR 0001](docs/decisions/0001-rust-build-and-tokenized-canonical-content.md); the plugin
 updates itself from GitHub Releases
 ([ADR 0003](docs/decisions/0003-the-plugin-updates-itself-from-github-releases.md)).
-The map: [docs/architecture/](docs/architecture/README.md).
+The map: [docs/system/architecture/](docs/system/architecture/README.md).
 
 - `content/` holds the one authored copy of every piece and names no harness, its paths, or its tools.
 - `harnesses/<harness>/` is the only place a harness is named: `harness.toml` its data, `plugin/` the files
@@ -49,9 +50,10 @@ merge commit. Neither has protection on GitHub: both rules are convention.
 
 ## Language
 
-English throughout ([BR-03](docs/requirements/business-rules.md#br-03)). The root `README.md`,
-`CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and every page of `docs/install/` also have a
-Brazilian Portuguese `<file>.pt-BR.md` next to them, updated in the same commit as the English file.
+English throughout ([BR-03](docs/product/requirements/business-rules.md#br-03)). The root `README.md`,
+`CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and every page of `docs/guides/install/` also
+have a Brazilian Portuguese `<file>.pt-BR.md` next to them, updated in the same commit as the English
+file.
 
 ## Gotchas
 

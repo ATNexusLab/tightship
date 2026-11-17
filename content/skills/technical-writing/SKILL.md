@@ -34,10 +34,10 @@ One destination per fact. Most duplication starts as honest uncertainty about wh
 
 | The fact | Where it lives |
 | --- | --- |
-| How to run, use, or operate this | `README` / `docs/` — here |
-| What the product must be able to do | `docs/requirements/`, the versioned SRS — its `CHANGELOG.md` is the one change log a file keeps |
-| What the system is made of, and its data | `docs/architecture/`, `docs/data-model/` |
-| What is planned, per milestone and sprint | `docs/roadmap/` — status lives on GitHub |
+| How to run, use, or operate this | `README` / `docs/guides/` — here |
+| What the product must be able to do | `docs/product/requirements/`, the versioned SRS — its `CHANGELOG.md`, in Keep a Changelog, is the one change log a file keeps |
+| What the system is made of, and its data | `docs/system/architecture/`, `docs/system/data-model/` |
+| What is planned, per milestone and sprint | `docs/work/roadmap/` — status lives on GitHub |
 | How one feature behaves, in detail | that feature's spec |
 | Why it was decided this way | the ADR |
 | How the agent works in this repo | the repo's own `AGENTS.md` |
@@ -60,6 +60,9 @@ survives:
   limitation — say when it was true, so a reader can judge it instead of trusting it.
 - **A runnable example is the only one that survives.** If it can be executed, run it; if it cannot,
   it will be wrong and nobody will notice.
+- **A doc names the code it describes.** Its `covers` front matter, as `{{skill:project-docs}}` sets it,
+  lets `tightship docs affected` name it when that code changes and `tightship docs check` catch the
+  names it lost.
 - **A doc that contradicts the code is a finding.** One of the two is wrong — decide which before
   touching the prose, because rewording a doc to match a bug documents the bug.
 
@@ -77,11 +80,16 @@ survives:
 
 ## The three artifacts
 
-Each answers one question nothing else answers. There is no fourth by default.
+Each answers one question nothing else answers. There is no fourth by default. The README and the
+runbook follow this skill's own shape, since no wider standard exists for either; every other doc type's
+standard is in `{{skill:project-docs}}`.
 
 - **README** — *"how do I run and use this?"* What it is · quick start, copy-pasteable, from clone to
   running · the commands that matter · where to go next. The one doc that must always be current.
-- **`docs/`** — the depth that would bury the README. One page per subject, linked from it.
+- **`docs/`** — the depth that would bury the README. One page per subject, linked from it. A page
+  written for the product's users is one [Diátaxis](https://diataxis.fr/) type: a tutorial, a how-to
+  guide, a reference, or an explanation. A page that mixes two is split, and the folder's index names each
+  page's type.
 - **Runbook** — *"it is broken at 3am, what do I do?"* Deploy, roll back, diagnose, escalate. Only
   where something is actually operated.
 

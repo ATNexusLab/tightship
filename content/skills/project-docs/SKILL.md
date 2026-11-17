@@ -1,6 +1,6 @@
 +++
 name = "project-docs"
-description = "Use when creating or updating a project's docs under docs/ — the folder structure, the global docs (requirements, architecture, data model, design, roadmap), their diagrams (.drawio.svg), and the local docs site (Zensical, themed light and dark with the product's identity). Templates and what each doc owns."
+description = "Use when creating or updating a project's docs under docs/ — the folder structure by audience and lifecycle, the global docs (requirements, design, architecture, data model, roadmap), their diagrams (.drawio.svg), and the local docs site (Zensical, themed light and dark with the product's identity), and the client docs that present a delivered project. Templates and what each doc owns."
 +++
 
 # Project Docs
@@ -14,62 +14,122 @@ Every project is documented as if a team depended on it, even with one person on
 a reason to skip what needs documenting. The repo keeps the global docs below, and every feature keeps its
 spec; a feature's PR updates the global docs it changes, so any part reads alone or against the whole.
 
+## Standards
+
+Each doc type follows one standard, chosen in this order: a global standard the industry already uses,
+then ISO, then the convention of the doc's ecosystem, and our own convention only where none of those
+exists. A doc type missing from the table is chosen by the same order.
+
+| Doc type | Standard | Rung |
+| --- | --- | --- |
+| SRS | ISO/IEC/IEEE 29148 and the ISO/IEC 25010 quality model, with [SemVer](https://semver.org/) on the document | ISO |
+| SRS changelog | [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) | ecosystem |
+| Architecture | [arc42](https://arc42.org/overview) sections, drawn in the [C4 model](https://c4model.com/) | global |
+| Data model | Chen notation for the conceptual model, crow's foot for the physical | global |
+| Use cases, sequences, states | [UML](https://www.omg.org/spec/UML/) | global |
+| Business processes | [BPMN](https://www.omg.org/spec/BPMN/) | global |
+| Design tokens | the names and types of the [Design Tokens Format 2025.10](https://www.designtokens.org/TR/2025.10/) (W3C DTCG), in a Markdown table | global |
+| Brand, screens | ours; a screen cites [ISO 9241-161](https://www.iso.org/standard/85790.html) for its components | own |
+| Sprints | the [Scrum Guide 2020](https://scrumguides.org/scrum-guide.html): Sprint Goal, Product Goal, Definition of Done | global |
+| Roadmap | ours: milestones, then epics | own |
+| Feature spec | ours, `{{skill:spec-writing}}`; its scenarios in [Gherkin](https://cucumber.io/docs/gherkin/reference/) | own |
+| ADR | [Nygard's format](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions), plus `Alternatives considered` | global |
+| User-facing pages, in `guides/` | [Diátaxis](https://diataxis.fr/): each page is a tutorial, a how-to guide, a reference, or an explanation | global |
+| Client docs | [Diátaxis](https://diataxis.fr/), in [`client-docs.md`](client-docs.md) | global |
+| README, runbook | ours, `{{skill:technical-writing}}` | own |
+
 ## Structure
+
+The folders group the docs by who reads them and how long each one lives: what the product must be,
+how the system is built, why it was decided, what the work did, and what a user follows.
 
 ```text
 docs/
-  README.md                    map of the documentation; how to open the local site
-  requirements/                the SRS — `{{skill:requirements-engineering}}`
-    diagrams/use-cases-<area>.drawio.svg, process-<name>.drawio.svg
-  architecture/                arc42 sections, C4 diagrams — see `architecture/`
-    README.md                  goals, context and scope, solution strategy, and the index
-    building-blocks/           the system decomposed, one file per building block
-    runtime/                   scenarios, end to end across every layer
-    deployment.md              where every building block runs
-    concepts/                  crosscutting concepts, one file each
-    risks.md                   risks and technical debt
-    diagrams/<topic>.drawio.svg
-  data-model/
-    README.md                  conceptual and physical models, invariants, and the entity index
-    access-patterns.md
-    storage.md                 engine, indexes, policies, migrations — or files on disk
-    diagrams/<topic>.drawio.svg
-  design/
-    README.md                  the design tool the repo adopted, and the index
-    brand/                     description, brand book, logo, banner and every brand asset
-    tokens.md                  the design tokens, and where the app's source of them lives
-    pages/<feature>/<page>.md  one screen: its exported image and its specification
-  roadmap/
-    README.md                  milestones → epics, and requirement coverage
-    sprints/sprint-NN.md       one sprint: plan, baseline, result
-  specs/<epic>/<feature>.md    one feature in depth
-  decisions/NNNN-<slug>.md     ADRs
+  README.md                      map of the documentation; how to open the local site
+  product/                       what the product must be — living
+    README.md
+    requirements/                the SRS — `{{skill:requirements-engineering}}`
+      diagrams/use-cases-<area>.drawio.svg, process-<name>.drawio.svg
+    design/
+      README.md                  the design tool the repo adopted, and the index
+      brand/                     description, brand book, logo, banner and every brand asset
+      tokens.md                  the design tokens, and where the app's source of them lives
+      pages/<feature>/<page>.md  one screen: its exported image and its specification
+  system/                        how the system is built — living
+    README.md
+    architecture/                arc42 sections, C4 diagrams — see `system/architecture/`
+      README.md                  goals, context and scope, solution strategy, and the index
+      building-blocks/           the system decomposed, one file per building block
+      runtime/                   scenarios, end to end across every layer
+      deployment.md              where every building block runs
+      concepts/                  crosscutting concepts, one file each
+      risks.md                   risks and technical debt
+      diagrams/<topic>.drawio.svg
+    data-model/
+      README.md                  conceptual and physical models, invariants, and the entity index
+      access-patterns.md
+      storage.md                 engine, indexes, policies, migrations — or files on disk
+      diagrams/<topic>.drawio.svg
+  decisions/NNNN-<slug>.md       ADRs — never edited once accepted
+  work/                          what the work planned and did — history
+    README.md
+    roadmap/
+      README.md                  milestones → epics, and requirement coverage
+      estimation.md              velocity per sprint and the estimates that missed
+      sprints/sprint-NN.md       one sprint: plan, baseline, estimate, result
+    specs/<epic>/<feature>.md    one feature in depth
+  guides/                        pages a user follows, each one Diátaxis type
+    README.md
+    <subject>/                   one folder per subject, such as install/
+  assets/                        the local site's own files
+    stylesheets/                 docs-theme.css, image-viewer.css, pdf-export.css
+    javascripts/                 image-viewer.js, pdf-export.js
+client-docs/                     the docs for the client, with their own site — see `client-docs.md`
 ```
 
 - **One file, one subject**, readable in one sitting. A file that grows a second subject splits.
 - **Every folder has a `README.md`**: what the folder holds and a linked list or table of its files.
-- **Links are relative** (`../architecture/README.md`), so they work on GitHub, in VS Code, and on the
-  site.
+  `assets/` and its folders are the exception: they hold the site's files, never a page.
+- **Links are relative** (`../../system/architecture/README.md`), so they work on GitHub, in VS Code,
+  and on the site.
 - A level the project does not have is one line in the parent `README.md` saying why, not an empty file.
+  A group with no folder left in it is dropped, and `docs/README.md` says why.
 - **Diagrams are `.drawio.svg`**, each in the `diagrams/` folder of the doc it illustrates: edited in
   VS Code, rendered by GitHub.
+
+## Previous layout
+
+Docs written before this structure kept every folder at the root of `docs/`. The bootstrap moves them by
+this table and rewrites every link that pointed into a moved folder; `docs/decisions/` stays.
+
+| Previous | Current |
+| --- | --- |
+| `docs/requirements/` | `docs/product/requirements/` |
+| `docs/design/` | `docs/product/design/` |
+| `docs/architecture/` | `docs/system/architecture/` |
+| `docs/data-model/` | `docs/system/data-model/` |
+| `docs/roadmap/` | `docs/work/roadmap/` |
+| `docs/specs/` | `docs/work/specs/` |
+| `docs/stylesheets/`, `docs/javascripts/` | `docs/assets/stylesheets/`, `docs/assets/javascripts/` |
+| any other folder of pages a user follows, such as `docs/install/` | `docs/guides/<folder>/` |
 
 ## What each doc owns — one source per fact
 
 | Doc | Owns | Never holds |
 | --- | --- | --- |
-| `requirements/` | The versioned SRS: requirement IDs, attributes, acceptance criteria | Design |
-| `architecture/` | The map: what exists, how it talks, which milestone builds it | The checkable import rules — `AGENTS.md` → Architecture |
-| `data-model/` | Entities, relations, invariants, storage | Feature behavior |
-| `design/` | The brand, the tokens, and every screen grouped by feature | A resource the code ships — it lives in the app's own folder |
-| `roadmap/` | Milestones → epics, requirement coverage, each sprint's plan and dated result | Item status — issues, the GitHub Project, and GitHub Milestones own it |
+| `product/requirements/` | The versioned SRS: requirement IDs, attributes, acceptance criteria | Design |
+| `product/design/` | The brand, the tokens, and every screen grouped by feature | A resource the code ships — it lives in the app's own folder |
+| `system/architecture/` | The map: what exists, how it talks, which milestone builds it | The checkable import rules — `AGENTS.md` → Architecture |
+| `system/data-model/` | Entities, relations, invariants, storage | Feature behavior |
 | `decisions/` | Why an architectural choice was made | The current map |
-| `specs/` | One feature in depth | Anything global |
+| `work/roadmap/` | Milestones → epics, requirement coverage, each sprint's plan and dated result, the velocity history | Item status — issues, the GitHub Project, and GitHub Milestones own it |
+| `work/specs/` | One feature in depth | Anything global |
+| `guides/` | What a user follows to install, use, or operate the product | How the system is built |
 
 A doc that restates another is replaced by a link. `{{skill:technical-writing}}` still decides whether a doc should
-exist at all.
+exist at all. A doc that describes code names it under `covers`: [`covers.md`](covers.md).
 
-## `architecture/`
+## `system/architecture/`
 
 **Standard:** the section structure of **arc42**, drawn with the **C4 model**. Both are independent of
 any architecture style.
@@ -82,18 +142,18 @@ system has is documented somewhere below, and a section it lacks is one line in 
 
 | arc42 section | Where |
 | --- | --- |
-| 1. Introduction and goals | `README.md` — the goal in one paragraph; quality goals link to `../requirements/` NFRs |
-| 2. Constraints | a link to `../requirements/overview.md` |
+| 1. Introduction and goals | `README.md` — the goal in one paragraph; quality goals link to `../../product/requirements/` NFRs |
+| 2. Constraints | a link to `../../product/requirements/overview.md` |
 | 3. Context and scope | `README.md` — C4 context diagram, and every external actor and system with what flows |
 | 4. Solution strategy | `README.md` — the decided style and key technology choices, each linking its ADR |
 | 5. Building block view | `building-blocks/` |
 | 6. Runtime view | `runtime/` |
 | 7. Deployment view | `deployment.md` |
 | 8. Crosscutting concepts | `concepts/` |
-| 9. Architecture decisions | a link to `../decisions/` |
-| 10. Quality requirements | a link to `../requirements/` NFRs |
+| 9. Architecture decisions | a link to `../../decisions/` |
+| 10. Quality requirements | a link to `../../product/requirements/` NFRs |
 | 11. Risks and technical debt | `risks.md` |
-| 12. Glossary | a link to `../requirements/glossary.md` |
+| 12. Glossary | a link to `../../product/requirements/glossary.md` |
 
 - **`building-blocks/`** — `README.md` holds the C4 container diagram and a table: block · technology ·
   responsibility · talks to (protocol) · milestone · link. One file per block: its job, what it never
@@ -112,7 +172,7 @@ system has is documented somewhere below, and a section it lacks is one line in 
 Everything not built yet is still drawn, marked with its milestone and dashed, so the map shows the whole
 system from day one. A section that only describes something another doc owns is a link, never a copy.
 
-## `data-model/`
+## `system/data-model/`
 
 The method — access patterns first, identity, invariants — is `{{skill:database-design}}`. This folder is its
 record.
@@ -135,10 +195,10 @@ record.
 - `storage.md` — a database: engine, indexes, row-level policies, migration path; the tables and keys
   are the physical diagram's. Files: path · format · written by · lifecycle.
 
-## `design/`
+## `product/design/`
 
 The brand and every screen are documented here, and each one shows on the docs site itself. A project
-with no interface says so in one line in `docs/README.md`, and has no `design/`.
+with no interface says so in one line in `docs/README.md`, and has no `product/design/`.
 
 - **The tool is the team's.** `design/README.md` names the tool the repo adopted, as its `AGENTS.md`
   records it, and the index of what follows. Before producing or changing a design, load the design skill
@@ -146,69 +206,36 @@ with no interface says so in one line in `docs/README.md`, and has no `design/`.
 - **`brand/`** — the brand description, the brand book, and the logo, banner and every other brand asset.
   A copy the app ships lives in the app's own folder; this one is documentation.
 - **`tokens.md`** — every token by layer (color, type, spacing, radius, shadow) with its value in light
-  and dark, and the path of the app's own source of them. The docs site's `docs-theme.css` carries the
-  same values, and whoever changes a token changes both.
+  and dark, where it is applied, and the path of the app's own source of them. Each token is named by its
+  DTCG path (`color.accent`, `font.display`) and its columns are DTCG types (`color`, `fontFamily`,
+  `fontWeight`, `dimension`, `shadow`); colors are written as hex. The docs site's `docs-theme.css`
+  carries the same values, and whoever changes a token changes both.
 - **`pages/<feature>/<page>.md`** — one screen: the image exported from the design tool, embedded in the
   page, at phone width before desktop, then its specification — areas and what each is responsible for,
-  states, and the tokens it uses. A page that exists only as an HTML file to open is not documented: the
+  states, and the tokens it uses. Its components follow ISO 9241-161, and the page names any it departs
+  from and why. A page that exists only as an HTML file to open is not documented: the
   HTML, when the tool produces one, sits next to the page as its source, and the image is what the site
   shows. A feature's spec links its pages.
 
-## `roadmap/`
+## `work/roadmap/`
 
 Status lives on GitHub, never here: each issue's Status and `Sprint` in the Project, and each milestone
 as a **GitHub Milestone** holding its epics and tasks. This folder holds the plan and its history.
-
-`README.md`:
-
-```markdown
-# Roadmap
-
-Live status: the GitHub Project (<url>) and the milestones (<repo url>/milestones).
-
-## M<N> — <name>
-<Goal in one sentence.> GitHub Milestone: [M<N>](<milestone url>).
-
-| Epic | Issue | Covers |
-| --- | --- | --- |
-| <epic name> | #<n> | FR-<AREA>-01, NFR-<CHAR>-02 |
-
-## Requirement coverage
-Every approved requirement of a planned milestone maps to exactly one epic.
-
-| Requirement | Epic | Milestone |
-| --- | --- | --- |
-
-## Sprints
-- [Sprint <N>](sprints/sprint-NN.md) — <goal>
-```
-
-`sprints/sprint-NN.md`:
-
-```markdown
-# Sprint <N> — <start> → <end>
-
-**Goal:** <one sentence a user could observe at the end>
-**Requirements baseline:** v<version>
-**Items:** #<n>, #<n>
-
-## Result — <close date>
-Done: #… · Carried over: #… → Sprint <N+1>, because <reason> · Back to backlog: #…
-```
+Its templates, the velocity history included: [`roadmap.md`](roadmap.md).
 
 ## Diagrams
 
 - One diagram per file, in the `diagrams/` folder of the doc that owns it, embedded with a relative
-  path; a diagram never sits in a folder shared by every doc. `architecture/diagrams/`: `context`,
-  `containers`, `deployment`, `components-<block>`, `runtime-<scenario>`. `data-model/diagrams/`:
-  `conceptual`, `physical`, and their `-<module>` versions, and `states-<entity>`.
-  `requirements/diagrams/`: `use-cases-<area>`, `process-<name>`. Each is `<topic>.drawio.svg`, a valid
-  SVG with the diagram inside: GitHub, the site, and Zed's preview render it, and draw.io desktop or the
-  `hediet.vscode-drawio` extension in VS Code edits it. Zed has no editor for it: its extension API has no
-  webview.
+  path; a diagram never sits in a folder shared by every doc. `system/architecture/diagrams/`:
+  `context`, `containers`, `deployment`, `components-<block>`, `runtime-<scenario>`.
+  `system/data-model/diagrams/`: `conceptual`, `physical`, and their `-<module>` versions, and
+  `states-<entity>`. `product/requirements/diagrams/`: `use-cases-<area>`, `process-<name>`. Each is
+  `<topic>.drawio.svg`, a valid SVG with the diagram inside: GitHub, the site, and Zed's preview render
+  it, and draw.io desktop or the `hediet.vscode-drawio` extension in VS Code edits it. Zed has no editor
+  for it: its extension API has no webview.
 - **Producing one:** write the diagram as draw.io XML (`<mxfile>`) in the scratchpad, then export with
   the draw.io desktop CLI: `<drawio> --export --embed-diagram --svg-theme light --output
-  docs/<doc>/diagrams/<topic>.drawio.svg <file>.drawio`, where `<drawio>` is `drawio` on Linux,
+  docs/<group>/<doc>/diagrams/<topic>.drawio.svg <file>.drawio`, where `<drawio>` is `drawio` on Linux,
   `/Applications/draw.io.app/Contents/MacOS/draw.io` on macOS, and `"C:\Program
   Files\draw.io\draw.io.exe"` on Windows. Without `--embed-diagram` the SVG can no longer be edited.
   Without `--svg-theme light` the SVG follows the reader's browser theme and turns black on a light page:
@@ -255,7 +282,7 @@ Two more exist only when the case calls for them, never as a set to fill:
 
 - **State machine in UML,** `states-<entity>`, for an entity whose lifecycle has rules — an order, a
   subscription, an invoice: one rounded box per state, each transition labeled `<event> [<guard>]`, the
-  initial and final states as the UML dots. The `Invariants` of `data-model/README.md` links it.
+  initial and final states as the UML dots. The `Invariants` of `system/data-model/README.md` links it.
 - **Business process in BPMN,** `process-<name>`, for a process with people, hand-offs and decisions —
   an approval, a return: one lane per role, tasks as rounded boxes, gateways as diamonds, start and end
   events as circles. The requirements file of its area links it.
@@ -268,51 +295,31 @@ one.
 
 - **Generator: Zensical** (MIT, the successor to Material for MkDocs). It builds the sidebar from the
   folders and uses each folder's `README.md` as the section page.
-- `zensical.toml` at the repo root, with the light and dark schemes the reader toggles, both in the
-  product's colors, and the brand's logo and favicon:
-
-  ```toml
-  [project]
-  site_name = "<Project> — internal docs"
-  docs_dir = "docs"
-  extra_css = ["stylesheets/docs-theme.css", "stylesheets/image-viewer.css"]
-  extra_javascript = [{ path = "javascripts/image-viewer.js", type = "module" }]
-
-  [project.theme]
-  logo = "design/brand/<logo file>"
-  favicon = "design/brand/<favicon file>"
-
-  [[project.theme.palette]]
-  scheme = "default"
-  primary = "custom"
-  accent = "custom"
-  toggle.icon = "lucide/sun"
-  toggle.name = "<Switch to dark mode>"
-
-  [[project.theme.palette]]
-  scheme = "slate"
-  primary = "custom"
-  accent = "custom"
-  toggle.icon = "lucide/moon"
-  toggle.name = "<Switch to light mode>"
-  ```
+- `zensical.toml` at the repo root, copied from this skill's `zensical.toml` with its `<…>` filled: the
+  light and dark schemes the reader toggles, both in the product's colors, the brand's logo and favicon,
+  and the site's own stylesheets and scripts.
 
 - **The site uses the product's colors and logo.** Copy `docs-theme.css` from this skill to
-  `docs/stylesheets/` and fill each scheme with the values of `design/tokens.md`. The logo is the brand
-  version that reads on both themes. A project with no interface keeps the Zensical defaults and drops
-  the logo and favicon lines.
+  `docs/assets/stylesheets/` and fill each scheme with the values of `product/design/tokens.md`. The logo
+  is the brand version that reads on both themes. A project with no interface keeps the Zensical defaults
+  and drops the logo and favicon lines.
 - **One command opens the site:** `uvx zensical==<version> serve --open`, on `http://localhost:8000`, with
   the latest stable version from PyPI pinned. `docs/README.md` says it, and the editor setup the bootstrap
   writes, `.vscode/tasks.json` or `.zed/tasks.json`, runs the same command as its `docs: serve` task.
 - **Every image opens in a viewer.** Clicking an image or a diagram on any page opens it full screen;
   the scroll wheel zooms at the cursor, dragging pans, a double click fits it back and Esc closes. A
   diagram readable only at column width is not delivered. Copy `image-viewer.js` from this skill to
-  `docs/javascripts/` and `image-viewer.css` to `docs/stylesheets/`, and put its three strings in the
-  language of the docs.
+  `docs/assets/javascripts/` and `image-viewer.css` to `docs/assets/stylesheets/`, and put its three
+  strings in the language of the docs.
+- **The docs export to PDF.** A header button opens the navigation as a checkbox tree, with shortcuts
+  for this page, its section, and all docs, and keeps the last choice; export prints the chosen pages in
+  order, in the light scheme, with a cover and contents. Copy `pdf-export.js` and `pdf-export.css` from
+  this skill to the viewer's folders, and put the strings atop `pdf-export.js` in the language of the docs.
 - **Both themes are verified.** On the served site, in light and in dark: the brand colors, every page's
-  text and links, the logo, each diagram on its white card, and the viewer — click, zoom, drag, fit,
-  close. A palette with no `media` ignores the system theme, so a browser forced dark still shows light:
-  switch with the site's own toggle and confirm `body[data-md-color-scheme]` is `slate`.
+  text and links, the logo, each diagram on its white card, the viewer — click, zoom, drag, fit,
+  close — and the export dialog. A palette with no `media` ignores the system theme, so a browser
+  forced dark still shows light: switch with the site's own toggle and confirm
+  `body[data-md-color-scheme]` is `slate`.
 - **`docs/README.md` is the home page.** A `docs/index.html` takes `/` from it and leaves the reader on
   a page with no sidebar and no search: it never exists.
 - **Every folder the home page links to has its own `README.md`.** A link to a folder without one is a

@@ -32,8 +32,8 @@ Report which check failed and what to fix. Do not partially publish.
 - `gh label list` — reuse the labels that exist. Apply `epic` to the parent if the repo has it; map each
   task to the repo's `area:*` / type labels. Never create a label without asking.
 - The epic issue already exists — `{{command:sprint}} plan` created it from the roadmap. Find it on
-  `docs/roadmap/` and reuse it: its body gains the spec path and the scope below. Create one only when
-  the repo has no roadmap, and say so.
+  `docs/work/roadmap/` and reuse it: its body gains the spec path and the scope below. Create one only
+  when the repo has no roadmap, and say so.
 - The repo's GitHub Project, its `Sprint` iteration field, and the current iteration.
 
 ## 3. Build the bodies

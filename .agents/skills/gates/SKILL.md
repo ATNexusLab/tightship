@@ -23,6 +23,7 @@ description: Use before a commit or a pull request, or when CI fails — every g
 | Static analysis | `npx markdownlint-cli2@0.23.3` | Every `.md` git does not ignore, configured in `.markdownlint-cli2.jsonc` |
 | Static analysis | `cargo clippy --workspace --all-targets -- -D warnings` | The Rust workspace |
 | Static analysis | `cargo xtask scan` | gitleaks over every commit of every branch, and no tracked vault note |
+| Static analysis | `cargo run -q -p tightship -- docs check` | Links, references, `covers`, and markers in `docs/`, against the code |
 | Type checking | `cargo check --workspace --all-targets` | The Rust workspace |
 | Formatting | `cargo fmt --all --check` | rustfmt defaults |
 | Build | `uvx zensical==0.0.70 build` | The docs site into `site/`, configured in `zensical.toml` |
@@ -42,8 +43,8 @@ At each pull request into `develop` or `main`, `.github/workflows/` runs only th
 `rust.yml` the Rust gates on `ubuntu-latest`, `macos-latest`, and `windows-latest` (in Git Bash) when the
 workspace, `harnesses/`, or `installer/` changes, and only the build and the tests on Linux when `content/`
 alone changes; `docs.yml` markdownlint on Linux when Markdown changes, plus the docs build when `docs/` or
-`zensical.toml` changes; `scan.yml` the scan on Linux every time. Each reads the pull request's files from
-the GitHub API to pick its jobs and steps.
+`zensical.toml` changes; `scan.yml` the scan and the docs check on Linux every time. Each reads the pull
+request's files from the GitHub API to pick its jobs and steps.
 
 `rust.yml` writes `.identity-terms` from the repository secret `IDENTITY_TERMS`, so a change to the file is
 copied there with `gh secret set IDENTITY_TERMS < .identity-terms`. It clears `USER`: the build counts the
