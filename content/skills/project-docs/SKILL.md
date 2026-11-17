@@ -81,8 +81,8 @@ docs/
     README.md
     <subject>/                   one folder per subject, such as install/
   assets/                        the local site's own files
-    stylesheets/                 docs-theme.css, image-viewer.css
-    javascripts/                 image-viewer.js
+    stylesheets/                 docs-theme.css, image-viewer.css, pdf-export.css
+    javascripts/                 image-viewer.js, pdf-export.js
 client-docs/                     the docs for the client, with their own site — see `client-docs.md`
 ```
 
@@ -333,34 +333,9 @@ one.
 
 - **Generator: Zensical** (MIT, the successor to Material for MkDocs). It builds the sidebar from the
   folders and uses each folder's `README.md` as the section page.
-- `zensical.toml` at the repo root, with the light and dark schemes the reader toggles, both in the
-  product's colors, and the brand's logo and favicon:
-
-  ```toml
-  [project]
-  site_name = "<Project> — internal docs"
-  docs_dir = "docs"
-  extra_css = ["assets/stylesheets/docs-theme.css", "assets/stylesheets/image-viewer.css"]
-  extra_javascript = [{ path = "assets/javascripts/image-viewer.js", type = "module" }]
-
-  [project.theme]
-  logo = "product/design/brand/<logo file>"
-  favicon = "product/design/brand/<favicon file>"
-
-  [[project.theme.palette]]
-  scheme = "default"
-  primary = "custom"
-  accent = "custom"
-  toggle.icon = "lucide/sun"
-  toggle.name = "<Switch to dark mode>"
-
-  [[project.theme.palette]]
-  scheme = "slate"
-  primary = "custom"
-  accent = "custom"
-  toggle.icon = "lucide/moon"
-  toggle.name = "<Switch to light mode>"
-  ```
+- `zensical.toml` at the repo root, copied from this skill's `zensical.toml` with its `<…>` filled: the
+  light and dark schemes the reader toggles, both in the product's colors, the brand's logo and favicon,
+  and the site's own stylesheets and scripts.
 
 - **The site uses the product's colors and logo.** Copy `docs-theme.css` from this skill to
   `docs/assets/stylesheets/` and fill each scheme with the values of `product/design/tokens.md`. The logo
@@ -374,10 +349,15 @@ one.
   diagram readable only at column width is not delivered. Copy `image-viewer.js` from this skill to
   `docs/assets/javascripts/` and `image-viewer.css` to `docs/assets/stylesheets/`, and put its three
   strings in the language of the docs.
+- **The docs export to PDF.** A header button opens the navigation as a checkbox tree, with shortcuts
+  for this page, its section, and all docs, and keeps the last choice; export prints the chosen pages in
+  order, in the light scheme, with a cover and contents. Copy `pdf-export.js` and `pdf-export.css` from
+  this skill to the viewer's folders, and put the strings atop `pdf-export.js` in the language of the docs.
 - **Both themes are verified.** On the served site, in light and in dark: the brand colors, every page's
-  text and links, the logo, each diagram on its white card, and the viewer — click, zoom, drag, fit,
-  close. A palette with no `media` ignores the system theme, so a browser forced dark still shows light:
-  switch with the site's own toggle and confirm `body[data-md-color-scheme]` is `slate`.
+  text and links, the logo, each diagram on its white card, the viewer — click, zoom, drag, fit,
+  close — and the export dialog. A palette with no `media` ignores the system theme, so a browser
+  forced dark still shows light: switch with the site's own toggle and confirm
+  `body[data-md-color-scheme]` is `slate`.
 - **`docs/README.md` is the home page.** A `docs/index.html` takes `/` from it and leaves the reader on
   a page with no sidebar and no search: it never exists.
 - **Every folder the home page links to has its own `README.md`.** A link to a folder without one is a

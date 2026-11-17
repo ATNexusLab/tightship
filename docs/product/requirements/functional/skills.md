@@ -268,3 +268,34 @@ adopter confirms.
   client docs exist.
 - **FR-SKL-10.3** — Given a diff that changes what a page of the client docs describes, when the adopter
   runs the closeout command, then it names that page to update.
+
+<a id="fr-skl-11"></a>
+
+## FR-SKL-11 — The docs export to one PDF, whole or by page
+
+> As an adopter who sends the docs to a client or a reviewer, I want a button on the docs site that exports
+> the docs, or the pages I choose, to a single PDF in the site's identity, so that I stop copying the docs
+> by hand.
+
+The system shall export, from a button on the docs site, the current page, its section, the folders and
+pages the reader checks, or the whole docs to a single PDF, built from the HTML the site renders.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The docs existed only as Markdown and as a local site, and sending them to someone outside the repository meant copying them by hand. |
+| Source | Maintainer, [#162](https://github.com/ATNexusLab/tightship/issues/162) |
+| Priority | Should |
+| Status | approved |
+| Milestone | M4 |
+| Since | v4.3.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-11.1** — Given the docs site, when the reader exports all docs, then one PDF holds every page of
+  the site's navigation, in its order, with the diagrams rendered.
+- **FR-SKL-11.2** — Given a folder or pages checked in the export dialog, when the reader exports, then the
+  PDF holds only those pages, in the navigation's order.
+- **FR-SKL-11.3** — Given a repository with client docs, when the reader opens the client docs site, then
+  it has the same export.
+- **FR-SKL-11.4** — Given the site in its dark scheme, when the reader exports, then the PDF is in the light
+  scheme.

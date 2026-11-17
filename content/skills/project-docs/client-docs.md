@@ -20,8 +20,8 @@ client-docs/
     environments.md        each environment's address and what it is for
   assets/
     images/                the screens, copied from the project's design pages
-    stylesheets/           docs-theme.css, image-viewer.css
-    javascripts/           image-viewer.js
+    stylesheets/           docs-theme.css, image-viewer.css, pdf-export.css
+    javascripts/           image-viewer.js, pdf-export.js
 zensical.client.toml       the client site's config, at the repository root
 ```
 
@@ -121,40 +121,22 @@ project docs.
 The client site is separate from the internal site: its own config, its own folder, its own build output.
 It is never deployed by the repository; how the client receives it is the adopter's call.
 
-`zensical.client.toml`, at the repository root:
+`zensical.client.toml`, at the repository root, is this skill's `zensical.toml` with these
+keys changed, so both sites load the same stylesheets and scripts:
 
-```toml
-[project]
-site_name = "<Product>"
-docs_dir = "client-docs"
-site_dir = "client-site"
-extra_css = ["assets/stylesheets/docs-theme.css", "assets/stylesheets/image-viewer.css"]
-extra_javascript = [{ path = "assets/javascripts/image-viewer.js", type = "module" }]
+| Key | Value |
+| --- | --- |
+| `site_name` | `"<Product>"` |
+| `docs_dir` | `"client-docs"` |
+| `site_dir`, added under `[project]` | `"client-site"` |
+| `logo`, `favicon` | `"assets/images/<logo file>"`, `"assets/images/<favicon file>"` |
+| `language`, added under `[project.theme]` | `"<client's language code>"` |
+| Each `toggle.name` | The same sentence, in the client's language |
 
-[project.theme]
-logo = "assets/images/<logo file>"
-favicon = "assets/images/<favicon file>"
-language = "<client's language code>"
-
-[[project.theme.palette]]
-scheme = "default"
-primary = "custom"
-accent = "custom"
-toggle.icon = "lucide/sun"
-toggle.name = "<Switch to dark mode, in the client's language>"
-
-[[project.theme.palette]]
-scheme = "slate"
-primary = "custom"
-accent = "custom"
-toggle.icon = "lucide/moon"
-toggle.name = "<Switch to light mode, in the client's language>"
-```
-
-- The theme, the logo, and the image viewer are the internal site's, copied into `client-docs/assets/`:
-  `docs-theme.css` with the product's tokens, the logo and favicon from the brand, and the viewer's three
-  strings in the client's language. A project with no interface keeps the Zensical defaults and drops
-  the logo and favicon lines.
+- The theme, the logo, the image viewer, and the PDF export are the internal site's, copied into
+  `client-docs/assets/`: `docs-theme.css` with the product's tokens, the logo and favicon from the brand,
+  and the strings of the viewer and the export in the client's language. A project with no interface
+  keeps the Zensical defaults and drops the logo and favicon lines.
 - `client-site/` is in `.gitignore`.
 - **One command opens it:** `uvx zensical==<version> serve -f zensical.client.toml -a localhost:8001
   --open`, on its own port so both sites run at once, with the same pinned version as the internal site.

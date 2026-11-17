@@ -206,8 +206,8 @@ written from the requirements, the ADRs, and — in detection — the code:
 - `docs/product/design/` — the brand, the tokens, and every screen by feature, in the tool §2 settled.
   A project with no interface says so in `docs/README.md` instead.
 - Diagrams as `.drawio.svg` in the `diagrams/` folder of the doc each one illustrates.
-- The local docs site: `zensical.toml` with both themes in the product's identity, `docs-theme.css`
-  and the image viewer in `docs/assets/`, `site/` in `.gitignore`, and no deploy workflow.
+- The local docs site: `zensical.toml` with both themes in the product's identity, `docs-theme.css`,
+  the image viewer, and the PDF export in `docs/assets/`, `site/` in `.gitignore`, and no deploy workflow.
 
 An existing single-file doc (`docs/requirements.md`, `docs/architecture.md`, …) is split into its folder,
 its content kept, and every link to it updated.

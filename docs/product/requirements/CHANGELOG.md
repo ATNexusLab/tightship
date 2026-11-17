@@ -1,5 +1,15 @@
 # Changelog
 
+## [4.3.0] - 2026-11-16
+
+The docs reached someone outside the repository only when copied by hand. Change request
+[#162](https://github.com/ATNexusLab/tightship/issues/162) adds an export of the docs to PDF.
+
+### Added
+
+- FR-SKL-11: a button on the docs site exports the current page, its section, chosen folders and
+  pages, or the whole docs to a single PDF.
+
 ## [4.2.0] - 2026-11-16
 
 The bootstrap documented a repository only for whoever builds it, and the folders of `docs/` had grown

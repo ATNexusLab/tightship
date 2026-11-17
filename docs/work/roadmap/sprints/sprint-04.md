@@ -8,8 +8,9 @@ and export to PDF, with sprints estimated from their own history.
 runs before each commit
 **Requirements baseline:** v4.1.0 · change requests decided: none open; #140, #141, and #149 were decided
 in sprint 3 and close with the release
-**Milestones:** [M4 — Codex](https://github.com/ATNexusLab/tightship/milestone/4), which #142 and, since
-requirements v4.2.0, #138 carry; the other items carry none until their requirement changes place them
+**Milestones:** [M4 — Codex](https://github.com/ATNexusLab/tightship/milestone/4), which #142 carries,
+with #138 since requirements v4.2.0 and #162 since v4.3.0; the other items carry none until their
+requirement changes place them
 
 The Project's `Sprint 6` iteration runs from 2026-11-16 to 2026-11-22. The sprint takes the whole backlog:
 sprint 3's plan held three days of work, finished on its first day, and the rest of the week was filled
