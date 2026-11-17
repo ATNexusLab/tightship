@@ -38,7 +38,7 @@ vault em `~/ai-memory`; um `-` na pergunta do vault o deixa para depois. Numa pe
 ou não, uma seta troca a resposta. Nada é gravado antes de você escolher Install no resumo:
 
 ```text
-+  tightship v1.3.0
++  tightship v1.4.0
 |
 |  Options
 *  Load the working contract in every session?
