@@ -1,9 +1,10 @@
 # Release checklist
 
 One row per acceptance criterion of every functional requirement of M1, the macOS signature, the installer
-in every supported shell, and
+in every supported shell,
 [NFR-FLEX-02.1](../../product/requirements/non-functional/flexibility.md#nfr-flex-02) Scenario 6 for Cursor's
-command-line agent. Run it on macOS, Linux, and Windows for every release, and write ✅ or ❌ with the date
+command-line agent, and every surface of the [support matrix](../install/README.md). Run it on macOS,
+Linux, and Windows for every release, and write ✅ or ❌ with the date
 in each system's column. `develop` is released into `main` only when every row passes on all three
 ([README](README.md)).
 The Claude rows use the preparation below; the Cursor row uses the Cursor preparation as well.
@@ -132,6 +133,29 @@ On Windows, run every command in Git Bash.
 | Criterion | How it is checked | macOS | Linux | Windows |
 | --- | --- | --- | --- | --- |
 | NFR-FLEX-02.1 | Manual: after Cursor preparation step 2, start an interactive `agent --plugin-dir dist/cursor` session (not `agent -p`), ask which slash commands are available; the answer lists `/spec` and the other workflow commands from `content/commands/` | | | |
+
+## Surfaces
+
+One row per surface of the [support matrix](../install/README.md), in its order
+([NFR-FLEX-09.2](../../product/requirements/non-functional/flexibility.md#nfr-flex-09)). A desktop app, an
+IDE, and Zed's agent panel run on macOS only; a CLI and Zed's terminal run on all three systems. A row whose
+pieces all read `Not checked yet` checks nothing until its issue fills the matrix.
+
+| Criterion | How it is checked | macOS | Linux | Windows |
+| --- | --- | --- | --- | --- |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Claude Code — CLI, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | | |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Claude Code — Desktop app, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | n/a | n/a |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Claude Code — Zed's terminal, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | | |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Claude Code — Zed's agent panel, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | n/a | n/a |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Cursor — Editor, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | n/a | n/a |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Cursor — `agent` CLI, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | | |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Cursor — Zed's terminal, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | | |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Cursor — Zed's agent panel, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | n/a | n/a |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Antigravity — CLI, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | | |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Antigravity — IDE, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | n/a | n/a |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Antigravity — Desktop app, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | n/a | n/a |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Antigravity — Zed's terminal, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | | |
+| NFR-FLEX-09.2 | Manual: install as the matrix says, open a session on Antigravity — Zed's agent panel, and check each piece the matrix marks `Yes`: the contract answers a question about itself, a skill and a command run, a hook prints at session start, the vault's pinned notes show, and the status line renders | | n/a | n/a |
 
 ## The macOS binary
 
