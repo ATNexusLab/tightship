@@ -1,5 +1,23 @@
 # Changelog
 
+## [4.2.0] - 2026-11-16
+
+The bootstrap documented a repository only for whoever builds it, and the folders of `docs/` had grown
+one doc type at a time, mixing the description of the system with the history of the work. Change request
+[#138](https://github.com/ATNexusLab/tightship/issues/138) adds one structure for the docs and the client
+docs a delivered project needs.
+
+### Added
+
+- FR-SKL-09: the docs follow one structure, grouped by audience and lifecycle, and the bootstrap moves a
+  repository on the previous structure once the adopter approves.
+- FR-SKL-10: the bootstrap writes the project docs, the client docs, or both.
+
+### Fixed
+
+- The index of the README lists FR-SKL-07, FR-SKL-08, and NFR-FLEX-08, which version 4.1.0 added without
+  a row.
+
 ## [4.1.0] - 2026-11-11
 
 Adopters work in Zed as well as in VS Code, and in two projects the production image carried the development

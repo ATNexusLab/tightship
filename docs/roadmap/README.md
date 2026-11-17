@@ -71,10 +71,14 @@ GitHub Milestone: [M4 — Codex](https://github.com/ATNexusLab/tightship/milesto
 | Epic | Issue | Covers |
 | --- | --- | --- |
 | Codex plugin | [#142](https://github.com/ATNexusLab/tightship/issues/142) | NFR-FLEX-04 |
+| Docs structure and client docs | [#138](https://github.com/ATNexusLab/tightship/issues/138) | FR-SKL-09, FR-SKL-10 |
 
 One epic carries the whole harness, as in M2 and M3. Its spec settles OQ-04, OQ-06, and OQ-08. The
 [spec of epic #140](../specs/own-the-companions/own-the-companions.md) answered OQ-05: no harness installs
 a companion plugin, Codex included.
+
+Epic #138 is not part of the harness: it rides on M4 because M4 is the open milestone, and it ships in
+the same release.
 
 ## Requirement coverage
 
@@ -99,6 +103,8 @@ Every approved requirement of M1 to M4 maps to exactly one epic.
 | FR-SKL-06 | #140 | M3 |
 | FR-SKL-07 | #158 | M3 |
 | FR-SKL-08 | #158 | M3 |
+| FR-SKL-09 | #138 | M4 |
+| FR-SKL-10 | #138 | M4 |
 | FR-VER-01 | #2 | M1 |
 | FR-VER-02 | #2 | M1 |
 | FR-MEM-01 | #5 | M1 |

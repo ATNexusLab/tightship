@@ -6,6 +6,7 @@
 | Baseline | Commit `1f41699` of the maintainer's private configuration, the pre-plugin workflow every parity requirement refers to. |
 | Canonical content | The single authored copy of every workflow piece in this repository, from which each harness's plugin is built. |
 | Checkpoint | A reminder, placed in the agent's context, to record in the vault what the session learned. |
+| Client docs | The docs that present a delivered project to its client, apart from the docs for whoever builds it. |
 | Command | A workflow step the adopter invokes by name, such as the one that writes a spec. |
 | Companion plugins | The three third-party plugins the workflow required and installed until version 4.0.0 of this SRS, which names them in its [changelog](CHANGELOG.md). |
 | Contract | The always-on text that tells the agent how to work in every session. |

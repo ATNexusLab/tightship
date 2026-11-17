@@ -1,6 +1,6 @@
 # Workflow — Software Requirements Specification
 
-**Version:** 4.1.0 · **Date:** 2026-11-11 · [Changelog](CHANGELOG.md)
+**Version:** 4.2.0 · **Date:** 2026-11-16 · [Changelog](CHANGELOG.md)
 
 ## Purpose
 
@@ -67,6 +67,10 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [FR-SKL-04](functional/skills.md#fr-skl-04) | The bootstrap writes a lean repository contract | Must | approved | M3 |
 | [FR-SKL-05](functional/skills.md#fr-skl-05) | The bootstrap writes project skills | Must | approved | M3 |
 | [FR-SKL-06](functional/skills.md#fr-skl-06) | A skill edits prose for people | Must | approved | M3 |
+| [FR-SKL-07](functional/skills.md#fr-skl-07) | The bootstrap sets up the editors the project uses | Should | approved | M3 |
+| [FR-SKL-08](functional/skills.md#fr-skl-08) | A skill keeps production artifacts lean | Should | approved | M3 |
+| [FR-SKL-09](functional/skills.md#fr-skl-09) | The docs follow one structure by audience and lifecycle | Should | approved | M4 |
+| [FR-SKL-10](functional/skills.md#fr-skl-10) | The bootstrap writes project docs, client docs, or both | Should | approved | M4 |
 | [FR-VER-01](functional/verifier.md#fr-ver-01) | Verifier can be dispatched | Must | approved | M1 |
 | [FR-VER-02](functional/verifier.md#fr-ver-02) | Verifier changes only a private copy | Must | approved | M1 |
 | [FR-MEM-01](functional/memory.md#fr-mem-01) | Memory context at session start | Must | approved | M1 |
@@ -103,6 +107,7 @@ Milestones M1 to M4 are defined by [BR-01](business-rules.md#br-01).
 | [NFR-FLEX-05](non-functional/flexibility.md#nfr-flex-05) | Three operating systems | Must | approved | M1 |
 | [NFR-FLEX-06](non-functional/flexibility.md#nfr-flex-06) | Harness-neutral canonical content | Must | approved | M1 |
 | [NFR-FLEX-07](non-functional/flexibility.md#nfr-flex-07) | A new harness leaves the canonical content untouched | Should | approved | M2 |
+| [NFR-FLEX-08](non-functional/flexibility.md#nfr-flex-08) | Every harness runs in Zed | Should | approved | M3 |
 | [NFR-COMP-01](non-functional/compatibility.md#nfr-comp-01) | One vault across harnesses | Must | approved | M2 |
 | [NFR-SEC-01](non-functional/security.md#nfr-sec-01) | No personal identity in shipped content | Must | approved | M1 |
 | [NFR-SEC-02](non-functional/security.md#nfr-sec-02) | No secret and no vault content in the repository | Must | approved | M1 |

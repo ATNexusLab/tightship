@@ -210,3 +210,61 @@ runtime dependencies, and the files read at run time.
 - **FR-SKL-08.2** — Given a project whose artifact carries a development dependency, has no ignore file or
   an open one, or builds and runs in one step, when the adopter runs the audit command on it, then each
   case is reported as a finding.
+
+<a id="fr-skl-09"></a>
+
+## FR-SKL-09 — The docs follow one structure by audience and lifecycle
+
+> As an adopter, I want the docs the workflow writes to sit in one structure grouped by who reads them
+> and how long they live, so that I find a doc without knowing the history of the folder.
+
+The system shall prescribe, through the docs skill and the bootstrap command, one docs structure that
+keeps apart the description of the product and the system, the decisions, the history of the work, and
+the pages for users.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The root of `docs/` mixed the living description of the system, the history of the work, the pages for users, and the files of the site, and each doc type was placed one at a time. |
+| Source | Maintainer, [#138](https://github.com/ATNexusLab/tightship/issues/138); ADR 0005 |
+| Priority | Should |
+| Status | approved |
+| Milestone | M4 |
+| Since | v4.2.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-09.1** — Given a repository the adopter bootstraps, when its docs are written, then each of the
+  four groups sits in its own folder under `docs/`, and the internal docs site builds with exit code 0.
+- **FR-SKL-09.2** — Given a repository whose docs follow the previous structure, when the adopter runs the
+  bootstrap on it, then the bootstrap lists every folder it moves and every link it rewrites, and changes
+  nothing until the adopter approves the list.
+
+<a id="fr-skl-10"></a>
+
+## FR-SKL-10 — The bootstrap writes project docs, client docs, or both
+
+> As an adopter who delivers a project to a client, I want the bootstrap to write docs that present the
+> project to the client, next to or instead of the docs for whoever builds it, so that the client gets
+> documentation written for them.
+
+The system shall write, through the bootstrap command, the project docs, the client docs, or both, as the
+adopter confirms.
+
+| Attribute | Value |
+| --- | --- |
+| Rationale | The bootstrap documented a repository only for whoever builds it, and a project delivered to a client had no piece for the docs that present it. |
+| Source | Maintainer, [#138](https://github.com/ATNexusLab/tightship/issues/138); ADR 0005 |
+| Priority | Should |
+| Status | approved |
+| Milestone | M4 |
+| Since | v4.2.0 |
+
+**Acceptance criteria**
+
+- **FR-SKL-10.1** — Given an adopter who confirms the client docs, when the bootstrap ends, then the client
+  docs hold an explanation, a tutorial, how-to guides, and a reference, in the client's language, with no
+  link into the project docs, and their own site builds with exit code 0.
+- **FR-SKL-10.2** — Given an adopter who confirms the project docs only, when the bootstrap ends, then no
+  client docs exist.
+- **FR-SKL-10.3** — Given a diff that changes what a page of the client docs describes, when the adopter
+  runs the closeout command, then it names that page to update.
